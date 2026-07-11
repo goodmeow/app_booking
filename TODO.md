@@ -15,12 +15,13 @@
 
 ## Phase 2 — Extract specification
 
-- [ ] Extract backend module map from `server.bundle.js`.
-- [ ] Document endpoints, middleware, payloads, statuses, and errors.
-- [ ] Map controllers to PostgreSQL functions.
-- [ ] Document Socket.io rooms, events, and payloads.
-- [ ] Extract frontend routes, screens, Redux state, and API calls.
-- [ ] Build screen-action-endpoint matrix.
+- [x] Extract backend module map from `server.bundle.js`.
+- [x] Document endpoints, middleware, payloads, statuses, and errors.
+- [x] Map controllers to PostgreSQL functions.
+- [x] Document Socket.io rooms, events, and payloads.
+- [x] Extract frontend routes, screens, Redux state, and API calls.
+- [x] Build screen-action-endpoint matrix.
+- [x] Document proposed Android WebView, RGB LED, and NFC integration boundary.
 
 ## Phase 3 — Reconstruct database
 

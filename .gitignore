@@ -11,3 +11,6 @@ node_modules/
 # Reconstructed build output. Existing dist is preserved as baseline via force-add.
 coverage/
 
+# Private reconstruction references may contain credentials, internal IPs,
+# email addresses, card numbers, and infrastructure details.
+docs/reference/private/
