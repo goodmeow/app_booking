@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+!.env.example
+
+# Logs and local runtime files
+*.log
+*.pid
+.DS_Store
+
+# Reconstructed build output. Existing dist is preserved as baseline via force-add.
+coverage/
+

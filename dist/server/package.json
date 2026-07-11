@@ -1,0 +1,12 @@
+{
+  "name": "bjb-webapp-server",
+  "version": "0.0.0",
+  "type": "commonjs",
+  "main": "server.bundle.js",
+  "scripts": {
+    "start": "node server.bundle.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
