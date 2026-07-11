@@ -25,11 +25,17 @@
 
 ## Phase 3 — Reconstruct database
 
-- [ ] Validate clean import of `bjb.sql`.
-- [ ] Document tables, constraints, and relations.
-- [ ] Test stored functions.
-- [ ] Convert dump into ordered migrations.
-- [ ] Add sanitized minimum seed data.
+- [x] Prepare database migration, seed, and test structure.
+- [x] Add dedicated test environment template and safety notes.
+- [x] Check local PostgreSQL/container prerequisites.
+- [x] Install PostgreSQL 14 or container runtime.
+- [x] Validate clean import of `bjb.sql`.
+- [x] Document tables, constraints, and relations.
+- [x] Test stored functions.
+- [x] Convert dump into ordered migrations.
+- [x] Add sanitized minimum seed data.
+
+Phase 3 complete: disposable database rebuilds from migrations and passes all SQL suites.
 
 ## Phase 4 — Reconstruct server
 

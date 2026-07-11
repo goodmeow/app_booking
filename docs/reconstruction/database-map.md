@@ -25,6 +25,8 @@ Deletion therefore has no DB-enforced cascade/restrict behavior.
 
 ## Stored functions
 
+Clean PostgreSQL 14 import creates 28 public functions.
+
 | Domain | Functions | Behavior/evidence |
 |---|---|---|
 | Card master | `card_master_get_data`, `insert_data`, `update_data`, `delete_data`, `validation` | CRUD and case-insensitive door-card validation. Validation returns `Door Opened`, else raises `Card not registered` (`bjb.sql:23-148`). |
