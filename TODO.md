@@ -71,7 +71,7 @@ Phase 6 complete: production build and all recovered SPA route fallbacks pass.
 - [x] Publish implementation slices, evidence gates, and acceptance checks.
 - [x] Add shared dialogs, validation/payload helpers, and confirmed missing service contracts.
 - [x] Finish signin and signup visual/behavioral parity.
-- [ ] Rebuild card master, user, and room management.
+- [x] Rebuild card master, user, and room management.
 - [ ] Rebuild user profile and self-service actions.
 - [ ] Rebuild room usage report and XLSX export.
 - [ ] Rebuild calendar, room finder, filters, and realtime refresh.
