@@ -49,10 +49,14 @@ Phase 4 complete: source builds and authenticated API reaches reconstructed Post
 
 ## Phase 5 — Verify server parity
 
-- [ ] Build API contract tests.
-- [ ] Compare old bundle and reconstructed server responses.
-- [ ] Test database mutations, authorization, and Socket.io behavior.
-- [ ] Publish parity report.
+- [x] Prepare differential child-process harness and deterministic fixtures.
+- [x] Prepare serial parity database reset and Socket.io test plan.
+- [x] Build API contract tests.
+- [x] Compare old bundle and reconstructed server responses.
+- [x] Test database mutations, authorization, and Socket.io behavior.
+- [x] Publish parity report.
+
+Phase 5 complete: legacy/reconstructed differential suite passes 12/12 tests across all 32 route boundaries and representative deep contracts.
 
 ## Phase 6 — Reconstruct client foundation
 

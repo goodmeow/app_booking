@@ -13,7 +13,9 @@
     "build:server:check": "cross-env SERVER_OUT_DIR=/tmp/360booking-server-build webpack --mode production --config webpack.config.cjs",
     "create:server:package": "node scripts/create-server-package.js",
     "start:client": "node scripts/start-client.js",
-    "start:server": "node scripts/start-server.js"
+    "start:server": "node scripts/start-server.js",
+    "test:server:parity:prepare": "node --test --test-concurrency=1 server/tests/parity/prepare.test.js",
+    "test:server:parity": "node --test --test-concurrency=1 server/tests/parity/*.test.js"
   },
   "dependencies": {
     "@emotion/react": "^11.10.6",
