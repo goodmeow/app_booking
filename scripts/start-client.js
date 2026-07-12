@@ -14,13 +14,13 @@ const HOST = process.env.HOST || 'localhost';
 
 // Serve reconstructed client build; dist remains immutable baseline evidence.
 const clientDir = path.join(__dirname, '..', 'build', 'client');
+const viteBin = path.join(__dirname, '..', 'node_modules', 'vite', 'bin', 'vite.js');
 
 console.log(`🚀 Starting client on ${HOST}:${CLIENT_PORT}...`);
 
-const viteProcess = spawn('vite', ['preview', '--outDir', '.', '--host', HOST, '--port', CLIENT_PORT], {
+const viteProcess = spawn(process.execPath, [viteBin, 'preview', '--outDir', '.', '--host', HOST, '--port', CLIENT_PORT], {
   cwd: clientDir,
-  stdio: 'inherit',
-  shell: true
+  stdio: 'inherit'
 });
 
 viteProcess.on('error', (error) => {

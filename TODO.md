@@ -60,9 +60,11 @@ Phase 5 complete: legacy/reconstructed differential suite passes 12/12 tests acr
 
 ## Phase 6 — Reconstruct client foundation
 
-- [ ] Restore Vite and React entrypoints.
-- [ ] Restore router, Redux store, API layer, and auth persistence.
-- [ ] Restore theme, layout, navigation, and Socket.io client.
+- [x] Restore Vite and React entrypoints.
+- [x] Restore router, Redux store, API layer, and auth persistence.
+- [x] Restore theme, layout, navigation, and Socket.io client.
+
+Phase 6 complete: production build and all recovered SPA route fallbacks pass.
 
 ## Phase 7 — Reconstruct screens
 
