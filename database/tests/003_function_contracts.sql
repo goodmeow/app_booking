@@ -214,7 +214,7 @@ BEGIN
       'Temporary User',
       'temporary@example.test',
       'test-only',
-      '10000000-0000-4000-8000-000000000002',
+      '67e9500b-908a-497d-9d3b-54bc020700cb',
       'false',
       'employee'
     ]]::character varying[]

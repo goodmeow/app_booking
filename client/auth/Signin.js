@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Alert, Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { Link, useHistory, useLocation } from "react-router-dom";
-import { authenticate, signin } from "./auth-helper.js";
+import { authenticate, isRoomAccountEmail, signin } from "./auth-helper.js";
 
 const Signin = () => {
   const history = useHistory();
@@ -14,7 +14,7 @@ const Signin = () => {
   const submit = async (event) => {
     event.preventDefault();
     setError("");
-    if (email.includes("@room.com")) {
+    if (isRoomAccountEmail(email)) {
       setError("Room cannot sign in here");
       return;
     }
@@ -38,8 +38,9 @@ const Signin = () => {
 
   return (
     <Box sx={{ minHeight: "calc(100vh - 64px)", display: "grid", placeItems: "center", p: 2 }}>
-      <Paper component="form" onSubmit={submit} sx={{ width: "100%", maxWidth: 420, p: 4 }}>
-        <Typography variant="h4" color="primary" gutterBottom>360Books</Typography>
+      <Paper component="form" onSubmit={submit} sx={{ width: "100%", maxWidth: 420, p: 4, bgcolor: "common.white" }}>
+        <Box component="img" src="/icon.svg" alt="360Books" sx={{ display: "block", width: 80, height: 80, mx: "auto", mb: 2 }} />
+        <Typography variant="h4" color="primary" align="center" gutterBottom>360Books</Typography>
         <Typography variant="h6" gutterBottom>Sign In</Typography>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         <TextField fullWidth required label="Email" type="email" margin="normal" value={email} onChange={(event) => setEmail(event.target.value)} />

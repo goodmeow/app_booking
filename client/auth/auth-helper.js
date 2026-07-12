@@ -1,5 +1,7 @@
 const sessionKey = "jwt";
 
+export const isRoomAccountEmail = (email = "") => email.toLowerCase().includes("@room.com");
+
 const isSession = (value) => (
   Boolean(value?.token)
   && Boolean(value?.user?._id)

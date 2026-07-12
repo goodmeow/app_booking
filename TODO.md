@@ -68,12 +68,17 @@ Phase 6 complete: production build and all recovered SPA route fallbacks pass.
 
 ## Phase 7 — Reconstruct screens
 
-- [ ] Signin and signup.
-- [ ] Dashboard and calendar.
-- [ ] Event create, edit, detail, delete, attendees, and check-in.
-- [ ] User and room management.
-- [ ] Room usage report.
-- [ ] App settings and card master.
+- [x] Publish implementation slices, evidence gates, and acceptance checks.
+- [x] Add shared dialogs, validation/payload helpers, and confirmed missing service contracts.
+- [x] Finish signin and signup visual/behavioral parity.
+- [ ] Rebuild card master, user, and room management.
+- [ ] Rebuild user profile and self-service actions.
+- [ ] Rebuild room usage report and XLSX export.
+- [ ] Rebuild calendar, room finder, filters, and realtime refresh.
+- [ ] Rebuild event create, edit, detail, cancel, and attendee workflows.
+- [ ] Pass Phase 7 production build and route/workflow smoke checks.
+
+Phase 7 prepared: implementation plan is in `docs/reconstruction/phase7-implementation-plan.md`. Settings remains a recovered latent capability excluded from visible UI pending evidence; tablet check-in/NFC/LED remains outside the recovered web-client scope.
 
 ## Phase 8 — Verify client parity
 

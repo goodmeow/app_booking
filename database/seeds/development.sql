@@ -12,8 +12,8 @@ TRUNCATE TABLE
   tbl_role;
 
 INSERT INTO tbl_role (_id, role_name, is_deleted) VALUES
-  ('10000000-0000-4000-8000-000000000001', 'admin', false),
-  ('10000000-0000-4000-8000-000000000002', 'user', false);
+  ('471ba030-c950-41f9-90da-4e0fe10426a6', 'admin', false),
+  ('67e9500b-908a-497d-9d3b-54bc020700cb', 'user', false);
 
 INSERT INTO tbl_users
   (_id, name, email, password, role_id, is_deleted, type, card_number)
@@ -23,7 +23,7 @@ VALUES
     'Test Admin',
     'admin@example.test',
     '$2b$10$test.hash.not.for.authentication',
-    '10000000-0000-4000-8000-000000000001',
+    '471ba030-c950-41f9-90da-4e0fe10426a6',
     false,
     'employee',
     'TEST-ADMIN-CARD'
@@ -33,7 +33,7 @@ VALUES
     'Test User',
     'user@example.test',
     '$2b$10$test.hash.not.for.authentication',
-    '10000000-0000-4000-8000-000000000002',
+    '67e9500b-908a-497d-9d3b-54bc020700cb',
     false,
     'employee',
     'TEST-USER-CARD'
