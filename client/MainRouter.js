@@ -9,6 +9,8 @@ import ProtectedShell from "./core/ProtectedShell.js";
 import { LoadingState } from "./components/common/AsyncState.js";
 
 const AppManagement = React.lazy(() => import("./management/AppManagement.js"));
+const UserProfile = React.lazy(() => import("./profile/UserProfile.js"));
+const RoomUsageReport = React.lazy(() => import("./report/RoomUsageReport.js"));
 
 const ProtectedRoute = ({ component: Component, adminOnly = false, ...rest }) => (
   <Route
@@ -29,8 +31,6 @@ const ProtectedRoute = ({ component: Component, adminOnly = false, ...rest }) =>
 );
 
 const CalendarShell = () => <PlaceholderPage title="Meeting Calendar" description="Calendar and meeting workflow will be restored in Phase 7." />;
-const ReportShell = () => <PlaceholderPage title="Room Usage Report" description="Usage history and XLSX export will be restored in Phase 7." />;
-const ProfileShell = () => <PlaceholderPage title="My Profile" description="Profile and password workflows will be restored in Phase 7." />;
 
 const MainRouter = () => (
   <>
@@ -39,8 +39,8 @@ const MainRouter = () => (
       <Route path="/signup" component={Signup} />
       <Route path="/signin" component={Signin} />
       <ProtectedRoute path="/app-management" adminOnly component={AppManagement} />
-      <ProtectedRoute path="/report" adminOnly component={ReportShell} />
-      <ProtectedRoute path="/user/:userId" component={ProfileShell} />
+      <ProtectedRoute path="/report" adminOnly component={RoomUsageReport} />
+      <ProtectedRoute path="/user/:userId" component={UserProfile} />
       <ProtectedRoute exact path="/" component={CalendarShell} />
     </Switch>
   </>

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { currentMonthRange, formatDateDDMMYYYY, reportFilename } from "../domain/dates.js";
+import { currentMonthRange, formatDateDDMMYYYY, formatDateLong, formatDateTimeLong, formatDateYYYYMMDD, isValidDateRange, reportFilename } from "../domain/dates.js";
 
 test("builds inclusive current-month range", () => {
   const range = currentMonthRange(new Date("2030-02-12T12:00:00"));
@@ -17,4 +17,16 @@ test("builds recovered report filename", () => {
 
 test("rejects invalid report dates", () => {
   assert.throws(() => formatDateDDMMYYYY("not-a-date"), /Invalid date/);
+});
+
+test("formats report query dates and validates range", () => {
+  assert.equal(formatDateYYYYMMDD(new Date(2030, 0, 5)), "2030-01-05");
+  assert.equal(isValidDateRange("2030-01-01", "2030-01-31"), true);
+  assert.equal(isValidDateRange("2030-02-01", "2030-01-31"), false);
+});
+
+test("formats recovered report display timestamps", () => {
+  const date = new Date(2030, 0, 15, 9, 5, 7);
+  assert.equal(formatDateLong(date), "15 January 2030");
+  assert.equal(formatDateTimeLong(date), "15 January 2030, 09:05:07");
 });
