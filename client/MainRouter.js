@@ -4,13 +4,13 @@ import Signin from "./auth/Signin.js";
 import Signup from "./auth/Signup.js";
 import { isAuthenticated } from "./auth/auth-helper.js";
 import Menu from "./core/Menu.js";
-import PlaceholderPage from "./core/PlaceholderPage.js";
 import ProtectedShell from "./core/ProtectedShell.js";
 import { LoadingState } from "./components/common/AsyncState.js";
 
 const AppManagement = React.lazy(() => import("./management/AppManagement.js"));
 const UserProfile = React.lazy(() => import("./profile/UserProfile.js"));
 const RoomUsageReport = React.lazy(() => import("./report/RoomUsageReport.js"));
+const MeetingCalendar = React.lazy(() => import("./calendar/MeetingCalendar.js"));
 
 const ProtectedRoute = ({ component: Component, adminOnly = false, ...rest }) => (
   <Route
@@ -30,8 +30,6 @@ const ProtectedRoute = ({ component: Component, adminOnly = false, ...rest }) =>
   />
 );
 
-const CalendarShell = () => <PlaceholderPage title="Meeting Calendar" description="Calendar and meeting workflow will be restored in Phase 7." />;
-
 const MainRouter = () => (
   <>
     <Menu />
@@ -41,7 +39,7 @@ const MainRouter = () => (
       <ProtectedRoute path="/app-management" adminOnly component={AppManagement} />
       <ProtectedRoute path="/report" adminOnly component={RoomUsageReport} />
       <ProtectedRoute path="/user/:userId" component={UserProfile} />
-      <ProtectedRoute exact path="/" component={CalendarShell} />
+      <ProtectedRoute exact path="/" component={MeetingCalendar} />
     </Switch>
   </>
 );

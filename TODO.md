@@ -74,11 +74,11 @@ Phase 6 complete: production build and all recovered SPA route fallbacks pass.
 - [x] Rebuild card master, user, and room management.
 - [x] Rebuild user profile and self-service actions.
 - [x] Rebuild room usage report and XLSX export.
-- [ ] Rebuild calendar, room finder, filters, and realtime refresh.
-- [ ] Rebuild event create, edit, detail, cancel, and attendee workflows.
-- [ ] Pass Phase 7 production build and route/workflow smoke checks.
+- [x] Rebuild calendar, room finder, filters, and realtime refresh.
+- [x] Rebuild event create, edit, detail, cancel, and attendee workflows.
+- [x] Pass Phase 7 production build and route/workflow smoke checks.
 
-Phase 7 prepared: implementation plan is in `docs/reconstruction/phase7-implementation-plan.md`. Settings remains a recovered latent capability excluded from visible UI pending evidence; tablet check-in/NFC/LED remains outside the recovered web-client scope.
+Phase 7 complete: all recovered web screens build, contract helpers pass, and public/protected/admin route plus lazy-chunk smoke checks pass. Settings remains a recovered latent capability excluded from visible UI pending evidence; tablet check-in/NFC/LED remains outside the recovered web-client scope.
 
 ## Phase 8 — Verify client parity
 
