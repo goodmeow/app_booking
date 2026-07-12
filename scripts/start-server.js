@@ -12,12 +12,12 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 const SERVER_PORT = process.env.SERVER_PORT || 5000;
 const HOST = process.env.HOST || "localhost";
 
-// Change to dist/server directory and run node server.bundle.js
-const serverDir = path.join(__dirname, "..", "dist", "server");
+// Run reconstructed server build; dist remains immutable baseline evidence.
+const serverDir = path.join(__dirname, "..", "build", "server");
 
 console.log(`🚀 Starting server on ${HOST}:${SERVER_PORT}...`);
 
-const nodeProcess = spawn("node", ["server.bundle.js"], {
+const nodeProcess = spawn("node", ["server.bundle.cjs"], {
   cwd: serverDir,
   stdio: "inherit",
   shell: true,

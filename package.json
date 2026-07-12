@@ -8,8 +8,9 @@
     "dev:client": "node scripts/dev-client.js",
     "dev:server": "node scripts/dev-server.js",
     "build": "npm run build:client && npm run build:server && npm run create:server:package",
-    "build:client": "vite build --outDir dist/client --mode production",
+    "build:client": "vite build --outDir build/client --mode production",
     "build:server": "webpack --mode production --config webpack.config.cjs",
+    "build:server:check": "cross-env SERVER_OUT_DIR=/tmp/360booking-server-build webpack --mode production --config webpack.config.cjs",
     "create:server:package": "node scripts/create-server-package.js",
     "start:client": "node scripts/start-client.js",
     "start:server": "node scripts/start-server.js"

@@ -12,8 +12,8 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const CLIENT_PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || 'localhost';
 
-// Change to dist/client directory and run vite preview
-const clientDir = path.join(__dirname, '..', 'dist', 'client');
+// Serve reconstructed client build; dist remains immutable baseline evidence.
+const clientDir = path.join(__dirname, '..', 'build', 'client');
 
 console.log(`🚀 Starting client on ${HOST}:${CLIENT_PORT}...`);
 

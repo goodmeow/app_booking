@@ -39,11 +39,13 @@ Phase 3 complete: disposable database rebuilds from migrations and passes all SQ
 
 ## Phase 4 — Reconstruct server
 
-- [ ] Restore config and startup flow.
-- [ ] Restore PostgreSQL pool and compatibility model layer.
-- [ ] Restore Express middleware and error handling.
-- [ ] Restore auth, users, rooms, events, settings, card master, and door-open.
-- [ ] Restore Socket.io behavior.
+- [x] Restore config and startup flow.
+- [x] Restore PostgreSQL pool and compatibility model layer.
+- [x] Restore Express middleware and error handling.
+- [x] Restore auth, users, rooms, events, settings, card master, and door-open.
+- [x] Restore Socket.io behavior.
+
+Phase 4 complete: source builds and authenticated API reaches reconstructed PostgreSQL.
 
 ## Phase 5 — Verify server parity
 

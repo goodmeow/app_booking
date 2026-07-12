@@ -8,8 +8,8 @@ module.exports = {
   target: "node",
   entry: "./server/server.js",
   output: {
-    path: path.resolve(__dirname, "dist/server"),
-    filename: "server.bundle.js",
+    path: path.resolve(__dirname, process.env.SERVER_OUT_DIR || "build/server"),
+    filename: "server.bundle.cjs",
     clean: true,
   },
   externals: [nodeExternals()],

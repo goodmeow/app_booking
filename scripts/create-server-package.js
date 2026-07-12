@@ -18,8 +18,8 @@ const originalPackage = JSON.parse(
 );
 
 // Ensure directories exist
-const serverDir = path.join(__dirname, "../dist/server");
-const clientDir = path.join(__dirname, "../dist/client");
+const serverDir = path.join(__dirname, "../build/server");
+const clientDir = path.join(__dirname, "../build/client");
 
 if (!fs.existsSync(serverDir)) {
   fs.mkdirSync(serverDir, { recursive: true });
@@ -49,9 +49,9 @@ const serverPackage = {
   name: `${originalPackage.name}-server`,
   version: originalPackage.version,
   type: "commonjs",
-  main: "server.bundle.js",
+  main: "server.bundle.cjs",
   scripts: {
-    start: "node server.bundle.js",
+    start: "node server.bundle.cjs",
   },
   engines: {
     node: ">=14.0.0",
@@ -68,7 +68,7 @@ const serverReadme = `# ${originalPackage.name} - Server
 
 ## Running
 \`\`\`bash
-node server.bundle.js
+node server.bundle.cjs
 \`\`\`
 
 ## Environment
@@ -106,14 +106,14 @@ console.log("✅ Vite config copied to client directory");
 console.log("✅ README files created");
 console.log("");
 console.log("📁 Build structure:");
-console.log("├── dist/");
+console.log("├── build/");
 console.log("│   ├── client/          # Frontend static files");
 console.log("│   │   ├── index.html");
 console.log("│   │   ├── assets/");
 console.log("│   │   ├── vite.config.js");
 console.log("│   │   └── README.md");
 console.log("│   └── server/          # Backend bundle");
-console.log("│       ├── server.bundle.js");
+console.log("│       ├── server.bundle.cjs");
 console.log("│       ├── .env.*");
 console.log("│       └── README.md");
 console.log("");
