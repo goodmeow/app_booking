@@ -98,6 +98,13 @@ Phase 8 complete: active route/network mismatches are corrected, calendar and So
 - [ ] Restrict signup role assignment.
 - [ ] Add missing admin guards.
 - [ ] Authenticate Socket.io and restrict rooms.
+- [ ] Derive personal-schedule identity only from the authenticated principal; ignore or reject caller-selected user identities.
+- [ ] Resolve selected-room filters only to active accounts with explicit `type=room`.
+- [ ] Let authenticated users query every occupied slot for a selected room while applying server-side privacy projection to bookings owned by others.
+- [ ] Limit other-user booking projections to organizer first name, start/end time, and minimal capability metadata; never expose subject, description, email, attendees, or check-in data.
+- [ ] Authorize event details and every mutation (update, attendee add/delete, cancel, early finish) from stored organizer/participant/admin relationships, never organizer identity supplied in the payload; return `403` otherwise.
+- [ ] Make Socket.io emit invalidations or the same safe projection as HTTP responses, never full private event payloads.
+- [ ] Test privacy projections, forbidden fields, unauthorized detail access, and guessed event IDs across API and Socket.io payloads.
 - [ ] Apply CORS allowlist.
 - [ ] Prevent password fields leaving database/API.
 - [ ] Repair HTTPS startup.
@@ -106,6 +113,14 @@ Phase 8 complete: active route/network mismatches are corrected, calendar and So
 - [ ] Remove `shell: true` from development child-process launches and pass argument arrays directly.
 - [ ] Limit nodemon watch paths to server/config sources to prevent startup restarts.
 - [ ] Upgrade dependency chain still using deprecated `util._extend`.
+- [ ] Split `server/routes/index.js` into repository, service, controller, and route modules while preserving regression parity.
+- [ ] Archive or guard `scripts/reconstruct-server.mjs` so it cannot overwrite post-recovery fixes.
+- [ ] Support continuous overnight/multi-day bookings with a configurable maximum duration; use half-open overlap checks for create, update, room availability, and visible-range queries; protect concurrent room bookings.
+- [ ] Define one timezone policy and enforce temporal invariants, check-in/early-finish windows, cross-week listing, and clipped report durations for continuous multi-day meetings.
+- [ ] Add recurrence series identity and occurrence data contracts with explicit supported cadences and deterministic generation through recurrence end date.
+- [ ] Create recurring occurrences transactionally: validate every room collision and roll back the entire series when any occurrence fails.
+- [ ] Define timezone-safe edit/cancel semantics for one occurrence, this-and-future occurrences, and the full series.
+- [ ] Add bounded recurrence safety limits and testable contracts for generation, collision, rollback, mutation scope, and authorization.
 
 Phase 9 log-review evidence (2026-07-13): demo completed without runtime failures; two event creations succeeded, including empty-description normalization. Review found SQL interpolation risk, sensitive-data logging, unsafe shell spawning, broad nodemon watching, missing request telemetry, and one deprecated dependency path.
 
@@ -118,6 +133,13 @@ Phase 9 log-review evidence (2026-07-13): demo completed without runtime failure
 - [ ] Show meeting time and use mobile-friendly Day/Agenda views.
 - [ ] Add explicit `Jadwal Saya` and `Jadwal Ruangan` modes with onboarding hints.
 - [ ] Guide meeting creation with required fields, inline validation, duration, timezone, and room availability/conflict feedback.
+- [ ] Let novice users choose clearly between one continuous multi-day booking and a repeated meeting schedule.
+- [ ] Provide recurrence cadence/end controls, plain-language summary, and pre-save occurrence/conflict feedback.
+- [ ] Show multi-day continuation and recurring-series cues in Calendar plus readable Day/Agenda behavior on mobile.
+- [ ] Render each occupied room block/balloon exactly as `[nama depan, HH:mm - HH:mm]` using 24-hour local time.
+- [ ] Keep clicks on privacy-projected bookings safe: show no details and never request or reveal restricted fields.
+- [ ] Add dates and continuation cues to cross-midnight/multi-day labels so occupied intervals remain unambiguous.
+- [ ] Make edit/cancel scope explicit: this occurrence, this and future, or all occurrences.
 - [ ] Confirm meeting deletion and explain read-only state.
 - [ ] Add retryable resource errors, non-blocking refresh, and not-found route.
 - [ ] Replace mobile navbar overflow with a drawer and simplify admin navigation.
@@ -128,5 +150,13 @@ Phase 9 log-review evidence (2026-07-13): demo completed without runtime failure
 
 - [ ] Clean client/server builds.
 - [ ] Unit, contract, integration, and smoke tests.
-- [ ] Current README, API docs, architecture notes, and deployment guide.
+- [ ] Cover cross-midnight, cross-week, containing-overlap, adjacent-slot, report-boundary, timezone, and concurrent multi-day booking cases.
+- [ ] Add `npm run verify` covering required build, test, lint, and smoke gates.
+- [ ] Add CI, lint/format enforcement, and pinned Node/package-manager runtime versions.
+- [ ] Add `docs/handover/START-HERE.md` and rewrite README/quickstart against current commands and layout.
+- [ ] Document current architecture and UI-to-API-to-DB-to-Socket.io sequence diagrams.
+- [ ] Document business processes: auth/roles, user/room lifecycle, meeting create/edit/cancel, collision, check-in/early-finish, and reports.
+- [ ] Publish current API reference plus ERD and stored-function contracts.
+- [ ] Add executable scenario catalog with sanitized demo accounts and request examples.
+- [ ] Add contribution, code ownership, and deployment/operations runbook.
 - [ ] Tag reconstructed baseline.
