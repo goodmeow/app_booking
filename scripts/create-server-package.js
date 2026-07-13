@@ -8,8 +8,8 @@ const __dirname = path.dirname(__filename);
 
 // Load environment variables
 dotenv.config();
-const CLIENT_PORT = process.env.PORT || 3000;
-const SERVER_PORT = process.env.SERVER_PORT || 5000;
+const CLIENT_PORT = process.env.PORT || 8081;
+const SERVER_PORT = process.env.SERVER_PORT || 9091;
 const HOST = process.env.HOST || "localhost";
 
 // Read original package.json

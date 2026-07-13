@@ -15,7 +15,7 @@ const viteCli = path.join(
 // Load environment variables
 config({ path: path.resolve(__dirname, "../.env") });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8081;
 const host = process.env.HOST || "localhost";
 
 console.log(`Starting client development server on ${host}:${port}`);

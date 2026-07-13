@@ -79,3 +79,27 @@ test("Socket.io broadcasts invalidations without private settings payloads", asy
     socket.close();
   }
 });
+
+test("Socket.io binds a kiosk token to its own room", async () => {
+  const authenticated = await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "room-one@room.com", password: "RoomTablet123!" }),
+  });
+  assert.equal(authenticated.status, 200);
+  const socket = createClient(`http://127.0.0.1:${targets.reconstructed.port}`, {
+    transports: ["websocket"],
+    reconnection: false,
+    auth: { token: authenticated.body.token },
+  });
+  try {
+    await once(socket, "connect");
+    assert.deepEqual(await join(socket, "room-two@room.com"), { ok: false });
+    assert.deepEqual(await join(socket, "room-one@room.com"), {
+      ok: true,
+      room: "30000000-0000-4000-8000-000000000001",
+    });
+  } finally {
+    socket.close();
+  }
+});

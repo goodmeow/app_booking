@@ -6,8 +6,8 @@ dotenv.config({ path: envFile });
 
 const env = process.env;
 const host = env.HOST || "localhost";
-const clientPort = env.PORT || "3000";
-const serverPort = env.SERVER_PORT || "5000";
+const clientPort = env.PORT || "8081";
+const serverPort = env.SERVER_PORT || "9091";
 const trustProxy = !env.TRUST_PROXY || env.TRUST_PROXY === "false"
   ? false
   : env.TRUST_PROXY === "true"
@@ -35,6 +35,8 @@ const config = {
   jwtExpiry: env.JWT_EXPIRY_TOKEN || "1d",
   jwtIssuer: env.JWT_ISSUER || "360-scheduler",
   jwtAudience: env.JWT_AUDIENCE || "360-scheduler-web",
+  kioskJwtAudience: env.KIOSK_JWT_AUDIENCE || "360-scheduler-kiosk",
+  kioskJwtExpiry: env.KIOSK_JWT_EXPIRY || "12h",
   corsOrigins,
   trustProxy,
   tlsCertPath: env.TLS_CERT_PATH,

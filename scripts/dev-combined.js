@@ -9,8 +9,8 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 config({ path: path.resolve(__dirname, "../.env") });
 
-const clientPort = process.env.PORT || 3000;
-const serverPort = process.env.SERVER_PORT || 5000;
+const clientPort = process.env.PORT || 8081;
+const serverPort = process.env.SERVER_PORT || 9091;
 const host = process.env.HOST || "localhost";
 
 console.log(`Starting development mode:`);

@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-const SERVER_PORT = process.env.SERVER_PORT || 5000;
+const SERVER_PORT = process.env.SERVER_PORT || 9091;
 const HOST = process.env.HOST || "localhost";
 
 // Run reconstructed server build; dist remains immutable baseline evidence.

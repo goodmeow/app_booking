@@ -12,7 +12,7 @@ const nodemonCli = require.resolve("nodemon/bin/nodemon.js");
 // Load environment variables
 config({ path: path.resolve(__dirname, "../.env") });
 
-const serverPort = process.env.SERVER_PORT || 5000;
+const serverPort = process.env.SERVER_PORT || 9091;
 const host = process.env.HOST || "localhost";
 
 console.log(`Starting server development on ${host}:${serverPort}`);

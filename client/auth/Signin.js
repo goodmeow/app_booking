@@ -17,6 +17,7 @@ const Signin = () => {
     setLoading(true);
     try {
       const data = await signin({ email: login, password });
+      setLoading(false);
       authenticate(data, () => {
         const destination = location.state?.from || "/";
         history.replace(typeof destination === "string" ? destination : {
@@ -27,7 +28,6 @@ const Signin = () => {
       });
     } catch (reason) {
       setError(reason.message);
-    } finally {
       setLoading(false);
     }
   };

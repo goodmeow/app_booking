@@ -202,7 +202,7 @@ export const createEvents = async (body, principal) => {
   }
 };
 
-const calendarRange = (start, end, timezone) => {
+export const calendarRange = (start, end, timezone) => {
   if (!/^\d{8}$/.test(start || "") || !/^\d{8}$/.test(end || "")) throw badRequest("INVALID_RANGE", "Calendar start and end must use YYYYMMDD");
   const parts = (value) => ({ year: Number(value.slice(0, 4)), month: Number(value.slice(4, 6)), day: Number(value.slice(6, 8)), hour: 0, minute: 0, second: 0 });
   const startParts = parts(start);

@@ -6,6 +6,7 @@ import { isAuthenticated } from "./auth/auth-helper.js";
 import Menu from "./core/Menu.js";
 import ProtectedShell from "./core/ProtectedShell.js";
 import { LoadingState } from "./components/common/AsyncState.js";
+import KioskApp from "./kiosk/KioskApp.js";
 
 const AppManagement = React.lazy(() => import("./management/AppManagement.js"));
 const UserProfile = React.lazy(() => import("./profile/UserProfile.js"));
@@ -30,7 +31,7 @@ const ProtectedRoute = ({ component: Component, adminOnly = false, ...rest }) =>
   />
 );
 
-const MainRouter = () => (
+const WebRouter = () => (
   <>
     <Menu />
     <Switch>
@@ -42,6 +43,22 @@ const MainRouter = () => (
       <ProtectedRoute exact path="/" component={MeetingCalendar} />
     </Switch>
   </>
+);
+
+const MainRouter = () => (
+  <Switch>
+    <Route exact path="/kiosk/setup" render={() => (
+      <React.Suspense fallback={<LoadingState />}>
+        <KioskApp forceProvision />
+      </React.Suspense>
+    )} />
+    <Route path="/kiosk" render={() => (
+      <React.Suspense fallback={<LoadingState />}>
+        <KioskApp />
+      </React.Suspense>
+    )} />
+    <Route component={WebRouter} />
+  </Switch>
 );
 
 export default MainRouter;

@@ -275,14 +275,14 @@ export const eventCheckInContext = async (eventId, principalId, cardNumber) => (
   [eventId, principalId, cardNumber]
 )).rows[0] || null;
 
-export const markCheckedIn = async (eventId) => (await query(
+export const markCheckedIn = async (eventId, execute = query) => (await execute(
   `UPDATE tbl_events SET checked_in = now(), updated_at = now()
    WHERE _id = $1 AND checked_in IS NULL
    RETURNING _id, checked_in`,
   [eventId]
 )).rows[0] || null;
 
-export const finishEventNow = async (eventId) => (await query(
+export const finishEventNow = async (eventId, execute = query) => (await execute(
   `UPDATE tbl_events
    SET end_date = now() AT TIME ZONE timezone, updated_at = now()
    WHERE _id = $1

@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import AddIcon from "@mui/icons-material/Add";
 import {
   Autocomplete,
   Box,
@@ -38,7 +37,7 @@ const CalendarSidebar = ({
     sx={{ width: "100%" }}
   >
     <Stack spacing={2}>
-      <Button fullWidth variant="contained" startIcon={<AddIcon />} onClick={onAdd}>
+      <Button fullWidth variant="contained" onClick={onAdd}>
         Add Event
       </Button>
 

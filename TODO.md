@@ -126,7 +126,25 @@ Phase 9 log-review evidence (2026-07-13): demo completed without runtime failure
 
 Phase 9 complete: identity and authorization are server-authoritative, unrelated room bookings use a privacy-safe busy projection, Socket.io is authenticated, runtime and dependency paths are hardened, and atomic multi-day/daily/weekly scheduling passes collision, rollback, DST, mutation-scope, and report-boundary regression gates.
 
-## Phase 10 — Product UX and rebrand
+## Phase 10 — Product experience
+
+### Phase 10A — Kiosk foundation
+
+- [x] Add dedicated `/kiosk` display and `/kiosk/setup` provisioning routes outside the employee web shell.
+- [x] Authenticate tablets with active `type=room` credentials and a distinct room-bound kiosk JWT audience.
+- [x] Bind HTTP schedule queries and Socket.io subscriptions to the immutable room UUID from the kiosk token.
+- [x] Project room bookings as `[nama depan, HH:mm - HH:mm]` without subject, description, email, or attendee leakage.
+- [x] Show display-only `AVAILABLE`, `UPCOMING`, `OCCUPIED`, and fail-safe `UNKNOWN` states; active bookings become red without check-in.
+- [x] Persist room assignment locally while allowing deliberate reprovisioning through the setup route or hold gesture.
+- [x] Standardize local defaults on frontend port `8081` and API/Socket.io port `9091` with deterministic disposable demo credentials.
+- [x] Cover kiosk session, state transitions, API isolation, cross-room authorization, room revocation, and Socket.io boundaries.
+- [ ] Add managed device pairing, token refresh/version revocation, and an admin device inventory.
+- [ ] Scope event invalidations to affected Socket.io room channels instead of broadcasting a data-free global refresh signal.
+- [ ] Implement the native tablet bridge for NFC and LEDs when hardware integration resumes; keep controls hidden until then.
+
+Phase 10A foundation complete: a provisioned tablet is cryptographically bound to one room, receives privacy-safe realtime schedule updates, and switches directly to red `OCCUPIED` for active bookings. Production device lifecycle and native hardware integration remain explicit follow-up work.
+
+### Phase 10B — Scheduler UX and rebrand
 
 - [ ] Adopt canonical `360 Scheduler` brand with `Meeting & Room Scheduler` descriptor.
 - [ ] Use `Meeting` consistently in UI; keep `Event` internal to code/API.
