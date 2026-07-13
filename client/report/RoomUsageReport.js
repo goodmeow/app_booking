@@ -24,39 +24,22 @@ import * as XLSX from "xlsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import {
   currentMonthRange,
-  formatDateDDMMYYYY,
   formatDateLong,
-  formatDateTimeLong,
   formatDateYYYYMMDD,
   isValidDateRange,
-  reportFilename,
 } from "../domain/dates.js";
+import {
+  buildRoomUsageWorkbook,
+  formatReportMeetingDate,
+  reportMeetingsFor,
+  safeReportDescription,
+  safeReportText,
+} from "../domain/report.js";
 import { useGetRoomUsageQuery } from "../redux/services/rooms.js";
-
-const safeText = (value) => (value === null || value === undefined || value === "" ? "-" : String(value));
-
-const safeDescription = (value) => {
-  const description = safeText(value);
-  if (description === "-") return description;
-  try {
-    return decodeURIComponent(description);
-  } catch (_error) {
-    return description;
-  }
-};
-
-const formatMeetingDate = (value) => {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-  return formatDateTimeLong(date);
-};
-
-const meetingsFor = (room) => (Array.isArray(room?.list_meeting) ? room.list_meeting : []);
 
 const RoomUsageRow = ({ room }) => {
   const [open, setOpen] = useState(false);
-  const meetings = meetingsFor(room);
+  const meetings = reportMeetingsFor(room);
 
   return (
     <React.Fragment>
@@ -70,8 +53,8 @@ const RoomUsageRow = ({ room }) => {
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
-        <TableCell component="th" scope="row">{safeText(room?.room_name)}</TableCell>
-        <TableCell align="right">{safeText(room?.total_pemakaian)}</TableCell>
+        <TableCell component="th" scope="row">{safeReportText(room?.room_name)}</TableCell>
+        <TableCell align="right">{safeReportText(room?.total_pemakaian)}</TableCell>
       </TableRow>
       <TableRow>
         <TableCell sx={{ py: 0 }} colSpan={3}>
@@ -92,11 +75,11 @@ const RoomUsageRow = ({ room }) => {
                   <TableBody>
                     {meetings.map((meeting, index) => (
                       <TableRow key={meeting?._id || `${room?.room_name || "room"}-${index}`}>
-                        <TableCell component="th" scope="row">{safeText(meeting?.subject)}</TableCell>
-                        <TableCell>{safeText(meeting?.organizer)}</TableCell>
-                        <TableCell>{safeDescription(meeting?.description)}</TableCell>
-                        <TableCell>{formatMeetingDate(meeting?.start_date)}</TableCell>
-                        <TableCell>{formatMeetingDate(meeting?.end_date)}</TableCell>
+                        <TableCell component="th" scope="row">{safeReportText(meeting?.subject)}</TableCell>
+                        <TableCell>{safeReportText(meeting?.organizer)}</TableCell>
+                        <TableCell>{safeReportDescription(meeting?.description)}</TableCell>
+                        <TableCell>{formatReportMeetingDate(meeting?.start_date)}</TableCell>
+                        <TableCell>{formatReportMeetingDate(meeting?.end_date)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -119,36 +102,12 @@ const RoomUsageReport = () => {
   const rooms = Array.isArray(query.data) ? query.data : [];
 
   const exportReport = () => {
-    const worksheet = XLSX.utils.aoa_to_sheet([["Room Name", "Room Mail", "Usage Total"]]);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(
-      workbook,
-      worksheet,
-      `Periode ${formatDateDDMMYYYY(new Date(`${start}T00:00:00`))} - ${formatDateDDMMYYYY(new Date(`${end}T00:00:00`))}`
-    );
-    let rowNumber = 2;
-    rooms.forEach((room) => {
-      const meetings = meetingsFor(room);
-      const rows = [
-        [safeText(room?.room_name), safeText(room?.room_mail), safeText(room?.total_pemakaian)],
-        [null, "History Pemakaian"],
-        meetings.length
-          ? [null, "Subject", "Organizer", "Description", "Start Date", "End Date"]
-          : [null, "No History Meeting"],
-        ...meetings.map((meeting) => [
-          null,
-          safeText(meeting?.subject),
-          safeText(meeting?.organizer),
-          safeDescription(meeting?.description),
-          formatMeetingDate(meeting?.start_date),
-          formatMeetingDate(meeting?.end_date),
-        ]),
-      ];
-      XLSX.utils.sheet_add_aoa(worksheet, rows, { origin: `A${rowNumber}` });
-      rowNumber += 3 + meetings.length;
-    });
-    worksheet["!cols"] = [24, 30, 24, 42, 30, 30].map((width) => ({ width }));
-    XLSX.writeFile(workbook, reportFilename(new Date(`${start}T00:00:00`), new Date(`${end}T00:00:00`)));
+    try {
+      const { workbook, filename } = buildRoomUsageWorkbook(XLSX, rooms, start, end);
+      XLSX.writeFile(workbook, filename);
+    } catch (error) {
+      console.error("Unable to export room usage report", error);
+    }
   };
 
   return (

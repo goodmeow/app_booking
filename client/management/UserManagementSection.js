@@ -37,7 +37,7 @@ const emptyForm = {
   email: "",
   password: "",
   card_number: "",
-  roleId: ROLE_OPTIONS[1].value,
+  roleId: "",
 };
 
 const UserManagementSection = () => {

@@ -60,10 +60,9 @@ export const signup = async (account) => {
   return data;
 };
 
-export const signout = async (callback) => {
-  try {
-    await fetch("/api/auth/signout/", { credentials: "include" });
-  } finally {
-    clearJWT(callback);
-  }
+export const signout = (callback) => {
+  // The recovered client clears local authentication immediately. The server
+  // request only clears its cookie and must not block navigation or route guards.
+  clearJWT(callback);
+  return fetch("/api/auth/signout/", { credentials: "include" }).catch(() => undefined);
 };

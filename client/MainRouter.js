@@ -18,7 +18,7 @@ const ProtectedRoute = ({ component: Component, adminOnly = false, ...rest }) =>
     render={(props) => {
       const session = isAuthenticated();
       if (!session) return <Redirect to={{ pathname: "/signin", state: { from: props.location } }} />;
-      if (adminOnly && session.user.role.toUpperCase() !== "ADMIN") return <Redirect to="/" />;
+      if (adminOnly && session.user.role !== "ADMIN") return <Redirect to="/" />;
       return (
         <ProtectedShell>
           <React.Suspense fallback={<LoadingState />}>

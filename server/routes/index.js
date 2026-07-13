@@ -595,35 +595,33 @@ const listEvents = async (req, res) => {
     });
     let dataByAttendee = await listByAttendee;
 
-    // get event data by organizer
-    let listByOrganizer = await events_model.find({
-      table_name: "events_list_data_by_organizer",
-      where_clause: [{
-        column_name: "e.start_date",
-        column_value1: firstDateOfWeek,
-        //get only date
-        column_value2: lastDateOfWeek,
-        operator: "BETWEEN"
-      }, {
-        column_name: "e.end_date",
-        column_value1: firstDateOfWeek,
-        //get only date
-        column_value2: lastDateOfWeek,
-        operator: "BETWEEN"
-      }, {
-        column_name: "LOWER(e.organizer)",
-        column_value: req.query.users ? req.query.users : '',
-        operator: "="
-      }, {
-        column_name: "LOWER(ed.attendee_email)",
-        //list by rooms
-        column_value: req.query.rooms ? req.query.rooms : '',
-        operator: "="
-      }],
-      relation: true,
-      date_only: true
-    });
-    let dataByOrganizer = await listByOrganizer;
+    // A room-wide query is already complete from the attendee branch. The
+    // organizer function has no event-details alias, so applying a room
+    // predicate there produces invalid SQL.
+    let dataByOrganizer = [];
+    if (!req.query.rooms) {
+      let listByOrganizer = await events_model.find({
+        table_name: "events_list_data_by_organizer",
+        where_clause: [{
+          column_name: "e.start_date",
+          column_value1: firstDateOfWeek,
+          column_value2: lastDateOfWeek,
+          operator: "BETWEEN"
+        }, {
+          column_name: "e.end_date",
+          column_value1: firstDateOfWeek,
+          column_value2: lastDateOfWeek,
+          operator: "BETWEEN"
+        }, {
+          column_name: "LOWER(e.organizer)",
+          column_value: req.query.users ? req.query.users : '',
+          operator: "="
+        }],
+        relation: true,
+        date_only: true
+      });
+      dataByOrganizer = await listByOrganizer;
+    }
     let data = dataByAttendee.concat(dataByOrganizer);
     let sendData = [];
     for (let i of data) {
@@ -694,7 +692,9 @@ const insertEvents = async (req, res) => {
         column_value: data.subject
       }, {
         column_name: "description",
-        column_value: data.description
+        // Empty array elements break the legacy character-varying[][]
+        // serializer. Preserve a visible empty-value sentinel instead.
+        column_value: data.description || '-'
       }, {
         column_name: "start_date",
         column_value: ConvertDateToLocalString(new Date(data.start_date))

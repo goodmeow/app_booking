@@ -16,6 +16,7 @@ import { getApiError } from "../domain/api-error.js";
 import {
   buildCreateEventPayload,
   buildUpdateEventPayload,
+  encodeEventDescription,
   isRoomAttendee,
   validateEventDraft,
 } from "../domain/events/event-contract.js";
@@ -96,7 +97,7 @@ const EventEditor = ({
     || (location ? { name: location, email: location } : null);
   const organizer = eventField(event, "organizer") || sessionEmail || "";
   const eventEnd = eventField(event, "end");
-  const isOrganizer = !editing || String(organizer).toLowerCase() === String(sessionEmail || "").toLowerCase();
+  const isOrganizer = !editing || String(organizer) === String(sessionEmail || "");
   const hasEnded = editing && eventEnd && new Date(eventEnd) < new Date();
   const readOnly = editing && (!isOrganizer || hasEnded);
   const busy = storeState.isLoading || updateState.isLoading || deleteState.isLoading;
@@ -145,7 +146,7 @@ const EventEditor = ({
       ...(editing ? { id: eventId } : {}),
       organizer,
       subject: draft.subject,
-      description: encodeURIComponent(draft.description),
+      description: encodeEventDescription(draft.description),
       startDate: draft.start,
       endDate: draft.end,
       attendees,

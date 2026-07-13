@@ -82,13 +82,18 @@ Phase 7 complete: all recovered web screens build, contract helpers pass, and pu
 
 ## Phase 8 — Verify client parity
 
-- [ ] Compare routes, network payloads, validation, and permissions.
-- [ ] Compare calendar and realtime behavior.
-- [ ] Compare responsive layout and reports.
+- [x] Compare routes, network payloads, validation, and permissions.
+- [x] Compare calendar and realtime behavior.
+- [x] Compare responsive layout and reports.
 
-## Phase 9 — Security hardening
+Phase 8 complete: active route/network mismatches are corrected, calendar and Socket.io behavior plus XLSX contracts have regression coverage, and responsive/validation compatibility repairs are recorded in `docs/reconstruction/client-parity-report.md`. Pixel-level screenshot parity remains unclaimed because no sanitized legacy captures or browser engine are available in the repository environment.
 
-- [ ] Parameterize SQL.
+## Phase 9 — Security and identity hardening
+
+- [ ] Allow arbitrary email domains; make explicit account `type` authoritative for users and rooms.
+- [ ] Add normalized case-insensitive email uniqueness and keep optional username separate from email.
+- [ ] Migrate organizer/attendee identity toward UUID/type references; keep external visitor email separate.
+- [ ] Parameterize SQL, including event array payload construction.
 - [ ] Require strong `JWT_SECRET`.
 - [ ] Restrict signup role assignment.
 - [ ] Add missing admin guards.
@@ -96,8 +101,30 @@ Phase 7 complete: all recovered web screens build, contract helpers pass, and pu
 - [ ] Apply CORS allowlist.
 - [ ] Prevent password fields leaving database/API.
 - [ ] Repair HTTPS startup.
+- [ ] Replace raw SQL/result/payload logs with structured allowlisted logging; redact emails, UUIDs, meeting content, and attendee data.
+- [ ] Add safe request telemetry: timestamp, severity, status, duration, and correlation ID.
+- [ ] Remove `shell: true` from development child-process launches and pass argument arrays directly.
+- [ ] Limit nodemon watch paths to server/config sources to prevent startup restarts.
+- [ ] Upgrade dependency chain still using deprecated `util._extend`.
 
-## Phase 10 — Finalize
+Phase 9 log-review evidence (2026-07-13): demo completed without runtime failures; two event creations succeeded, including empty-description normalization. Review found SQL interpolation risk, sensitive-data logging, unsafe shell spawning, broad nodemon watching, missing request telemetry, and one deprecated dependency path.
+
+## Phase 10 — Product UX and rebrand
+
+- [ ] Adopt canonical `360 Scheduler` brand with `Meeting & Room Scheduler` descriptor.
+- [ ] Use `Meeting` consistently in UI; keep `Event` internal to code/API.
+- [ ] Standardize user-facing language and validation copy.
+- [ ] Add visible Calendar navigation plus Today, previous, next, Week, Day, and Agenda controls.
+- [ ] Show meeting time and use mobile-friendly Day/Agenda views.
+- [ ] Add explicit `Jadwal Saya` and `Jadwal Ruangan` modes with onboarding hints.
+- [ ] Guide meeting creation with required fields, inline validation, duration, timezone, and room availability/conflict feedback.
+- [ ] Confirm meeting deletion and explain read-only state.
+- [ ] Add retryable resource errors, non-blocking refresh, and not-found route.
+- [ ] Replace mobile navbar overflow with a drawer and simplify admin navigation.
+- [ ] Rework admin tables for mobile; hide technical IDs and use Users/Rooms/Access Cards tabs.
+- [ ] Run usability tests with five first-time users covering create, edit, and cancel workflows.
+
+## Phase 11 — Finalize
 
 - [ ] Clean client/server builds.
 - [ ] Unit, contract, integration, and smoke tests.

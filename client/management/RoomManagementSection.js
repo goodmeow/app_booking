@@ -25,7 +25,7 @@ const emptyForm = {
   building: "",
   capacity: "",
   feature: "",
-  roleId: ROLE_IDS.USER,
+  roleId: "",
 };
 
 const RoomManagementSection = () => {

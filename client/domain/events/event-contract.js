@@ -2,6 +2,8 @@
 export const isRoomAttendee = (attendee) =>
   attendee?.attendee_email?.toLowerCase().includes("@room") === true;
 
+export const encodeEventDescription = (value = "") => encodeURIComponent(value);
+
 const asDate = (value) => value instanceof Date ? value : new Date(value);
 
 const isSameLocalDay = (left, right) =>

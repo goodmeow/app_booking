@@ -13,7 +13,7 @@ test("builds a thirty-minute default event range", () => {
   assert.equal(future.end.getTime() - future.start.getTime(), 30 * 60 * 1000);
 });
 
-test("uses mutually exclusive user and room event filters", () => {
+test("repairs the legacy room filter by avoiding the conflicting user predicate", () => {
   const range = { start: "20300113", end: "20300119" };
   assert.deepEqual(
     calendarEventFilters({ email: "user@example.test", roomEmail: null, range }),

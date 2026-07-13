@@ -26,7 +26,7 @@ const Signup = () => {
     setError("");
     setMessage("");
     if (isRoomAccountEmail(form.email)) {
-      setError("Room cannot sign up here");
+      setError("Cannot use @room.com for user email");
       return;
     }
     setLoading(true);

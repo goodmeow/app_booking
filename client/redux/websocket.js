@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { io } from "socket.io-client";
 import { api } from "./api.js";
+import { configureWebsocketMiddleware } from "./websocket-middleware.js";
 
 const initialState = {
   connected: false,
@@ -34,36 +35,10 @@ const slice = createSlice({
 export const { wsConnect, wsConnected, wsDisconnect, wsConnectionLost, wsJoinRoom, wsEmit } = slice.actions;
 export const websocketReducer = slice.reducer;
 
-export const websocketMiddleware = (store) => {
-  let socket;
-  const joinKnownRooms = () => {
-    const rooms = store.getState().websocket.socket_room_list;
-    rooms.forEach((room) => socket?.emit("room:join", room));
-  };
+export const createWebsocketMiddleware = (connectSocket = io) => configureWebsocketMiddleware({
+  connectSocket,
+  invalidateEvents: () => api.util.invalidateTags(["events"]),
+  actions: { wsConnect, wsConnected, wsDisconnect, wsConnectionLost, wsJoinRoom, wsEmit },
+});
 
-  return (next) => (action) => {
-    if (wsConnect.match(action) && !socket) {
-      socket = io("/", { transports: ["websocket"] });
-      socket.on("connect", () => {
-        store.dispatch(wsConnected());
-        joinKnownRooms();
-      });
-      socket.on("disconnect", () => store.dispatch(wsConnectionLost("disconnected")));
-      socket.on("connect_error", () => store.dispatch(wsConnectionLost("connect_error")));
-      socket.io.on("reconnect", () => {
-        store.dispatch(wsConnected());
-        store.dispatch(api.util.invalidateTags(["events"]));
-      });
-      socket.on("response:event", () => store.dispatch(api.util.invalidateTags(["events"])));
-    } else if (wsJoinRoom.match(action) && socket?.connected) {
-      socket.emit("room:join", action.payload);
-    } else if (wsEmit.match(action) && socket) {
-      const { event, ...payload } = action.payload;
-      socket.emit(event, payload);
-    } else if (wsDisconnect.match(action) && socket) {
-      socket.close();
-      socket = undefined;
-    }
-    return next(action);
-  };
-};
+export const websocketMiddleware = createWebsocketMiddleware();

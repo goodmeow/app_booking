@@ -4,6 +4,7 @@ import {
   buildAddAttendeePayload,
   buildCreateEventPayload,
   buildUpdateEventPayload,
+  encodeEventDescription,
   isRoomAttendee,
   validateEventDraft,
 } from "../domain/events/event-contract.js";
@@ -41,18 +42,21 @@ test("validates recovered event time and room rules", () => {
   );
 });
 
-test("builds recovered create and update payload shapes", () => {
-  const draft = { id: "event-1", organizer: "owner@example.test", subject: "Planning", description: "Quarterly", startDate, endDate, attendees };
+test("builds recovered create and update payload shapes with encoded description state", () => {
+  const description = encodeEventDescription("Quarterly plan + notes");
+  const draft = { id: "event-1", organizer: "owner@example.test", subject: "Planning", description, startDate, endDate, attendees };
   const create = buildCreateEventPayload(draft);
   assert.equal(create.length, 2);
   assert.equal(create[0].attendee_email, "guest@example.test");
   assert.equal(create[0].organizer, draft.organizer);
   assert.equal(create[0].start_date, startDate);
+  assert.equal(create[0].description, "Quarterly%20plan%20%2B%20notes");
 
   const update = buildUpdateEventPayload(draft);
   assert.equal(update.id, "event-1");
   assert.deepEqual(update.attendees, attendees);
   assert.equal(update.end_date, endDate);
+  assert.equal(update.description, "Quarterly%20plan%20%2B%20notes");
 });
 
 test("builds array payload required by add-attendee endpoint", () => {
