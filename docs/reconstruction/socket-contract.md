@@ -8,6 +8,7 @@
 - Event mutations emit data-free `{type: "events:changed"}` invalidations only to affected organizer, employee-attendee, and room channels.
 - Updates union old and new audiences so moved meetings invalidate both rooms. Cancel/remove operations notify their pre-mutation audience.
 - Device revocation disconnects its live `device:{uuid}` sockets. Reconnect with stale access tokens fails.
+- Per-device NFC/LED visibility changes emit data-free `response:kiosk-config` only to that device channel; kiosk refetches authenticated context.
 - `response:setting` remains a global data-free settings invalidation; event privacy does not depend on Socket.io payload filtering.
 
 Sections below document recovered legacy behavior for historical comparison.

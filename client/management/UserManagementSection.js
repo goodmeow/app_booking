@@ -10,16 +10,17 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import PasswordIcon from "@mui/icons-material/Password";
+import AddIconModule from "@mui/icons-material/Add";
+import DeleteIconModule from "@mui/icons-material/Delete";
+import EditIconModule from "@mui/icons-material/Edit";
+import PasswordIconModule from "@mui/icons-material/Password";
 import { DataGrid } from "@mui/x-data-grid";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import FormDialog from "../components/common/FormDialog.js";
 import PasswordDialog from "../components/common/PasswordDialog.js";
 import FeedbackSnackbar from "../components/common/FeedbackSnackbar.js";
 import { EmptyState, ErrorState, LoadingState } from "../components/common/AsyncState.js";
+import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { isAuthenticated } from "../auth/auth-helper.js";
 import { getApiError } from "../domain/api-error.js";
 import { ROLE_OPTIONS } from "../domain/roles.js";
@@ -31,6 +32,11 @@ import {
   useListUserQuery,
   useUpdateUserMutation,
 } from "../redux/services/users.js";
+
+const AddIcon = resolveMuiIcon(AddIconModule);
+const DeleteIcon = resolveMuiIcon(DeleteIconModule);
+const EditIcon = resolveMuiIcon(EditIconModule);
+const PasswordIcon = resolveMuiIcon(PasswordIconModule);
 
 const emptyForm = {
   name: "",

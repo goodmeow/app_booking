@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import KeyboardArrowDownIconModule from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIconModule from "@mui/icons-material/KeyboardArrowUp";
+import FileDownloadIconModule from "@mui/icons-material/FileDownload";
 import {
   Alert,
   Box,
@@ -22,6 +22,7 @@ import {
 } from "@mui/material";
 import ExcelJS from "exceljs/dist/exceljs.min.js";
 import { EmptyState, ErrorState, LoadingState } from "../components/common/AsyncState.js";
+import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import {
   currentMonthRange,
   formatDateLong,
@@ -36,6 +37,10 @@ import {
   safeReportText,
 } from "../domain/report.js";
 import { useGetRoomUsageQuery } from "../redux/services/rooms.js";
+
+const KeyboardArrowDownIcon = resolveMuiIcon(KeyboardArrowDownIconModule);
+const KeyboardArrowUpIcon = resolveMuiIcon(KeyboardArrowUpIconModule);
+const FileDownloadIcon = resolveMuiIcon(FileDownloadIconModule);
 
 const RoomUsageRow = ({ room }) => {
   const [open, setOpen] = useState(false);

@@ -107,7 +107,7 @@ const ScheduleItem = ({ event, now }) => {
 };
 
 const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
-  const [context, setContext] = useState({ room: session.room, settings: {} });
+  const [context, setContext] = useState({ room: session.room, device: session.device, settings: {} });
   const [events, setEvents] = useState([]);
   const [scheduleFresh, setScheduleFresh] = useState(false);
   const [now, setNow] = useState(new Date());
@@ -118,6 +118,7 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
   const refreshPromise = useRef(null);
   const latestSession = useRef(session);
   const mounted = useRef(true);
+  const loadSequence = useRef(0);
 
   useEffect(() => { latestSession.current = session; }, [session]);
   useEffect(() => () => { mounted.current = false; }, []);
@@ -164,24 +165,26 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
   }, [onDeprovision]);
 
   const load = useCallback(async ({ quiet = false } = {}) => {
+    const requestSequence = ++loadSequence.current;
+    const canApply = () => mounted.current && requestSequence === loadSequence.current;
     if (!quiet && mounted.current) setLoading(true);
     try {
       const [nextContext, nextEvents] = await Promise.all([
         withRefresh((token) => fetchKioskContext(token)),
         withRefresh((token) => fetchKioskSchedule(token, kioskDayRange(new Date()))),
       ]);
-      if (!mounted.current) return;
+      if (!canApply()) return;
       setContext(nextContext);
       setEvents(Array.isArray(nextEvents) ? nextEvents : []);
       setScheduleFresh(true);
       setError("");
-      if (!quiet) setLoading(false);
+      setLoading(false);
     } catch (reason) {
-      if (!mounted.current) return;
+      if (!canApply()) return;
       setScheduleFresh(false);
       if (handleUnauthorized(reason)) return;
       setError(reason.message);
-      if (!quiet) setLoading(false);
+      setLoading(false);
     }
   }, [handleUnauthorized, withRefresh]);
 
@@ -198,6 +201,7 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
     socket.on("disconnect", () => setConnection(false));
     socket.on("connect_error", () => setConnection(false));
     socket.on("response:event", () => load({ quiet: true }));
+    socket.on("response:kiosk-config", () => load({ quiet: true }));
     return () => socket.close();
   }, [load, session.token]);
   useEffect(() => () => clearTimeout(changeRoomTimer.current), []);
@@ -207,6 +211,12 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
     [context.settings, events, now, scheduleFresh]
   );
   const palette = kioskPalette[state.mode];
+  const ledChipColor = {
+    occupied: "error",
+    upcoming: "warning",
+    available: "success",
+    unknown: "default",
+  }[state.mode] || "default";
   const featured = state.current || state.next;
 
   const cancelChangeRoom = () => {
@@ -231,6 +241,8 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
             <Typography sx={{ opacity: 0.7 }}>{[context.room.building, context.room.floor && `Floor ${context.room.floor}`].filter(Boolean).join(" · ")}</Typography>
           </Box>
           <Stack direction="row" spacing={1} alignItems="center">
+            {context.device?.nfcEnabled ? <Chip label="NFC" color="info" variant="outlined" sx={{ color: "white" }} /> : null}
+            {context.device?.ledEnabled ? <Chip label={`LED · ${palette.label}`} color={ledChipColor} variant="outlined" sx={{ color: "white" }} /> : null}
             <Chip label={connected ? "LIVE" : "OFFLINE"} color={connected ? "success" : "default"} variant="outlined" sx={{ color: "white" }} />
             <Button color="inherit" onClick={() => document.documentElement.requestFullscreen?.()}>Fullscreen</Button>
             <Button

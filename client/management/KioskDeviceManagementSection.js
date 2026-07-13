@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Button, Chip, Stack, Typography } from "@mui/material";
+import { Alert, Box, Button, Chip, Stack, Switch, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
@@ -7,6 +7,7 @@ import { getApiError } from "../domain/api-error.js";
 import {
   useGetKioskDevicesQuery,
   useRevokeKioskDeviceMutation,
+  useUpdateKioskDeviceCapabilitiesMutation,
 } from "../redux/services/kiosk-devices.js";
 
 const formatDateTime = (value) => value
@@ -16,8 +17,19 @@ const formatDateTime = (value) => value
 const KioskDeviceManagementSection = () => {
   const { data: devices = [], error: queryError, isLoading } = useGetKioskDevicesQuery();
   const [revokeDevice, { isLoading: isRevoking }] = useRevokeKioskDeviceMutation();
+  const [updateCapabilities, { isLoading: isUpdatingCapabilities }] = useUpdateKioskDeviceCapabilitiesMutation();
   const [revokeTarget, setRevokeTarget] = useState(null);
   const [revokeError, setRevokeError] = useState("");
+  const [capabilityError, setCapabilityError] = useState("");
+
+  const toggleCapability = async (deviceId, capability, enabled) => {
+    setCapabilityError("");
+    try {
+      await updateCapabilities({ deviceId, [capability]: enabled }).unwrap();
+    } catch (error) {
+      setCapabilityError(getApiError(error, "Failed to update kiosk capability"));
+    }
+  };
 
   const closeRevoke = () => {
     if (isRevoking) return;
@@ -54,6 +66,34 @@ const KioskDeviceManagementSection = () => {
           size="small"
           label={String(value || "unknown").toUpperCase()}
           color={value === "active" ? "success" : "default"}
+        />
+      ),
+    },
+    {
+      field: "nfcEnabled",
+      headerName: "NFC",
+      width: 90,
+      sortable: false,
+      renderCell: ({ row }) => (
+        <Switch
+          checked={Boolean(row.nfcEnabled)}
+          disabled={row.status !== "active" || isUpdatingCapabilities}
+          inputProps={{ "aria-label": `NFC for ${row.name}` }}
+          onChange={(event) => void toggleCapability(row.id, "nfcEnabled", event.target.checked)}
+        />
+      ),
+    },
+    {
+      field: "ledEnabled",
+      headerName: "LED",
+      width: 90,
+      sortable: false,
+      renderCell: ({ row }) => (
+        <Switch
+          checked={Boolean(row.ledEnabled)}
+          disabled={row.status !== "active" || isUpdatingCapabilities}
+          inputProps={{ "aria-label": `LED for ${row.name}` }}
+          onChange={(event) => void toggleCapability(row.id, "ledEnabled", event.target.checked)}
         />
       ),
     },
@@ -103,6 +143,7 @@ const KioskDeviceManagementSection = () => {
       {queryError && !isLoading && (
         <ErrorState message={getApiError(queryError, "Failed to load kiosk devices")} />
       )}
+      {capabilityError ? <Alert severity="error" sx={{ mb: 2 }}>{capabilityError}</Alert> : null}
       {!isLoading && !queryError && (
         <DataGrid
           autoHeight

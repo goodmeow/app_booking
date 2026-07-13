@@ -1,16 +1,19 @@
 import React, { useState } from "react";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import DeleteOutlineIconModule from "@mui/icons-material/DeleteOutline";
 import { Box, Button, Stack, TextField, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import FormDialog from "../components/common/FormDialog.js";
+import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { getApiError } from "../domain/api-error.js";
 import {
   useDeleteCardMasterMutation,
   useGetCardMasterQuery,
   useStoreCardMasterMutation,
 } from "../redux/services/settings.js";
+
+const DeleteOutlineIcon = resolveMuiIcon(DeleteOutlineIconModule);
 
 const CardMasterSection = () => {
   const { data: cards = [], error: queryError, isLoading } = useGetCardMasterQuery();

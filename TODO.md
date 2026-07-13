@@ -140,9 +140,10 @@ Phase 9 complete: identity and authorization are server-authoritative, unrelated
 - [x] Cover kiosk session, state transitions, API isolation, cross-room authorization, room revocation, and Socket.io boundaries.
 - [x] Add managed device pairing, rotating refresh credentials/version revocation, and an admin device inventory.
 - [x] Scope event invalidations to affected Socket.io user/room channels instead of broadcasting a data-free global refresh signal.
+- [x] Add independent per-device NFC and LED visibility toggles in Apps Management; keep both disabled by default.
 - [ ] Implement the native tablet bridge for NFC and LEDs when hardware integration resumes; keep controls hidden until then.
 
-Phase 10A software complete: a provisioned tablet is cryptographically bound to one room, rotates short-lived access credentials, can be inventoried or revoked per device, receives privacy-safe scoped realtime updates, and switches directly to red `OCCUPIED` for active bookings. Native hardware integration remains explicitly deferred.
+Phase 10A software complete: a provisioned tablet is cryptographically bound to one room, rotates short-lived access credentials, can be inventoried, revoked, and assigned NFC/LED visibility per device, receives privacy-safe scoped realtime updates, and switches directly to red `OCCUPIED` for active bookings. Native hardware integration remains explicitly deferred.
 
 ### Phase 10B — Scheduler UX and rebrand
 

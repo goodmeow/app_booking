@@ -13,15 +13,16 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import LockResetIcon from "@mui/icons-material/LockReset";
-import PersonIcon from "@mui/icons-material/Person";
+import DeleteIconModule from "@mui/icons-material/Delete";
+import EditIconModule from "@mui/icons-material/Edit";
+import LockResetIconModule from "@mui/icons-material/LockReset";
+import PersonIconModule from "@mui/icons-material/Person";
 import { authenticate, isAuthenticated, signout } from "../auth/auth-helper.js";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import FeedbackSnackbar from "../components/common/FeedbackSnackbar.js";
 import FormDialog from "../components/common/FormDialog.js";
 import PasswordDialog from "../components/common/PasswordDialog.js";
+import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import { getApiError } from "../domain/api-error.js";
 import { canManageProfile, formatJoinedDate } from "../domain/profile.js";
@@ -31,6 +32,11 @@ import {
   useDetailUserQuery,
   useUpdateUserMutation,
 } from "../redux/services/users.js";
+
+const DeleteIcon = resolveMuiIcon(DeleteIconModule);
+const EditIcon = resolveMuiIcon(EditIconModule);
+const LockResetIcon = resolveMuiIcon(LockResetIconModule);
+const PersonIcon = resolveMuiIcon(PersonIconModule);
 
 const UserProfile = () => {
   const { userId } = useParams();

@@ -99,14 +99,53 @@ test("kiosk refresh tolerates one lost response then rejects replay", async () =
   assert.equal(replay.status, 401);
 });
 
-test("administrators inventory and revoke individual kiosk devices", async () => {
+test("administrators manage capabilities and revoke individual kiosk devices", async () => {
   const denied = await apiRequest(targets.reconstructed, "/api/kiosk/devices", { headers: bearer("user") });
   assert.equal(denied.status, 403);
   const listed = await apiRequest(targets.reconstructed, "/api/kiosk/devices", { headers: bearer("admin") });
   assert.equal(listed.status, 200);
   const current = listed.body.find((device) => device.id === kioskDevice.id);
   assert.equal(current.status, "active");
+  assert.equal(current.nfcEnabled, false);
+  assert.equal(current.ledEnabled, false);
   assert.equal(Object.hasOwn(current, "refreshTokenHash"), false);
+
+  const capabilityDenied = await apiRequest(
+    targets.reconstructed,
+    `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
+    {
+      method: "PATCH",
+      headers: bearer("user"),
+      body: JSON.stringify({ nfcEnabled: true }),
+    }
+  );
+  assert.equal(capabilityDenied.status, 403);
+  const invalidCapability = await apiRequest(
+    targets.reconstructed,
+    `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
+    {
+      method: "PATCH",
+      headers: bearer("admin"),
+      body: JSON.stringify({ ledEnabled: "yes" }),
+    }
+  );
+  assert.equal(invalidCapability.status, 400);
+  const capability = await apiRequest(
+    targets.reconstructed,
+    `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
+    {
+      method: "PATCH",
+      headers: bearer("admin"),
+      body: JSON.stringify({ nfcEnabled: true, ledEnabled: true }),
+    }
+  );
+  assert.equal(capability.status, 200);
+  assert.equal(capability.body.nfcEnabled, true);
+  assert.equal(capability.body.ledEnabled, true);
+  const capabilityContext = await apiRequest(targets.reconstructed, "/api/kiosk/context", { headers: kioskHeaders() });
+  assert.equal(capabilityContext.status, 200);
+  assert.equal(capabilityContext.body.device.nfcEnabled, true);
+  assert.equal(capabilityContext.body.device.ledEnabled, true);
 
   const replacement = await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
     method: "POST",

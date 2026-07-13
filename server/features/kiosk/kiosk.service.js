@@ -17,6 +17,7 @@ import {
   listKioskScheduleRows,
   revokeKioskDevice,
   rotateKioskRefreshToken,
+  updateKioskDeviceCapabilities,
 } from "./kiosk.repository.js";
 
 export const publicKioskRoom = (room) => ({
@@ -52,6 +53,8 @@ export const publicKioskDevice = (device) => ({
   refreshExpiresAt: device.refresh_expires_at,
   createdAt: device.created_at,
   revokedAt: device.revoked_at,
+  nfcEnabled: Boolean(device.nfc_enabled),
+  ledEnabled: Boolean(device.led_enabled),
 });
 
 export const authenticateKioskCredentials = async (login, password) => {
@@ -154,6 +157,22 @@ export const revokeManagedKioskDevice = async (deviceId, principalId) => {
   const device = await revokeKioskDevice(deviceId, principalId);
   if (!device) throw notFound("Kiosk device not found");
   return device;
+};
+
+export const updateManagedKioskCapabilities = async (deviceId, input = {}) => {
+  const hasNfc = Object.hasOwn(input, "nfcEnabled");
+  const hasLed = Object.hasOwn(input, "ledEnabled");
+  if (!hasNfc && !hasLed) throw badRequest("INVALID_KIOSK_CAPABILITIES", "NFC or LED setting is required");
+  if ((hasNfc && typeof input.nfcEnabled !== "boolean") || (hasLed && typeof input.ledEnabled !== "boolean")) {
+    throw badRequest("INVALID_KIOSK_CAPABILITIES", "NFC and LED settings must be boolean");
+  }
+  const device = await updateKioskDeviceCapabilities({
+    deviceId,
+    nfcEnabled: hasNfc ? input.nfcEnabled : null,
+    ledEnabled: hasLed ? input.ledEnabled : null,
+  });
+  if (!device) throw notFound("Kiosk device not found");
+  return publicKioskDevice(device);
 };
 
 const kioskCapabilities = (row, now = Date.now()) => {

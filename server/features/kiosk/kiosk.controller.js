@@ -8,6 +8,7 @@ import {
   provisionKioskDevice,
   refreshKioskDeviceSession,
   revokeManagedKioskDevice,
+  updateManagedKioskCapabilities,
 } from "./kiosk.service.js";
 import { findEventAudience } from "../events/event.repository.js";
 import { emitEventInvalidation } from "../../socket/event-invalidation.js";
@@ -37,6 +38,11 @@ export const revokeDevice = run(async (req, res) => {
   const device = await revokeManagedKioskDevice(req.params.deviceId, req.auth._id);
   disconnectDevice(req, device.device_id);
   res.json({ id: device.device_id, status: "revoked" });
+});
+export const updateDeviceCapabilities = run(async (req, res) => {
+  const device = await updateManagedKioskCapabilities(req.params.deviceId, req.body);
+  req.io?.of("/").to(`device:${device.id}`).emit("response:kiosk-config", { type: "kiosk:config-changed" });
+  res.json(device);
 });
 
 export const context = run(async (req, res) => res.json(await getKioskContext(req.kiosk)));

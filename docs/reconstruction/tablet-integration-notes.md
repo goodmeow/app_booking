@@ -7,9 +7,10 @@
 - `POST /api/kiosk/refresh` rotates the refresh credential and token version. A lost-response retry returns the same successor for 30 seconds; credentials outside that bounded grace or from revoked devices fail.
 - `DELETE /api/kiosk/device` removes the current pairing. Administrators list/revoke devices through `/api/kiosk/devices`.
 - Room password reset or room deletion revokes every paired device. Active device sockets are disconnected immediately.
+- Administrators can enable NFC and LED indicators independently for each active kiosk. Both default off; changes are pushed to the selected device only.
 - Kiosk HTTP and Socket.io access is bound to immutable room/device UUIDs. Event invalidations target affected user/room channels only.
 - Display states are `AVAILABLE`, `UPCOMING`, `OCCUPIED`, and fail-safe `UNKNOWN`. Active bookings become red without check-in.
-- NFC, LED, check-in, and early-finish controls remain hidden. Native hardware work below is deferred design, not active behavior.
+- NFC and LED labels appear only when enabled for that kiosk. Native bridge calls, check-in, and early-finish controls remain deferred design, not active behavior.
 
 ## Confirmed hardware
 

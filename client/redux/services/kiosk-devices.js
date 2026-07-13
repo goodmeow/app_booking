@@ -14,7 +14,19 @@ export const kioskDevicesApi = api.injectEndpoints({
       }),
       invalidatesTags: ["kioskDevices"],
     }),
+    updateKioskDeviceCapabilities: builder.mutation({
+      query: ({ deviceId, ...capabilities }) => ({
+        url: `kiosk/devices/${encodeURIComponent(deviceId)}/capabilities`,
+        method: "PATCH",
+        body: capabilities,
+      }),
+      invalidatesTags: ["kioskDevices"],
+    }),
   }),
 });
 
-export const { useGetKioskDevicesQuery, useRevokeKioskDeviceMutation } = kioskDevicesApi;
+export const {
+  useGetKioskDevicesQuery,
+  useRevokeKioskDeviceMutation,
+  useUpdateKioskDeviceCapabilitiesMutation,
+} = kioskDevicesApi;

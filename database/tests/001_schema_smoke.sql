@@ -41,6 +41,18 @@ BEGIN
 
   IF NOT EXISTS (
     SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'tbl_kiosk_devices'
+      AND column_name IN ('nfc_enabled', 'led_enabled')
+    GROUP BY table_schema, table_name
+    HAVING count(*) = 2
+  ) THEN
+    RAISE EXCEPTION 'Kiosk capability columns are missing';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
     FROM pg_constraint
     WHERE conrelid = 'public.tbl_kiosk_devices'::regclass
       AND conname IN (

@@ -8,6 +8,7 @@ const kioskRoomColumns = `
 const kioskDeviceColumns = `
   d._id AS device_id, d.room_id, d.name AS device_name,
   d.token_version, d.refresh_expires_at, d.last_seen_at,
+  d.nfc_enabled, d.led_enabled,
   d.revoked_at, d.created_at, d.updated_at,
   u.name AS room_name, u.email AS room_email, u.type AS room_type,
   u.floor, u.capacity, u.building, u.feature, u.is_deleted AS room_deleted
@@ -104,6 +105,7 @@ export const listKioskDevices = async (roomId = null) => (await query(
   `SELECT
      d._id AS device_id, d.room_id, d.name AS device_name,
      d.refresh_expires_at, d.last_seen_at, d.revoked_at,
+     d.nfc_enabled, d.led_enabled,
      d.created_at, d.updated_at,
      u.name AS room_name, u.email AS room_email
    FROM tbl_kiosk_devices d
@@ -112,6 +114,21 @@ export const listKioskDevices = async (roomId = null) => (await query(
    ORDER BY d.revoked_at NULLS FIRST, d.last_seen_at DESC NULLS LAST, d.created_at DESC`,
   [roomId || null]
 )).rows;
+
+export const updateKioskDeviceCapabilities = async ({ deviceId, nfcEnabled = null, ledEnabled = null }) => (await query(
+  `WITH updated AS (
+     UPDATE tbl_kiosk_devices
+     SET nfc_enabled = COALESCE($2::boolean, nfc_enabled),
+         led_enabled = COALESCE($3::boolean, led_enabled),
+         updated_at = now()
+     WHERE _id = $1 AND revoked_at IS NULL
+     RETURNING *
+   )
+   SELECT ${kioskDeviceColumns}
+   FROM updated d
+   JOIN tbl_users u ON u._id = d.room_id`,
+  [deviceId, nfcEnabled, ledEnabled]
+)).rows[0] || null;
 
 export const findKioskRoomByLogin = async (login) => (await query(
   `SELECT ${kioskRoomColumns}
