@@ -5,6 +5,8 @@ import { bearer, identities } from "../parity/fixtures.js";
 
 let server;
 let kioskToken;
+let kioskRefreshToken;
+let kioskDevice;
 
 before(async () => {
   await resetParityDatabase();
@@ -35,18 +37,98 @@ test("room credentials create an isolated kiosk session", async () => {
   const authenticated = await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: identities.room.email, password: "RoomTablet123!" }),
+    body: JSON.stringify({ email: identities.room.email, password: "RoomTablet123!", deviceName: "Room One Test Tablet" }),
   });
   assert.equal(authenticated.status, 200);
   assert.ok(authenticated.body.token);
+  assert.ok(authenticated.body.refreshToken);
+  assert.equal(authenticated.body.device.name, "Room One Test Tablet");
   assert.equal(authenticated.body.room._id, identities.room._id);
   assert.equal(Object.hasOwn(authenticated.body.room, "password"), false);
   kioskToken = authenticated.body.token;
+  kioskRefreshToken = authenticated.body.refreshToken;
+  kioskDevice = authenticated.body.device;
 
   const employeeToken = await apiRequest(targets.reconstructed, "/api/kiosk/context", { headers: bearer("admin") });
   assert.equal(employeeToken.status, 401);
   const webEndpoint = await apiRequest(targets.reconstructed, "/api/events?start=20300101&end=20300131", { headers: kioskHeaders() });
   assert.equal(webEndpoint.status, 401);
+});
+
+test("kiosk refresh tolerates one lost response then rejects replay", async () => {
+  const previousToken = kioskToken;
+  const previousRefresh = kioskRefreshToken;
+  const refreshPrevious = () => apiRequest(targets.reconstructed, "/api/kiosk/refresh", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken: previousRefresh }),
+  });
+  const [refreshed, concurrentRetry] = await Promise.all([refreshPrevious(), refreshPrevious()]);
+  assert.equal(refreshed.status, 200);
+  assert.equal(concurrentRetry.status, 200);
+  assert.equal(concurrentRetry.body.refreshToken, refreshed.body.refreshToken);
+  assert.notEqual(refreshed.body.token, previousToken);
+  assert.notEqual(refreshed.body.refreshToken, previousRefresh);
+  kioskToken = refreshed.body.token;
+  kioskRefreshToken = refreshed.body.refreshToken;
+
+  const staleAccess = await apiRequest(targets.reconstructed, "/api/kiosk/context", {
+    headers: { Authorization: `Bearer ${previousToken}` },
+  });
+  assert.equal(staleAccess.status, 401);
+  const retry = await refreshPrevious();
+  assert.equal(retry.status, 200);
+  assert.equal(retry.body.refreshToken, kioskRefreshToken);
+  kioskToken = retry.body.token;
+  kioskRefreshToken = retry.body.refreshToken;
+
+  const advanced = await apiRequest(targets.reconstructed, "/api/kiosk/refresh", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken: kioskRefreshToken }),
+  });
+  assert.equal(advanced.status, 200);
+  kioskToken = advanced.body.token;
+  kioskRefreshToken = advanced.body.refreshToken;
+
+  const replay = await apiRequest(targets.reconstructed, "/api/kiosk/refresh", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken: previousRefresh }),
+  });
+  assert.equal(replay.status, 401);
+});
+
+test("administrators inventory and revoke individual kiosk devices", async () => {
+  const denied = await apiRequest(targets.reconstructed, "/api/kiosk/devices", { headers: bearer("user") });
+  assert.equal(denied.status, 403);
+  const listed = await apiRequest(targets.reconstructed, "/api/kiosk/devices", { headers: bearer("admin") });
+  assert.equal(listed.status, 200);
+  const current = listed.body.find((device) => device.id === kioskDevice.id);
+  assert.equal(current.status, "active");
+  assert.equal(Object.hasOwn(current, "refreshTokenHash"), false);
+
+  const replacement = await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: identities.room.email, password: "RoomTablet123!", deviceName: "Replacement Tablet" }),
+  });
+  assert.equal(replacement.status, 200);
+  const revoked = await apiRequest(targets.reconstructed, `/api/kiosk/devices/${replacement.body.device.id}`, {
+    method: "DELETE",
+    headers: bearer("admin"),
+  });
+  assert.equal(revoked.status, 200);
+  const rejectedAccess = await apiRequest(targets.reconstructed, "/api/kiosk/context", {
+    headers: { Authorization: `Bearer ${replacement.body.token}` },
+  });
+  assert.equal(rejectedAccess.status, 401);
+  const rejectedRefresh = await apiRequest(targets.reconstructed, "/api/kiosk/refresh", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken: replacement.body.refreshToken }),
+  });
+  assert.equal(rejectedRefresh.status, 401);
 });
 
 test("kiosk context and schedule are bound to one room with a safe projection", async () => {
@@ -134,4 +216,25 @@ test("deactivating the bound room revokes an issued kiosk token", async () => {
   } finally {
     await queryParityDatabase(`UPDATE tbl_users SET is_deleted=false WHERE _id='${identities.room._id}';`);
   }
+});
+
+test("changing a room password revokes every paired device", async () => {
+  const changed = await apiRequest(targets.reconstructed, "/api/users/change-password", {
+    method: "PUT",
+    headers: bearer("admin"),
+    body: JSON.stringify({
+      userId: identities.room._id,
+      newPassword: "ChangedRoom123!",
+      newPasswordConfirmation: "ChangedRoom123!",
+    }),
+  });
+  assert.equal(changed.status, 200);
+  const access = await apiRequest(targets.reconstructed, "/api/kiosk/context", { headers: kioskHeaders() });
+  assert.equal(access.status, 401);
+  const refresh = await apiRequest(targets.reconstructed, "/api/kiosk/refresh", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken: kioskRefreshToken }),
+  });
+  assert.equal(refresh.status, 401);
 });

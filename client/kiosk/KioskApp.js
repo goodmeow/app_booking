@@ -14,8 +14,10 @@ import { io } from "socket.io-client";
 import { useHistory } from "react-router-dom";
 import {
   authenticateKiosk,
+  deprovisionKiosk,
   fetchKioskContext,
   fetchKioskSchedule,
+  refreshKioskSession,
 } from "./kiosk-api.js";
 import { clearKioskSession, readKioskSession, saveKioskSession } from "./kiosk-session.js";
 import { deriveKioskState, formatKioskDate, formatKioskTime, kioskDayRange, kioskPalette } from "./kiosk-state.js";
@@ -23,6 +25,7 @@ import { deriveKioskState, formatKioskDate, formatKioskTime, kioskDayRange, kios
 const KioskSignin = ({ onAuthenticated }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [deviceName, setDeviceName] = useState("Meeting Room Tablet");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -31,7 +34,7 @@ const KioskSignin = ({ onAuthenticated }) => {
     setLoading(true);
     setError("");
     try {
-      const session = await authenticateKiosk({ email, password });
+      const session = await authenticateKiosk({ email, password, deviceName });
       saveKioskSession(session);
       setLoading(false);
       onAuthenticated(session);
@@ -57,6 +60,15 @@ const KioskSignin = ({ onAuthenticated }) => {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           margin="normal"
+        />
+        <TextField
+          fullWidth
+          required
+          label="Device name"
+          value={deviceName}
+          onChange={(event) => setDeviceName(event.target.value)}
+          margin="normal"
+          inputProps={{ maxLength: 80 }}
         />
         <TextField
           fullWidth
@@ -94,7 +106,7 @@ const ScheduleItem = ({ event, now }) => {
   );
 };
 
-const KioskDisplay = ({ session, onDeprovision }) => {
+const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
   const [context, setContext] = useState({ room: session.room, settings: {} });
   const [events, setEvents] = useState([]);
   const [scheduleFresh, setScheduleFresh] = useState(false);
@@ -103,6 +115,44 @@ const KioskDisplay = ({ session, onDeprovision }) => {
   const [error, setError] = useState("");
   const [connected, setConnected] = useState(false);
   const changeRoomTimer = useRef(null);
+  const refreshPromise = useRef(null);
+  const latestSession = useRef(session);
+  const mounted = useRef(true);
+
+  useEffect(() => { latestSession.current = session; }, [session]);
+  useEffect(() => () => { mounted.current = false; }, []);
+
+  const refreshAccess = useCallback(async (staleToken) => {
+    if (latestSession.current.token !== staleToken) return latestSession.current;
+    if (!refreshPromise.current) {
+      refreshPromise.current = refreshKioskSession(latestSession.current.refreshToken)
+        .then(async (nextSession) => {
+          if (!mounted.current) {
+            try { await deprovisionKiosk(nextSession.token); } catch {}
+            const error = new Error("Kiosk deprovisioned");
+            error.status = 401;
+            throw error;
+          }
+          latestSession.current = nextSession;
+          saveKioskSession(nextSession);
+          onSessionUpdate(nextSession);
+          return nextSession;
+        })
+        .finally(() => { refreshPromise.current = null; });
+    }
+    return refreshPromise.current;
+  }, [onSessionUpdate]);
+
+  const withRefresh = useCallback(async (operation) => {
+    const accessToken = latestSession.current.token;
+    try {
+      return await operation(accessToken);
+    } catch (reason) {
+      if (reason?.status !== 401) throw reason;
+      const nextSession = await refreshAccess(accessToken);
+      return operation(nextSession.token);
+    }
+  }, [refreshAccess, session.token]);
 
   const handleUnauthorized = useCallback((reason) => {
     if (reason?.status === 401) {
@@ -114,24 +164,26 @@ const KioskDisplay = ({ session, onDeprovision }) => {
   }, [onDeprovision]);
 
   const load = useCallback(async ({ quiet = false } = {}) => {
-    if (!quiet) setLoading(true);
+    if (!quiet && mounted.current) setLoading(true);
     try {
       const [nextContext, nextEvents] = await Promise.all([
-        fetchKioskContext(session.token),
-        fetchKioskSchedule(session.token, kioskDayRange(new Date())),
+        withRefresh((token) => fetchKioskContext(token)),
+        withRefresh((token) => fetchKioskSchedule(token, kioskDayRange(new Date()))),
       ]);
+      if (!mounted.current) return;
       setContext(nextContext);
       setEvents(Array.isArray(nextEvents) ? nextEvents : []);
       setScheduleFresh(true);
       setError("");
       if (!quiet) setLoading(false);
     } catch (reason) {
+      if (!mounted.current) return;
       setScheduleFresh(false);
       if (handleUnauthorized(reason)) return;
       setError(reason.message);
       if (!quiet) setLoading(false);
     }
-  }, [handleUnauthorized, session.token]);
+  }, [handleUnauthorized, withRefresh]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
@@ -141,9 +193,10 @@ const KioskDisplay = ({ session, onDeprovision }) => {
   }, [load]);
   useEffect(() => {
     const socket = io("/", { transports: ["websocket"], auth: { token: session.token } });
-    socket.on("connect", () => setConnected(true));
-    socket.on("disconnect", () => setConnected(false));
-    socket.on("connect_error", () => setConnected(false));
+    const setConnection = (value) => { if (mounted.current) setConnected(value); };
+    socket.on("connect", () => setConnection(true));
+    socket.on("disconnect", () => setConnection(false));
+    socket.on("connect_error", () => setConnection(false));
     socket.on("response:event", () => load({ quiet: true }));
     return () => socket.close();
   }, [load, session.token]);
@@ -244,19 +297,45 @@ const KioskDisplay = ({ session, onDeprovision }) => {
 
 const KioskApp = ({ forceProvision = false }) => {
   const history = useHistory();
-  const [session, setSession] = useState(() => {
-    if (forceProvision) {
-      clearKioskSession();
-      return null;
+  const [session, setSession] = useState(() => readKioskSession());
+  const [resetting, setResetting] = useState(forceProvision);
+
+  const revokeSession = useCallback(async (target) => {
+    try {
+      await deprovisionKiosk(target.token);
+    } catch (reason) {
+      if (reason?.status !== 401 || !target.refreshToken) return;
+      try {
+        const refreshed = await refreshKioskSession(target.refreshToken);
+        await deprovisionKiosk(refreshed.token);
+      } catch {}
     }
-    return readKioskSession();
-  });
+  }, []);
+
+  const clearProvisioning = useCallback(async () => {
+    const target = session;
+    clearKioskSession();
+    setSession(null);
+    if (target) await revokeSession(target);
+  }, [revokeSession, session]);
+
+  useEffect(() => {
+    if (!forceProvision) return;
+    let active = true;
+    (async () => {
+      await clearProvisioning();
+      if (active) setResetting(false);
+    })();
+    return () => { active = false; };
+  }, []);
+
   const completeProvision = (nextSession) => {
     setSession(nextSession);
     if (forceProvision) history.replace("/kiosk");
   };
+  if (resetting) return <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", bgcolor: "#07111f" }}><CircularProgress /></Box>;
   if (!session) return <KioskSignin onAuthenticated={completeProvision} />;
-  return <KioskDisplay session={session} onDeprovision={() => { clearKioskSession(); setSession(null); }} />;
+  return <KioskDisplay session={session} onSessionUpdate={setSession} onDeprovision={clearProvisioning} />;
 };
 
 export default KioskApp;

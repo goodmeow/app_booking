@@ -10,6 +10,9 @@ export const create = run(async (req, res) => res.status(201).json(await createU
 export const update = run(async (req, res) => res.json(await editUser(req.params.userId, req.body, req.auth)));
 export const remove = run(async (req, res) => res.json(await deleteUser(req.params.userId)));
 export const changePassword = run(async (req, res) => {
-  await changeUserPassword(req.body, req.auth);
+  const revokedDevices = await changeUserPassword(req.body, req.auth);
+  for (const device of revokedDevices) {
+    req.io?.of("/").in(`device:${device.device_id}`).disconnectSockets(true);
+  }
   res.json({ message: "Password successfully changed" });
 });

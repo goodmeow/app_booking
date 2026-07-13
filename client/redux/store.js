@@ -5,6 +5,7 @@ import "./services/users.js";
 import "./services/rooms.js";
 import "./services/events.js";
 import "./services/settings.js";
+import "./services/kiosk-devices.js";
 
 const store = configureStore({
   reducer: {

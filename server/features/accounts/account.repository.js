@@ -95,7 +95,7 @@ export const updateAccount = async (id, values, type) => (await query(
   ]
 )).rows[0] || null;
 
-export const updatePassword = async (id, password) => (await query(
+export const updatePassword = async (id, password, execute = query) => (await execute(
   `UPDATE tbl_users SET password = $2, updated_at = now()
    WHERE _id = $1 AND is_deleted IS NOT TRUE
    RETURNING _id`,

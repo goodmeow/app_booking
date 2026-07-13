@@ -10,3 +10,11 @@ export const onJoinRoom = async (socket, identifier) => {
   await socket.join(`room:${room._id}`);
   return room;
 };
+
+export const onLeaveRoom = async (socket, identifier) => {
+  if (socket.principal?.kind === "kiosk") throw new Error("Kiosk cannot leave its assigned room");
+  const room = await findActiveRoom(identifier);
+  if (!room) throw new Error("Room not found");
+  await socket.leave(`room:${room._id}`);
+  return room;
+};

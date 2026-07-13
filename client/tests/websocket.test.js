@@ -13,6 +13,7 @@ const actions = {
   wsDisconnect: action("ws/disconnect"),
   wsConnectionLost: action("ws/lost"),
   wsJoinRoom: action("ws/join"),
+  wsLeaveRoom: action("ws/leave"),
   wsEmit: action("ws/emit"),
 };
 
@@ -46,6 +47,7 @@ test("websocket authenticates, rejoins selected rooms, and invalidates events", 
   };
   const next = (action) => {
     if (actions.wsJoinRoom.match(action)) state.websocket.socket_room_list.push(action.payload);
+    if (actions.wsLeaveRoom.match(action)) state.websocket.socket_room_list = state.websocket.socket_room_list.filter((room) => room !== action.payload);
     return action;
   };
   const middleware = configureWebsocketMiddleware({
@@ -75,6 +77,10 @@ test("websocket authenticates, rejoins selected rooms, and invalidates events", 
     ["room:join", "room@example.test"],
   ]);
   assert.equal(dispatched.filter((candidate) => candidate.type === "events/invalidate").length, 2);
+
+  middleware(actions.wsLeaveRoom("room@example.test"));
+  assert.deepEqual(socket.emitted.at(-1), ["room:leave", "room@example.test"]);
+  assert.deepEqual(state.websocket.socket_room_list, []);
 
   middleware(actions.wsDisconnect());
   assert.equal(socket.closed, true);

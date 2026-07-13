@@ -3,6 +3,7 @@
 BEGIN;
 
 TRUNCATE TABLE
+  tbl_kiosk_devices,
   tbl_event_rooms,
   tbl_event_details,
   tbl_events,

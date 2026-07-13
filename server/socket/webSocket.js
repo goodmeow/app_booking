@@ -22,9 +22,12 @@ const webSocket = async (io) => {
     }
   });
   namespace.on("connection", (socket) => {
-    socket.join(socket.principal.kind === "kiosk"
-      ? `room:${socket.principal.roomId}`
-      : `user:${socket.principal._id}`);
+    if (socket.principal.kind === "kiosk") {
+      socket.join(`room:${socket.principal.roomId}`);
+      socket.join(`device:${socket.principal.deviceId}`);
+    } else {
+      socket.join(`user:${socket.principal._id}`);
+    }
     initSocket(io, socket);
   });
 };

@@ -138,11 +138,11 @@ Phase 9 complete: identity and authorization are server-authoritative, unrelated
 - [x] Persist room assignment locally while allowing deliberate reprovisioning through the setup route or hold gesture.
 - [x] Standardize local defaults on frontend port `8081` and API/Socket.io port `9091` with deterministic disposable demo credentials.
 - [x] Cover kiosk session, state transitions, API isolation, cross-room authorization, room revocation, and Socket.io boundaries.
-- [ ] Add managed device pairing, token refresh/version revocation, and an admin device inventory.
-- [ ] Scope event invalidations to affected Socket.io room channels instead of broadcasting a data-free global refresh signal.
+- [x] Add managed device pairing, rotating refresh credentials/version revocation, and an admin device inventory.
+- [x] Scope event invalidations to affected Socket.io user/room channels instead of broadcasting a data-free global refresh signal.
 - [ ] Implement the native tablet bridge for NFC and LEDs when hardware integration resumes; keep controls hidden until then.
 
-Phase 10A foundation complete: a provisioned tablet is cryptographically bound to one room, receives privacy-safe realtime schedule updates, and switches directly to red `OCCUPIED` for active bookings. Production device lifecycle and native hardware integration remain explicit follow-up work.
+Phase 10A software complete: a provisioned tablet is cryptographically bound to one room, rotates short-lived access credentials, can be inventoried or revoked per device, receives privacy-safe scoped realtime updates, and switches directly to red `OCCUPIED` for active bookings. Native hardware integration remains explicitly deferred.
 
 ### Phase 10B — Scheduler UX and rebrand
 

@@ -1,7 +1,9 @@
 import bcrypt from "bcrypt";
+import { withTransaction } from "../../db/pool.js";
 import { badRequest, forbidden, HttpError, notFound } from "../../lib/http-error.js";
 import { findAccountById, findAccountWithPassword, insertAccount, listEmployees, softDeleteAccount, updateAccount, updatePassword } from "../accounts/account.repository.js";
 import { normalizedEmail, normalizedUsername, validatedPassword } from "../accounts/identity.validation.js";
+import { revokeRoomKioskDevices } from "../kiosk/kiosk.repository.js";
 
 const cleanIdentity = (body) => {
   const values = {
@@ -62,7 +64,12 @@ export const changeUserPassword = async (body, principal) => {
     const valid = body.oldPassword && account.password && await bcrypt.compare(String(body.oldPassword), account.password);
     if (!valid) throw badRequest("INVALID_PASSWORD", "Current password is incorrect");
   }
-  await updatePassword(targetId, await bcrypt.hash(newPassword, 12));
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+  return withTransaction(async (client) => {
+    const execute = (text, values) => client.query(text, values);
+    await updatePassword(targetId, passwordHash, execute);
+    return account.type === "room" ? revokeRoomKioskDevices(targetId, principal._id, execute) : [];
+  });
 };
 
 export const deleteUser = async (id) => {

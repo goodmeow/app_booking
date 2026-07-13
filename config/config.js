@@ -36,7 +36,8 @@ const config = {
   jwtIssuer: env.JWT_ISSUER || "360-scheduler",
   jwtAudience: env.JWT_AUDIENCE || "360-scheduler-web",
   kioskJwtAudience: env.KIOSK_JWT_AUDIENCE || "360-scheduler-kiosk",
-  kioskJwtExpiry: env.KIOSK_JWT_EXPIRY || "12h",
+  kioskJwtExpiry: env.KIOSK_JWT_EXPIRY || "15m",
+  kioskRefreshDays: Number(env.KIOSK_REFRESH_DAYS || 30),
   corsOrigins,
   trustProxy,
   tlsCertPath: env.TLS_CERT_PATH,
@@ -80,6 +81,9 @@ export const validateRuntimeConfig = () => {
   }
   if (!Number.isInteger(config.recurrenceMaxOccurrences) || config.recurrenceMaxOccurrences <= 0) {
     throw new Error("RECURRENCE_MAX_OCCURRENCES must be a positive integer");
+  }
+  if (!Number.isInteger(config.kioskRefreshDays) || config.kioskRefreshDays <= 0) {
+    throw new Error("KIOSK_REFRESH_DAYS must be a positive integer");
   }
   return config;
 };

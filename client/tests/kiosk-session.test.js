@@ -11,24 +11,26 @@ const storage = () => {
   };
 };
 
-const token = (expiresAt) => {
-  const payload = Buffer.from(JSON.stringify({ exp: Math.floor(expiresAt / 1000), kind: "kiosk" })).toString("base64url");
-  return `header.${payload}.signature`;
-};
+const session = (refreshExpiresAt) => ({
+  token: "access-token",
+  refreshToken: "refresh-token",
+  room: { _id: "room-1" },
+  device: { id: "device-1", refreshExpiresAt: new Date(refreshExpiresAt).toISOString() },
+});
 
-test("kiosk session persists independently and expires locally", () => {
+test("kiosk session survives access expiry and expires with refresh credential", () => {
   const target = storage();
   const now = Date.now();
-  const session = { token: token(now + 60_000), room: { _id: "room-1" } };
-  saveKioskSession(session, target);
-  assert.deepEqual(readKioskSession(target, now), session);
+  const stored = session(now + 60_000);
+  saveKioskSession(stored, target);
+  assert.deepEqual(readKioskSession(target, now), stored);
   assert.equal(readKioskSession(target, now + 120_000), null);
   assert.equal(target.getItem(kioskSessionKey), null);
 });
 
 test("kiosk session can be deprovisioned", () => {
   const target = storage();
-  saveKioskSession({ token: token(Date.now() + 60_000), room: { _id: "room-1" } }, target);
+  saveKioskSession(session(Date.now() + 60_000), target);
   clearKioskSession(target);
   assert.equal(readKioskSession(target), null);
 });

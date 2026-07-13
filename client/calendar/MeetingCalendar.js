@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Box, Container, Paper } from "@mui/material";
+import { useDispatch } from "react-redux";
 import { isAuthenticated } from "../auth/auth-helper.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import { calendarEventFilters, calendarEventFromApi, calendarWeekRange, defaultEventRange } from "../domain/calendar.js";
@@ -7,12 +8,14 @@ import { getApiError } from "../domain/api-error.js";
 import { useGetEventsQuery } from "../redux/services/events.js";
 import { useGetRoomsQuery } from "../redux/services/rooms.js";
 import { useListUserQuery } from "../redux/services/users.js";
+import { wsJoinRoom, wsLeaveRoom } from "../redux/websocket.js";
 import CalendarSidebar from "./CalendarSidebar.js";
 import EventEditor from "./EventEditor.js";
 import MeetingWeek from "./MeetingWeek.js";
 
 const MeetingCalendar = () => {
   const session = isAuthenticated();
+  const dispatch = useDispatch();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [editor, setEditor] = useState({ open: false, event: null, start: null, end: null });
@@ -20,6 +23,13 @@ const MeetingCalendar = () => {
   const eventQuery = useGetEventsQuery(calendarEventFilters({ email: session.user.email, roomEmail: selectedRoom?.email, range }));
   const roomQuery = useGetRoomsQuery();
   const userQuery = useListUserQuery();
+
+  useEffect(() => {
+    const roomId = selectedRoom?._id;
+    if (!roomId) return undefined;
+    dispatch(wsJoinRoom(roomId));
+    return () => { dispatch(wsLeaveRoom(roomId)); };
+  }, [dispatch, selectedRoom?._id]);
 
   const openNewEvent = (start, end) => setEditor({ open: true, event: null, start, end });
   const addEvent = () => {

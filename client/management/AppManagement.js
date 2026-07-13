@@ -4,6 +4,7 @@ import { useGetSettingsQuery } from "../redux/services/settings.js";
 import CardMasterSection from "./CardMasterSection.js";
 import RoomManagementSection from "./RoomManagementSection.js";
 import UserManagementSection from "./UserManagementSection.js";
+import KioskDeviceManagementSection from "./KioskDeviceManagementSection.js";
 
 const AppManagement = () => {
   // Recovered page loads settings, but exposes no confirmed settings controls.
@@ -16,6 +17,7 @@ const AppManagement = () => {
         <Paper sx={{ p: 3 }}><CardMasterSection /></Paper>
         <Paper sx={{ p: 3 }}><UserManagementSection /></Paper>
         <Paper sx={{ p: 3 }}><RoomManagementSection /></Paper>
+        <Paper sx={{ p: 3 }}><KioskDeviceManagementSection /></Paper>
       </Stack>
     </Container>
   );

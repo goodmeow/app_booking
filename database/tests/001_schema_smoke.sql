@@ -8,8 +8,8 @@ BEGIN
   FROM pg_tables
   WHERE schemaname = 'public';
 
-  IF actual_count < 9 THEN
-    RAISE EXCEPTION 'Expected at least 9 public tables, found %', actual_count;
+  IF actual_count < 10 THEN
+    RAISE EXCEPTION 'Expected at least 10 public tables, found %', actual_count;
   END IF;
 
   SELECT count(*) INTO actual_count
@@ -33,6 +33,37 @@ BEGIN
   IF to_regclass('public.tbl_event_series') IS NULL
      OR to_regclass('public.tbl_event_rooms') IS NULL THEN
     RAISE EXCEPTION 'Phase 9 scheduler tables are missing';
+  END IF;
+
+  IF to_regclass('public.tbl_kiosk_devices') IS NULL THEN
+    RAISE EXCEPTION 'Phase 10A kiosk device table is missing';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conrelid = 'public.tbl_kiosk_devices'::regclass
+      AND conname IN (
+        'tbl_kiosk_devices_room_fk',
+        'tbl_kiosk_devices_revoked_by_fk',
+        'tbl_kiosk_devices_token_version_positive'
+      )
+    GROUP BY conrelid
+    HAVING count(*) = 3
+  ) THEN
+    RAISE EXCEPTION 'Kiosk device constraints are missing';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_indexes
+    WHERE schemaname = 'public'
+      AND indexname = 'tbl_kiosk_devices_active_room_idx'
+  ) OR NOT EXISTS (
+    SELECT 1 FROM pg_indexes
+    WHERE schemaname = 'public'
+      AND indexname = 'tbl_kiosk_devices_refresh_token_hash_idx'
+  ) THEN
+    RAISE EXCEPTION 'Kiosk device indexes are missing';
   END IF;
 
   IF NOT EXISTS (

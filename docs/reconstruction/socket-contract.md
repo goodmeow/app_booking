@@ -1,5 +1,17 @@
 # Socket.io contract
 
+## Current hardened behavior
+
+- HTTP and Socket.io share authenticated employee/kiosk JWT verification.
+- Employees auto-join `user:{uuid}`. Kiosks auto-join immutable `room:{uuid}` and `device:{uuid}` channels.
+- Employee room selection emits authorized `room:join` and `room:leave`; kiosks cannot join another room or leave their assigned room.
+- Event mutations emit data-free `{type: "events:changed"}` invalidations only to affected organizer, employee-attendee, and room channels.
+- Updates union old and new audiences so moved meetings invalidate both rooms. Cancel/remove operations notify their pre-mutation audience.
+- Device revocation disconnects its live `device:{uuid}` sockets. Reconnect with stale access tokens fails.
+- `response:setting` remains a global data-free settings invalidation; event privacy does not depend on Socket.io payload filtering.
+
+Sections below document recovered legacy behavior for historical comparison.
+
 ## Transport and connection
 
 - Namespace `/`; transports `websocket` and `polling` (`dist/server/server.bundle.js:2138-2144`, `2282-2289`).

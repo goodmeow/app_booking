@@ -29,6 +29,8 @@ export const configureWebsocketMiddleware = ({
       socket.on("response:event", () => store.dispatch(invalidateEvents()));
     } else if (actions.wsJoinRoom.match(action) && socket?.connected) {
       socket.emit("room:join", action.payload);
+    } else if (actions.wsLeaveRoom.match(action) && socket?.connected) {
+      socket.emit("room:leave", action.payload);
     } else if (actions.wsEmit.match(action) && socket) {
       const { event, ...payload } = action.payload;
       socket.emit(event, payload);

@@ -157,6 +157,58 @@ export const listEventParticipants = async (eventId, client = { query }) => (awa
   [eventId]
 )).rows;
 
+export const findEventAudience = async (eventIds) => {
+  const ids = [...new Set((eventIds || []).filter(Boolean).map(String))];
+  if (!ids.length) return [];
+  return (await query(
+    `SELECT DISTINCT audience.kind, audience.id
+     FROM (
+       SELECT 'user'::text AS kind, e.organizer_id AS id
+       FROM tbl_events e WHERE e._id = ANY($1::uuid[])
+       UNION ALL
+       SELECT 'user', d.attendee_user_id
+       FROM tbl_event_details d
+       WHERE d.event_id = ANY($1::uuid[]) AND d.attendee_user_id IS NOT NULL AND d.is_deleted IS NOT TRUE
+       UNION ALL
+       SELECT 'room', d.room_id
+       FROM tbl_event_details d
+       WHERE d.event_id = ANY($1::uuid[]) AND d.room_id IS NOT NULL AND d.is_deleted IS NOT TRUE
+     ) audience
+     WHERE audience.id IS NOT NULL`,
+    [ids]
+  )).rows;
+};
+
+export const findMutationAudience = async (eventId, scope = "occurrence") => (await query(
+  `WITH pivot AS (
+     SELECT _id, series_id, occurrence_index FROM tbl_events WHERE _id = $1
+   ), targets AS (
+     SELECT e._id
+     FROM tbl_events e, pivot p
+     WHERE ($2 = 'occurrence' AND e._id = p._id)
+        OR ($2 = 'series' AND p.series_id IS NOT NULL AND e.series_id = p.series_id)
+        OR ($2 = 'following' AND p.series_id IS NOT NULL AND e.series_id = p.series_id AND e.occurrence_index >= p.occurrence_index)
+   ), audience AS (
+     SELECT 'user'::text AS kind, e.organizer_id AS id
+     FROM tbl_events e JOIN targets t ON t._id = e._id
+     UNION ALL
+     SELECT 'user', d.attendee_user_id
+     FROM tbl_event_details d JOIN targets t ON t._id = d.event_id
+     WHERE d.attendee_user_id IS NOT NULL AND d.is_deleted IS NOT TRUE
+     UNION ALL
+     SELECT 'room', d.room_id
+     FROM tbl_event_details d JOIN targets t ON t._id = d.event_id
+     WHERE d.room_id IS NOT NULL AND d.is_deleted IS NOT TRUE
+   )
+   SELECT DISTINCT kind, id FROM audience WHERE id IS NOT NULL`,
+  [eventId, scope || "occurrence"]
+)).rows;
+
+export const findDetailEventId = async (detailId) => (await query(
+  `SELECT event_id FROM tbl_event_details WHERE _id = $1 LIMIT 1`,
+  [detailId]
+)).rows[0]?.event_id || null;
+
 export const findRoomConflicts = async (roomIds, occurrences) => {
   if (!roomIds.length || !occurrences.length) return [];
   const starts = occurrences.map((occurrence) => occurrence.start);

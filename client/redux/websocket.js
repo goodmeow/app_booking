@@ -29,18 +29,19 @@ const slice = createSlice({
       state.status = action.payload || "disconnected";
     },
     wsJoinRoom: (state, action) => { state.socket_room_list = [...new Set([...state.socket_room_list, action.payload])]; },
+    wsLeaveRoom: (state, action) => { state.socket_room_list = state.socket_room_list.filter((room) => room !== action.payload); },
     wsEmit: (state, action) => { state.last_socket_emit = action.payload; },
   },
 });
 
-export const { wsConnect, wsConnected, wsDisconnect, wsConnectionLost, wsJoinRoom, wsEmit } = slice.actions;
+export const { wsConnect, wsConnected, wsDisconnect, wsConnectionLost, wsJoinRoom, wsLeaveRoom, wsEmit } = slice.actions;
 export const websocketReducer = slice.reducer;
 
 export const createWebsocketMiddleware = (connectSocket = io) => configureWebsocketMiddleware({
   connectSocket,
   getToken: () => isAuthenticated()?.token,
   invalidateEvents: () => api.util.invalidateTags(["events"]),
-  actions: { wsConnect, wsConnected, wsDisconnect, wsConnectionLost, wsJoinRoom, wsEmit },
+  actions: { wsConnect, wsConnected, wsDisconnect, wsConnectionLost, wsJoinRoom, wsLeaveRoom, wsEmit },
 });
 
 export const websocketMiddleware = createWebsocketMiddleware();
