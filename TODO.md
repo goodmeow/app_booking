@@ -90,39 +90,41 @@ Phase 8 complete: active route/network mismatches are corrected, calendar and So
 
 ## Phase 9 — Security and identity hardening
 
-- [ ] Allow arbitrary email domains; make explicit account `type` authoritative for users and rooms.
-- [ ] Add normalized case-insensitive email uniqueness and keep optional username separate from email.
-- [ ] Migrate organizer/attendee identity toward UUID/type references; keep external visitor email separate.
-- [ ] Parameterize SQL, including event array payload construction.
-- [ ] Require strong `JWT_SECRET`.
-- [ ] Restrict signup role assignment.
-- [ ] Add missing admin guards.
-- [ ] Authenticate Socket.io and restrict rooms.
-- [ ] Derive personal-schedule identity only from the authenticated principal; ignore or reject caller-selected user identities.
-- [ ] Resolve selected-room filters only to active accounts with explicit `type=room`.
-- [ ] Let authenticated users query every occupied slot for a selected room while applying server-side privacy projection to bookings owned by others.
-- [ ] Limit other-user booking projections to organizer first name, start/end time, and minimal capability metadata; never expose subject, description, email, attendees, or check-in data.
-- [ ] Authorize event details and every mutation (update, attendee add/delete, cancel, early finish) from stored organizer/participant/admin relationships, never organizer identity supplied in the payload; return `403` otherwise.
-- [ ] Make Socket.io emit invalidations or the same safe projection as HTTP responses, never full private event payloads.
-- [ ] Test privacy projections, forbidden fields, unauthorized detail access, and guessed event IDs across API and Socket.io payloads.
-- [ ] Apply CORS allowlist.
-- [ ] Prevent password fields leaving database/API.
-- [ ] Repair HTTPS startup.
-- [ ] Replace raw SQL/result/payload logs with structured allowlisted logging; redact emails, UUIDs, meeting content, and attendee data.
-- [ ] Add safe request telemetry: timestamp, severity, status, duration, and correlation ID.
-- [ ] Remove `shell: true` from development child-process launches and pass argument arrays directly.
-- [ ] Limit nodemon watch paths to server/config sources to prevent startup restarts.
-- [ ] Upgrade dependency chain still using deprecated `util._extend`.
-- [ ] Split `server/routes/index.js` into repository, service, controller, and route modules while preserving regression parity.
-- [ ] Archive or guard `scripts/reconstruct-server.mjs` so it cannot overwrite post-recovery fixes.
-- [ ] Support continuous overnight/multi-day bookings with a configurable maximum duration; use half-open overlap checks for create, update, room availability, and visible-range queries; protect concurrent room bookings.
-- [ ] Define one timezone policy and enforce temporal invariants, check-in/early-finish windows, cross-week listing, and clipped report durations for continuous multi-day meetings.
-- [ ] Add recurrence series identity and occurrence data contracts with explicit supported cadences and deterministic generation through recurrence end date.
-- [ ] Create recurring occurrences transactionally: validate every room collision and roll back the entire series when any occurrence fails.
-- [ ] Define timezone-safe edit/cancel semantics for one occurrence, this-and-future occurrences, and the full series.
-- [ ] Add bounded recurrence safety limits and testable contracts for generation, collision, rollback, mutation scope, and authorization.
+- [x] Allow arbitrary email domains; make explicit account `type` authoritative for users and rooms.
+- [x] Add normalized case-insensitive email uniqueness and keep optional username separate from email.
+- [x] Migrate organizer/attendee identity toward UUID/type references; keep external visitor email separate.
+- [x] Parameterize SQL, including event array payload construction.
+- [x] Require strong `JWT_SECRET`.
+- [x] Restrict signup role assignment.
+- [x] Add missing admin guards.
+- [x] Authenticate Socket.io and restrict rooms.
+- [x] Derive personal-schedule identity only from the authenticated principal; ignore or reject caller-selected user identities.
+- [x] Resolve selected-room filters only to active accounts with explicit `type=room`.
+- [x] Let authenticated users query every occupied slot for a selected room while applying server-side privacy projection to bookings owned by others.
+- [x] Limit other-user booking projections to organizer first name, start/end time, and minimal capability metadata; never expose subject, description, email, attendees, or check-in data.
+- [x] Authorize event details and every mutation (update, attendee add/delete, cancel, early finish) from stored organizer/participant/admin relationships, never organizer identity supplied in the payload; return `403` otherwise.
+- [x] Make Socket.io emit invalidations or the same safe projection as HTTP responses, never full private event payloads.
+- [x] Test privacy projections, forbidden fields, unauthorized detail access, and guessed event IDs across API and Socket.io payloads.
+- [x] Apply CORS allowlist.
+- [x] Prevent password fields leaving database/API.
+- [x] Repair HTTPS startup.
+- [x] Replace raw SQL/result/payload logs with structured allowlisted logging; redact emails, UUIDs, meeting content, and attendee data.
+- [x] Add safe request telemetry: timestamp, severity, status, duration, and correlation ID.
+- [x] Remove `shell: true` from development child-process launches and pass argument arrays directly.
+- [x] Limit nodemon watch paths to server/config sources to prevent startup restarts.
+- [x] Upgrade dependency chain still using deprecated `util._extend`.
+- [x] Split `server/routes/index.js` into repository, service, controller, and route modules while preserving regression parity.
+- [x] Archive or guard `scripts/reconstruct-server.mjs` so it cannot overwrite post-recovery fixes.
+- [x] Support continuous overnight/multi-day bookings with a configurable maximum duration; use half-open overlap checks for create, update, room availability, and visible-range queries; protect concurrent room bookings.
+- [x] Define one timezone policy and enforce temporal invariants, check-in/early-finish windows, cross-week listing, and clipped report durations for continuous multi-day meetings.
+- [x] Add recurrence series identity and occurrence data contracts with explicit supported cadences and deterministic generation through recurrence end date.
+- [x] Create recurring occurrences transactionally: validate every room collision and roll back the entire series when any occurrence fails.
+- [x] Define timezone-safe edit/cancel semantics for one occurrence, this-and-future occurrences, and the full series.
+- [x] Add bounded recurrence safety limits and testable contracts for generation, collision, rollback, mutation scope, and authorization.
 
 Phase 9 log-review evidence (2026-07-13): demo completed without runtime failures; two event creations succeeded, including empty-description normalization. Review found SQL interpolation risk, sensitive-data logging, unsafe shell spawning, broad nodemon watching, missing request telemetry, and one deprecated dependency path.
+
+Phase 9 complete: identity and authorization are server-authoritative, unrelated room bookings use a privacy-safe busy projection, Socket.io is authenticated, runtime and dependency paths are hardened, and atomic multi-day/daily/weekly scheduling passes collision, rollback, DST, mutation-scope, and report-boundary regression gates.
 
 ## Phase 10 — Product UX and rebrand
 

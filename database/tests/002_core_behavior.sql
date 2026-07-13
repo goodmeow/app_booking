@@ -31,8 +31,8 @@ BEGIN
 
   SELECT count(*) INTO actual_count
   FROM users_list('', '', '', '');
-  IF actual_count <> 2 THEN
-    RAISE EXCEPTION 'Expected two active employees, found %', actual_count;
+  IF actual_count <> 3 THEN
+    RAISE EXCEPTION 'Expected three active employees, found %', actual_count;
   END IF;
 
   SELECT count(*) INTO actual_count
@@ -50,11 +50,12 @@ BEGIN
     RAISE EXCEPTION 'Valid master card did not check in event';
   END IF;
 
-  SELECT count(*) INTO actual_count
-  FROM event_early_finished('60000000-0000-4000-8000-000000000001');
-  IF actual_count <> 2 THEN
-    RAISE EXCEPTION 'Expected two attendee notifications, found %', actual_count;
-  END IF;
+  BEGIN
+    PERFORM event_early_finished('60000000-0000-4000-8000-000000000001');
+    RAISE EXCEPTION 'Future event was finished before its start time';
+  EXCEPTION
+    WHEN check_violation THEN NULL;
+  END;
 
   SELECT events_delete_events(
     'admin@example.test',

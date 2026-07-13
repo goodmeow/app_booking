@@ -5,19 +5,44 @@ const envFile = nodeEnv === "production" ? ".env.production" : ".env";
 dotenv.config({ path: envFile });
 
 const env = process.env;
-const baseUrl = `${env.HTTPS === "true" ? "https" : "http"}://${env.HOST}${env.PORT === "" ? "" : `:${env.PORT}`}`;
-const serverBaseUrl = `${env.HTTPS === "true" ? "https" : "http"}://${env.HOST}${env.SERVER_PORT === "" ? "" : `:${env.SERVER_PORT}`}`;
+const host = env.HOST || "localhost";
+const clientPort = env.PORT || "3000";
+const serverPort = env.SERVER_PORT || "5000";
+const trustProxy = !env.TRUST_PROXY || env.TRUST_PROXY === "false"
+  ? false
+  : env.TRUST_PROXY === "true"
+    ? true
+    : /^\d+$/.test(env.TRUST_PROXY)
+      ? Number(env.TRUST_PROXY)
+      : env.TRUST_PROXY;
+const baseUrl = `${env.HTTPS === "true" ? "https" : "http"}://${host}:${clientPort}`;
+const serverBaseUrl = `${env.HTTPS === "true" ? "https" : "http"}://${host}:${serverPort}`;
+const corsOrigins = (env.CORS_ORIGINS || baseUrl || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 const config = {
   isProduction: nodeEnv === "production",
   ssrMode: env.SSR === "true",
-  port: env.PORT || 3000,
-  serverPort: env.SERVER_PORT || 5000,
+  port: clientPort,
+  serverPort,
   base: env.BASE,
   baseUrl: baseUrl || "http://localhost:3000",
   serverBaseUrl: serverBaseUrl || "http://localhost:5000",
   isHttps: env.HTTPS === "true",
-  jwtSecret: env.JWT_SECRET || "YOUR_secret_key",
+  jwtSecret: env.JWT_SECRET,
+  jwtExpiry: env.JWT_EXPIRY_TOKEN || "1d",
+  jwtIssuer: env.JWT_ISSUER || "360-scheduler",
+  jwtAudience: env.JWT_AUDIENCE || "360-scheduler-web",
+  corsOrigins,
+  trustProxy,
+  tlsCertPath: env.TLS_CERT_PATH,
+  tlsKeyPath: env.TLS_KEY_PATH,
+  appTimezone: env.APP_TIMEZONE || "Asia/Jakarta",
+  maxBookingDurationHours: Number(env.MAX_BOOKING_DURATION_HOURS || 168),
+  recurrenceMaxDays: Number(env.RECURRENCE_MAX_DAYS || 366),
+  recurrenceMaxOccurrences: Number(env.RECURRENCE_MAX_OCCURRENCES || 200),
   pgConn: {
     user: env.PGUSER,
     host: env.PGHOST,
@@ -31,8 +56,30 @@ const config = {
     key: env.REDIS_KEY || "",
     db: env.REDIS_DB || 0,
   },
-  employeeSuffix: env.EMPLOYEE_SUFFIX,
-  roomSuffix: env.ROOM_SUFFIX,
+};
+
+export const validateRuntimeConfig = () => {
+  if (!config.jwtSecret || config.jwtSecret.length < 32 || /^(change-me|your[_-]?secret)/i.test(config.jwtSecret)) {
+    throw new Error("JWT_SECRET must be a non-placeholder secret of at least 32 characters");
+  }
+  if (config.isHttps && (!config.tlsCertPath || !config.tlsKeyPath)) {
+    throw new Error("TLS_CERT_PATH and TLS_KEY_PATH are required when HTTPS=true");
+  }
+  if (!Number.isFinite(config.maxBookingDurationHours) || config.maxBookingDurationHours <= 0) {
+    throw new Error("MAX_BOOKING_DURATION_HOURS must be a positive number");
+  }
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: config.appTimezone }).format();
+  } catch {
+    throw new Error("APP_TIMEZONE must be a supported IANA timezone");
+  }
+  if (!Number.isInteger(config.recurrenceMaxDays) || config.recurrenceMaxDays <= 0) {
+    throw new Error("RECURRENCE_MAX_DAYS must be a positive integer");
+  }
+  if (!Number.isInteger(config.recurrenceMaxOccurrences) || config.recurrenceMaxOccurrences <= 0) {
+    throw new Error("RECURRENCE_MAX_OCCURRENCES must be a positive integer");
+  }
+  return config;
 };
 
 export default config;

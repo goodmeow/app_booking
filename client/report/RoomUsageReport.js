@@ -20,7 +20,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs/dist/exceljs.min.js";
 import { EmptyState, ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import {
   currentMonthRange,
@@ -101,10 +101,18 @@ const RoomUsageReport = () => {
   const query = useGetRoomUsageQuery({ start, end }, { skip: !validRange });
   const rooms = Array.isArray(query.data) ? query.data : [];
 
-  const exportReport = () => {
+  const exportReport = async () => {
     try {
-      const { workbook, filename } = buildRoomUsageWorkbook(XLSX, rooms, start, end);
-      XLSX.writeFile(workbook, filename);
+      const { workbook, filename } = buildRoomUsageWorkbook(ExcelJS, rooms, start, end);
+      const buffer = await workbook.xlsx.writeBuffer();
+      const url = URL.createObjectURL(new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      }));
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Unable to export room usage report", error);
     }
@@ -137,7 +145,7 @@ const RoomUsageReport = () => {
           color="success"
           startIcon={<FileDownloadIcon />}
           disabled={!validRange || query.isFetching || query.isError || !rooms.length}
-          onClick={exportReport}
+          onClick={() => void exportReport()}
           sx={{ ml: { sm: "auto" }, minHeight: 40 }}
         >
           EXPORT HISTORY TO EXCEL

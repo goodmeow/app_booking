@@ -1,15 +1,9 @@
-// Legacy web bundle classifies locations by the broader `@room` marker.
 export const isRoomAttendee = (attendee) =>
-  attendee?.attendee_email?.toLowerCase().includes("@room") === true;
+  attendee?.type === "room" || Boolean(attendee?.room_id);
 
 export const encodeEventDescription = (value = "") => encodeURIComponent(value);
 
 const asDate = (value) => value instanceof Date ? value : new Date(value);
-
-const isSameLocalDay = (left, right) =>
-  left.getFullYear() === right.getFullYear()
-  && left.getMonth() === right.getMonth()
-  && left.getDate() === right.getDate();
 
 export const validateEventDraft = (
   { startDate, endDate, attendees = [] },
@@ -25,8 +19,7 @@ export const validateEventDraft = (
   if (current > end) {
     return `Tidak dapat melakukan ${editing ? "perubahan" : "reserve"} meeting (Waktu telah berlalu)`;
   }
-  if (start > end) return "Waktu mulai tidak dapat lebih dari waktu selesai";
-  if (!isSameLocalDay(start, end)) return "Tidak dapat melakukan reserve meeting (Hari berbeda)";
+  if (start >= end) return "Waktu selesai harus setelah waktu mulai";
   if (!attendees.some(isRoomAttendee)) return "Anda harus memilih lokasi ruangan";
   return null;
 };

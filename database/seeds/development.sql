@@ -3,8 +3,10 @@
 BEGIN;
 
 TRUNCATE TABLE
+  tbl_event_rooms,
   tbl_event_details,
   tbl_events,
+  tbl_event_series,
   tbl_card_masters,
   tbl_app_settings,
   tbl_rooms,
@@ -37,6 +39,16 @@ VALUES
     false,
     'employee',
     'TEST-USER-CARD'
+  ),
+  (
+    '20000000-0000-4000-8000-000000000003',
+    'Privacy Viewer',
+    'viewer@example.test',
+    '$2b$10$test.hash.not.for.authentication',
+    '67e9500b-908a-497d-9d3b-54bc020700cb',
+    false,
+    'employee',
+    'TEST-VIEWER-CARD'
   ),
   (
     '30000000-0000-4000-8000-000000000001',

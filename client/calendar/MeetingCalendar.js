@@ -48,7 +48,11 @@ const MeetingCalendar = () => {
               events={Array.isArray(eventQuery.data) ? eventQuery.data : []}
               selectedDate={selectedDate}
               onSelect={(selection) => openNewEvent(selection.start, selection.end)}
-              onEventClick={(event) => setEditor({ open: true, event: calendarEventFromApi(event), start: event.start, end: event.end })}
+              onEventClick={(event) => {
+                const mapped = calendarEventFromApi(event);
+                if (mapped.can_view_details === false || mapped.visibility === "busy") return;
+                setEditor({ open: true, event: mapped, start: event.start, end: event.end });
+              }}
             />
           ) : null}
         </Paper>

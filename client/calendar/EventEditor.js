@@ -55,7 +55,11 @@ const uniqueAttendees = (values) => {
     const key = attendee_email.toLowerCase();
     if (!attendee_email || seen.has(key)) return result;
     seen.add(key);
-    result.push({ attendee_email });
+    result.push({
+      attendee_email,
+      ...(value?.type ? { type: value.type } : {}),
+      ...(value?.room_id ? { room_id: value.room_id } : {}),
+    });
     return result;
   }, []);
 };
@@ -235,7 +239,13 @@ const EventEditor = ({
                 onChange={(_, value) => {
                   setDraft((current) => {
                     const people = current.attendees.filter((item) => !isRoomAttendee(item));
-                    return { ...current, attendees: uniqueAttendees([...people, ...(value?.email ? [value.email] : [])]) };
+                    return {
+                      ...current,
+                      attendees: uniqueAttendees([
+                        ...people,
+                        ...(value?.email ? [{ attendee_email: value.email, type: "room", room_id: value._id }] : []),
+                      ]),
+                    };
                   });
                   setError("");
                 }}

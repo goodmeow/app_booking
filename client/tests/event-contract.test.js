@@ -14,23 +14,23 @@ const endDate = new Date("2030-01-15T10:00:00");
 const now = new Date("2030-01-15T08:00:00");
 const attendees = [
   { attendee_email: "guest@example.test" },
-  { attendee_email: "meeting-one@room.com" },
+  { attendee_email: "any-room-identifier@example.test", type: "room" },
 ];
 
-test("recognizes room attendee case-insensitively", () => {
-  assert.equal(isRoomAttendee({ attendee_email: "MEETING@ROOM.COM" }), true);
-  assert.equal(isRoomAttendee({ attendee_email: "user@example.test" }), false);
+test("recognizes rooms by explicit identity type", () => {
+  assert.equal(isRoomAttendee({ attendee_email: "anything@example.test", type: "room" }), true);
+  assert.equal(isRoomAttendee({ attendee_email: "meeting@room.com", type: "employee" }), false);
 });
 
 test("validates recovered event time and room rules", () => {
   assert.equal(validateEventDraft({ startDate, endDate, attendees }, { now }), null);
   assert.equal(
     validateEventDraft({ startDate: endDate, endDate: startDate, attendees }, { now }),
-    "Waktu mulai tidak dapat lebih dari waktu selesai"
+    "Waktu selesai harus setelah waktu mulai"
   );
   assert.equal(
     validateEventDraft({ startDate, endDate: new Date("2030-01-16T10:00:00"), attendees }, { now }),
-    "Tidak dapat melakukan reserve meeting (Hari berbeda)"
+    null
   );
   assert.equal(
     validateEventDraft({ startDate, endDate, attendees: [] }, { now }),
@@ -54,7 +54,7 @@ test("builds recovered create and update payload shapes with encoded description
 
   const update = buildUpdateEventPayload(draft);
   assert.equal(update.id, "event-1");
-  assert.deepEqual(update.attendees, attendees);
+  assert.deepEqual(update.attendees, attendees.map(({ attendee_email }) => ({ attendee_email })));
   assert.equal(update.end_date, endDate);
   assert.equal(update.description, "Quarterly%20plan%20%2B%20notes");
 });

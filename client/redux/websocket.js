@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { io } from "socket.io-client";
 import { api } from "./api.js";
 import { configureWebsocketMiddleware } from "./websocket-middleware.js";
+import { isAuthenticated } from "../auth/auth-helper.js";
 
 const initialState = {
   connected: false,
@@ -37,6 +38,7 @@ export const websocketReducer = slice.reducer;
 
 export const createWebsocketMiddleware = (connectSocket = io) => configureWebsocketMiddleware({
   connectSocket,
+  getToken: () => isAuthenticated()?.token,
   invalidateEvents: () => api.util.invalidateTags(["events"]),
   actions: { wsConnect, wsConnected, wsDisconnect, wsConnectionLost, wsJoinRoom, wsEmit },
 });

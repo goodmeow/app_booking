@@ -17,10 +17,9 @@ const serverDir = path.join(__dirname, "..", "build", "server");
 
 console.log(`🚀 Starting server on ${HOST}:${SERVER_PORT}...`);
 
-const nodeProcess = spawn("node", ["server.bundle.cjs"], {
+const nodeProcess = spawn(process.execPath, ["server.bundle.cjs"], {
   cwd: serverDir,
   stdio: "inherit",
-  shell: true,
   env: {
     ...process.env,
     PORT: SERVER_PORT,
@@ -34,13 +33,11 @@ nodeProcess.on("error", (error) => {
   process.exit(1);
 });
 
-nodeProcess.on("close", (code) => {
-  console.log(`Server process exited with code ${code}`);
-  process.exit(code);
+nodeProcess.on("close", (code, signal) => {
+  console.log(`Server process exited ${signal ? `from ${signal}` : `with code ${code}`}`);
+  process.exit(code ?? (signal === "SIGINT" ? 130 : 143));
 });
 
-// Handle CTRL+C
-process.on("SIGINT", () => {
-  console.log("\n🛑 Stopping server...");
-  nodeProcess.kill("SIGINT");
-});
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.once(signal, () => nodeProcess.kill(signal));
+}

@@ -47,4 +47,10 @@ export const calendarEventFromApi = (event) => ({
   created_at: event.extendedProps?.created_at,
   checked_in: event.extendedProps?.checked_in,
   late_threshold: event.extendedProps?.late_threshold,
+  ...(event.extendedProps?.visibility === undefined ? {} : { visibility: event.extendedProps.visibility }),
+  ...(event.extendedProps?.can_view_details === undefined ? {} : { can_view_details: event.extendedProps.can_view_details }),
+  ...(event.extendedProps?.organizer_first_name === undefined ? {} : { organizer_first_name: event.extendedProps.organizer_first_name }),
+  ...(event.extendedProps?.timezone === undefined ? {} : { timezone: event.extendedProps.timezone }),
+  ...(event.extendedProps?.series_id === undefined ? {} : { series_id: event.extendedProps.series_id }),
+  ...(event.extendedProps?.occurrence_index === undefined ? {} : { occurrence_index: event.extendedProps.occurrence_index }),
 });

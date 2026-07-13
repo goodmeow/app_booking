@@ -4,18 +4,25 @@ import cookieParser from "cookie-parser";
 import compression from "compression";
 import cors from "cors";
 import helmet from "helmet";
+import config from "../config/config.js";
+import { HttpError } from "./lib/http-error.js";
+import { requestTelemetry } from "./middleware/request-telemetry.js";
 
 const app = express();
+app.set("trust proxy", config.trustProxy);
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: "1mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "1mb" }));
 app.use(cookieParser());
 app.use(compression());
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors());
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
-  next();
-});
+app.use(requestTelemetry);
+app.use(cors({
+  credentials: true,
+  origin(origin, callback) {
+    if (!origin || config.corsOrigins.includes(origin)) return callback(null, true);
+    callback(new HttpError(403, "CORS_ORIGIN", "Origin is not allowed"));
+  },
+}));
 
 export default app;

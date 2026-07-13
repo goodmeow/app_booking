@@ -28,13 +28,11 @@ viteProcess.on('error', (error) => {
   process.exit(1);
 });
 
-viteProcess.on('close', (code) => {
-  console.log(`Client process exited with code ${code}`);
-  process.exit(code);
+viteProcess.on('close', (code, signal) => {
+  console.log(`Client process exited ${signal ? `from ${signal}` : `with code ${code}`}`);
+  process.exit(code ?? (signal === 'SIGINT' ? 130 : 143));
 });
 
-// Handle CTRL+C
-process.on('SIGINT', () => {
-  console.log('\n🛑 Stopping client...');
-  viteProcess.kill('SIGINT');
-});
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.once(signal, () => viteProcess.kill(signal));
+}

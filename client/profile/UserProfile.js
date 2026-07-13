@@ -17,7 +17,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import PersonIcon from "@mui/icons-material/Person";
-import { authenticate, isAuthenticated, isRoomAccountEmail, signout } from "../auth/auth-helper.js";
+import { authenticate, isAuthenticated, signout } from "../auth/auth-helper.js";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import FeedbackSnackbar from "../components/common/FeedbackSnackbar.js";
 import FormDialog from "../components/common/FormDialog.js";
@@ -88,11 +88,6 @@ const UserProfile = () => {
       setEditError("Name and email must be filled");
       return;
     }
-    if (isRoomAccountEmail(email)) {
-      setEditError("Email cannot contain @room.com");
-      return;
-    }
-
     let updated;
     try {
       updated = await updateUser({ userId: session.user._id, name, email }).unwrap();

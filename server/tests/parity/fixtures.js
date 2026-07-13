@@ -14,6 +14,12 @@ export const identities = {
     name: "Test User",
     role: "USER",
   },
+  viewer: {
+    _id: "20000000-0000-4000-8000-000000000003",
+    email: "viewer@example.test",
+    name: "Privacy Viewer",
+    role: "USER",
+  },
   room: {
     _id: "30000000-0000-4000-8000-000000000001",
     email: "room-one@room.com",
@@ -25,7 +31,13 @@ export const identities = {
 export const tokens = Object.fromEntries(
   Object.entries(identities).map(([name, identity]) => [
     name,
-    jwt.sign(identity, testSecret, { noTimestamp: true }),
+    jwt.sign(identity, testSecret, {
+      algorithm: "HS256",
+      subject: identity._id,
+      issuer: "360-scheduler",
+      audience: "360-scheduler-web",
+      expiresIn: "1h",
+    }),
   ])
 );
 

@@ -1,12 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isRoomAccountEmail, signout } from "../auth/auth-helper.js";
-
-test("rejects room account email case-insensitively", () => {
-  assert.equal(isRoomAccountEmail("meeting@room.com"), true);
-  assert.equal(isRoomAccountEmail("MEETING@ROOM.COM"), true);
-  assert.equal(isRoomAccountEmail("user@example.test"), false);
-});
+import { signout } from "../auth/auth-helper.js";
 
 test("signout clears local auth and navigates before the network resolves", async () => {
   const originalWindow = globalThis.window;

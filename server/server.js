@@ -1,26 +1,19 @@
-import fs from "node:fs";
-import config from "../config/config.js";
+import config, { validateRuntimeConfig } from "../config/config.js";
 import app from "./express.js";
 import { Server } from "socket.io";
 import webSocket from "./socket/webSocket.js";
 import routes from "./routes/index.js";
+import { createHttpServer } from "./runtime/create-http-server.js";
+import { closePool } from "./db/pool.js";
+import { log } from "./observability/logger.js";
 
-let port = config.ssrMode ? config.port : config.serverPort;
-let server;
-
-if (config.isHttps) {
-  const certificate = fs.readFileSync("cert/key.pem");
-  const privateKey = fs.readFileSync("cert/key.key");
-  const https = await import("https");
-  server = https.createServer({ key: privateKey, cert: certificate }, app);
-} else {
-  const http = await import("http");
-  server = http.createServer(app);
-}
+validateRuntimeConfig();
+const port = config.ssrMode ? config.port : config.serverPort;
+const server = createHttpServer(app, config);
 
 const io = new Server(server, {
   transports: ["websocket", "polling"],
-  cors: { origin: "*", credentials: true },
+  cors: { origin: config.corsOrigins, credentials: true },
 });
 
 webSocket(io);
@@ -30,21 +23,34 @@ app.use((req, res, next) => {
 });
 app.use("/api", routes);
 app.use((err, req, res, next) => {
-  if (err.name === "UnauthorizedError") {
-    res.status(401).json({ error: `${err.name}: ${err.message}` });
-  } else if (err) {
-    res.status(400).json({ error: `${err.name}: ${err.message}` });
-    console.log(err);
-  } else {
-    next();
-  }
+  if (!err) return next();
+  const status = Number(err.status) || 500;
+  const errorCode = err.code || (status === 500 ? "INTERNAL_ERROR" : "REQUEST_ERROR");
+  log(status >= 500 ? "error" : "info", "request_error", {
+    request_id: req.requestId,
+    status,
+    error_code: errorCode,
+  });
+  res.status(status).json({
+    error: status === 500 ? "Internal server error" : err.message,
+    code: errorCode,
+    ...(err.details === undefined ? {} : { details: err.details }),
+  });
 });
 
-server.listen(port, (err) => {
-  if (err) console.error(err);
-  if (config.ssrMode) {
-    console.info("Client & Server started on port %s.", config.baseUrl);
-  } else {
-    console.info("Server started on port %s.", config.serverBaseUrl);
-  }
+server.listen(port, () => {
+  log("info", "server_started", { operation: config.ssrMode ? "client_server" : "server" });
 });
+
+const shutdown = async (signal) => {
+  log("info", "server_stopping", { operation: signal });
+  io.close();
+  await new Promise((resolve) => server.close(resolve));
+  await closePool();
+};
+
+for (const signal of ["SIGTERM", "SIGINT"]) {
+  process.once(signal, () => {
+    shutdown(signal).then(() => process.exit(0)).catch(() => process.exit(1));
+  });
+}

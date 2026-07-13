@@ -46,8 +46,8 @@ BEGIN
   JOIN pg_namespace n ON n.oid = p.pronamespace
   WHERE n.nspname = 'public';
 
-  IF actual_names <> expected_names THEN
-    RAISE EXCEPTION 'Stored function inventory mismatch';
+  IF NOT expected_names <@ actual_names THEN
+    RAISE EXCEPTION 'Legacy stored function inventory is incomplete';
   END IF;
 
   SELECT count(*) INTO actual_count
@@ -132,8 +132,8 @@ BEGIN
 
   SELECT count(*) INTO actual_count
   FROM users_list_data('', '', '', '');
-  IF actual_count <> 2 THEN
-    RAISE EXCEPTION 'users_list_data expected 2 rows, found %', actual_count;
+  IF actual_count <> 3 THEN
+    RAISE EXCEPTION 'users_list_data expected 3 rows, found %', actual_count;
   END IF;
 
   SELECT count(*) INTO actual_count

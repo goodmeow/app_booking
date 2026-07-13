@@ -58,14 +58,12 @@ const dynamicColumnWidths = (rows, count = 6) => Array.from({ length: count }, (
 
 export const buildRoomUsageWorkbook = (XLSX, rooms, start, end) => {
   const rows = roomUsageExportRows(rooms);
-  const worksheet = XLSX.utils.aoa_to_sheet(rows);
-  worksheet["!cols"] = dynamicColumnWidths(rows);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(
-    workbook,
-    worksheet,
+  const workbook = new XLSX.Workbook();
+  const worksheet = workbook.addWorksheet(
     `Periode ${formatDateDDMMYYYY(new Date(`${start}T00:00:00`))} - ${formatDateDDMMYYYY(new Date(`${end}T00:00:00`))}`
   );
+  worksheet.addRows(rows);
+  worksheet.columns = dynamicColumnWidths(rows);
   return {
     workbook,
     filename: reportFilename(new Date(`${start}T00:00:00`), new Date(`${end}T00:00:00`)),

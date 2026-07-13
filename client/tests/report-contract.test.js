@@ -1,7 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import * as XLSX from "xlsx";
 import { buildRoomUsageWorkbook, roomUsageExportRows } from "../domain/report.js";
+
+class Workbook {
+  constructor() { this.sheets = []; }
+  addWorksheet(name) {
+    const worksheet = { name, rows: [], columns: [], addRows(rows) { this.rows.push(...rows); } };
+    this.sheets.push(worksheet);
+    return worksheet;
+  }
+}
+const XLSX = { Workbook };
 
 const rooms = [{
   room_name: "Meeting Room One",
@@ -27,10 +36,10 @@ test("builds the recovered report row matrix and decodes descriptions", () => {
 test("builds recovered workbook name, sheet, and dynamic widths", () => {
   const { workbook, filename } = buildRoomUsageWorkbook(XLSX, rooms, "2030-01-01", "2030-01-31");
   assert.equal(filename, "History Meeting Report (01-01-2030 - 31-01-2030).xlsx");
-  assert.deepEqual(workbook.SheetNames, ["Periode 01-01-2030 - 31-01-2030"]);
-  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-  assert.equal(worksheet.A2.v, "Meeting Room One");
-  assert.equal(worksheet.D5.v, "Budget + schedule");
-  assert.equal(worksheet["!cols"].length, 6);
-  assert.ok(worksheet["!cols"][1].width >= "meeting-one@room.com".length);
+  const worksheet = workbook.sheets[0];
+  assert.equal(worksheet.name, "Periode 01-01-2030 - 31-01-2030");
+  assert.equal(worksheet.rows[1][0], "Meeting Room One");
+  assert.equal(worksheet.rows[4][3], "Budget + schedule");
+  assert.equal(worksheet.columns.length, 6);
+  assert.ok(worksheet.columns[1].width >= "meeting-one@room.com".length);
 });

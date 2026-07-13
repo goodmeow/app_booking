@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "scripts": {
     "development": "node scripts/dev-combined.js",
     "dev:client": "node scripts/dev-client.js",
@@ -15,6 +18,7 @@
     "start:client": "node scripts/start-client.js",
     "start:server": "node scripts/start-server.js",
     "test:client": "node --test client/tests/*.test.js",
+    "test:server:unit": "node --test server/tests/unit/*.test.js",
     "test:server:parity:prepare": "node --test --test-concurrency=1 server/tests/parity/prepare.test.js",
     "test:server:parity": "node --test --test-concurrency=1 server/tests/parity/*.test.js",
     "test:server:regression": "node --test --test-concurrency=1 server/tests/regression/*.test.js"
@@ -38,18 +42,17 @@
     "@reduxjs/toolkit": "^1.9.5",
     "@socket.io/redis-adapter": "^8.2.0",
     "axios": "^1.3.5",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "body-parser": "^1.20.2",
     "bootstrap": "^5.2.3",
     "compression": "^1.7.4",
-    "concurrently": "^8.0.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dayjs": "^1.11.7",
     "dotenv": "^16.0.3",
+    "exceljs": "^4.4.0",
     "express": "^4.18.2",
-    "express-jwt": "^5.3.1",
     "express-ws": "^5.0.2",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.0",
@@ -72,27 +75,30 @@
     "sirv": "^2.0.2",
     "socket.io": "^4.6.1",
     "socket.io-client": "^4.6.1",
-    "url-loader": "^4.1.1",
-    "xlsx": "^0.18.5"
+    "url-loader": "^4.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",
     "@babel/preset-env": "^7.28.3",
     "@types/react": "^17.0.2",
     "@types/react-dom": "^17.0.2",
-    "@vitejs/plugin-react": "^3.0.1",
+    "@vitejs/plugin-react": "^6.0.3",
     "babel-loader": "^10.0.0",
     "cross-env": "^7.0.3",
-    "nodemon": "^2.0.21",
+    "esbuild": "^0.28.1",
+    "nodemon": "^3.1.14",
     "terser": "^5.44.0",
     "terser-webpack-plugin": "^5.3.14",
-    "vite": "^4.0.4",
+    "vite": "^8.1.4",
     "webpack": "^5.101.3",
     "webpack-cli": "^6.0.1",
     "webpack-node-externals": "^3.0.0"
   },
   "allowScripts": {
-    "bcrypt@5.1.1": true,
-    "esbuild@0.18.20": true
+    "bcrypt@6.0.0": true,
+    "esbuild@0.28.1": true
+  },
+  "overrides": {
+    "uuid": "11.1.1"
   }
 }

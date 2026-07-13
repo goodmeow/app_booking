@@ -32,8 +32,9 @@ const fakeSocket = () => {
   };
 };
 
-test("websocket rejoins the authenticated room and invalidates events", () => {
+test("websocket authenticates, rejoins selected rooms, and invalidates events", () => {
   const socket = fakeSocket();
+  let connectOptions;
   const dispatched = [];
   const state = { websocket: { socket_room_list: [] } };
   const store = {
@@ -48,16 +49,21 @@ test("websocket rejoins the authenticated room and invalidates events", () => {
     return action;
   };
   const middleware = configureWebsocketMiddleware({
-    connectSocket: () => socket,
+    connectSocket: (_namespace, options) => {
+      connectOptions = options;
+      return socket;
+    },
+    getToken: () => "signed-token",
     invalidateEvents: () => ({ type: "events/invalidate" }),
     actions,
   })(store)(next);
 
-  middleware(actions.wsJoinRoom("user@example.test"));
+  middleware(actions.wsJoinRoom("room@example.test"));
   middleware(actions.wsConnect());
+  assert.deepEqual(connectOptions.auth, { token: "signed-token" });
   socket.connected = true;
   socket.trigger("connect");
-  assert.deepEqual(socket.emitted, [["room:join", "user@example.test"]]);
+  assert.deepEqual(socket.emitted, [["room:join", "room@example.test"]]);
 
   socket.trigger("response:event", { any: "payload" });
   assert.ok(dispatched.some((candidate) => candidate.type === "events/invalidate"));
@@ -65,8 +71,8 @@ test("websocket rejoins the authenticated room and invalidates events", () => {
   socket.triggerManager("reconnect");
   socket.trigger("connect");
   assert.deepEqual(socket.emitted, [
-    ["room:join", "user@example.test"],
-    ["room:join", "user@example.test"],
+    ["room:join", "room@example.test"],
+    ["room:join", "room@example.test"],
   ]);
   assert.equal(dispatched.filter((candidate) => candidate.type === "events/invalidate").length, 2);
 

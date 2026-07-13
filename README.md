@@ -28,7 +28,7 @@
 
 Pastikan Anda telah menginstall:
 
-- **Node.js** (v16 atau lebih baru)
+- **Node.js** (v20.19+ atau v22.12+)
 - **npm** atau **yarn**
 - **PostgreSQL** database
 

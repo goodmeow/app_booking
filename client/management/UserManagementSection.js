@@ -20,7 +20,7 @@ import FormDialog from "../components/common/FormDialog.js";
 import PasswordDialog from "../components/common/PasswordDialog.js";
 import FeedbackSnackbar from "../components/common/FeedbackSnackbar.js";
 import { EmptyState, ErrorState, LoadingState } from "../components/common/AsyncState.js";
-import { isAuthenticated, isRoomAccountEmail } from "../auth/auth-helper.js";
+import { isAuthenticated } from "../auth/auth-helper.js";
 import { getApiError } from "../domain/api-error.js";
 import { ROLE_OPTIONS } from "../domain/roles.js";
 import {
@@ -35,6 +35,7 @@ import {
 const emptyForm = {
   name: "",
   email: "",
+  username: "",
   password: "",
   card_number: "",
   roleId: "",
@@ -72,6 +73,7 @@ const UserManagementSection = () => {
     setForm({
       name: editUser.name || "",
       email: editUser.email || "",
+      username: editUser.username || "",
       password: "",
       card_number: editUser.card_number || "",
       roleId: editUser.role_id || ROLE_OPTIONS[1].value,
@@ -101,7 +103,7 @@ const UserManagementSection = () => {
     resetCreate();
     resetUpdate();
     setEditUserId(user._id);
-    setForm({ ...emptyForm, name: user.name || "", email: user.email || "" });
+    setForm({ ...emptyForm, name: user.name || "", email: user.email || "", username: user.username || "" });
     setFormError("");
     setFormMode("edit");
   };
@@ -126,14 +128,10 @@ const UserManagementSection = () => {
       return;
     }
 
-    if (isRoomAccountEmail(email)) {
-      setFormError("Email cannot contain @room.com");
-      return;
-    }
-
     const body = {
       name,
       email,
+      username: form.username.trim(),
       card_number: form.card_number.trim(),
       roleId: form.roleId,
     };
@@ -284,6 +282,7 @@ const UserManagementSection = () => {
             ) : null}
             <TextField required label="Name" autoFocus {...formField("name")} />
             <TextField required type="email" label="Email" {...formField("email")} />
+            <TextField label="Username (optional)" {...formField("username")} />
             {formMode === "create" ? (
               <TextField required type="password" label="Password" {...formField("password")} />
             ) : null}

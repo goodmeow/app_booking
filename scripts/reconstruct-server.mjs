@@ -4,7 +4,52 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const bundlePath = path.join(root, "dist/server/server.bundle.js");
-const outputPath = path.join(root, "server/routes/index.js");
+const args = process.argv.slice(2);
+
+if (args.length !== 2 || args[0] !== "--output" || !args[1]) {
+  console.error("Usage: node scripts/reconstruct-server.mjs --output <archive.txt>");
+  console.error("Recovery output is a non-runnable archive and cannot target the live server/ tree.");
+  process.exit(1);
+}
+
+const outputPath = path.resolve(root, args[1]);
+const serverPath = path.join(root, "server");
+
+if (path.extname(outputPath) !== ".txt") {
+  console.error("Recovery output must use .txt because the extracted artifact is non-runnable archival evidence.");
+  process.exit(1);
+}
+
+const isWithin = (parent, candidate) => {
+  const relative = path.relative(parent, candidate);
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+};
+
+const resolveThroughExistingParent = (candidate) => {
+  const missing = [];
+  let current = candidate;
+
+  while (!fs.existsSync(current)) {
+    missing.unshift(path.basename(current));
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+
+  return path.join(fs.realpathSync(current), ...missing);
+};
+
+const resolvedServerPath = fs.realpathSync(serverPath);
+const resolvedOutputPath = resolveThroughExistingParent(outputPath);
+
+if (
+  isWithin(serverPath, outputPath) ||
+  isWithin(resolvedServerPath, resolvedOutputPath)
+) {
+  console.error("Refusing recovery output inside the live server/ tree.");
+  process.exit(1);
+}
+
 const bundle = fs.readFileSync(bundlePath, "utf8").replace(/\r\n/g, "\n");
 
 const startMarker = ";// ./server/pglibs/schema.js";
@@ -35,8 +80,8 @@ source = source
   .map((line) => line.trimEnd().replace(/^ +\t/, "\t"))
   .join("\n");
 
-const header = `// Mechanically recovered from immutable dist/server/server.bundle.js.\n` +
-  `// Keep behavior stable until contract tests permit modular refactoring.\n` +
+const header = `// NON-RUNNABLE ARCHIVE: mechanically recovered from immutable dist/server/server.bundle.js.\n` +
+  `// Historical dependency/import paths are intentionally preserved as evidence only.\n` +
   `import express from "express";\n` +
   `import pg from "pg";\n` +
   `import moment from "moment";\n` +

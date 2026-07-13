@@ -5,7 +5,6 @@ import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import FormDialog from "../components/common/FormDialog.js";
 import PasswordDialog from "../components/common/PasswordDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
-import { isRoomAccountEmail } from "../auth/auth-helper.js";
 import { getApiError } from "../domain/api-error.js";
 import { ROLE_IDS, ROLE_OPTIONS } from "../domain/roles.js";
 import {
@@ -85,10 +84,6 @@ const RoomManagementSection = () => {
     const body = Object.fromEntries(Object.entries(form).map(([key, value]) => [key, typeof value === "string" ? value.trim() : value]));
     if (!body.name || !body.email || (dialog === "create" && !body.password) || !body.roleId) {
       setError("Some required field is missing");
-      return;
-    }
-    if (!isRoomAccountEmail(body.email)) {
-      setError("Email must end with @room.com");
       return;
     }
     try {

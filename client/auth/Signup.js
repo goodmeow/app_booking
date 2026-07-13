@@ -13,10 +13,10 @@ import {
   Typography,
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import { isRoomAccountEmail, signup } from "./auth-helper.js";
+import { signup } from "./auth-helper.js";
 
 const Signup = () => {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", username: "", password: "" });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,10 +25,6 @@ const Signup = () => {
     event.preventDefault();
     setError("");
     setMessage("");
-    if (isRoomAccountEmail(form.email)) {
-      setError("Cannot use @room.com for user email");
-      return;
-    }
     setLoading(true);
     try {
       await signup(form);
@@ -54,6 +50,7 @@ const Signup = () => {
         {error && <Alert severity="error">{error}</Alert>}
         <TextField fullWidth required label="Name" margin="normal" {...field("name")} />
         <TextField fullWidth required label="Email" type="email" margin="normal" {...field("email")} />
+        <TextField fullWidth label="Username (optional)" margin="normal" {...field("username")} />
         <TextField fullWidth required label="Password" type="password" margin="normal" {...field("password")} />
         <Button fullWidth type="submit" variant="contained" disabled={loading} sx={{ mt: 2 }}>{loading ? "Loading..." : "Submit"}</Button>
         <Button component={Link} to="/signin" fullWidth sx={{ mt: 1 }}>Sign In</Button>

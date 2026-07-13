@@ -10,7 +10,7 @@ ON CONFLICT (_id) DO UPDATE SET
 
 UPDATE tbl_users
 SET password = '$2b$10$uwn2Il15fmNVJ7nhgiz6ceQWgPJC9EsDWNH7SsxtbwOLxBlpxd/S.'
-WHERE email IN ('admin@example.test', 'user@example.test');
+WHERE email IN ('admin@example.test', 'user@example.test', 'viewer@example.test');
 
 COMMIT;
 

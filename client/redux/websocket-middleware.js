@@ -1,5 +1,6 @@
 export const configureWebsocketMiddleware = ({
   connectSocket,
+  getToken = () => undefined,
   invalidateEvents,
   actions,
 }) => (store) => {
@@ -11,7 +12,10 @@ export const configureWebsocketMiddleware = ({
 
   return (next) => (action) => {
     if (actions.wsConnect.match(action) && !socket) {
-      socket = connectSocket("/", { transports: ["websocket"] });
+      socket = connectSocket("/", {
+        transports: ["websocket"],
+        auth: { token: getToken() },
+      });
       socket.on("connect", () => {
         store.dispatch(actions.wsConnected());
         joinKnownRooms();

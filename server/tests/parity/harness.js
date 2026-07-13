@@ -6,9 +6,10 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const legacySource = path.join(root, "dist/server/server.bundle.js");
 const legacyRuntime = path.join(root, "build/parity/legacy.bundle.cjs");
+const legacyExpressJwtShim = path.join(root, "server/tests/parity/legacy-express-jwt.cjs");
 
 export const parityPassword = "ParityTest123!";
-export const testSecret = "parity-test-secret";
+export const testSecret = "parity-test-secret-at-least-32-characters";
 
 export const targets = {
   legacy: {
@@ -25,7 +26,11 @@ export const targets = {
 
 export async function prepareLegacyBundle() {
   await fs.mkdir(path.dirname(legacyRuntime), { recursive: true });
-  await fs.copyFile(legacySource, legacyRuntime);
+  const source = await fs.readFile(legacySource, "utf8");
+  await fs.writeFile(
+    legacyRuntime,
+    source.replace('require("express-jwt")', `require(${JSON.stringify(legacyExpressJwtShim)})`)
+  );
   return legacyRuntime;
 }
 
@@ -103,8 +108,11 @@ export async function startServer(target) {
       PGPASSWORD: "booking_test_local_only",
       PGDATABASE: "360booking_reconstruction_test",
       JWT_SECRET: testSecret,
-      EMPLOYEE_SUFFIX: "@example.test",
-      ROOM_SUFFIX: "@room.com",
+      JWT_ISSUER: "360-scheduler",
+      JWT_AUDIENCE: "360-scheduler-web",
+      JWT_EXPIRY_TOKEN: "1h",
+      CORS_ORIGINS: "http://127.0.0.1:3000",
+      APP_TIMEZONE: "Asia/Jakarta",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
