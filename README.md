@@ -47,81 +47,46 @@ Pastikan Anda telah menginstall:
    npm install
    ```
 
-3. **Setup environment variables**
+3. **Pilih environment**
 
-   Buat file `.env` di root directory:
+   - `.env.demo` dilacak Git dan hanya berisi konfigurasi publik untuk database disposable.
+   - `.env.example` adalah template production. Salin menjadi `.env.production`, lalu ganti seluruh placeholder dan secret.
+   - `.env` tetap di-ignore untuk development kustom, tetapi tidak diperlukan untuk demo standar.
 
-   ```env
-   NODE_ENV=development
-   SSR=false
-   PORT=3000
-   SERVER_PORT=5000
-   HOST=localhost
-   HTTPS=false
-
-   # Database Configuration
-   PGUSER=your_postgres_user
-   PGHOST=localhost
-   PGDATABASE=your_database_name
-   PGPASSWORD=your_password
-   PGPORT=5432
-
-   # JWT Secret
-   JWT_SECRET=your_jwt_secret_key
-
-   # Redis (optional)
-   REDIS_HOST=localhost
-   REDIS_PORT=6379
-   REDIS_KEY=
-   REDIS_DB=0
-
-   # Employee & Room Suffix
-   EMPLOYEE_SUFFIX=your_employee_suffix
-   ROOM_SUFFIX=your_room_suffix
-   ```
-
-   Untuk production, buat file `.env.production`:
-
-   ```env
-   NODE_ENV=production
-   SSR=false
-   PORT=3000
-   SERVER_PORT=5000
-   HOST=your_production_host
-   HTTPS=false
-
-   # Database dan konfigurasi lainnya sesuai production
-   ```
+   Jangan arahkan `.env.demo` atau script reconstruction ke database production, staging, atau shared.
 
 ## 🔧 Development
 
-### Start Development Server
-
-**Opsi 1: Jalankan frontend dan backend bersamaan**
+### Start deterministic demo
 
 ```bash
+npm run demo
+```
+
+Perintah ini menjalankan PostgreSQL Compose pada `127.0.0.1:54320`, mereset hanya database
+`360booking_reconstruction_test`, menerapkan migration dan seed sanitized, lalu menyalakan
+client `8081` serta API/Socket.io `9091`. Status `Demo ready` baru tampil setelah login database
+dan proxy client terverifikasi. Tekan `Ctrl+C` untuk menghentikan proses aplikasi. Container
+database sengaja dapat dipakai ulang; hentikan eksplisit dengan `npm run demo:stop`.
+
+Credential demo:
+
+- Web: `admin@example.test` / `ParityTest123!`
+- Kiosk: `room-one@room.com` / `RoomTablet123!`
+
+### Custom development
+
+```bash
+cp .env.example .env
+# Ubah NODE_ENV ke development dan isi koneksi lokal yang aman.
 npm run development
-```
-
-**Opsi 2: Jalankan secara terpisah**
-
-Frontend (port 3000):
-
-```bash
-npm run dev:client
-```
-
-Backend (port 5000):
-
-```bash
-npm run dev:server
 ```
 
 ### Development URLs
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:5000/api
-- **WebSocket**: ws://localhost:5000
+- **Frontend/Kiosk**: http://localhost:8081
+- **Backend API**: http://localhost:9091/api
+- **WebSocket**: ws://localhost:9091
 
 ## 🏗️ Build untuk Production
 
@@ -304,6 +269,8 @@ Aplikasi menggunakan Socket.io untuk fitur real-time:
 
 ```bash
 # Development
+npm run demo             # Reset disposable DB + start verified demo
+npm run demo:stop        # Stop disposable PostgreSQL container
 npm run development      # Start frontend + backend
 npm run dev:client      # Start frontend only
 npm run dev:server      # Start backend only

@@ -109,12 +109,30 @@ test("launchers never enable a command shell", () => {
     "scripts/dev-client.js",
     "scripts/dev-server.js",
     "scripts/dev-combined.js",
+    "scripts/demo.js",
     "scripts/start-client.js",
     "scripts/start-server.js",
   ]) {
     const source = fs.readFileSync(path.join(root, relative), "utf8");
     assert.doesNotMatch(source, /shell\s*:\s*true/, relative);
   }
+});
+
+test("demo launcher is pinned to the disposable reconstruction database", () => {
+  const env = fs.readFileSync(path.join(root, ".env.demo"), "utf8");
+  const launcher = fs.readFileSync(path.join(root, "scripts/demo.js"), "utf8");
+  assert.match(env, /^PGPORT=54320$/m);
+  assert.match(env, /^PGDATABASE=360booking_reconstruction_test$/m);
+  assert.match(env, /^SERVER_PORT=9091$/m);
+  assert.match(launcher, /required\("PGDATABASE", "360booking_reconstruction_test"\)/);
+  assert.match(launcher, /rebuild-test-db\.sh/);
+  assert.match(launcher, /signalProcessTree/);
+  assert.match(launcher, /spawnSync\("ps", \["-eo", "pid=,ppid="\]/);
+  assert.match(launcher, /AbortSignal\.timeout/);
+  assert.match(launcher, /env\.DOCKER_CONTEXT = "default"/);
+  const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
+  assert.match(packageJson.scripts["demo:stop"], /--context default/);
+  assert.match(packageJson.scripts["demo:stop"], /--file compose\.yaml/);
 });
 
 test("reconstruction helper refuses implicit or live-server output", () => {

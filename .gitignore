@@ -3,6 +3,7 @@ node_modules/
 .env.*
 !.env.example
 !.env.*.example
+!.env.demo
 
 # Logs and local runtime files
 *.log
