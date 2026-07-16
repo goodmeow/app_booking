@@ -4,6 +4,7 @@ import Signin from "./auth/Signin.js";
 import Signup from "./auth/Signup.js";
 import { isAuthenticated } from "./auth/auth-helper.js";
 import Menu from "./core/Menu.js";
+import NotFound from "./core/NotFound.js";
 import ProtectedShell from "./core/ProtectedShell.js";
 import { LoadingState } from "./components/common/AsyncState.js";
 import KioskApp from "./kiosk/KioskApp.js";
@@ -41,6 +42,7 @@ const WebRouter = () => (
       <ProtectedRoute path="/report" adminOnly component={RoomUsageReport} />
       <ProtectedRoute path="/user/:userId" component={UserProfile} />
       <ProtectedRoute exact path="/" component={MeetingCalendar} />
+      <Route component={NotFound} />
     </Switch>
   </>
 );

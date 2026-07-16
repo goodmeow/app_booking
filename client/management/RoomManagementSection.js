@@ -98,18 +98,17 @@ const RoomManagementSection = () => {
   };
 
   const columns = [
-    { field: "_id", headerName: t("rooms.id"), minWidth: 210, flex: 1 },
-    { field: "name", headerName: t("common:fields.name"), minWidth: 150, flex: 1 },
+    { field: "name", headerName: t("common:fields.name"), minWidth: 140, flex: 1 },
     { field: "building", headerName: t("rooms.building"), minWidth: 120, flex: 0.7 },
     { field: "capacity", headerName: t("rooms.capacity"), minWidth: 100, flex: 0.6 },
     { field: "floor", headerName: t("rooms.floor"), minWidth: 90, flex: 0.5 },
-    { field: "email", headerName: t("common:fields.email"), minWidth: 210, flex: 1 },
+    { field: "email", headerName: t("common:fields.email"), minWidth: 190, flex: 1 },
     {
       field: "actions",
       headerName: t("common:fields.action"),
       sortable: false,
       filterable: false,
-      minWidth: 250,
+      minWidth: 220,
       renderCell: ({ row }) => (
         <Stack direction="row" spacing={0.5}>
           <Button size="small" onClick={() => openEdit(row)}>{t("common:actions.edit")}</Button>
@@ -121,7 +120,8 @@ const RoomManagementSection = () => {
   ];
 
   if (rooms.isLoading) return <LoadingState label={t("rooms.loading")} />;
-  if (rooms.isError) return <ErrorState message={getApiError(rooms.error, t("rooms.loadError"))} />;
+  const hasRoomRows = Array.isArray(rooms.data) && rooms.data.length > 0;
+  if (rooms.isError && !hasRoomRows) return <ErrorState message={getApiError(rooms.error, t("rooms.loadError"))} busy={rooms.isFetching} onAction={rooms.refetch} />;
 
   return (
     <Box component="section">
@@ -129,6 +129,8 @@ const RoomManagementSection = () => {
         <Typography variant="h5">{t("rooms.title")}</Typography>
         <Button variant="contained" onClick={openCreate}>{t("rooms.add")}</Button>
       </Stack>
+      {rooms.isFetching ? <Alert severity="info" sx={{ mb: 1 }}>{t("common:states.refreshing")}</Alert> : null}
+      {rooms.isError ? <ErrorState message={getApiError(rooms.error, t("rooms.loadError"))} busy={rooms.isFetching} onAction={rooms.refetch} /> : null}
       <LocalizedDataGrid
         autoHeight
         rows={rooms.data || []}
@@ -136,6 +138,7 @@ const RoomManagementSection = () => {
         getRowId={(row) => row._id}
         initialState={{ pagination: { paginationModel: { page: 0, pageSize: 5 } } }}
         pageSizeOptions={[5]}
+        density="compact"
         disableRowSelectionOnClick
       />
 

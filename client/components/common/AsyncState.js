@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, Box, CircularProgress, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 export const LoadingState = ({ label }) => {
@@ -13,10 +13,21 @@ export const LoadingState = ({ label }) => {
   );
 };
 
-export const ErrorState = ({ message }) => {
+export const ErrorState = ({ message, actionLabel, onAction, busy = false }) => {
   const { t } = useTranslation("common");
 
-  return <Alert severity="error">{message ?? t("states.error")}</Alert>;
+  return (
+    <Alert
+      severity="error"
+      action={onAction ? (
+        <Button color="inherit" size="small" disabled={busy} onClick={onAction}>
+          {actionLabel ?? t("actions.retry")}
+        </Button>
+      ) : null}
+    >
+      {message ?? t("states.error")}
+    </Alert>
+  );
 };
 
 export const EmptyState = ({ message }) => {

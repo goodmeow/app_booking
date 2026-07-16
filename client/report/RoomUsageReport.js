@@ -110,6 +110,9 @@ const RoomUsageReport = () => {
   const validRange = isValidDateRange(start, end);
   const query = useGetRoomUsageQuery({ start, end }, { skip: !validRange });
   const rooms = Array.isArray(query.data) ? query.data : [];
+  const hasReportData = Array.isArray(query.data);
+  const initialLoading = query.isFetching && !hasReportData;
+  const refreshing = query.isFetching && hasReportData;
   const [exportError, setExportError] = useState("");
 
   const exportReport = async () => {
@@ -176,14 +179,15 @@ const RoomUsageReport = () => {
         </Typography>
       ) : null}
 
-      {validRange && query.isFetching ? <LoadingState label={t("loading")} /> : null}
-      {validRange && !query.isFetching && query.isError ? (
-        <ErrorState message={t("loadError")} />
+      {validRange && refreshing ? <Alert severity="info" sx={{ mt: 1 }}>{t("common:states.refreshing")}</Alert> : null}
+      {validRange && initialLoading ? <LoadingState label={t("loading")} /> : null}
+      {validRange && query.isError ? (
+        <ErrorState message={t("loadError")} busy={query.isFetching} onAction={() => query.refetch()} />
       ) : null}
-      {validRange && !query.isFetching && !query.isError && !rooms.length ? (
+      {validRange && !initialLoading && (!query.isError || hasReportData) && !rooms.length ? (
         <EmptyState message={t("empty")} />
       ) : null}
-      {validRange && !query.isFetching && !query.isError && rooms.length ? (
+      {validRange && !initialLoading && (!query.isError || hasReportData) && rooms.length ? (
         <TableContainer sx={{ maxHeight: 550 }}>
           <Table stickyHeader aria-label={t("tableAria")}>
             <TableHead>

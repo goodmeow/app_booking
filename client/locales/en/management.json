@@ -1,6 +1,7 @@
 {
   "page": {
-    "title": "Management"
+    "title": "Management",
+    "navigation": "Management sections"
   },
   "cards": {
     "title": "Access Cards",

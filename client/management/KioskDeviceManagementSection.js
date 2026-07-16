@@ -18,7 +18,7 @@ const formatDateTime = (value, language, neverLabel) => value
 
 const KioskDeviceManagementSection = () => {
   const { t, i18n } = useTranslation(["management", "common"]);
-  const { data: devices = [], error: queryError, isLoading } = useGetKioskDevicesQuery();
+  const { data: devices = [], error: queryError, isLoading, isFetching, refetch } = useGetKioskDevicesQuery();
   const [revokeDevice, { isLoading: isRevoking }] = useRevokeKioskDeviceMutation();
   const [updateCapabilities, { isLoading: isUpdatingCapabilities }] = useUpdateKioskDeviceCapabilitiesMutation();
   const [revokeTarget, setRevokeTarget] = useState(null);
@@ -142,12 +142,16 @@ const KioskDeviceManagementSection = () => {
         </Box>
       </Stack>
 
+      {isFetching && !isLoading ? <Alert severity="info" sx={{ mb: 1 }}>{t("common:states.refreshing")}</Alert> : null}
       {isLoading && <LoadingState label={t("devices.loading")} />}
-      {queryError && !isLoading && (
-        <ErrorState message={getApiError(queryError, t("devices.loadError"))} />
+      {queryError && !isLoading && !devices.length && (
+        <ErrorState message={getApiError(queryError, t("devices.loadError"))} busy={isFetching} onAction={refetch} />
       )}
+      {queryError && !isLoading && devices.length ? (
+        <ErrorState message={getApiError(queryError, t("devices.loadError"))} busy={isFetching} onAction={refetch} />
+      ) : null}
       {capabilityError ? <Alert severity="error" sx={{ mb: 2 }}>{capabilityError}</Alert> : null}
-      {!isLoading && !queryError && (
+      {!isLoading && (!queryError || devices.length > 0) && (
         <LocalizedDataGrid
           autoHeight
           rows={devices}
@@ -155,6 +159,7 @@ const KioskDeviceManagementSection = () => {
           getRowId={(row) => row.id}
           initialState={{ pagination: { paginationModel: { page: 0, pageSize: 5 } } }}
           pageSizeOptions={[5]}
+          density="compact"
           disableRowSelectionOnClick
         />
       )}

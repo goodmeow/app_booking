@@ -1,6 +1,7 @@
 {
   "page": {
-    "title": "Manajemen"
+    "title": "Manajemen",
+    "navigation": "Bagian manajemen"
   },
   "cards": {
     "title": "Kartu Akses",

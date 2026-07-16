@@ -22,12 +22,16 @@
     "save": "Simpan",
     "submit": "Kirim",
     "retry": "Coba Lagi",
+    "refresh": "Muat Ulang",
     "changePassword": "Ubah Kata Sandi"
   },
   "states": {
     "loading": "Memuat...",
+    "refreshing": "Memperbarui di latar belakang...",
     "error": "Terjadi kesalahan",
     "empty": "Tidak ada data",
+    "notFoundTitle": "Halaman tidak ditemukan",
+    "notFoundMessage": "Halaman ini tidak ada atau sudah tidak tersedia.",
     "never": "Belum pernah",
     "unknown": "Tidak diketahui"
   },
@@ -55,6 +59,7 @@
     "signUp": "Daftar",
     "signIn": "Masuk",
     "signOut": "Keluar",
+    "openMenu": "Buka menu",
     "welcome": "Selamat datang, {{name}}"
   },
   "roles": {

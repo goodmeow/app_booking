@@ -264,9 +264,10 @@ const EventEditor = ({
       <Dialog open={open} onClose={close} fullWidth maxWidth="sm">
         <DialogTitle>{editing ? event?.title || t("editor.detailsTitle") : t("editor.addTitle")}</DialogTitle>
         <DialogContent dividers>
-          {editing && details.isFetching ? <LoadingState label={t("editor.loading")} /> : null}
-          {editing && details.isError ? <ErrorState message={getApiError(details.error, t("editor.loadError"))} /> : null}
-          {(!editing || (!details.isFetching && !details.isError)) ? (
+          {editing && details.isFetching && !details.data ? <LoadingState label={t("editor.loading")} /> : null}
+          {editing && details.isFetching && details.data ? <Alert severity="info">{t("common:states.refreshing")}</Alert> : null}
+          {editing && details.isError ? <ErrorState message={getApiError(details.error, t("editor.loadError"))} busy={details.isFetching} onAction={() => details.refetch()} /> : null}
+          {(!editing || details.data || (!details.isFetching && !details.isError)) ? (
             <Stack component="form" id="event-editor-form" spacing={2} onSubmit={submit} sx={{ pt: 1 }}>
               {error ? <Alert severity="error">{error}</Alert> : null}
               {guidance ? <Alert severity="success">{guidance}</Alert> : null}

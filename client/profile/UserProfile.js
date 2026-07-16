@@ -47,7 +47,7 @@ const UserProfile = () => {
   const history = useHistory();
   const session = isAuthenticated();
   const isOwner = canManageProfile(session, userId);
-  const { data: user, isLoading, isError, error } = useDetailUserQuery(userId);
+  const { data: user, isLoading, isFetching, isError, error, refetch } = useDetailUserQuery(userId);
   const [updateUser, { isLoading: isUpdating, reset: resetUpdate }] = useUpdateUserMutation();
   const [changePassword, { isLoading: isChangingPassword, reset: resetPassword }] = useChangePasswordMutation();
   const [deleteUser, { isLoading: isDeleting, reset: resetDelete }] = useDeleteUserMutation();
@@ -158,7 +158,7 @@ const UserProfile = () => {
   };
 
   if (isLoading) return <LoadingState label={t("auth:profile.loading")} />;
-  if (isError) return <ErrorState message={getApiError(error, t("auth:profile.loadError"))} />;
+  if (isError) return <ErrorState message={getApiError(error, t("auth:profile.loadError"))} busy={isFetching} onAction={refetch} />;
 
   return (
     <Container maxWidth="sm" sx={{ py: { xs: 3, md: 6 } }}>

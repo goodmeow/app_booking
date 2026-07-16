@@ -42,7 +42,7 @@ const PasswordIcon = resolveMuiIcon(PasswordIconModule);
 
 const UserManagementSection = () => {
   const { t } = useTranslation(["management", "common", "auth"]);
-  const { data, isLoading, isError, error } = useListUserQuery();
+  const { data, isLoading, isFetching, isError, error, refetch } = useListUserQuery();
   const users = Array.isArray(data) ? data : [];
 
   const [formMode, setFormMode] = useState(null);
@@ -190,9 +190,8 @@ const UserManagementSection = () => {
   };
 
   const columns = useMemo(() => [
-    { field: "_id", headerName: t("users.id"), flex: 1.25, minWidth: 220 },
-    { field: "name", headerName: t("common:fields.name"), flex: 1, minWidth: 160 },
-    { field: "email", headerName: t("common:fields.email"), flex: 1.25, minWidth: 220 },
+    { field: "name", headerName: t("common:fields.name"), flex: 1, minWidth: 140 },
+    { field: "email", headerName: t("common:fields.email"), flex: 1.25, minWidth: 190 },
     {
       field: "actions",
       headerName: t("common:fields.action"),
@@ -250,10 +249,11 @@ const UserManagementSection = () => {
         <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>{t("users.add")}</Button>
       </Stack>
 
+      {isFetching && !isLoading && users.length > 0 ? <Alert severity="info" sx={{ mb: 1 }}>{t("common:states.refreshing")}</Alert> : null}
       {isLoading ? <LoadingState label={t("users.loading")} /> : null}
-      {isError ? <ErrorState message={getApiError(error, t("users.loadError"))} /> : null}
-      {!isLoading && !isError && users.length === 0 ? <EmptyState message={t("users.empty")} /> : null}
-      {!isLoading && !isError && users.length > 0 ? (
+      {isError ? <ErrorState message={getApiError(error, t("users.loadError"))} busy={isFetching} onAction={refetch} /> : null}
+      {!isLoading && (!isError || users.length > 0) && users.length === 0 ? <EmptyState message={t("users.empty")} /> : null}
+      {!isLoading && (!isError || users.length > 0) && users.length > 0 ? (
         <LocalizedDataGrid
           autoHeight
           rows={users}
@@ -261,6 +261,7 @@ const UserManagementSection = () => {
           getRowId={(row) => row._id}
           initialState={{ pagination: { paginationModel: { page: 0, pageSize: 5 } } }}
           pageSizeOptions={[5]}
+          density="compact"
           disableRowSelectionOnClick
         />
       ) : null}

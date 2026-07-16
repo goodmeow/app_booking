@@ -37,3 +37,30 @@ test("kiosk management exposes independent NFC and LED capability toggles", () =
   assert.match(section, /"nfcEnabled"/);
   assert.match(section, /"ledEnabled"/);
 });
+
+test("Phase 10B admin shell uses tabs and hides technical ID columns", () => {
+  const appManagement = fs.readFileSync(new URL("../management/AppManagement.js", import.meta.url), "utf8");
+  const users = fs.readFileSync(new URL("../management/UserManagementSection.js", import.meta.url), "utf8");
+  const rooms = fs.readFileSync(new URL("../management/RoomManagementSection.js", import.meta.url), "utf8");
+  const cards = fs.readFileSync(new URL("../management/CardMasterSection.js", import.meta.url), "utf8");
+  assert.match(appManagement, /<Tabs/);
+  assert.match(appManagement, /value: "users"/);
+  assert.match(appManagement, /value: "rooms"/);
+  assert.match(appManagement, /value: "cards"/);
+  assert.doesNotMatch(users, /field: "_id"/);
+  assert.doesNotMatch(rooms, /field: "_id"/);
+  assert.doesNotMatch(cards, /field: "_id"/);
+});
+
+test("Phase 10B resource errors are retryable and routes have a not-found page", () => {
+  const asyncState = fs.readFileSync(new URL("../components/common/AsyncState.js", import.meta.url), "utf8");
+  const menu = fs.readFileSync(new URL("../core/Menu.js", import.meta.url), "utf8");
+  const router = fs.readFileSync(new URL("../MainRouter.js", import.meta.url), "utf8");
+  const calendar = fs.readFileSync(new URL("../calendar/MeetingCalendar.js", import.meta.url), "utf8");
+  assert.match(asyncState, /onAction/);
+  assert.match(asyncState, /actions\.retry/);
+  assert.match(menu, /<Drawer/);
+  assert.doesNotMatch(menu, /overflowX:\s*"auto"/);
+  assert.match(router, /component=\{NotFound\}/);
+  assert.match(calendar, /common:states\.refreshing/);
+});

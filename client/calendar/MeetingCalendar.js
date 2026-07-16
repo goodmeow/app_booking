@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, Box, Container, Paper } from "@mui/material";
+import { Alert, Box, Button, Container, LinearProgress, Paper, Stack, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { isAuthenticated } from "../auth/auth-helper.js";
@@ -31,6 +31,10 @@ const MeetingCalendar = () => {
   );
   const roomQuery = useGetRoomsQuery();
   const userQuery = useListUserQuery();
+  const eventHasData = Array.isArray(eventQuery.data);
+  const eventInitialLoading = eventQuery.isFetching && !eventHasData;
+  const eventRefreshing = eventQuery.isFetching && eventHasData;
+  const canLoadEvents = !(scheduleMode === "room" && !activeRoom);
 
   useEffect(() => {
     const roomId = activeRoom?._id;
@@ -64,10 +68,28 @@ const MeetingCalendar = () => {
           />
         </Paper>
         <Paper sx={{ p: 2, minWidth: 0 }}>
-          {eventQuery.isFetching ? <LoadingState label={t("calendar.loading")} /> : null}
-          {eventQuery.isError ? <ErrorState message={getApiError(eventQuery.error, t("calendar.loadError"))} /> : null}
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }} sx={{ mb: 1 }}>
+            <Box>
+              <Typography variant="subtitle2">{t("calendar.refreshTitle")}</Typography>
+              {eventRefreshing ? <Typography variant="caption" color="text.secondary">{t("common:states.refreshing")}</Typography> : null}
+            </Box>
+            <Button size="small" variant="outlined" disabled={!canLoadEvents || eventQuery.isFetching} onClick={() => eventQuery.refetch()}>
+              {t("common:actions.refresh")}
+            </Button>
+          </Stack>
+          {eventRefreshing ? <LinearProgress sx={{ mb: 1 }} /> : null}
+          {roomQuery.isError ? (
+            <ErrorState message={getApiError(roomQuery.error, t("calendar.roomsLoadError"))} busy={roomQuery.isFetching} onAction={() => roomQuery.refetch()} />
+          ) : null}
+          {userQuery.isError ? (
+            <ErrorState message={getApiError(userQuery.error, t("calendar.usersLoadError"))} busy={userQuery.isFetching} onAction={() => userQuery.refetch()} />
+          ) : null}
+          {eventInitialLoading ? <LoadingState label={t("calendar.loading")} /> : null}
+          {eventQuery.isError ? (
+            <ErrorState message={getApiError(eventQuery.error, t("calendar.loadError"))} busy={eventQuery.isFetching} onAction={() => eventQuery.refetch()} />
+          ) : null}
           {scheduleMode === "room" && !activeRoom ? <Alert severity="info">{t("calendar.selectRoomPrompt")}</Alert> : null}
-          {!eventQuery.isFetching && !eventQuery.isError && !(scheduleMode === "room" && !activeRoom) ? (
+          {!eventInitialLoading && (!eventQuery.isError || eventHasData) && canLoadEvents ? (
             <MeetingWeek
               events={Array.isArray(eventQuery.data) ? eventQuery.data : []}
               selectedDate={selectedDate}

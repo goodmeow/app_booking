@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import DeleteOutlineIconModule from "@mui/icons-material/DeleteOutline";
-import { Box, Button, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Stack, TextField, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
@@ -18,7 +18,7 @@ const DeleteOutlineIcon = resolveMuiIcon(DeleteOutlineIconModule);
 
 const CardMasterSection = () => {
   const { t } = useTranslation(["management", "common"]);
-  const { data: cards = [], error: queryError, isLoading } = useGetCardMasterQuery();
+  const { data: cards = [], error: queryError, isLoading, isFetching, refetch } = useGetCardMasterQuery();
   const [storeCardMaster, { isLoading: isCreating }] = useStoreCardMasterMutation();
   const [deleteCardMaster, { isLoading: isDeleting }] = useDeleteCardMasterMutation();
   const [createOpen, setCreateOpen] = useState(false);
@@ -80,9 +80,8 @@ const CardMasterSection = () => {
   };
 
   const columns = [
-    { field: "_id", headerName: t("cards.id"), flex: 1, minWidth: 220 },
-    { field: "card_number", headerName: t("cards.number"), flex: 1, minWidth: 180 },
-    { field: "created_by", headerName: t("cards.createdBy"), flex: 1, minWidth: 180 },
+    { field: "card_number", headerName: t("cards.number"), flex: 1, minWidth: 160 },
+    { field: "created_by", headerName: t("cards.createdBy"), flex: 1, minWidth: 160 },
     {
       field: "actions",
       headerName: t("common:fields.action"),
@@ -110,11 +109,15 @@ const CardMasterSection = () => {
         <Button variant="contained" onClick={openCreate}>{t("cards.add")}</Button>
       </Stack>
 
+      {isFetching && !isLoading ? <Alert severity="info" sx={{ mb: 1 }}>{t("common:states.refreshing")}</Alert> : null}
       {isLoading && <LoadingState label={t("cards.loading")} />}
-      {queryError && !isLoading && (
-        <ErrorState message={getApiError(queryError, t("cards.loadError"))} />
+      {queryError && !isLoading && !cards.length && (
+        <ErrorState message={getApiError(queryError, t("cards.loadError"))} busy={isFetching} onAction={refetch} />
       )}
-      {!isLoading && !queryError && (
+      {queryError && !isLoading && cards.length ? (
+        <ErrorState message={getApiError(queryError, t("cards.loadError"))} busy={isFetching} onAction={refetch} />
+      ) : null}
+      {!isLoading && (!queryError || cards.length > 0) && (
         <LocalizedDataGrid
           autoHeight
           rows={cards}
@@ -122,6 +125,7 @@ const CardMasterSection = () => {
           getRowId={(row) => row._id}
           initialState={{ pagination: { paginationModel: { page: 0, pageSize: 5 } } }}
           pageSizeOptions={[5]}
+          density="compact"
           disableRowSelectionOnClick
         />
       )}
