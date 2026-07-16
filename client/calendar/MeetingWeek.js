@@ -50,9 +50,9 @@ const MeetingAgenda = ({ events, locale, onEventClick }) => {
             variant="outlined"
             component="button"
             type="button"
-            onClick={() => {
-              if (!busy) onEventClick?.(event);
-            }}
+            disabled={busy}
+            aria-disabled={busy ? "true" : undefined}
+            onClick={busy ? undefined : () => onEventClick?.(event)}
             sx={{
               p: 1.5,
               textAlign: "left",

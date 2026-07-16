@@ -220,6 +220,7 @@ const EventEditor = ({
     };
 
     try {
+      let previewSummary = "";
       if (!editing) {
         const preview = await previewEvents(buildModernEventPayload(eventDraft)).unwrap();
         if (Array.isArray(preview.conflicts) && preview.conflicts.length) {
@@ -227,12 +228,16 @@ const EventEditor = ({
           return;
         }
         if (Array.isArray(preview.occurrences)) {
-          setGuidance(t("editor.previewSummary", { count: preview.occurrences.length }));
+          previewSummary = t("editor.previewSummary", { count: preview.occurrences.length });
+          setGuidance(previewSummary);
         }
       }
       if (editing) await updateEvent(buildUpdateEventPayload(eventDraft)).unwrap();
       else await storeEvent(buildCreateEventPayload(eventDraft)).unwrap();
-      setFeedback({ open: true, message: t(editing ? "editor.updated" : "editor.created"), severity: "success" });
+      const successMessage = editing || !previewSummary
+        ? t(editing ? "editor.updated" : "editor.created")
+        : `${t("editor.created")} ${previewSummary}`;
+      setFeedback({ open: true, message: successMessage, severity: "success" });
       onClose();
     } catch (reason) {
       const message = getApiError(reason, t(editing ? "editor.updateError" : "editor.createError"));
