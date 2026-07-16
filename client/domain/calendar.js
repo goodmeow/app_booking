@@ -87,6 +87,13 @@ export const formatMeetingDateCue = (startValue, endValue, locale = "en-GB") => 
   return `${dateFormatter.format(start)} - ${dateFormatter.format(end)}`;
 };
 
+export const spansMultipleCalendarDays = (startValue, endValue) => {
+  const start = asDate(startValue);
+  const end = asDate(endValue);
+  if ([start, end].some((date) => Number.isNaN(date.getTime()))) return false;
+  return start.toDateString() !== end.toDateString();
+};
+
 export const durationMinutes = (startValue, endValue) => {
   const start = asDate(startValue);
   const end = asDate(endValue);
@@ -95,6 +102,23 @@ export const durationMinutes = (startValue, endValue) => {
 };
 
 const eventValue = (event, name) => event?.[name] ?? event?.extendedProps?.[name];
+
+export const calendarEventCueFlags = (event) => {
+  const seriesId = eventValue(event, "series_id");
+  const occurrenceIndex = eventValue(event, "occurrence_index");
+  const parsedOccurrenceIndex = Number(occurrenceIndex);
+  const occurrenceNumber = occurrenceIndex === undefined
+    || occurrenceIndex === null
+    || occurrenceIndex === ""
+    || !Number.isInteger(parsedOccurrenceIndex)
+    ? null
+    : parsedOccurrenceIndex + 1;
+  return {
+    multiDay: spansMultipleCalendarDays(event?.start, event?.end),
+    recurring: seriesId !== undefined && seriesId !== null && seriesId !== "",
+    occurrenceNumber,
+  };
+};
 
 export const calendarEventFromApi = (event) => ({
   id: event.id,

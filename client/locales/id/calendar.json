@@ -90,6 +90,9 @@
     "viewMode": "Tampilan kalender",
     "noMeetings": "Tidak ada meeting di rentang ini.",
     "untitled": "Meeting tanpa judul",
+    "multiDayCue": "Berlanjut lintas {{dates}}",
+    "recurringCue": "Seri berulang",
+    "recurringOccurrenceCue": "Seri berulang · occurrence {{count}}",
     "selectRoomPrompt": "Pilih ruangan untuk melihat Jadwal Ruangan."
   }
 }

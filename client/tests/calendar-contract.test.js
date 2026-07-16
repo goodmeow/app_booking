@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   calendarAgendaRange,
   calendarDayRange,
+  calendarEventCueFlags,
   calendarEventFilters,
   calendarEventFromApi,
   calendarRangeForView,
@@ -13,6 +14,7 @@ import {
   formatMeetingDateCue,
   formatMeetingTimeRange,
   navigateCalendarDate,
+  spansMultipleCalendarDays,
 } from "../domain/calendar.js";
 
 test("builds recovered Sunday-to-Saturday event query range", () => {
@@ -35,7 +37,36 @@ test("formats meeting time, date cue, and duration for visible calendar labels",
   const end = new Date("2030-01-16T10:30:00");
   assert.equal(formatMeetingTimeRange(start, end, "en-GB"), "09:00 - 10:30");
   assert.match(formatMeetingDateCue(start, end, "en-GB"), /15 Jan 2030 - 16 Jan 2030/);
+  assert.equal(spansMultipleCalendarDays(start, end), true);
   assert.equal(durationMinutes(start, end), 1530);
+});
+
+test("builds calendar cue flags for multi-day and recurring events", () => {
+  assert.deepEqual(
+    calendarEventCueFlags({
+      start: new Date(2030, 0, 15, 23, 0),
+      end: new Date(2030, 0, 16, 1, 0),
+      series_id: "series-1",
+      occurrence_index: 2,
+    }),
+    { multiDay: true, recurring: true, occurrenceNumber: 3 }
+  );
+  assert.deepEqual(
+    calendarEventCueFlags({
+      start: "2030-01-15T09:00:00.000Z",
+      end: "2030-01-15T10:00:00.000Z",
+    }),
+    { multiDay: false, recurring: false, occurrenceNumber: null }
+  );
+  assert.deepEqual(
+    calendarEventCueFlags({
+      start: new Date(2030, 0, 15, 9, 0),
+      end: new Date(2030, 0, 15, 10, 0),
+      series_id: "series-1",
+      occurrence_index: null,
+    }),
+    { multiDay: false, recurring: true, occurrenceNumber: null }
+  );
 });
 
 test("builds a thirty-minute default event range", () => {

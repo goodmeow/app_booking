@@ -158,10 +158,10 @@ Phase 10A software complete: a provisioned tablet is cryptographically bound to 
 - [x] Guide meeting creation with required fields, inline validation, duration, timezone, and room availability/conflict feedback.
 - [x] Let novice users choose clearly between one continuous multi-day booking and a repeated meeting schedule.
 - [x] Provide recurrence cadence/end controls, plain-language summary, and pre-save occurrence/conflict feedback.
-- [ ] Show multi-day continuation and recurring-series cues in Calendar plus readable Day/Agenda behavior on mobile.
+- [x] Show multi-day continuation and recurring-series cues in Calendar plus readable Day/Agenda behavior on mobile.
 - [x] Render each occupied room block/balloon exactly as `[nama depan, HH:mm - HH:mm]` using 24-hour local time.
 - [x] Keep clicks on privacy-projected bookings safe: show no details and never request or reveal restricted fields.
-- [ ] Add dates and continuation cues to cross-midnight/multi-day labels so occupied intervals remain unambiguous.
+- [x] Add dates and continuation cues to cross-midnight/multi-day labels so occupied intervals remain unambiguous.
 - [x] Make edit/cancel scope explicit: this occurrence, this and future, or all occurrences.
 - [x] Confirm meeting deletion and explain read-only state.
 - [ ] Add retryable resource errors, non-blocking refresh, and not-found route.

@@ -90,6 +90,9 @@
     "viewMode": "Calendar view",
     "noMeetings": "No meetings in this range.",
     "untitled": "Untitled meeting",
+    "multiDayCue": "Continues across {{dates}}",
+    "recurringCue": "Recurring series",
+    "recurringOccurrenceCue": "Recurring series · occurrence {{count}}",
     "selectRoomPrompt": "Select a room to view room schedule."
   }
 }

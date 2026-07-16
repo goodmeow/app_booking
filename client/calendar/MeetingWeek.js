@@ -8,7 +8,7 @@ import { Alert, Box, Button, ButtonGroup, Divider, Paper, Stack, Typography } fr
 import enGbLocale from "@fullcalendar/core/locales/en-gb.js";
 import idLocale from "@fullcalendar/core/locales/id.js";
 import { useTranslation } from "react-i18next";
-import { formatMeetingDateCue, formatMeetingTimeRange } from "../domain/calendar.js";
+import { calendarEventCueFlags, formatMeetingDateCue, formatMeetingTimeRange } from "../domain/calendar.js";
 import { calendarLocaleForLanguage } from "../i18n/languages.js";
 
 const selectableViews = new Set(["timeGridWeek", "timeGridDay"]);
@@ -16,6 +16,21 @@ const calendarLocales = { "en-gb": enGbLocale, id: idLocale };
 const fullCalendarView = (view) => view === "timeGridDay" ? "timeGridDay" : "timeGridWeek";
 const eventProp = (event, name) => event?.[name] ?? event?.extendedProps?.[name];
 const isBusyProjection = (event) => eventProp(event, "visibility") === "busy" || eventProp(event, "can_view_details") === false;
+
+const cueLinesFor = (event, locale, t) => {
+  const flags = calendarEventCueFlags(event);
+  const cues = [];
+  if (flags.multiDay) {
+    const dates = formatMeetingDateCue(event.start, event.end, locale);
+    if (dates) cues.push(t("calendar.multiDayCue", { dates }));
+  }
+  if (flags.recurring) {
+    cues.push(flags.occurrenceNumber
+      ? t("calendar.recurringOccurrenceCue", { count: flags.occurrenceNumber })
+      : t("calendar.recurringCue"));
+  }
+  return cues;
+};
 
 const CalendarControls = ({ view, onToday, onPrevious, onNext, onViewChange }) => {
   const { t } = useTranslation("calendar");
@@ -44,6 +59,7 @@ const MeetingAgenda = ({ events, locale, onEventClick }) => {
       {sorted.map((event) => {
         const busy = isBusyProjection(event);
         const title = event.title || t("calendar.untitled");
+        const cues = cueLinesFor(event, locale, t);
         return (
           <Paper
             key={`${event.id}-${event.start}`}
@@ -75,6 +91,11 @@ const MeetingAgenda = ({ events, locale, onEventClick }) => {
                 </>
               ) : null}
             </Stack>
+            {cues.map((cue) => (
+              <Typography key={cue} variant="caption" color="text.secondary" display="block">
+                {cue}
+              </Typography>
+            ))}
           </Paper>
         );
       })}
@@ -143,11 +164,24 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", onViewC
       eventTimeFormat={{ hour12: false }}
       events={events}
       eventContent={(info) => {
-        if (isBusyProjection(info.event)) return <span>{info.event.title}</span>;
+        const cues = cueLinesFor(info.event, browserLocale, t);
+        if (isBusyProjection(info.event)) {
+          return (
+            <Stack component="span" spacing={0.25}>
+              <Typography component="span" variant="body2">{info.event.title}</Typography>
+              {cues.map((cue) => (
+                <Typography key={cue} component="span" variant="caption">{cue}</Typography>
+              ))}
+            </Stack>
+          );
+        }
         return (
           <Stack component="span" spacing={0.25}>
             <Typography component="span" variant="caption">{formatMeetingTimeRange(info.event.start, info.event.end, browserLocale)}</Typography>
             <Typography component="span" variant="body2">{info.event.title}</Typography>
+            {cues.map((cue) => (
+              <Typography key={cue} component="span" variant="caption">{cue}</Typography>
+            ))}
           </Stack>
         );
       }}
