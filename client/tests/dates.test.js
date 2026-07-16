@@ -8,10 +8,14 @@ test("builds inclusive current-month range", () => {
   assert.equal(formatDateDDMMYYYY(range.end), "28-02-2030");
 });
 
-test("builds recovered report filename", () => {
+test("builds localized report filenames", () => {
   assert.equal(
-    reportFilename(new Date("2030-01-01T00:00:00"), new Date("2030-01-31T00:00:00")),
-    "History Meeting Report (01-01-2030 - 31-01-2030).xlsx"
+    reportFilename(new Date("2030-01-01T00:00:00"), new Date("2030-01-31T00:00:00"), "en"),
+    "Meeting History Report (01-01-2030 - 31-01-2030).xlsx"
+  );
+  assert.equal(
+    reportFilename(new Date("2030-01-01T00:00:00"), new Date("2030-01-31T00:00:00"), "id"),
+    "Laporan Riwayat Meeting (01-01-2030 - 31-01-2030).xlsx"
   );
 });
 
@@ -25,8 +29,10 @@ test("formats report query dates and validates range", () => {
   assert.equal(isValidDateRange("2030-02-01", "2030-01-31"), false);
 });
 
-test("formats recovered report display timestamps", () => {
+test("formats report timestamps for English and Indonesian", () => {
   const date = new Date(2030, 0, 15, 9, 5, 7);
-  assert.equal(formatDateLong(date), "15 January 2030");
-  assert.equal(formatDateTimeLong(date), "15 January 2030, 09:05:07");
+  assert.equal(formatDateLong(date, "en"), "15 January 2030");
+  assert.equal(formatDateTimeLong(date, "en"), "15 January 2030 at 09:05:07");
+  assert.equal(formatDateLong(date, "id"), "15 Januari 2030");
+  assert.equal(formatDateTimeLong(date, "id"), "15 Januari 2030 pukul 09.05.07");
 });

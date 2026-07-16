@@ -20,7 +20,7 @@ Pixel-level screenshot comparison is not claimed: the repository contains no san
 | Query strings | Scalar spaces use `%20`; nested values use recovered bracket notation. |
 | Card master | Latent update contract retains `_id` in the request body while also using it in the URL. |
 | Calendar realtime | Removed the selected-room second Socket.io connection; the recovered authenticated singleton remains. Reconnect rejoins known rooms and `response:event` invalidates event queries. |
-| Management | New user/room forms start with no preselected role. |
+| Management | New employee users default to the User role; the room form has no role field. |
 | Report | Workbook construction is testable, uses recovered row/sheet/filename contracts, dynamically sizes six columns, and contains export error handling. |
 | Theme | Restored the recovered white background and `#0f6cbd` primary/secondary foundation. |
 

@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildRoomUsageWorkbook, roomUsageExportRows } from "../domain/report.js";
+import {
+  buildRoomUsageWorkbook,
+  roomUsageExportRows,
+  sanitizeWorkbookFilename,
+  sanitizeWorksheetName,
+} from "../domain/report.js";
 
 class Workbook {
   constructor() { this.sheets = []; }
@@ -25,21 +30,30 @@ const rooms = [{
   }],
 }];
 
-test("builds the recovered report row matrix and decodes descriptions", () => {
-  const rows = roomUsageExportRows(rooms);
-  assert.deepEqual(rows[0], ["Room Name", "Room Mail", "Usage Total"]);
+test("builds localized report rows and decodes descriptions", () => {
+  const rows = roomUsageExportRows(rooms, "en");
+  assert.deepEqual(rows[0], ["Room Name", "Room Email", "Usage Total"]);
   assert.deepEqual(rows[1], ["Meeting Room One", "meeting-one@room.com", "1"]);
   assert.deepEqual(rows[3], [null, "Subject", "Organizer", "Description", "Start Date", "End Date"]);
   assert.equal(rows[4][3], "Budget + schedule");
+  assert.deepEqual(roomUsageExportRows([], "id")[0], ["Nama Ruangan", "Email Ruangan", "Total Penggunaan"]);
 });
 
-test("builds recovered workbook name, sheet, and dynamic widths", () => {
-  const { workbook, filename } = buildRoomUsageWorkbook(XLSX, rooms, "2030-01-01", "2030-01-31");
-  assert.equal(filename, "History Meeting Report (01-01-2030 - 31-01-2030).xlsx");
+test("builds localized workbook name, sheet, and dynamic widths", () => {
+  const { workbook, filename } = buildRoomUsageWorkbook(XLSX, rooms, "2030-01-01", "2030-01-31", "en");
+  assert.equal(filename, "Meeting History Report (01-01-2030 - 31-01-2030).xlsx");
   const worksheet = workbook.sheets[0];
-  assert.equal(worksheet.name, "Periode 01-01-2030 - 31-01-2030");
+  assert.equal(worksheet.name, "Period 01-01-2030 - 31-01-2030");
   assert.equal(worksheet.rows[1][0], "Meeting Room One");
   assert.equal(worksheet.rows[4][3], "Budget + schedule");
   assert.equal(worksheet.columns.length, 6);
   assert.ok(worksheet.columns[1].width >= "meeting-one@room.com".length);
+});
+
+test("sanitizes translator-controlled Excel names", () => {
+  assert.equal(sanitizeWorksheetName("'Bad:/\\?*[] sheet'"), "Bad sheet");
+  assert.equal(sanitizeWorksheetName("  'Sheet'  "), "Sheet");
+  assert.equal(sanitizeWorksheetName("x".repeat(40)).length, 31);
+  assert.equal(sanitizeWorkbookFilename("Bad:/name.XLSX.xlsx"), "Badname.xlsx");
+  assert.equal(sanitizeWorkbookFilename("   "), "report.xlsx");
 });

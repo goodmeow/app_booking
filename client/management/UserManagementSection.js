@@ -14,16 +14,18 @@ import AddIconModule from "@mui/icons-material/Add";
 import DeleteIconModule from "@mui/icons-material/Delete";
 import EditIconModule from "@mui/icons-material/Edit";
 import PasswordIconModule from "@mui/icons-material/Password";
-import { DataGrid } from "@mui/x-data-grid";
+import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import FormDialog from "../components/common/FormDialog.js";
 import PasswordDialog from "../components/common/PasswordDialog.js";
 import FeedbackSnackbar from "../components/common/FeedbackSnackbar.js";
 import { EmptyState, ErrorState, LoadingState } from "../components/common/AsyncState.js";
+import LocalizedDataGrid from "../components/common/LocalizedDataGrid.js";
 import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { isAuthenticated } from "../auth/auth-helper.js";
 import { getApiError } from "../domain/api-error.js";
-import { ROLE_OPTIONS } from "../domain/roles.js";
+import { ROLE_IDS, ROLE_OPTIONS } from "../domain/roles.js";
+import { createEmptyUserForm } from "./user-form.js";
 import {
   useChangePasswordMutation,
   useCreateUserMutation,
@@ -38,21 +40,13 @@ const DeleteIcon = resolveMuiIcon(DeleteIconModule);
 const EditIcon = resolveMuiIcon(EditIconModule);
 const PasswordIcon = resolveMuiIcon(PasswordIconModule);
 
-const emptyForm = {
-  name: "",
-  email: "",
-  username: "",
-  password: "",
-  card_number: "",
-  roleId: "",
-};
-
 const UserManagementSection = () => {
+  const { t } = useTranslation(["management", "common", "auth"]);
   const { data, isLoading, isError, error } = useListUserQuery();
   const users = Array.isArray(data) ? data : [];
 
   const [formMode, setFormMode] = useState(null);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(createEmptyUserForm);
   const [formError, setFormError] = useState("");
   const [editUserId, setEditUserId] = useState(null);
   const [passwordUser, setPasswordUser] = useState(null);
@@ -82,7 +76,7 @@ const UserManagementSection = () => {
       username: editUser.username || "",
       password: "",
       card_number: editUser.card_number || "",
-      roleId: editUser.role_id || ROLE_OPTIONS[1].value,
+      roleId: editUser.role_id || ROLE_IDS.USER,
     });
   }, [editUser, editUserId]);
 
@@ -90,7 +84,7 @@ const UserManagementSection = () => {
     if (isCreating || isUpdating) return;
     setFormMode(null);
     setEditUserId(null);
-    setForm(emptyForm);
+    setForm(createEmptyUserForm());
     setFormError("");
     resetCreate();
     resetUpdate();
@@ -100,7 +94,7 @@ const UserManagementSection = () => {
     resetCreate();
     resetUpdate();
     setEditUserId(null);
-    setForm(emptyForm);
+    setForm(createEmptyUserForm());
     setFormError("");
     setFormMode("create");
   };
@@ -109,7 +103,7 @@ const UserManagementSection = () => {
     resetCreate();
     resetUpdate();
     setEditUserId(user._id);
-    setForm({ ...emptyForm, name: user.name || "", email: user.email || "", username: user.username || "" });
+    setForm({ ...createEmptyUserForm(), name: user.name || "", email: user.email || "", username: user.username || "" });
     setFormError("");
     setFormMode("edit");
   };
@@ -123,14 +117,14 @@ const UserManagementSection = () => {
     setFormError("");
 
     if (formMode === "edit" && isDetailError) {
-      setFormError(getApiError(detailError, "Unable to load user"));
+      setFormError(getApiError(detailError, t("users.loadOneError")));
       return;
     }
 
     const name = form.name.trim();
     const email = form.email.trim();
     if (!name || !email || !form.roleId || (formMode === "create" && !form.password)) {
-      setFormError("All data must be filled");
+      setFormError(t("users.required"));
       return;
     }
 
@@ -145,26 +139,26 @@ const UserManagementSection = () => {
     try {
       if (formMode === "create") {
         await createUser({ ...body, password: form.password }).unwrap();
-        showFeedback("User successfully created");
+        showFeedback(t("users.created"));
       } else {
         await updateUser({ userId: editUserId, ...body }).unwrap();
-        showFeedback("User successfully updated");
+        showFeedback(t("users.updated"));
       }
       setFormMode(null);
       setEditUserId(null);
-      setForm(emptyForm);
+      setForm(createEmptyUserForm());
       setFormError("");
       resetCreate();
       resetUpdate();
     } catch (mutationError) {
-      setFormError(getApiError(mutationError, `Unable to ${formMode} user`));
+      setFormError(getApiError(mutationError, t(formMode === "create" ? "users.createError" : "users.updateError")));
     }
   };
 
   const submitPassword = async ({ oldPassword, newPassword, newPasswordConfirmation }) => {
     setPasswordError("");
     if (newPassword !== newPasswordConfirmation) {
-      setPasswordError("New password and confirmation password mismatch");
+      setPasswordError(t("auth:password.mismatch"));
       return;
     }
 
@@ -177,9 +171,9 @@ const UserManagementSection = () => {
       }).unwrap();
       setPasswordUser(null);
       resetPassword();
-      showFeedback("Password successfully changed");
+      showFeedback(t("users.passwordChanged"));
     } catch (mutationError) {
-      setPasswordError(getApiError(mutationError, "Unable to change password"));
+      setPasswordError(getApiError(mutationError, t("users.passwordError")));
     }
   };
 
@@ -189,32 +183,32 @@ const UserManagementSection = () => {
       setDeleteUserTarget(null);
       setDeleteError("");
       resetDelete();
-      showFeedback("User successfully deleted");
+      showFeedback(t("users.deleted"));
     } catch (mutationError) {
-      setDeleteError(getApiError(mutationError, "Unable to delete user"));
+      setDeleteError(getApiError(mutationError, t("users.deleteError")));
     }
   };
 
   const columns = useMemo(() => [
-    { field: "_id", headerName: "User ID", flex: 1.25, minWidth: 220 },
-    { field: "name", headerName: "Name", flex: 1, minWidth: 160 },
-    { field: "email", headerName: "Email", flex: 1.25, minWidth: 220 },
+    { field: "_id", headerName: t("users.id"), flex: 1.25, minWidth: 220 },
+    { field: "name", headerName: t("common:fields.name"), flex: 1, minWidth: 160 },
+    { field: "email", headerName: t("common:fields.email"), flex: 1.25, minWidth: 220 },
     {
       field: "actions",
-      headerName: "Action",
+      headerName: t("common:fields.action"),
       width: 150,
       sortable: false,
       filterable: false,
       renderCell: ({ row }) => (
         <Stack direction="row" spacing={0.25}>
-          <Tooltip title="Edit user">
-            <IconButton aria-label={`Edit ${row.name}`} size="small" onClick={() => openEdit(row)}>
+          <Tooltip title={t("users.editTooltip")}>
+            <IconButton aria-label={t("users.editAria", { name: row.name })} size="small" onClick={() => openEdit(row)}>
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Change password">
+          <Tooltip title={t("users.passwordTooltip")}>
             <IconButton
-              aria-label={`Change password for ${row.name}`}
+              aria-label={t("users.passwordAria", { name: row.name })}
               size="small"
               onClick={() => {
                 resetPassword();
@@ -225,9 +219,9 @@ const UserManagementSection = () => {
               <PasswordIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Delete user">
+          <Tooltip title={t("users.deleteTooltip")}>
             <IconButton
-              aria-label={`Delete ${row.name}`}
+              aria-label={t("users.deleteAria", { name: row.name })}
               size="small"
               color="error"
               onClick={() => {
@@ -242,7 +236,7 @@ const UserManagementSection = () => {
         </Stack>
       ),
     },
-  ], [resetDelete, resetPassword]);
+  ], [resetDelete, resetPassword, t]);
 
   const formField = (name) => ({
     value: form[name],
@@ -252,15 +246,15 @@ const UserManagementSection = () => {
   return (
     <Box component="section">
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-        <Typography variant="h5" component="h2">All Users</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>Add New User</Button>
+        <Typography variant="h5" component="h2">{t("users.title")}</Typography>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>{t("users.add")}</Button>
       </Stack>
 
-      {isLoading ? <LoadingState label="Loading users..." /> : null}
-      {isError ? <ErrorState message={getApiError(error, "Unable to load users")} /> : null}
-      {!isLoading && !isError && users.length === 0 ? <EmptyState message="No users" /> : null}
+      {isLoading ? <LoadingState label={t("users.loading")} /> : null}
+      {isError ? <ErrorState message={getApiError(error, t("users.loadError"))} /> : null}
+      {!isLoading && !isError && users.length === 0 ? <EmptyState message={t("users.empty")} /> : null}
       {!isLoading && !isError && users.length > 0 ? (
-        <DataGrid
+        <LocalizedDataGrid
           autoHeight
           rows={users}
           columns={columns}
@@ -273,29 +267,29 @@ const UserManagementSection = () => {
 
       <FormDialog
         open={Boolean(formMode)}
-        title={formMode === "create" ? "Add New User" : "Edit User"}
+        title={t(formMode === "create" ? "users.createTitle" : "users.editTitle")}
         formId="user-management-form"
         loading={isCreating || isUpdating || (formMode === "edit" && isDetailLoading)}
-        submitLabel={formMode === "create" ? "Create" : "Save"}
+        submitLabel={t(formMode === "create" ? "common:actions.create" : "common:actions.save")}
         onClose={closeForm}
         onSubmit={submitUser}
       >
-        {formMode === "edit" && isDetailLoading ? <LoadingState label="Loading user..." /> : (
+        {formMode === "edit" && isDetailLoading ? <LoadingState label={t("users.loadingOne")} /> : (
           <Stack spacing={2} sx={{ mt: 1 }}>
             {formError ? <Alert severity="error">{formError}</Alert> : null}
             {formMode === "edit" && isDetailError ? (
-              <Alert severity="error">{getApiError(detailError, "Unable to load user")}</Alert>
+              <Alert severity="error">{getApiError(detailError, t("users.loadOneError"))}</Alert>
             ) : null}
-            <TextField required label="Name" autoFocus {...formField("name")} />
-            <TextField required type="email" label="Email" {...formField("email")} />
-            <TextField label="Username (optional)" {...formField("username")} />
+            <TextField required label={t("common:fields.name")} autoFocus {...formField("name")} />
+            <TextField required type="email" label={t("common:fields.email")} {...formField("email")} />
+            <TextField label={t("common:fields.usernameOptional")} {...formField("username")} />
             {formMode === "create" ? (
-              <TextField required type="password" label="Password" {...formField("password")} />
+              <TextField required type="password" label={t("common:fields.password")} {...formField("password")} />
             ) : null}
-            <TextField label="Card Number" {...formField("card_number")} />
-            <TextField required select label="Role" {...formField("roleId")}>
+            <TextField label={t("users.cardNumber")} {...formField("card_number")} />
+            <TextField required select label={t("common:fields.role")} {...formField("roleId")}>
               {ROLE_OPTIONS.map((role) => (
-                <MenuItem key={role.value} value={role.value}>{role.label}</MenuItem>
+                <MenuItem key={role.value} value={role.value}>{t(`common:${role.labelKey}`)}</MenuItem>
               ))}
             </TextField>
           </Stack>
@@ -318,8 +312,8 @@ const UserManagementSection = () => {
 
       <ConfirmDialog
         open={Boolean(deleteUserTarget)}
-        title="Delete User"
-        message={deleteError || `Delete ${deleteUserTarget?.name || "this user"}?`}
+        title={t("users.deleteTitle")}
+        message={deleteError || t("users.deleteMessage", { name: deleteUserTarget?.name || "" })}
         loading={isDeleting}
         onCancel={() => {
           if (isDeleting) return;

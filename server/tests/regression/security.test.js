@@ -95,6 +95,39 @@ test("room discovery never exposes card or account internals", async () => {
   }
 });
 
+test("room accounts require no employee role and ignore role assignment", async () => {
+  const created = await apiRequest(targets.reconstructed, "/api/rooms", {
+    method: "POST",
+    headers: bearer("admin"),
+    body: JSON.stringify({
+      name: "Roleless Room",
+      email: "roleless-room@room.test",
+      password: "SecurePass123!",
+    }),
+  });
+  assert.equal(created.status, 201);
+  assert.equal(created.body.type, "room");
+  assert.equal(
+    await queryParityDatabase("SELECT COALESCE(role_id::text, 'none') FROM tbl_users WHERE email='roleless-room@room.test';"),
+    "none"
+  );
+
+  const updated = await apiRequest(targets.reconstructed, `/api/rooms/${created.body._id}`, {
+    method: "PUT",
+    headers: bearer("admin"),
+    body: JSON.stringify({
+      name: "Roleless Room Updated",
+      email: "roleless-room@room.test",
+      roleId: "471ba030-c950-41f9-90da-4e0fe10426a6",
+    }),
+  });
+  assert.equal(updated.status, 200);
+  assert.equal(
+    await queryParityDatabase("SELECT COALESCE(role_id::text, 'none') FROM tbl_users WHERE email='roleless-room@room.test';"),
+    "none"
+  );
+});
+
 test("identity validation prevents ambiguous email and username namespaces", async () => {
   const response = await apiRequest(targets.reconstructed, "/api/users", {
     method: "POST",

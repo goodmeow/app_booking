@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Alert, Stack, TextField } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import FormDialog from "./FormDialog.js";
 
 const emptyForm = { oldPassword: "", newPassword: "", newPasswordConfirmation: "" };
 
 const PasswordDialog = ({ open, requireOldPassword = true, loading = false, error = "", onClose, onSubmit }) => {
+  const { t } = useTranslation(["auth", "common"]);
   const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
@@ -19,10 +21,10 @@ const PasswordDialog = ({ open, requireOldPassword = true, loading = false, erro
   return (
     <FormDialog
       open={open}
-      title="Change Password"
+      title={t("password.title")}
       formId="password-form"
       loading={loading}
-      submitLabel="Change Password"
+      submitLabel={t("common:actions.changePassword")}
       onClose={onClose}
       onSubmit={(event) => {
         event.preventDefault();
@@ -31,9 +33,9 @@ const PasswordDialog = ({ open, requireOldPassword = true, loading = false, erro
     >
       <Stack spacing={2} sx={{ mt: 1 }}>
         {error && <Alert severity="error">{error}</Alert>}
-        {requireOldPassword && <TextField required type="password" label="Old Password" {...field("oldPassword")} />}
-        <TextField required type="password" label="New Password" {...field("newPassword")} />
-        <TextField required type="password" label="Confirmation Password" {...field("newPasswordConfirmation")} />
+        {requireOldPassword && <TextField required type="password" label={t("common:fields.oldPassword")} {...field("oldPassword")} />}
+        <TextField required type="password" label={t("common:fields.newPassword")} {...field("newPassword")} />
+        <TextField required type="password" label={t("common:fields.confirmPassword")} {...field("newPasswordConfirmation")} />
       </Stack>
     </FormDialog>
   );

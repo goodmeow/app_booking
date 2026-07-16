@@ -1,6 +1,10 @@
-# 360Books-WebApps
+# 360 Scheduler
 
-360Booking adalah aplikasi manajemen penjadwalan meeting dengan fitur real-time menggunakan React, Node.js, dan Socket.io.
+Meeting & Room Scheduler dengan pembaruan real-time menggunakan React, Node.js, dan Socket.io.
+
+Antarmuka menggunakan English sebagai bahasa sumber/default dan Bahasa Indonesia
+sebagai bahasa kedua. Katalog JSON dan alur Crowdin dijelaskan di
+[`docs/localization.md`](docs/localization.md).
 
 ## 🚀 Tech Stack
 
@@ -193,7 +197,7 @@ npm run start:standalone:server
 ## 📁 Project Structure
 
 ```
-360Books-WebApps/
+360 Scheduler/
 ├── client/                 # Frontend source code
 │   ├── App.js             # Main App component
 │   ├── entry-client.js    # Client entry point
@@ -345,4 +349,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-**Developed with ❤️ for 360Booking Management System**
+**Developed with ❤️ for 360 Scheduler**

@@ -21,6 +21,7 @@ import {
   Typography,
 } from "@mui/material";
 import ExcelJS from "exceljs/dist/exceljs.min.js";
+import { useTranslation } from "react-i18next";
 import { EmptyState, ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import {
@@ -37,12 +38,14 @@ import {
   safeReportText,
 } from "../domain/report.js";
 import { useGetRoomUsageQuery } from "../redux/services/rooms.js";
+import { normalizeLanguage } from "../i18n/languages.js";
 
 const KeyboardArrowDownIcon = resolveMuiIcon(KeyboardArrowDownIconModule);
 const KeyboardArrowUpIcon = resolveMuiIcon(KeyboardArrowUpIconModule);
 const FileDownloadIcon = resolveMuiIcon(FileDownloadIconModule);
 
-const RoomUsageRow = ({ room }) => {
+const RoomUsageRow = ({ room, language }) => {
+  const { t } = useTranslation("report");
   const [open, setOpen] = useState(false);
   const meetings = reportMeetingsFor(room);
 
@@ -51,7 +54,7 @@ const RoomUsageRow = ({ room }) => {
       <TableRow>
         <TableCell sx={{ width: 56 }}>
           <IconButton
-            aria-label={open ? "collapse row" : "expand row"}
+            aria-label={open ? t("collapse") : t("expand")}
             size="small"
             onClick={() => setOpen((current) => !current)}
           >
@@ -65,16 +68,16 @@ const RoomUsageRow = ({ room }) => {
         <TableCell sx={{ py: 0 }} colSpan={3}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ m: 2 }}>
-              <Typography variant="h6" gutterBottom>History Meeting</Typography>
+              <Typography variant="h6" gutterBottom>{t("history")}</Typography>
               {meetings.length ? (
-                <Table size="small" aria-label="History Meeting">
+                <Table size="small" aria-label={t("history")}>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Subject</TableCell>
-                      <TableCell>Organizer</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell>Start Date</TableCell>
-                      <TableCell>End Date</TableCell>
+                      <TableCell>{t("subject")}</TableCell>
+                      <TableCell>{t("organizer")}</TableCell>
+                      <TableCell>{t("description")}</TableCell>
+                      <TableCell>{t("meetingStart")}</TableCell>
+                      <TableCell>{t("meetingEnd")}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -83,13 +86,13 @@ const RoomUsageRow = ({ room }) => {
                         <TableCell component="th" scope="row">{safeReportText(meeting?.subject)}</TableCell>
                         <TableCell>{safeReportText(meeting?.organizer)}</TableCell>
                         <TableCell>{safeReportDescription(meeting?.description)}</TableCell>
-                        <TableCell>{formatReportMeetingDate(meeting?.start_date)}</TableCell>
-                        <TableCell>{formatReportMeetingDate(meeting?.end_date)}</TableCell>
+                        <TableCell>{formatReportMeetingDate(meeting?.start_date, language)}</TableCell>
+                        <TableCell>{formatReportMeetingDate(meeting?.end_date, language)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-              ) : <EmptyState message="No Meeting History" />}
+              ) : <EmptyState message={t("empty")} />}
             </Box>
           </Collapse>
         </TableCell>
@@ -99,16 +102,20 @@ const RoomUsageRow = ({ room }) => {
 };
 
 const RoomUsageReport = () => {
+  const { i18n, t } = useTranslation("report");
+  const language = normalizeLanguage(i18n.resolvedLanguage || i18n.language);
   const initialRange = currentMonthRange();
   const [start, setStart] = useState(() => formatDateYYYYMMDD(initialRange.start));
   const [end, setEnd] = useState(() => formatDateYYYYMMDD(initialRange.end));
   const validRange = isValidDateRange(start, end);
   const query = useGetRoomUsageQuery({ start, end }, { skip: !validRange });
   const rooms = Array.isArray(query.data) ? query.data : [];
+  const [exportError, setExportError] = useState("");
 
   const exportReport = async () => {
+    setExportError("");
     try {
-      const { workbook, filename } = buildRoomUsageWorkbook(ExcelJS, rooms, start, end);
+      const { workbook, filename } = buildRoomUsageWorkbook(ExcelJS, rooms, start, end, language);
       const buffer = await workbook.xlsx.writeBuffer();
       const url = URL.createObjectURL(new Blob([buffer], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -120,27 +127,28 @@ const RoomUsageReport = () => {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Unable to export room usage report", error);
+      setExportError(t("exportError"));
     }
   };
 
   return (
     <Container maxWidth={false} sx={{ py: 4 }}>
     <Paper component="section" elevation={4} sx={{ p: 3 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>Report Rooms Usage</Typography>
+      <Typography variant="h5" sx={{ mb: 3 }}>{t("title")}</Typography>
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ sm: "flex-start" }}>
         <TextField
-          label="Start Time"
+          label={t("startDate")}
           type="date"
           value={start}
           onChange={(event) => setStart(event.target.value)}
           InputLabelProps={{ shrink: true }}
         />
         <TextField
-          label="End Time"
+          label={t("endDate")}
           type="date"
           value={end}
           error={!validRange}
-          helperText={!validRange ? "End Time cannot be before Start Time" : " "}
+          helperText={!validRange ? t("invalidRange") : " "}
           onChange={(event) => setEnd(event.target.value)}
           inputProps={{ min: start }}
           InputLabelProps={{ shrink: true }}
@@ -153,37 +161,41 @@ const RoomUsageReport = () => {
           onClick={() => void exportReport()}
           sx={{ ml: { sm: "auto" }, minHeight: 40 }}
         >
-          EXPORT HISTORY TO EXCEL
+          {t("export")}
         </Button>
       </Stack>
 
-      {!validRange ? <Alert severity="error" sx={{ mt: 1 }}>End Time cannot be before Start Time</Alert> : null}
+      {!validRange ? <Alert severity="error" sx={{ mt: 1 }}>{t("invalidRange")}</Alert> : null}
+      {exportError ? <Alert severity="error" sx={{ mt: 1 }}>{exportError}</Alert> : null}
       {validRange ? (
         <Typography align="center" sx={{ my: 2 }}>
-          Periode {formatDateLong(new Date(`${start}T00:00:00`))} - {formatDateLong(new Date(`${end}T00:00:00`))}
+          {t("period", {
+            start: formatDateLong(new Date(`${start}T00:00:00`), language),
+            end: formatDateLong(new Date(`${end}T00:00:00`), language),
+          })}
         </Typography>
       ) : null}
 
-      {validRange && query.isFetching ? <LoadingState label="Loading..." /> : null}
+      {validRange && query.isFetching ? <LoadingState label={t("loading")} /> : null}
       {validRange && !query.isFetching && query.isError ? (
-        <ErrorState message="An error occured" />
+        <ErrorState message={t("loadError")} />
       ) : null}
       {validRange && !query.isFetching && !query.isError && !rooms.length ? (
-        <EmptyState message="No Meeting History" />
+        <EmptyState message={t("empty")} />
       ) : null}
       {validRange && !query.isFetching && !query.isError && rooms.length ? (
         <TableContainer sx={{ maxHeight: 550 }}>
-          <Table stickyHeader aria-label="collapsible room usage table">
+          <Table stickyHeader aria-label={t("tableAria")}>
             <TableHead>
               <TableRow>
                 <TableCell />
-                <TableCell>Room Name</TableCell>
-                <TableCell align="right">Total Pemakaian</TableCell>
+                <TableCell>{t("roomName")}</TableCell>
+                <TableCell align="right">{t("totalUsage")}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {rooms.map((room, index) => (
-                <RoomUsageRow key={room?._id || room?.room_mail || `${room?.room_name || "room"}-${index}`} room={room} />
+                <RoomUsageRow key={room?._id || room?.room_mail || `${room?.room_name || "room"}-${index}`} room={room} language={language} />
               ))}
             </TableBody>
           </Table>

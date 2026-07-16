@@ -28,14 +28,14 @@ export const getRoom = async (id, principal) => {
 export const createRoom = async (body) => {
   const name = String(body.name || "").trim();
   const email = normalizedEmail(body.email);
-  if (!name || !email || !body.roleId) throw badRequest("INVALID_ROOM", "Name, email, and role are required");
+  if (!name || !email) throw badRequest("INVALID_ROOM", "Name and email are required");
   try {
     return await insertAccount({
       name,
       email,
       username: normalizedUsername(body.username),
       password: body.password ? await bcrypt.hash(validatedPassword(body.password), 12) : null,
-      roleId: body.roleId,
+      roleId: null,
       type: "room",
       floor: body.floor,
       capacity: body.capacity,
@@ -52,7 +52,6 @@ export const editRoom = async (id, body) => {
     const values = {
       name: body.name == null ? undefined : String(body.name).trim(),
       email: normalizedEmail(body.email, { required: body.email != null }),
-      roleId: body.roleId,
     };
     if (Object.hasOwn(body, "username")) values.username = normalizedUsername(body.username);
     for (const field of ["floor", "capacity", "building", "feature"]) {

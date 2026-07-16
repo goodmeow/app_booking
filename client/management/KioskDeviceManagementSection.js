@@ -1,20 +1,23 @@
 import React, { useState } from "react";
 import { Alert, Box, Button, Chip, Stack, Switch, Typography } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
+import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
+import LocalizedDataGrid from "../components/common/LocalizedDataGrid.js";
 import { getApiError } from "../domain/api-error.js";
+import { localeForLanguage } from "../i18n/languages.js";
 import {
   useGetKioskDevicesQuery,
   useRevokeKioskDeviceMutation,
   useUpdateKioskDeviceCapabilitiesMutation,
 } from "../redux/services/kiosk-devices.js";
 
-const formatDateTime = (value) => value
-  ? new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
-  : "Never";
+const formatDateTime = (value, language, neverLabel) => value
+  ? new Intl.DateTimeFormat(localeForLanguage(language), { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
+  : neverLabel;
 
 const KioskDeviceManagementSection = () => {
+  const { t, i18n } = useTranslation(["management", "common"]);
   const { data: devices = [], error: queryError, isLoading } = useGetKioskDevicesQuery();
   const [revokeDevice, { isLoading: isRevoking }] = useRevokeKioskDeviceMutation();
   const [updateCapabilities, { isLoading: isUpdatingCapabilities }] = useUpdateKioskDeviceCapabilitiesMutation();
@@ -27,7 +30,7 @@ const KioskDeviceManagementSection = () => {
     try {
       await updateCapabilities({ deviceId, [capability]: enabled }).unwrap();
     } catch (error) {
-      setCapabilityError(getApiError(error, "Failed to update kiosk capability"));
+      setCapabilityError(getApiError(error, t("devices.capabilityError")));
     }
   };
 
@@ -44,27 +47,27 @@ const KioskDeviceManagementSection = () => {
       await revokeDevice(revokeTarget.id).unwrap();
       setRevokeTarget(null);
     } catch (error) {
-      setRevokeError(getApiError(error, "Failed to revoke kiosk device"));
+      setRevokeError(getApiError(error, t("devices.revokeError")));
     }
   };
 
   const columns = [
-    { field: "name", headerName: "Device", minWidth: 180, flex: 1 },
+    { field: "name", headerName: t("devices.device"), minWidth: 180, flex: 1 },
     {
       field: "roomName",
-      headerName: "Room",
+      headerName: t("devices.room"),
       minWidth: 220,
       flex: 1,
-      valueGetter: ({ row }) => row.roomName || row.roomEmail || "Unknown room",
+      valueGetter: ({ row }) => row.roomName || row.roomEmail || t("devices.unknownRoom"),
     },
     {
       field: "status",
-      headerName: "Status",
+      headerName: t("common:fields.status"),
       minWidth: 110,
       renderCell: ({ value }) => (
         <Chip
           size="small"
-          label={String(value || "unknown").toUpperCase()}
+          label={t(`devices.status.${value === "active" || value === "revoked" ? value : "unknown"}`)}
           color={value === "active" ? "success" : "default"}
         />
       ),
@@ -78,7 +81,7 @@ const KioskDeviceManagementSection = () => {
         <Switch
           checked={Boolean(row.nfcEnabled)}
           disabled={row.status !== "active" || isUpdatingCapabilities}
-          inputProps={{ "aria-label": `NFC for ${row.name}` }}
+          inputProps={{ "aria-label": t("devices.nfcAria", { name: row.name }) }}
           onChange={(event) => void toggleCapability(row.id, "nfcEnabled", event.target.checked)}
         />
       ),
@@ -92,28 +95,28 @@ const KioskDeviceManagementSection = () => {
         <Switch
           checked={Boolean(row.ledEnabled)}
           disabled={row.status !== "active" || isUpdatingCapabilities}
-          inputProps={{ "aria-label": `LED for ${row.name}` }}
+          inputProps={{ "aria-label": t("devices.ledAria", { name: row.name }) }}
           onChange={(event) => void toggleCapability(row.id, "ledEnabled", event.target.checked)}
         />
       ),
     },
     {
       field: "lastSeenAt",
-      headerName: "Last Seen",
+      headerName: t("devices.lastSeen"),
       minWidth: 190,
       flex: 0.8,
-      valueFormatter: ({ value }) => formatDateTime(value),
+      valueFormatter: ({ value }) => formatDateTime(value, i18n.resolvedLanguage || "en", t("common:states.never")),
     },
     {
       field: "createdAt",
-      headerName: "Provisioned",
+      headerName: t("devices.provisioned"),
       minWidth: 190,
       flex: 0.8,
-      valueFormatter: ({ value }) => formatDateTime(value),
+      valueFormatter: ({ value }) => formatDateTime(value, i18n.resolvedLanguage || "en", t("common:states.never")),
     },
     {
       field: "actions",
-      headerName: "Action",
+      headerName: t("common:fields.action"),
       width: 110,
       sortable: false,
       filterable: false,
@@ -122,9 +125,9 @@ const KioskDeviceManagementSection = () => {
           color="error"
           size="small"
           onClick={() => { setRevokeError(""); setRevokeTarget(row); }}
-          aria-label={`Revoke kiosk ${row.name}`}
+          aria-label={t("devices.revokeAria", { name: row.name })}
         >
-          Revoke
+          {t("devices.revoke")}
         </Button>
       ) : null,
     },
@@ -134,18 +137,18 @@ const KioskDeviceManagementSection = () => {
     <Box component="section">
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ mb: 2 }}>
         <Box>
-          <Typography variant="h5">Kiosk Devices</Typography>
-          <Typography color="text.secondary">Provisioned room displays and access status.</Typography>
+          <Typography variant="h5">{t("devices.title")}</Typography>
+          <Typography color="text.secondary">{t("devices.description")}</Typography>
         </Box>
       </Stack>
 
-      {isLoading && <LoadingState label="Loading kiosk devices..." />}
+      {isLoading && <LoadingState label={t("devices.loading")} />}
       {queryError && !isLoading && (
-        <ErrorState message={getApiError(queryError, "Failed to load kiosk devices")} />
+        <ErrorState message={getApiError(queryError, t("devices.loadError"))} />
       )}
       {capabilityError ? <Alert severity="error" sx={{ mb: 2 }}>{capabilityError}</Alert> : null}
       {!isLoading && !queryError && (
-        <DataGrid
+        <LocalizedDataGrid
           autoHeight
           rows={devices}
           columns={columns}
@@ -158,8 +161,8 @@ const KioskDeviceManagementSection = () => {
 
       <ConfirmDialog
         open={Boolean(revokeTarget)}
-        title="Revoke Kiosk Device"
-        message={revokeError || `Revoke ${revokeTarget?.name || "this kiosk"}? The tablet must be provisioned again.`}
+        title={t("devices.revokeTitle")}
+        message={revokeError || t("devices.revokeMessage", { name: revokeTarget?.name || t("devices.device") })}
         loading={isRevoking}
         onCancel={closeRevoke}
         onConfirm={confirmRevoke}

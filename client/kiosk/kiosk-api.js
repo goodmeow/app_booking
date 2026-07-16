@@ -1,3 +1,6 @@
+import i18n from "../i18n/index.js";
+import { getApiError } from "../domain/api-error.js";
+
 const kioskRequest = async (path, { token, method = "GET", body } = {}) => {
   const response = await fetch(`/api/kiosk${path}`, {
     method,
@@ -9,7 +12,10 @@ const kioskRequest = async (path, { token, method = "GET", body } = {}) => {
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const error = new Error(payload.error || "Kiosk request failed");
+    const error = new Error(getApiError(
+      { data: payload },
+      i18n.t("kiosk:errors.requestFailed")
+    ));
     error.status = response.status;
     error.code = payload.code;
     throw error;

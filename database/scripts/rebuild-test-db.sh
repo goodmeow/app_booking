@@ -13,8 +13,21 @@ if [[ "$DATABASE_NAME" != "360booking_reconstruction_test" ]]; then
 fi
 
 docker compose up -d postgres-test
-docker compose exec -T postgres-test pg_isready \
-  -U "$DATABASE_USER" -d "$DATABASE_NAME"
+
+readonly PG_READY_MAX_ATTEMPTS=30
+for ((attempt = 1; attempt <= PG_READY_MAX_ATTEMPTS; attempt++)); do
+  if docker compose exec -T postgres-test pg_isready \
+    -U "$DATABASE_USER" -d postgres >/dev/null 2>&1; then
+    break
+  fi
+
+  if ((attempt == PG_READY_MAX_ATTEMPTS)); then
+    echo "PostgreSQL did not become ready after $PG_READY_MAX_ATTEMPTS attempts." >&2
+    exit 1
+  fi
+
+  sleep 1
+done
 
 docker compose exec -T postgres-test dropdb \
   -U "$DATABASE_USER" --if-exists "$DATABASE_NAME"

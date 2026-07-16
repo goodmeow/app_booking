@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Box, Button, MenuItem, Stack, TextField, Typography } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
+import { Alert, Box, Button, Stack, TextField, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import FormDialog from "../components/common/FormDialog.js";
 import PasswordDialog from "../components/common/PasswordDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
+import LocalizedDataGrid from "../components/common/LocalizedDataGrid.js";
 import { getApiError } from "../domain/api-error.js";
-import { ROLE_IDS, ROLE_OPTIONS } from "../domain/roles.js";
 import {
   useDeleteRoomByIdMutation,
   useGetRoomByIdQuery,
@@ -24,10 +24,10 @@ const emptyForm = {
   building: "",
   capacity: "",
   feature: "",
-  roleId: "",
 };
 
 const RoomManagementSection = () => {
+  const { t } = useTranslation(["management", "common"]);
   const rooms = useGetRoomsQuery();
   const [storeRoom, storeState] = useStoreRoomMutation();
   const [updateRoom, updateState] = useUpdateRoomMutation();
@@ -51,7 +51,6 @@ const RoomManagementSection = () => {
       building: room.building || "",
       capacity: room.capacity || "",
       feature: room.feature || "",
-      roleId: room.role_id || ROLE_IDS.USER,
     });
   }, [dialog, roomDetail.data]);
 
@@ -82,8 +81,8 @@ const RoomManagementSection = () => {
     event.preventDefault();
     setError("");
     const body = Object.fromEntries(Object.entries(form).map(([key, value]) => [key, typeof value === "string" ? value.trim() : value]));
-    if (!body.name || !body.email || (dialog === "create" && !body.password) || !body.roleId) {
-      setError("Some required field is missing");
+    if (!body.name || !body.email || (dialog === "create" && !body.password)) {
+      setError(t("rooms.required"));
       return;
     }
     try {
@@ -94,43 +93,43 @@ const RoomManagementSection = () => {
       }
       close();
     } catch (reason) {
-      setError(getApiError(reason));
+      setError(getApiError(reason, t("common:states.error")));
     }
   };
 
   const columns = [
-    { field: "_id", headerName: "Room ID", minWidth: 210, flex: 1 },
-    { field: "name", headerName: "Name", minWidth: 150, flex: 1 },
-    { field: "building", headerName: "Building", minWidth: 120, flex: 0.7 },
-    { field: "capacity", headerName: "Capacity", minWidth: 100, flex: 0.6 },
-    { field: "floor", headerName: "Floor", minWidth: 90, flex: 0.5 },
-    { field: "email", headerName: "Email", minWidth: 210, flex: 1 },
+    { field: "_id", headerName: t("rooms.id"), minWidth: 210, flex: 1 },
+    { field: "name", headerName: t("common:fields.name"), minWidth: 150, flex: 1 },
+    { field: "building", headerName: t("rooms.building"), minWidth: 120, flex: 0.7 },
+    { field: "capacity", headerName: t("rooms.capacity"), minWidth: 100, flex: 0.6 },
+    { field: "floor", headerName: t("rooms.floor"), minWidth: 90, flex: 0.5 },
+    { field: "email", headerName: t("common:fields.email"), minWidth: 210, flex: 1 },
     {
       field: "actions",
-      headerName: "Action",
+      headerName: t("common:fields.action"),
       sortable: false,
       filterable: false,
       minWidth: 250,
       renderCell: ({ row }) => (
         <Stack direction="row" spacing={0.5}>
-          <Button size="small" onClick={() => openEdit(row)}>Edit</Button>
-          <Button size="small" onClick={() => { setSelected(row); setError(""); setDialog("password"); }}>Password</Button>
-          <Button size="small" color="error" onClick={() => { setSelected(row); setDeleteError(""); setDialog("delete"); }}>Delete</Button>
+          <Button size="small" onClick={() => openEdit(row)}>{t("common:actions.edit")}</Button>
+          <Button size="small" onClick={() => { setSelected(row); setError(""); setDialog("password"); }}>{t("common:actions.changePassword")}</Button>
+          <Button size="small" color="error" onClick={() => { setSelected(row); setDeleteError(""); setDialog("delete"); }}>{t("common:actions.delete")}</Button>
         </Stack>
       ),
     },
   ];
 
-  if (rooms.isLoading) return <LoadingState />;
-  if (rooms.isError) return <ErrorState message={getApiError(rooms.error, "Unable to load rooms")} />;
+  if (rooms.isLoading) return <LoadingState label={t("rooms.loading")} />;
+  if (rooms.isError) return <ErrorState message={getApiError(rooms.error, t("rooms.loadError"))} />;
 
   return (
     <Box component="section">
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <Typography variant="h5">All Rooms</Typography>
-        <Button variant="contained" onClick={openCreate}>Add New Room</Button>
+        <Typography variant="h5">{t("rooms.title")}</Typography>
+        <Button variant="contained" onClick={openCreate}>{t("rooms.add")}</Button>
       </Stack>
-      <DataGrid
+      <LocalizedDataGrid
         autoHeight
         rows={rooms.data || []}
         columns={columns}
@@ -142,29 +141,24 @@ const RoomManagementSection = () => {
 
       <FormDialog
         open={dialog === "create" || dialog === "edit"}
-        title={dialog === "create" ? "Create New Room" : "Edit Room"}
+        title={dialog === "create" ? t("rooms.createTitle") : t("rooms.editTitle")}
         formId="room-form"
         loading={storeState.isLoading || updateState.isLoading || (dialog === "edit" && roomDetail.isFetching)}
         submitDisabled={dialog === "edit" && (roomDetail.isError || !roomDetail.data)}
         onClose={close}
         onSubmit={submit}
       >
-        {dialog === "edit" && roomDetail.isFetching ? <LoadingState label="Loading room..." /> : (
+        {dialog === "edit" && roomDetail.isFetching ? <LoadingState label={t("rooms.loadingOne")} /> : (
         <Stack spacing={2} sx={{ mt: 1 }}>
           {error && <Alert severity="error">{error}</Alert>}
-          {dialog === "edit" && roomDetail.isError && <Alert severity="error">{getApiError(roomDetail.error, "Unable to load room")}</Alert>}
-          <TextField required label="Name" value={form.name} onChange={change("name")} />
-          <TextField required type="email" label="Email" value={form.email} onChange={change("email")} />
-          {dialog === "create" && <TextField required type="password" label="Password" value={form.password} onChange={change("password")} />}
-          <TextField label="Floor" value={form.floor} onChange={change("floor")} />
-          <TextField label="Building" value={form.building} onChange={change("building")} />
-          <TextField label="Capacity" value={form.capacity} onChange={change("capacity")} />
-          <TextField label="Feature" value={form.feature} onChange={change("feature")} />
-          {dialog === "create" && (
-            <TextField select required label="Role" value={form.roleId} onChange={change("roleId")}>
-              {ROLE_OPTIONS.map((role) => <MenuItem key={role.value} value={role.value}>{role.label}</MenuItem>)}
-            </TextField>
-          )}
+          {dialog === "edit" && roomDetail.isError && <Alert severity="error">{getApiError(roomDetail.error, t("rooms.loadOneError"))}</Alert>}
+          <TextField required label={t("common:fields.name")} value={form.name} onChange={change("name")} />
+          <TextField required type="email" label={t("common:fields.email")} value={form.email} onChange={change("email")} />
+          {dialog === "create" && <TextField required type="password" label={t("common:fields.password")} value={form.password} onChange={change("password")} />}
+          <TextField label={t("rooms.floor")} value={form.floor} onChange={change("floor")} />
+          <TextField label={t("rooms.building")} value={form.building} onChange={change("building")} />
+          <TextField label={t("rooms.capacity")} value={form.capacity} onChange={change("capacity")} />
+          <TextField label={t("rooms.feature")} value={form.feature} onChange={change("feature")} />
         </Stack>
         )}
       </FormDialog>
@@ -178,21 +172,22 @@ const RoomManagementSection = () => {
         onSubmit={async ({ newPassword, newPasswordConfirmation }) => {
           setError("");
           if (newPassword !== newPasswordConfirmation) {
-            setError("New password and confirmation password mismatch");
+            setError(t("rooms.passwordMismatch"));
             return;
           }
           try {
             await changePassword({ userId: selected._id, newPassword, newPasswordConfirmation }).unwrap();
             close();
           } catch (reason) {
-            setError(getApiError(reason));
+            setError(getApiError(reason, t("common:states.error")));
           }
         }}
       />
 
       <ConfirmDialog
         open={dialog === "delete"}
-        message={deleteError || `Delete room ${selected?.name || ""}?`}
+        title={t("common:dialogs.confirmDelete")}
+        message={deleteError || t("rooms.deleteMessage", { name: selected?.name || "" })}
         loading={deleteState.isLoading}
         onCancel={close}
         onConfirm={async () => {
@@ -200,7 +195,7 @@ const RoomManagementSection = () => {
             await deleteRoom(selected._id).unwrap();
             close();
           } catch (reason) {
-            setDeleteError(getApiError(reason));
+            setDeleteError(getApiError(reason, t("common:states.error")));
           }
         }}
       />

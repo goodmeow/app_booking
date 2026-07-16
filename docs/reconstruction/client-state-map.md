@@ -44,7 +44,7 @@ Authentication is not Redux state.
 | `changePassword` | `PUT users/change-password` | password object | none |
 | `deleteUser` | `DELETE users/:id` | ID | invalidate `users` |
 
-Observed create/update fields: `name`, `email`, `password` (create), `roleId`, `card_number`; room branch also uses `floor`, `building`, `capacity`, `feature`. Password body uses `oldPassword`, `newPassword`, `newPasswordConfirmation`; admin reset of another user omits `oldPassword` and adds `userId`.
+Current employee create/update forms send `roleId`; new employee forms default it to User and require a role. The recovered bundle also exposed `name`, `email`, `password` (create), `roleId`, and `card_number`, with a room branch using `floor`, `building`, `capacity`, and `feature`. Current room forms omit `roleId`. Password body uses `oldPassword`, `newPassword`, `newPasswordConfirmation`; admin reset of another user omits `oldPassword` and adds `userId`.
 
 ### Rooms
 
@@ -52,8 +52,8 @@ Observed create/update fields: `name`, `email`, `password` (create), `roleId`, `
 |---|---|---|
 | `getRooms` | `GET rooms?<query>` | filtered query object |
 | `getRoomById` | `GET rooms/:id` | ID |
-| `storeRoom` | `POST rooms/` | room object |
-| `updateRoom` | `PUT rooms/:userId` | remaining room object |
+| `storeRoom` | `POST rooms/` | roleless room object; server persists `type=room` and no role |
+| `updateRoom` | `PUT rooms/:roomId` | remaining roleless room object; `roleId` is not persisted |
 | `deleteRoomById` | `DELETE rooms/:id` | empty JSON body |
 | `getRoomUsage` | `GET rooms/usage-report?start=YYYY-MM-DD&end=YYYY-MM-DD` | date range |
 

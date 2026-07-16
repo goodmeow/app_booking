@@ -1,0 +1,31 @@
+{
+  "title": "Room Usage Report",
+  "startDate": "Start date",
+  "endDate": "End date",
+  "invalidRange": "End date cannot be before start date.",
+  "export": "Export history to Excel",
+  "exportError": "Unable to export room usage report.",
+  "period": "Period {{start}} – {{end}}",
+  "loading": "Loading report...",
+  "loadError": "Unable to load report.",
+  "empty": "No meeting history",
+  "tableAria": "Collapsible room usage table",
+  "expand": "Expand row",
+  "collapse": "Collapse row",
+  "roomName": "Room Name",
+  "roomEmail": "Room Email",
+  "totalUsage": "Total Usage",
+  "history": "Meeting History",
+  "subject": "Subject",
+  "organizer": "Organizer",
+  "description": "Description",
+  "meetingStart": "Start Date",
+  "meetingEnd": "End Date",
+  "workbook": {
+    "usageTotal": "Usage Total",
+    "history": "Usage History",
+    "noHistory": "No Meeting History",
+    "sheet": "Period {{start}} - {{end}}",
+    "filename": "Meeting History Report ({{start}} - {{end}}).xlsx"
+  }
+}

@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   buildAddAttendeePayload,
   buildCreateEventPayload,
+  buildModernEventPayload,
   buildUpdateEventPayload,
   encodeEventDescription,
   isRoomAttendee,
@@ -16,29 +17,35 @@ const attendees = [
   { attendee_email: "guest@example.test" },
   { attendee_email: "any-room-identifier@example.test", type: "room" },
 ];
+const validDraft = { subject: "Planning", startDate, endDate, attendees };
 
 test("recognizes rooms by explicit identity type", () => {
   assert.equal(isRoomAttendee({ attendee_email: "anything@example.test", type: "room" }), true);
   assert.equal(isRoomAttendee({ attendee_email: "meeting@room.com", type: "employee" }), false);
 });
 
-test("validates recovered event time and room rules", () => {
-  assert.equal(validateEventDraft({ startDate, endDate, attendees }, { now }), null);
+test("returns semantic meeting validation keys", () => {
+  assert.equal(validateEventDraft(validDraft, { now }), null);
+  assert.equal(validateEventDraft({ ...validDraft, subject: "" }, { now }), "validation.subjectRequired");
   assert.equal(
-    validateEventDraft({ startDate: endDate, endDate: startDate, attendees }, { now }),
-    "Waktu selesai harus setelah waktu mulai"
+    validateEventDraft({ ...validDraft, startDate: endDate, endDate: startDate }, { now }),
+    "validation.endBeforeStart"
   );
   assert.equal(
-    validateEventDraft({ startDate, endDate: new Date("2030-01-16T10:00:00"), attendees }, { now }),
+    validateEventDraft({ ...validDraft, endDate: new Date("2030-01-16T10:00:00") }, { now }),
     null
   );
   assert.equal(
-    validateEventDraft({ startDate, endDate, attendees: [] }, { now }),
-    "Anda harus memilih lokasi ruangan"
+    validateEventDraft({ ...validDraft, attendees: [] }, { now }),
+    "validation.roomRequired"
   );
   assert.equal(
-    validateEventDraft({ startDate, endDate, attendees }, { now: new Date("2030-01-15T11:00:00"), editing: true }),
-    "Tidak dapat melakukan perubahan meeting (Waktu telah berlalu)"
+    validateEventDraft(validDraft, { now: new Date("2030-01-15T11:00:00"), editing: true }),
+    "validation.pastEdit"
+  );
+  assert.equal(
+    validateEventDraft({ ...validDraft, bookingKind: "recurring", recurrence: { cadence: "weekly", endDate: "2030-02-01", weekdays: [] } }, { now }),
+    "validation.recurrenceWeekday"
   );
 });
 
@@ -57,6 +64,36 @@ test("builds recovered create and update payload shapes with encoded description
   assert.deepEqual(update.attendees, attendees.map(({ attendee_email }) => ({ attendee_email })));
   assert.equal(update.end_date, endDate);
   assert.equal(update.description, "Quarterly%20plan%20%2B%20notes");
+});
+
+test("builds modern recurrence payload for preview and create", () => {
+  const draft = {
+    subject: "Planning",
+    description: "Notes",
+    startDate,
+    endDate,
+    timezone: "Asia/Jakarta",
+    bookingKind: "recurring",
+    recurrence: { cadence: "daily", interval: 1, endDate: "2030-01-17" },
+    attendees: [
+      { attendee_email: "room@example.test", type: "room", room_id: "room-1" },
+      { attendee_email: "employee@example.test", attendee_user_id: "user-1" },
+      { attendee_email: "visitor@example.test" },
+    ],
+  };
+  assert.deepEqual(buildModernEventPayload(draft), {
+    bookingKind: "recurring",
+    subject: "Planning",
+    description: "Notes",
+    start: startDate,
+    end: endDate,
+    timezone: "Asia/Jakarta",
+    roomIds: ["room-1"],
+    attendeeIds: ["user-1"],
+    visitorEmails: ["visitor@example.test"],
+    recurrence: { cadence: "daily", interval: 1, endDate: "2030-01-17" },
+  });
+  assert.equal(buildCreateEventPayload(draft).bookingKind, "recurring");
 });
 
 test("builds array payload required by add-attendee endpoint", () => {

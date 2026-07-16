@@ -17,6 +17,7 @@ import DeleteIconModule from "@mui/icons-material/Delete";
 import EditIconModule from "@mui/icons-material/Edit";
 import LockResetIconModule from "@mui/icons-material/LockReset";
 import PersonIconModule from "@mui/icons-material/Person";
+import { useTranslation } from "react-i18next";
 import { authenticate, isAuthenticated, signout } from "../auth/auth-helper.js";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import FeedbackSnackbar from "../components/common/FeedbackSnackbar.js";
@@ -26,6 +27,7 @@ import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import { getApiError } from "../domain/api-error.js";
 import { canManageProfile, formatJoinedDate } from "../domain/profile.js";
+import { normalizeLanguage } from "../i18n/languages.js";
 import {
   useChangePasswordMutation,
   useDeleteUserMutation,
@@ -39,6 +41,8 @@ const LockResetIcon = resolveMuiIcon(LockResetIconModule);
 const PersonIcon = resolveMuiIcon(PersonIconModule);
 
 const UserProfile = () => {
+  const { i18n, t } = useTranslation(["auth", "common"]);
+  const language = normalizeLanguage(i18n.resolvedLanguage || i18n.language);
   const { userId } = useParams();
   const history = useHistory();
   const session = isAuthenticated();
@@ -91,14 +95,14 @@ const UserProfile = () => {
     const email = editForm.email.trim();
 
     if (!name || !email) {
-      setEditError("Name and email must be filled");
+      setEditError(t("auth:profile.required"));
       return;
     }
     let updated;
     try {
       updated = await updateUser({ userId: session.user._id, name, email }).unwrap();
     } catch (mutationError) {
-      setEditError(getApiError(mutationError, "Unable to update profile"));
+      setEditError(getApiError(mutationError, t("auth:profile.updateError")));
       return;
     }
 
@@ -113,17 +117,17 @@ const UserProfile = () => {
       user: { ...session.user, name: updated?.name || name },
     });
     history.replace(history.location);
-    showFeedback("Profile successfully updated");
+    showFeedback(t("auth:profile.updateSuccess"));
   };
 
   const submitPassword = async ({ oldPassword, newPassword, newPasswordConfirmation }) => {
     setPasswordError("");
     if (!oldPassword || !newPassword || !newPasswordConfirmation) {
-      setPasswordError("All password fields must be filled");
+      setPasswordError(t("auth:password.required"));
       return;
     }
     if (newPassword !== newPasswordConfirmation) {
-      setPasswordError("New password and confirmation password mismatch");
+      setPasswordError(t("auth:password.mismatch"));
       return;
     }
 
@@ -135,9 +139,9 @@ const UserProfile = () => {
       }).unwrap();
       setPasswordOpen(false);
       resetPassword();
-      showFeedback("Password successfully changed");
+      showFeedback(t("auth:password.success"));
     } catch (mutationError) {
-      setPasswordError(getApiError(mutationError, "Unable to change password"));
+      setPasswordError(getApiError(mutationError, t("auth:password.loadError")));
     }
   };
 
@@ -146,15 +150,15 @@ const UserProfile = () => {
     try {
       await deleteUser(session.user._id).unwrap();
     } catch (mutationError) {
-      setDeleteError(getApiError(mutationError, "Unable to delete profile"));
+      setDeleteError(getApiError(mutationError, t("auth:profile.deleteError")));
       return;
     }
     resetDelete();
     void signout(() => history.push("/")).catch(() => {});
   };
 
-  if (isLoading) return <LoadingState label="Loading profile..." />;
-  if (isError) return <ErrorState message={getApiError(error, "Unable to load profile")} />;
+  if (isLoading) return <LoadingState label={t("auth:profile.loading")} />;
+  if (isError) return <ErrorState message={getApiError(error, t("auth:profile.loadError"))} />;
 
   return (
     <Container maxWidth="sm" sx={{ py: { xs: 3, md: 6 } }}>
@@ -165,15 +169,17 @@ const UserProfile = () => {
               <PersonIcon sx={{ fontSize: 52 }} />
             </Avatar>
             <Box sx={{ textAlign: "center" }}>
-              <Typography variant="h4" component="h1">{user?.name || "-"}</Typography>
-              <Typography color="text.secondary">{user?.email || "-"}</Typography>
+              <Typography variant="h4" component="h1">{user?.name || t("common:states.unknown")}</Typography>
+              <Typography color="text.secondary">{user?.email || t("common:states.unknown")}</Typography>
             </Box>
             <Divider flexItem />
-            <Typography color="text.secondary">Joined: {formatJoinedDate(user?.created_at)}</Typography>
+            <Typography color="text.secondary">
+              {t("auth:profile.joined", { date: formatJoinedDate(user?.created_at, language) })}
+            </Typography>
             {isOwner ? (
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ width: "100%" }}>
                 <Button fullWidth variant="contained" startIcon={<EditIcon />} onClick={openEdit}>
-                  Edit Profile
+                  {t("auth:profile.edit")}
                 </Button>
                 <Button
                   fullWidth
@@ -185,7 +191,7 @@ const UserProfile = () => {
                     setPasswordOpen(true);
                   }}
                 >
-                  Change Password
+                  {t("common:actions.changePassword")}
                 </Button>
                 <Button
                   fullWidth
@@ -198,7 +204,7 @@ const UserProfile = () => {
                     setDeleteOpen(true);
                   }}
                 >
-                  Delete
+                  {t("common:actions.delete")}
                 </Button>
               </Stack>
             ) : null}
@@ -208,7 +214,7 @@ const UserProfile = () => {
 
       <FormDialog
         open={editOpen}
-        title="Edit Profile"
+        title={t("auth:profile.edit")}
         formId="profile-edit-form"
         loading={isUpdating}
         onClose={closeEdit}
@@ -219,14 +225,14 @@ const UserProfile = () => {
           <TextField
             required
             autoFocus
-            label="Name"
+            label={t("common:fields.name")}
             value={editForm.name}
             onChange={(event) => setEditForm((current) => ({ ...current, name: event.target.value }))}
           />
           <TextField
             required
             type="email"
-            label="Email"
+            label={t("common:fields.email")}
             value={editForm.email}
             onChange={(event) => setEditForm((current) => ({ ...current, email: event.target.value }))}
           />
@@ -249,8 +255,8 @@ const UserProfile = () => {
 
       <ConfirmDialog
         open={deleteOpen}
-        title="Delete Profile"
-        message={deleteError || "Delete your account? This action cannot be undone."}
+        title={t("auth:profile.delete")}
+        message={deleteError || t("auth:profile.deleteMessage")}
         loading={isDeleting}
         onCancel={() => {
           if (isDeleting) return;

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import DeleteOutlineIconModule from "@mui/icons-material/DeleteOutline";
 import { Box, Button, Stack, TextField, Typography } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
+import { useTranslation } from "react-i18next";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import FormDialog from "../components/common/FormDialog.js";
+import LocalizedDataGrid from "../components/common/LocalizedDataGrid.js";
 import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { getApiError } from "../domain/api-error.js";
 import {
@@ -16,6 +17,7 @@ import {
 const DeleteOutlineIcon = resolveMuiIcon(DeleteOutlineIconModule);
 
 const CardMasterSection = () => {
+  const { t } = useTranslation(["management", "common"]);
   const { data: cards = [], error: queryError, isLoading } = useGetCardMasterQuery();
   const [storeCardMaster, { isLoading: isCreating }] = useStoreCardMasterMutation();
   const [deleteCardMaster, { isLoading: isDeleting }] = useDeleteCardMasterMutation();
@@ -43,7 +45,7 @@ const CardMasterSection = () => {
     setCreateError("");
     const normalizedCardNumber = cardNumber.trim();
     if (!normalizedCardNumber) {
-      setCreateError("Card Number is required");
+      setCreateError(t("cards.required"));
       return;
     }
     try {
@@ -51,7 +53,7 @@ const CardMasterSection = () => {
       setCreateOpen(false);
       setCardNumber("");
     } catch (error) {
-      setCreateError(getApiError(error, "Failed to create card master"));
+      setCreateError(getApiError(error, t("cards.createError")));
     }
   };
 
@@ -73,17 +75,17 @@ const CardMasterSection = () => {
       await deleteCardMaster(deleteTarget._id).unwrap();
       setDeleteTarget(null);
     } catch (error) {
-      setDeleteError(getApiError(error, "Failed to delete card master"));
+      setDeleteError(getApiError(error, t("cards.deleteError")));
     }
   };
 
   const columns = [
-    { field: "_id", headerName: "Card ID", flex: 1, minWidth: 220 },
-    { field: "card_number", headerName: "Card Number", flex: 1, minWidth: 180 },
-    { field: "created_by", headerName: "Created By", flex: 1, minWidth: 180 },
+    { field: "_id", headerName: t("cards.id"), flex: 1, minWidth: 220 },
+    { field: "card_number", headerName: t("cards.number"), flex: 1, minWidth: 180 },
+    { field: "created_by", headerName: t("cards.createdBy"), flex: 1, minWidth: 180 },
     {
       field: "actions",
-      headerName: "Action",
+      headerName: t("common:fields.action"),
       width: 110,
       sortable: false,
       filterable: false,
@@ -93,9 +95,9 @@ const CardMasterSection = () => {
           size="small"
           startIcon={<DeleteOutlineIcon />}
           onClick={() => openDelete(row)}
-          aria-label={`Delete card ${row.card_number}`}
+          aria-label={t("cards.deleteAria", { number: row.card_number })}
         >
-          Delete
+          {t("common:actions.delete")}
         </Button>
       ),
     },
@@ -104,16 +106,16 @@ const CardMasterSection = () => {
   return (
     <Box component="section">
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ mb: 2 }}>
-        <Typography variant="h5">Card Master List</Typography>
-        <Button variant="contained" onClick={openCreate}>Add New Card Master</Button>
+        <Typography variant="h5">{t("cards.title")}</Typography>
+        <Button variant="contained" onClick={openCreate}>{t("cards.add")}</Button>
       </Stack>
 
-      {isLoading && <LoadingState label="Loading card masters..." />}
+      {isLoading && <LoadingState label={t("cards.loading")} />}
       {queryError && !isLoading && (
-        <ErrorState message={getApiError(queryError, "Failed to load card masters")} />
+        <ErrorState message={getApiError(queryError, t("cards.loadError"))} />
       )}
       {!isLoading && !queryError && (
-        <DataGrid
+        <LocalizedDataGrid
           autoHeight
           rows={cards}
           columns={columns}
@@ -126,7 +128,7 @@ const CardMasterSection = () => {
 
       <FormDialog
         open={createOpen}
-        title="Add New Card Master"
+        title={t("cards.add")}
         formId="card-master-form"
         loading={isCreating}
         onClose={closeCreate}
@@ -137,7 +139,7 @@ const CardMasterSection = () => {
           autoFocus
           fullWidth
           required
-          label="Card Number"
+          label={t("cards.number")}
           margin="normal"
           value={cardNumber}
           onChange={(event) => setCardNumber(event.target.value)}
@@ -146,8 +148,8 @@ const CardMasterSection = () => {
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}
-        title="Delete Card Master"
-        message={deleteError || `Delete card ${deleteTarget?.card_number || ""}?`}
+        title={t("cards.deleteTitle")}
+        message={deleteError || t("cards.deleteMessage", { number: deleteTarget?.card_number || "" })}
         loading={isDeleting}
         onCancel={closeDelete}
         onConfirm={confirmDelete}

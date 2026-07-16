@@ -1,4 +1,4 @@
-# 360Booking Reconstruction TODO
+# 360 Scheduler Reconstruction TODO
 
 ## Phase 1 — Preserve baseline
 
@@ -147,21 +147,23 @@ Phase 10A software complete: a provisioned tablet is cryptographically bound to 
 
 ### Phase 10B — Scheduler UX and rebrand
 
-- [ ] Adopt canonical `360 Scheduler` brand with `Meeting & Room Scheduler` descriptor.
-- [ ] Use `Meeting` consistently in UI; keep `Event` internal to code/API.
-- [ ] Standardize user-facing language and validation copy.
-- [ ] Add visible Calendar navigation plus Today, previous, next, Week, Day, and Agenda controls.
-- [ ] Show meeting time and use mobile-friendly Day/Agenda views.
-- [ ] Add explicit `Jadwal Saya` and `Jadwal Ruangan` modes with onboarding hints.
-- [ ] Guide meeting creation with required fields, inline validation, duration, timezone, and room availability/conflict feedback.
-- [ ] Let novice users choose clearly between one continuous multi-day booking and a repeated meeting schedule.
-- [ ] Provide recurrence cadence/end controls, plain-language summary, and pre-save occurrence/conflict feedback.
+- [x] Adopt canonical `360 Scheduler` brand with `Meeting & Room Scheduler` descriptor.
+- [x] Use `Meeting` consistently in UI; keep `Event` internal to code/API.
+- [x] Standardize user-facing language and validation copy.
+  - [x] Use English as the default language and Indonesian as the second built-in language.
+  - [x] Move user-facing copy to semantic parameter keys and add a Crowdin locale workflow for additional languages.
+- [x] Add visible Calendar navigation plus Today, previous, next, Week, Day, and Agenda controls.
+- [x] Show meeting time and use mobile-friendly Day/Agenda views.
+- [x] Add explicit `Jadwal Saya` and `Jadwal Ruangan` modes with onboarding hints.
+- [x] Guide meeting creation with required fields, inline validation, duration, timezone, and room availability/conflict feedback.
+- [x] Let novice users choose clearly between one continuous multi-day booking and a repeated meeting schedule.
+- [x] Provide recurrence cadence/end controls, plain-language summary, and pre-save occurrence/conflict feedback.
 - [ ] Show multi-day continuation and recurring-series cues in Calendar plus readable Day/Agenda behavior on mobile.
-- [ ] Render each occupied room block/balloon exactly as `[nama depan, HH:mm - HH:mm]` using 24-hour local time.
-- [ ] Keep clicks on privacy-projected bookings safe: show no details and never request or reveal restricted fields.
+- [x] Render each occupied room block/balloon exactly as `[nama depan, HH:mm - HH:mm]` using 24-hour local time.
+- [x] Keep clicks on privacy-projected bookings safe: show no details and never request or reveal restricted fields.
 - [ ] Add dates and continuation cues to cross-midnight/multi-day labels so occupied intervals remain unambiguous.
-- [ ] Make edit/cancel scope explicit: this occurrence, this and future, or all occurrences.
-- [ ] Confirm meeting deletion and explain read-only state.
+- [x] Make edit/cancel scope explicit: this occurrence, this and future, or all occurrences.
+- [x] Confirm meeting deletion and explain read-only state.
 - [ ] Add retryable resource errors, non-blocking refresh, and not-found route.
 - [ ] Replace mobile navbar overflow with a drawer and simplify admin navigation.
 - [ ] Rework admin tables for mobile; hide technical IDs and use Users/Rooms/Access Cards tabs.

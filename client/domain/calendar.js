@@ -2,6 +2,22 @@ const pad = (value) => String(value).padStart(2, "0");
 
 const asDate = (value) => value instanceof Date ? new Date(value) : new Date(value);
 
+const startOfDay = (value) => {
+  const date = asDate(value);
+  if (Number.isNaN(date.getTime())) throw new TypeError("Invalid date");
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+};
+
+const addDays = (value, amount) => {
+  const date = startOfDay(value);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount);
+};
+
+const startOfWeek = (value) => {
+  const selected = startOfDay(value);
+  return addDays(selected, -selected.getDay());
+};
+
 export const formatCalendarQueryDate = (value) => {
   const date = asDate(value);
   if (Number.isNaN(date.getTime())) throw new TypeError("Invalid date");
@@ -9,11 +25,31 @@ export const formatCalendarQueryDate = (value) => {
 };
 
 export const calendarWeekRange = (value) => {
-  const selected = asDate(value);
-  if (Number.isNaN(selected.getTime())) throw new TypeError("Invalid date");
-  const start = new Date(selected.getFullYear(), selected.getMonth(), selected.getDate() - selected.getDay());
-  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+  const start = startOfWeek(value);
+  const end = addDays(start, 6);
   return { start: formatCalendarQueryDate(start), end: formatCalendarQueryDate(end) };
+};
+
+export const calendarDayRange = (value) => {
+  const day = startOfDay(value);
+  return { start: formatCalendarQueryDate(day), end: formatCalendarQueryDate(day) };
+};
+
+export const calendarAgendaRange = (value) => {
+  const start = startOfDay(value);
+  return { start: formatCalendarQueryDate(start), end: formatCalendarQueryDate(addDays(start, 6)) };
+};
+
+export const calendarRangeForView = (value, view) => {
+  if (view === "timeGridDay") return calendarDayRange(value);
+  if (view === "agenda") return calendarAgendaRange(value);
+  return calendarWeekRange(value);
+};
+
+export const navigateCalendarDate = (value, view, direction) => {
+  const amount = direction === "previous" ? -1 : 1;
+  if (view === "timeGridDay") return addDays(value, amount);
+  return addDays(value, amount * 7);
 };
 
 export const calendarEventFilters = ({ email, roomEmail, range }) => ({
@@ -34,23 +70,49 @@ export const defaultEventRange = (value, now = new Date()) => {
   return { start, end };
 };
 
+export const formatMeetingTimeRange = (startValue, endValue, locale = "en-GB") => {
+  const start = asDate(startValue);
+  const end = asDate(endValue);
+  if ([start, end].some((date) => Number.isNaN(date.getTime()))) return "";
+  const formatter = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", hour12: false });
+  return `${formatter.format(start)} - ${formatter.format(end)}`;
+};
+
+export const formatMeetingDateCue = (startValue, endValue, locale = "en-GB") => {
+  const start = asDate(startValue);
+  const end = asDate(endValue);
+  if ([start, end].some((date) => Number.isNaN(date.getTime()))) return "";
+  const dateFormatter = new Intl.DateTimeFormat(locale, { day: "2-digit", month: "short", year: "numeric" });
+  if (start.toDateString() === end.toDateString()) return dateFormatter.format(start);
+  return `${dateFormatter.format(start)} - ${dateFormatter.format(end)}`;
+};
+
+export const durationMinutes = (startValue, endValue) => {
+  const start = asDate(startValue);
+  const end = asDate(endValue);
+  if ([start, end].some((date) => Number.isNaN(date.getTime())) || end <= start) return 0;
+  return Math.round((end.getTime() - start.getTime()) / 60000);
+};
+
+const eventValue = (event, name) => event?.[name] ?? event?.extendedProps?.[name];
+
 export const calendarEventFromApi = (event) => ({
   id: event.id,
   title: event.title,
   start: event.start,
   end: event.end,
-  organizer: event.extendedProps?.organizer,
-  description: event.extendedProps?.description,
-  is_cancel: event.extendedProps?.is_cancel,
-  is_draft: event.extendedProps?.is_draft,
-  is_allday: event.extendedProps?.is_allday,
-  created_at: event.extendedProps?.created_at,
-  checked_in: event.extendedProps?.checked_in,
-  late_threshold: event.extendedProps?.late_threshold,
-  ...(event.extendedProps?.visibility === undefined ? {} : { visibility: event.extendedProps.visibility }),
-  ...(event.extendedProps?.can_view_details === undefined ? {} : { can_view_details: event.extendedProps.can_view_details }),
-  ...(event.extendedProps?.organizer_first_name === undefined ? {} : { organizer_first_name: event.extendedProps.organizer_first_name }),
-  ...(event.extendedProps?.timezone === undefined ? {} : { timezone: event.extendedProps.timezone }),
-  ...(event.extendedProps?.series_id === undefined ? {} : { series_id: event.extendedProps.series_id }),
-  ...(event.extendedProps?.occurrence_index === undefined ? {} : { occurrence_index: event.extendedProps.occurrence_index }),
+  organizer: eventValue(event, "organizer"),
+  description: eventValue(event, "description"),
+  is_cancel: eventValue(event, "is_cancel"),
+  is_draft: eventValue(event, "is_draft"),
+  is_allday: eventValue(event, "is_allday"),
+  created_at: eventValue(event, "created_at"),
+  checked_in: eventValue(event, "checked_in"),
+  late_threshold: eventValue(event, "late_threshold"),
+  ...(eventValue(event, "visibility") === undefined ? {} : { visibility: eventValue(event, "visibility") }),
+  ...(eventValue(event, "can_view_details") === undefined ? {} : { can_view_details: eventValue(event, "can_view_details") }),
+  ...(eventValue(event, "organizer_first_name") === undefined ? {} : { organizer_first_name: eventValue(event, "organizer_first_name") }),
+  ...(eventValue(event, "timezone") === undefined ? {} : { timezone: eventValue(event, "timezone") }),
+  ...(eventValue(event, "series_id") === undefined ? {} : { series_id: eventValue(event, "series_id") }),
+  ...(eventValue(event, "occurrence_index") === undefined ? {} : { occurrence_index: eventValue(event, "occurrence_index") }),
 });

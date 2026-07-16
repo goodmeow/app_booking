@@ -1,12 +1,18 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { deriveKioskState, kioskDayRange } from "../kiosk/kiosk-state.js";
+import { deriveKioskState, formatKioskDate, kioskDayRange } from "../kiosk/kiosk-state.js";
 
 const meeting = (start, end, values = {}) => ({ id: "event-1", start, end, checkedIn: false, canCheckIn: false, ...values });
 const now = new Date("2031-05-10T02:00:00.000Z");
 
 test("kiosk day query is bound to one local calendar day", () => {
   assert.deepEqual(kioskDayRange(new Date(2031, 4, 10, 9)), { start: "20310510", end: "20310510" });
+});
+
+test("kiosk date follows the selected language", () => {
+  const date = new Date(2031, 4, 10, 9);
+  assert.match(formatKioskDate(date, "en"), /May/);
+  assert.match(formatKioskDate(date, "id"), /Mei/);
 });
 
 test("kiosk derives available and upcoming states before a meeting", () => {

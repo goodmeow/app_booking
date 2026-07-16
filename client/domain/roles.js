@@ -4,6 +4,6 @@ export const ROLE_IDS = {
 };
 
 export const ROLE_OPTIONS = [
-  { value: ROLE_IDS.ADMIN, label: "Admin" },
-  { value: ROLE_IDS.USER, label: "User" },
+  { value: ROLE_IDS.ADMIN, labelKey: "roles.admin" },
+  { value: ROLE_IDS.USER, labelKey: "roles.user" },
 ];

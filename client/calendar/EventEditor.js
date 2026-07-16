@@ -2,18 +2,34 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Autocomplete,
+  Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
+  FormControl,
+  FormControlLabel,
+  FormHelperText,
+  InputLabel,
+  MenuItem,
+  Radio,
+  RadioGroup,
+  Select,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import FeedbackSnackbar from "../components/common/FeedbackSnackbar.js";
+import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
+import { durationMinutes } from "../domain/calendar.js";
 import { getApiError } from "../domain/api-error.js";
 import {
+  buildModernEventPayload,
   buildCreateEventPayload,
   buildUpdateEventPayload,
   encodeEventDescription,
@@ -23,6 +39,7 @@ import {
 import {
   useDeleteEventByIdMutation,
   useGetEventDetailsQuery,
+  usePreviewEventsMutation,
   useStoreEventMutation,
   useUpdateEventMutation,
 } from "../redux/services/events.js";
@@ -47,6 +64,7 @@ const safeDecode = (value) => {
 };
 
 const emailOf = (value) => typeof value === "string" ? value : value?.email || value?.attendee_email || "";
+const idOf = (value) => typeof value === "string" ? "" : value?._id || value?.attendee_user_id || value?.userId || "";
 
 const uniqueAttendees = (values) => {
   const seen = new Set();
@@ -59,6 +77,7 @@ const uniqueAttendees = (values) => {
       attendee_email,
       ...(value?.type ? { type: value.type } : {}),
       ...(value?.room_id ? { room_id: value.room_id } : {}),
+      ...(idOf(value) ? { attendee_user_id: idOf(value) } : {}),
     });
     return result;
   }, []);
@@ -82,19 +101,35 @@ const EventEditor = ({
   sessionEmail,
   users = [],
   rooms = [],
+  initialRoom,
   onClose,
 }) => {
+  const { t } = useTranslation(["calendar", "common"]);
   const eventId = event?.id;
   const editing = Boolean(eventId);
   const details = useGetEventDetailsQuery(eventId, { skip: !open || !editing });
+  const [previewEvents, previewState] = usePreviewEventsMutation();
   const [storeEvent, storeState] = useStoreEventMutation();
   const [updateEvent, updateState] = useUpdateEventMutation();
   const [deleteEventById, deleteState] = useDeleteEventByIdMutation();
-  const [draft, setDraft] = useState({ subject: "", start: "", end: "", description: "", attendees: [] });
+  const [draft, setDraft] = useState({
+    subject: "",
+    start: "",
+    end: "",
+    description: "",
+    timezone: "Asia/Jakarta",
+    bookingKind: "single",
+    recurrence: { cadence: "daily", interval: 1, endDate: "", weekdays: [] },
+    scope: "occurrence",
+    attendees: [],
+  });
   const [error, setError] = useState("");
+  const [guidance, setGuidance] = useState("");
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [feedback, setFeedback] = useState({ open: false, message: "", severity: "error" });
 
   const userEmails = useMemo(() => uniqueAttendees(users).map(({ attendee_email }) => attendee_email), [users]);
+  const usersByEmail = useMemo(() => new Map(users.map((user) => [String(user.email || "").toLowerCase(), user])), [users]);
   const attendeeEmails = draft.attendees.filter((item) => !isRoomAttendee(item)).map(emailOf);
   const location = draft.attendees.find(isRoomAttendee)?.attendee_email || null;
   const locationValue = rooms.find((room) => room.email === location)
@@ -104,20 +139,31 @@ const EventEditor = ({
   const isOrganizer = !editing || String(organizer) === String(sessionEmail || "");
   const hasEnded = editing && eventEnd && new Date(eventEnd) < new Date();
   const readOnly = editing && (!isOrganizer || hasEnded);
-  const busy = storeState.isLoading || updateState.isLoading || deleteState.isLoading;
+  const recurringEvent = Boolean(eventField(event, "series_id"));
+  const busy = storeState.isLoading || updateState.isLoading || deleteState.isLoading || previewState.isLoading;
+  const duration = durationMinutes(draft.start, draft.end);
 
   useEffect(() => {
     if (!open) return;
     const range = defaultRange(initialStart, initialEnd);
+    const initialAttendees = initialRoom?.email
+      ? [{ attendee_email: initialRoom.email, type: "room", room_id: initialRoom._id }]
+      : [];
     setDraft({
       subject: event?.title || eventField(event, "subject") || "",
       start: toDateTimeInput(eventField(event, "start")) || range.start,
       end: toDateTimeInput(eventEnd) || range.end,
       description: safeDecode(eventField(event, "description")),
-      attendees: [],
+      timezone: eventField(event, "timezone") || "Asia/Jakarta",
+      bookingKind: "single",
+      recurrence: { cadence: "daily", interval: 1, endDate: "", weekdays: [] },
+      scope: "occurrence",
+      attendees: initialAttendees,
     });
     setError("");
-  }, [open, eventId, initialStart, initialEnd]);
+    setGuidance("");
+    setDeleteConfirmOpen(false);
+  }, [open, eventId, initialStart, initialEnd, initialRoom?._id]);
 
   useEffect(() => {
     if (!open || !editing || !Array.isArray(details.data)) return;
@@ -127,6 +173,16 @@ const EventEditor = ({
   const change = (name) => (changeEvent) => {
     setDraft((current) => ({ ...current, [name]: changeEvent.target.value }));
     setError("");
+    setGuidance("");
+  };
+
+  const changeRecurrence = (name) => (changeEvent) => {
+    setDraft((current) => ({
+      ...current,
+      recurrence: { ...current.recurrence, [name]: changeEvent.target.value },
+    }));
+    setError("");
+    setGuidance("");
   };
 
   const close = () => {
@@ -137,12 +193,15 @@ const EventEditor = ({
     submitEvent.preventDefault();
     const attendees = uniqueAttendees(draft.attendees);
     const validationError = validateEventDraft({
+      subject: draft.subject,
       startDate: draft.start,
       endDate: draft.end,
       attendees,
+      bookingKind: draft.bookingKind,
+      recurrence: draft.recurrence,
     }, { editing });
     if (validationError) {
-      setError(validationError);
+      setError(t(validationError));
       return;
     }
 
@@ -153,16 +212,30 @@ const EventEditor = ({
       description: encodeEventDescription(draft.description),
       startDate: draft.start,
       endDate: draft.end,
+      timezone: draft.timezone,
+      bookingKind: draft.bookingKind,
+      recurrence: draft.recurrence,
+      scope: draft.scope,
       attendees,
     };
 
     try {
+      if (!editing) {
+        const preview = await previewEvents(buildModernEventPayload(eventDraft)).unwrap();
+        if (Array.isArray(preview.conflicts) && preview.conflicts.length) {
+          setError(t("editor.conflictSummary", { count: preview.conflicts.length }));
+          return;
+        }
+        if (Array.isArray(preview.occurrences)) {
+          setGuidance(t("editor.previewSummary", { count: preview.occurrences.length }));
+        }
+      }
       if (editing) await updateEvent(buildUpdateEventPayload(eventDraft)).unwrap();
       else await storeEvent(buildCreateEventPayload(eventDraft)).unwrap();
-      setFeedback({ open: true, message: editing ? "Event successfully updated" : "Event successfully created", severity: "success" });
+      setFeedback({ open: true, message: t(editing ? "editor.updated" : "editor.created"), severity: "success" });
       onClose();
     } catch (reason) {
-      const message = getApiError(reason, `Unable to ${editing ? "update" : "create"} event`);
+      const message = getApiError(reason, t(editing ? "editor.updateError" : "editor.createError"));
       setError(message);
       setFeedback({ open: true, message, severity: "error" });
     }
@@ -170,11 +243,12 @@ const EventEditor = ({
 
   const removeEvent = async () => {
     try {
-      await deleteEventById({ eventId }).unwrap();
-      setFeedback({ open: true, message: "Event successfully deleted", severity: "success" });
+      await deleteEventById({ eventId, scope: draft.scope }).unwrap();
+      setFeedback({ open: true, message: t("editor.deleted"), severity: "success" });
+      setDeleteConfirmOpen(false);
       onClose();
     } catch (reason) {
-      const message = getApiError(reason, "Unable to delete event");
+      const message = getApiError(reason, t("editor.deleteError"));
       setError(message);
       setFeedback({ open: true, message, severity: "error" });
     }
@@ -183,17 +257,18 @@ const EventEditor = ({
   return (
     <>
       <Dialog open={open} onClose={close} fullWidth maxWidth="sm">
-        <DialogTitle>{editing ? event?.title || "Event details" : "Add Event"}</DialogTitle>
+        <DialogTitle>{editing ? event?.title || t("editor.detailsTitle") : t("editor.addTitle")}</DialogTitle>
         <DialogContent dividers>
-          {editing && details.isFetching ? <LoadingState label="Loading event..." /> : null}
-          {editing && details.isError ? <ErrorState message={getApiError(details.error, "Unable to load event")} /> : null}
+          {editing && details.isFetching ? <LoadingState label={t("editor.loading")} /> : null}
+          {editing && details.isError ? <ErrorState message={getApiError(details.error, t("editor.loadError"))} /> : null}
           {(!editing || (!details.isFetching && !details.isError)) ? (
             <Stack component="form" id="event-editor-form" spacing={2} onSubmit={submit} sx={{ pt: 1 }}>
               {error ? <Alert severity="error">{error}</Alert> : null}
-              {readOnly ? <Alert severity="info">This event is read-only.</Alert> : null}
+              {guidance ? <Alert severity="success">{guidance}</Alert> : null}
+              {readOnly ? <Alert severity="info">{t("editor.readOnly")}</Alert> : null}
               <TextField
                 autoFocus={!editing}
-                label="Add a Title"
+                label={t("editor.title")}
                 value={draft.subject}
                 onChange={change("subject")}
                 disabled={readOnly || busy}
@@ -206,18 +281,24 @@ const EventEditor = ({
                 onChange={(_, values) => {
                   setDraft((current) => {
                     const room = current.attendees.find(isRoomAttendee);
-                    return { ...current, attendees: uniqueAttendees([...values, ...(room ? [room] : [])]) };
+                    const people = values.map((value) => {
+                      const email = emailOf(value);
+                      const user = usersByEmail.get(String(email).toLowerCase());
+                      return user ? { attendee_email: user.email, attendee_user_id: user._id } : { attendee_email: email };
+                    });
+                    return { ...current, attendees: uniqueAttendees([...people, ...(room ? [room] : [])]) };
                   });
                   setError("");
+                  setGuidance("");
                 }}
                 disabled={readOnly || busy}
-                renderInput={(params) => <TextField {...params} label="Invite Attendees" />}
+                renderInput={(params) => <TextField {...params} label={t("editor.attendees")} />}
               />
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <TextField
                   fullWidth
                   type="datetime-local"
-                  label="Start date"
+                  label={t("editor.startDate")}
                   value={draft.start}
                   onChange={change("start")}
                   disabled={readOnly || busy}
@@ -226,13 +307,123 @@ const EventEditor = ({
                 <TextField
                   fullWidth
                   type="datetime-local"
-                  label="End date"
+                  label={t("editor.endDate")}
                   value={draft.end}
                   onChange={change("end")}
                   disabled={readOnly || busy}
                   InputLabelProps={{ shrink: true }}
                 />
               </Stack>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                <FormControl fullWidth size="small" disabled={readOnly || busy}>
+                  <InputLabel id="event-timezone-label">{t("editor.timezone")}</InputLabel>
+                  <Select
+                    labelId="event-timezone-label"
+                    label={t("editor.timezone")}
+                    value={draft.timezone}
+                    onChange={change("timezone")}
+                  >
+                    <MenuItem value="Asia/Jakarta">Asia/Jakarta</MenuItem>
+                    <MenuItem value="UTC">UTC</MenuItem>
+                  </Select>
+                  <FormHelperText>{duration ? t("editor.duration", { count: duration }) : t("editor.durationHelp")}</FormHelperText>
+                </FormControl>
+                {!editing ? (
+                  <FormControl fullWidth size="small" disabled={readOnly || busy}>
+                    <InputLabel id="event-kind-label">{t("editor.bookingKind")}</InputLabel>
+                    <Select
+                      labelId="event-kind-label"
+                      label={t("editor.bookingKind")}
+                      value={draft.bookingKind}
+                      onChange={change("bookingKind")}
+                    >
+                      <MenuItem value="single">{t("editor.singleBooking")}</MenuItem>
+                      <MenuItem value="recurring">{t("editor.recurringBooking")}</MenuItem>
+                    </Select>
+                    <FormHelperText>{t("editor.bookingKindHelp")}</FormHelperText>
+                  </FormControl>
+                ) : null}
+              </Stack>
+              {!editing && draft.bookingKind === "recurring" ? (
+                <Box>
+                  <Divider sx={{ mb: 2 }} />
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>{t("editor.recurrenceTitle")}</Typography>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                    <TextField
+                      select
+                      fullWidth
+                      size="small"
+                      label={t("editor.recurrenceCadence")}
+                      value={draft.recurrence.cadence}
+                      onChange={changeRecurrence("cadence")}
+                      disabled={busy}
+                    >
+                      <MenuItem value="daily">{t("editor.daily")}</MenuItem>
+                      <MenuItem value="weekly">{t("editor.weekly")}</MenuItem>
+                    </TextField>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      type="number"
+                      label={t("editor.recurrenceInterval")}
+                      value={draft.recurrence.interval}
+                      onChange={changeRecurrence("interval")}
+                      disabled={busy}
+                      inputProps={{ min: 1 }}
+                    />
+                    <TextField
+                      fullWidth
+                      size="small"
+                      type="date"
+                      label={t("editor.recurrenceEnd")}
+                      value={draft.recurrence.endDate}
+                      onChange={changeRecurrence("endDate")}
+                      disabled={busy}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Stack>
+                  {draft.recurrence.cadence === "weekly" ? (
+                    <FormControl component="fieldset" sx={{ mt: 1.5 }} disabled={busy}>
+                      <FormHelperText>{t("editor.weekdayHelp")}</FormHelperText>
+                      <Stack direction="row" spacing={1} flexWrap="wrap">
+                        {[0, 1, 2, 3, 4, 5, 6].map((day) => (
+                          <FormControlLabel
+                            key={day}
+                            control={(
+                              <Checkbox
+                                checked={draft.recurrence.weekdays.includes(day)}
+                                onClick={() => {
+                                  setDraft((current) => {
+                                    const weekdays = current.recurrence.weekdays.includes(day)
+                                      ? current.recurrence.weekdays.filter((item) => item !== day)
+                                      : [...current.recurrence.weekdays, day].sort();
+                                    return { ...current, recurrence: { ...current.recurrence, weekdays } };
+                                  });
+                                  setError("");
+                                  setGuidance("");
+                                }}
+                              />
+                            )}
+                            label={t(`editor.weekdays.${day}`)}
+                          />
+                        ))}
+                      </Stack>
+                    </FormControl>
+                  ) : null}
+                  <FormHelperText>{t("editor.previewHelp")}</FormHelperText>
+                </Box>
+              ) : null}
+              {editing && recurringEvent && !readOnly ? (
+                <FormControl component="fieldset">
+                  <Typography variant="subtitle2">{t("editor.scopeTitle")}</Typography>
+                  <RadioGroup value={draft.scope} onChange={change("scope")}>
+                    <FormControlLabel value="occurrence" control={<Radio />} label={t("editor.scopeOccurrence")} />
+                    <FormControlLabel value="following" control={<Radio />} label={t("editor.scopeFollowing")} />
+                    <FormControlLabel value="series" control={<Radio />} label={t("editor.scopeSeries")} />
+                  </RadioGroup>
+                  <FormHelperText>{t("editor.scopeHelp")}</FormHelperText>
+                </FormControl>
+              ) : null}
               <Autocomplete
                 options={rooms}
                 value={locationValue}
@@ -248,16 +439,17 @@ const EventEditor = ({
                     };
                   });
                   setError("");
+                  setGuidance("");
                 }}
                 getOptionLabel={(option) => option?.name || option?.email || ""}
                 isOptionEqualToValue={(option, value) => option?.email === value?.email}
                 disabled={readOnly || busy}
-                renderInput={(params) => <TextField {...params} label="Location" />}
+                renderInput={(params) => <TextField {...params} label={t("editor.location")} />}
               />
               <TextField
                 multiline
                 minRows={3}
-                label="Add a description"
+                label={t("editor.description")}
                 value={draft.description}
                 onChange={change("description")}
                 disabled={readOnly || busy}
@@ -266,8 +458,8 @@ const EventEditor = ({
           ) : null}
         </DialogContent>
         <DialogActions>
-          <Button onClick={close} disabled={busy}>Close</Button>
-          {editing && !readOnly ? <Button color="error" onClick={removeEvent} disabled={busy || details.isFetching}>Delete</Button> : null}
+          <Button onClick={close} disabled={busy}>{t("common:actions.close")}</Button>
+          {editing && !readOnly ? <Button color="error" onClick={() => setDeleteConfirmOpen(true)} disabled={busy || details.isFetching}>{t("common:actions.delete")}</Button> : null}
           {!readOnly ? (
             <Button
               type="submit"
@@ -275,11 +467,21 @@ const EventEditor = ({
               variant="contained"
               disabled={busy || (editing && (details.isFetching || details.isError))}
             >
-              Save
+              {t("common:actions.save")}
             </Button>
           ) : null}
         </DialogActions>
       </Dialog>
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title={t("editor.deleteTitle")}
+        message={recurringEvent ? t("editor.deleteScopedMessage") : t("editor.deleteMessage")}
+        loading={deleteState.isLoading}
+        onCancel={() => {
+          if (!deleteState.isLoading) setDeleteConfirmOpen(false);
+        }}
+        onConfirm={removeEvent}
+      />
       <FeedbackSnackbar
         open={feedback.open}
         message={feedback.message}

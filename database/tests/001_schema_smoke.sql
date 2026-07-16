@@ -3,6 +3,8 @@
 DO $$
 DECLARE
   actual_count integer;
+  employee_role_id uuid;
+  room_user_id uuid;
 BEGIN
   SELECT count(*) INTO actual_count
   FROM pg_tables
@@ -84,6 +86,61 @@ BEGIN
       AND indexname = 'tbl_users_email_lower_key'
   ) THEN
     RAISE EXCEPTION 'Normalized email uniqueness is missing';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conrelid = 'public.tbl_users'::regclass
+      AND conname = 'tbl_users_room_role_check'
+  ) THEN
+    RAISE EXCEPTION 'Room role separation constraint is missing';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM tbl_users
+    WHERE type = 'room'
+      AND role_id IS NOT NULL
+  ) THEN
+    RAISE EXCEPTION 'Seeded room users must not have employee roles';
+  END IF;
+
+  SELECT _id INTO room_user_id
+  FROM tbl_users
+  WHERE type = 'room'
+  ORDER BY _id
+  LIMIT 1;
+
+  SELECT role_id INTO employee_role_id
+  FROM tbl_users
+  WHERE type = 'employee'
+    AND role_id IS NOT NULL
+  ORDER BY _id
+  LIMIT 1;
+
+  IF room_user_id IS NULL OR employee_role_id IS NULL THEN
+    RAISE EXCEPTION 'Expected seeded room and employee role data';
+  END IF;
+
+  BEGIN
+    UPDATE tbl_users
+    SET role_id = employee_role_id
+    WHERE _id = room_user_id;
+
+    RAISE EXCEPTION 'Room user accepted an employee role';
+  EXCEPTION
+    WHEN check_violation THEN
+      NULL;
+  END;
+
+  IF EXISTS (
+    SELECT 1
+    FROM tbl_users
+    WHERE _id = room_user_id
+      AND role_id IS NOT NULL
+  ) THEN
+    RAISE EXCEPTION 'Rejected room role mutation was persisted';
   END IF;
 END
 $$;

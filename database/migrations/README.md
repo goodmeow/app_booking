@@ -11,6 +11,7 @@ Order:
 006_phase9_scheduler.sql
 007_phase10a_kiosk_devices.sql
 008_kiosk_capabilities.sql
+009_room_role_separation.sql
 ```
 
 Files are generated mechanically from immutable `bjb.sql`:

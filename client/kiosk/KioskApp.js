@@ -12,6 +12,9 @@ import {
 } from "@mui/material";
 import { io } from "socket.io-client";
 import { useHistory } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/common/LanguageSwitcher.js";
+import { normalizeLanguage } from "../i18n/languages.js";
 import {
   authenticateKiosk,
   deprovisionKiosk,
@@ -23,11 +26,21 @@ import { clearKioskSession, readKioskSession, saveKioskSession } from "./kiosk-s
 import { deriveKioskState, formatKioskDate, formatKioskTime, kioskDayRange, kioskPalette } from "./kiosk-state.js";
 
 const KioskSignin = ({ onAuthenticated }) => {
+  const { t } = useTranslation(["kiosk", "common"]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [deviceName, setDeviceName] = useState("Meeting Room Tablet");
+  const translatedDeviceName = t("setup.defaultDeviceName");
+  const defaultDeviceNameRef = useRef(translatedDeviceName);
+  const [deviceName, setDeviceName] = useState(translatedDeviceName);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setDeviceName((current) => (
+      current === defaultDeviceNameRef.current ? translatedDeviceName : current
+    ));
+    defaultDeviceNameRef.current = translatedDeviceName;
+  }, [translatedDeviceName]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -48,15 +61,20 @@ const KioskSignin = ({ onAuthenticated }) => {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#07111f", display: "grid", placeItems: "center", p: 3 }}>
       <Paper component="form" onSubmit={submit} elevation={16} sx={{ width: "100%", maxWidth: 520, p: 5, borderRadius: 4 }}>
-        <Typography variant="overline" color="primary" sx={{ letterSpacing: 3 }}>360 SCHEDULER</Typography>
-        <Typography variant="h3" sx={{ mt: 1, mb: 1, fontWeight: 800 }}>Room Kiosk</Typography>
-        <Typography color="text.secondary" sx={{ mb: 3 }}>Provision this tablet with its meeting-room account.</Typography>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
+          <Box>
+            <Typography variant="overline" color="primary" sx={{ letterSpacing: 3 }}>{t("common:brand.name")}</Typography>
+            <Typography variant="h3" sx={{ mt: 1, mb: 1, fontWeight: 800 }}>{t("setup.title")}</Typography>
+          </Box>
+          <LanguageSwitcher />
+        </Stack>
+        <Typography color="text.secondary" sx={{ mb: 3 }}>{t("setup.description")}</Typography>
         {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
         <TextField
           autoFocus
           fullWidth
           required
-          label="Room email or username"
+          label={t("setup.roomLogin")}
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           margin="normal"
@@ -64,7 +82,7 @@ const KioskSignin = ({ onAuthenticated }) => {
         <TextField
           fullWidth
           required
-          label="Device name"
+          label={t("setup.deviceName")}
           value={deviceName}
           onChange={(event) => setDeviceName(event.target.value)}
           margin="normal"
@@ -74,13 +92,13 @@ const KioskSignin = ({ onAuthenticated }) => {
           fullWidth
           required
           type="password"
-          label="Room password"
+          label={t("setup.roomPassword")}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           margin="normal"
         />
         <Button fullWidth size="large" type="submit" variant="contained" disabled={loading} sx={{ mt: 3, py: 1.5 }}>
-          {loading ? "Connecting..." : "Connect kiosk"}
+          {loading ? t("setup.connecting") : t("setup.connect")}
         </Button>
       </Paper>
     </Box>
@@ -88,6 +106,7 @@ const KioskSignin = ({ onAuthenticated }) => {
 };
 
 const ScheduleItem = ({ event, now }) => {
+  const { t } = useTranslation("kiosk");
   const active = new Date(event.start) <= now && now < new Date(event.end);
   const past = new Date(event.end) <= now;
   return (
@@ -99,7 +118,7 @@ const ScheduleItem = ({ event, now }) => {
       <Box sx={{ borderLeft: 4, borderColor: active ? "error.main" : "primary.main", pl: 2, minWidth: 0 }}>
         <Typography variant="h6" noWrap>{event.title}</Typography>
         <Typography variant="body2" color="text.secondary">
-          {active ? "Occupied now" : "Reserved"}
+          {active ? t("schedule.occupiedNow") : t("schedule.reserved")}
         </Typography>
       </Box>
     </Box>
@@ -107,6 +126,8 @@ const ScheduleItem = ({ event, now }) => {
 };
 
 const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
+  const { i18n, t } = useTranslation(["kiosk", "common"]);
+  const language = normalizeLanguage(i18n.resolvedLanguage || i18n.language);
   const [context, setContext] = useState({ room: session.room, device: session.device, settings: {} });
   const [events, setEvents] = useState([]);
   const [scheduleFresh, setScheduleFresh] = useState(false);
@@ -130,7 +151,7 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
         .then(async (nextSession) => {
           if (!mounted.current) {
             try { await deprovisionKiosk(nextSession.token); } catch {}
-            const error = new Error("Kiosk deprovisioned");
+            const error = new Error(t("errors.deprovisioned"));
             error.status = 401;
             throw error;
           }
@@ -142,7 +163,7 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
         .finally(() => { refreshPromise.current = null; });
     }
     return refreshPromise.current;
-  }, [onSessionUpdate]);
+  }, [onSessionUpdate, t]);
 
   const withRefresh = useCallback(async (operation) => {
     const accessToken = latestSession.current.token;
@@ -211,6 +232,7 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
     [context.settings, events, now, scheduleFresh]
   );
   const palette = kioskPalette[state.mode];
+  const paletteLabel = t(palette.labelKey);
   const ledChipColor = {
     occupied: "error",
     upcoming: "warning",
@@ -236,22 +258,23 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
       <Box sx={{ maxWidth: 1500, mx: "auto" }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
           <Box>
-            <Typography variant="overline" sx={{ letterSpacing: 3, opacity: 0.7 }}>360 SCHEDULER · ROOM KIOSK</Typography>
+            <Typography variant="overline" sx={{ letterSpacing: 3, opacity: 0.7 }}>{t("common:brand.kiosk")}</Typography>
             <Typography variant="h4" fontWeight={800}>{context.room.name}</Typography>
-            <Typography sx={{ opacity: 0.7 }}>{[context.room.building, context.room.floor && `Floor ${context.room.floor}`].filter(Boolean).join(" · ")}</Typography>
+            <Typography sx={{ opacity: 0.7 }}>{[context.room.building, context.room.floor && t("schedule.floor", { floor: context.room.floor })].filter(Boolean).join(" · ")}</Typography>
           </Box>
           <Stack direction="row" spacing={1} alignItems="center">
             {context.device?.nfcEnabled ? <Chip label="NFC" color="info" variant="outlined" sx={{ color: "white" }} /> : null}
-            {context.device?.ledEnabled ? <Chip label={`LED · ${palette.label}`} color={ledChipColor} variant="outlined" sx={{ color: "white" }} /> : null}
-            <Chip label={connected ? "LIVE" : "OFFLINE"} color={connected ? "success" : "default"} variant="outlined" sx={{ color: "white" }} />
-            <Button color="inherit" onClick={() => document.documentElement.requestFullscreen?.()}>Fullscreen</Button>
+            {context.device?.ledEnabled ? <Chip label={`LED · ${paletteLabel}`} color={ledChipColor} variant="outlined" sx={{ color: "white" }} /> : null}
+            <Chip label={connected ? t("schedule.live") : t("schedule.offline")} color={connected ? "success" : "default"} variant="outlined" sx={{ color: "white" }} />
+            <LanguageSwitcher />
+            <Button color="inherit" onClick={() => document.documentElement.requestFullscreen?.()}>{t("schedule.fullscreen")}</Button>
             <Button
               color="inherit"
               onPointerDown={armChangeRoom}
               onPointerUp={cancelChangeRoom}
               onPointerLeave={cancelChangeRoom}
               onPointerCancel={cancelChangeRoom}
-            >Hold to change room</Button>
+            >{t("schedule.changeRoom")}</Button>
           </Stack>
         </Stack>
 
@@ -260,23 +283,23 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1.8fr) minmax(360px, 1fr)" }, gap: 3 }}>
           <Paper sx={{ minHeight: { md: "calc(100vh - 150px)" }, p: { xs: 3, md: 5 }, borderRadius: 5, color: "common.white", background: `linear-gradient(145deg, ${palette.main}, ${palette.dark})`, display: "flex", flexDirection: "column" }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-              <Typography variant="h2" fontWeight={900} sx={{ letterSpacing: 2 }}>{palette.label}</Typography>
+              <Typography variant="h2" fontWeight={900} sx={{ letterSpacing: 2 }}>{paletteLabel}</Typography>
               <Box textAlign="right">
                 <Typography variant="h2" fontWeight={300}>{formatKioskTime(now)}</Typography>
-                <Typography sx={{ opacity: 0.85 }}>{formatKioskDate(now)}</Typography>
+                <Typography sx={{ opacity: 0.85 }}>{formatKioskDate(now, language)}</Typography>
               </Box>
             </Stack>
 
             <Box sx={{ flex: 1, display: "grid", alignContent: "center", py: 5 }}>
               {state.mode === "unknown" ? (
                 <>
-                  <Typography variant="h3" fontWeight={800}>Schedule unavailable</Typography>
-                  <Typography variant="h6" sx={{ mt: 2, opacity: 0.85 }}>Do not assume this room is free. Check the server connection.</Typography>
+                  <Typography variant="h3" fontWeight={800}>{t("schedule.unavailable")}</Typography>
+                  <Typography variant="h6" sx={{ mt: 2, opacity: 0.85 }}>{t("schedule.unavailableHelp")}</Typography>
                 </>
               ) : featured ? (
                 <>
                   <Typography variant="overline" sx={{ letterSpacing: 2, opacity: 0.8 }}>
-                    {state.current ? "Current meeting" : "Next meeting"}
+                    {state.current ? t("schedule.currentMeeting") : t("schedule.nextMeeting")}
                   </Typography>
                   <Typography variant="h3" fontWeight={800} sx={{ mt: 1 }}>{featured.title}</Typography>
                   <Typography variant="h5" sx={{ mt: 2, opacity: 0.9 }}>
@@ -285,8 +308,8 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
                 </>
               ) : (
                 <>
-                  <Typography variant="h3" fontWeight={800}>Room is ready</Typography>
-                  <Typography variant="h6" sx={{ mt: 2, opacity: 0.8 }}>No more meetings scheduled today.</Typography>
+                  <Typography variant="h3" fontWeight={800}>{t("schedule.ready")}</Typography>
+                  <Typography variant="h6" sx={{ mt: 2, opacity: 0.8 }}>{t("schedule.noMore")}</Typography>
                 </>
               )}
             </Box>
@@ -294,10 +317,10 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
           </Paper>
 
           <Paper sx={{ minHeight: { md: "calc(100vh - 150px)" }, maxHeight: { md: "calc(100vh - 150px)" }, p: 3, borderRadius: 5, overflow: "auto" }}>
-            <Typography variant="h4" fontWeight={800}>Today</Typography>
-            <Typography color="text.secondary" sx={{ mb: 2 }}>{events.length} scheduled meeting{events.length === 1 ? "" : "s"}</Typography>
+            <Typography variant="h4" fontWeight={800}>{t("schedule.today")}</Typography>
+            <Typography color="text.secondary" sx={{ mb: 2 }}>{t("schedule.count", { count: events.length })}</Typography>
             {events.length ? events.map((event) => <ScheduleItem key={event.id} event={event} now={now} />) : (
-              <Box sx={{ py: 8, textAlign: "center" }}><Typography color="text.secondary">Schedule is empty.</Typography></Box>
+              <Box sx={{ py: 8, textAlign: "center" }}><Typography color="text.secondary">{t("schedule.empty")}</Typography></Box>
             )}
           </Paper>
         </Box>

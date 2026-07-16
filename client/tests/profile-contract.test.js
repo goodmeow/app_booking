@@ -9,7 +9,8 @@ test("allows profile mutations only for session owner", () => {
   assert.equal(canManageProfile(false, "user-1"), false);
 });
 
-test("formats joined date with recovered Date.toDateString contract", () => {
-  assert.equal(formatJoinedDate(new Date(2030, 0, 15)), "Tue Jan 15 2030");
+test("formats joined date for the active language", () => {
+  assert.equal(formatJoinedDate(new Date(2030, 0, 15), "en"), "15 Jan 2030");
+  assert.equal(formatJoinedDate(new Date(2030, 0, 15), "id"), "15 Jan 2030");
   assert.equal(formatJoinedDate("invalid"), "-");
 });

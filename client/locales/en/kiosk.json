@@ -1,0 +1,41 @@
+{
+  "setup": {
+    "title": "Room Kiosk",
+    "description": "Provision this tablet with its meeting-room account.",
+    "roomLogin": "Room email or username",
+    "deviceName": "Device name",
+    "defaultDeviceName": "Meeting Room Tablet",
+    "roomPassword": "Room password",
+    "connecting": "Connecting...",
+    "connect": "Connect kiosk"
+  },
+  "schedule": {
+    "occupiedNow": "Occupied now",
+    "reserved": "Reserved",
+    "floor": "Floor {{floor}}",
+    "live": "Live",
+    "offline": "Offline",
+    "fullscreen": "Fullscreen",
+    "changeRoom": "Hold to change room",
+    "unavailable": "Schedule unavailable",
+    "unavailableHelp": "Do not assume this room is free. Check the server connection.",
+    "currentMeeting": "Current meeting",
+    "nextMeeting": "Next meeting",
+    "ready": "Room is ready",
+    "noMore": "No more meetings scheduled today.",
+    "today": "Today",
+    "count_one": "{{count}} scheduled meeting",
+    "count_other": "{{count}} scheduled meetings",
+    "empty": "Schedule is empty."
+  },
+  "states": {
+    "unknown": "Unknown",
+    "available": "Available",
+    "upcoming": "Upcoming",
+    "occupied": "Occupied"
+  },
+  "errors": {
+    "deprovisioned": "Kiosk deprovisioned",
+    "requestFailed": "Kiosk request failed."
+  }
+}

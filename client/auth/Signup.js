@@ -12,10 +12,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import LanguageSwitcher from "../components/common/LanguageSwitcher.js";
 import { signup } from "./auth-helper.js";
 
 const Signup = () => {
+  const { t } = useTranslation(["auth", "common"]);
   const [form, setForm] = useState({ name: "", email: "", username: "", password: "" });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -28,7 +31,7 @@ const Signup = () => {
     setLoading(true);
     try {
       await signup(form);
-      setMessage("New account successfully created.");
+      setMessage(t("auth:signup.successMessage"));
     } catch (reason) {
       setError(reason.message);
     } finally {
@@ -44,24 +47,28 @@ const Signup = () => {
   return (
     <Box sx={{ minHeight: "calc(100vh - 64px)", display: "grid", placeItems: "center", p: 2 }}>
       <Paper component="form" onSubmit={submit} sx={{ width: "100%", maxWidth: 420, p: 4, bgcolor: "common.white" }}>
-        <Box component="img" src="/icon.svg" alt="360Books" sx={{ display: "block", width: 80, height: 80, mx: "auto", mb: 2 }} />
-        <Typography variant="h4" color="primary" align="center" gutterBottom>360Books</Typography>
-        <Typography variant="h6" gutterBottom>Sign Up</Typography>
+        <Box component="img" src="/icon.svg" alt={t("common:brand.name")} sx={{ display: "block", width: 80, height: 80, mx: "auto", mb: 2 }} />
+        <Typography variant="h4" color="primary" align="center" gutterBottom>{t("common:brand.name")}</Typography>
+        <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>{t("common:brand.descriptor")}</Typography>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+          <LanguageSwitcher />
+        </Box>
+        <Typography variant="h6" gutterBottom>{t("auth:signup.title")}</Typography>
         {error && <Alert severity="error">{error}</Alert>}
-        <TextField fullWidth required label="Name" margin="normal" {...field("name")} />
-        <TextField fullWidth required label="Email" type="email" margin="normal" {...field("email")} />
-        <TextField fullWidth label="Username (optional)" margin="normal" {...field("username")} />
-        <TextField fullWidth required label="Password" type="password" margin="normal" {...field("password")} />
-        <Button fullWidth type="submit" variant="contained" disabled={loading} sx={{ mt: 2 }}>{loading ? "Loading..." : "Submit"}</Button>
-        <Button component={Link} to="/signin" fullWidth sx={{ mt: 1 }}>Sign In</Button>
+        <TextField fullWidth required label={t("common:fields.name")} margin="normal" {...field("name")} />
+        <TextField fullWidth required label={t("common:fields.email")} type="email" margin="normal" {...field("email")} />
+        <TextField fullWidth label={t("common:fields.usernameOptional")} margin="normal" {...field("username")} />
+        <TextField fullWidth required label={t("common:fields.password")} type="password" margin="normal" {...field("password")} />
+        <Button fullWidth type="submit" variant="contained" disabled={loading} sx={{ mt: 2 }}>{loading ? t("common:states.loading") : t("common:actions.submit")}</Button>
+        <Button component={Link} to="/signin" fullWidth sx={{ mt: 1 }}>{t("common:nav.signIn")}</Button>
       </Paper>
       <Dialog open={Boolean(message)} onClose={() => setMessage("")} aria-labelledby="signup-success-title">
-        <DialogTitle id="signup-success-title">Account created</DialogTitle>
+        <DialogTitle id="signup-success-title">{t("auth:signup.successTitle")}</DialogTitle>
         <DialogContent>
           <DialogContentText>{message}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button component={Link} to="/signin" variant="contained">Sign In</Button>
+          <Button component={Link} to="/signin" variant="contained">{t("common:nav.signIn")}</Button>
         </DialogActions>
       </Dialog>
     </Box>

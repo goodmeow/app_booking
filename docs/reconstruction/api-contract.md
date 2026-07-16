@@ -50,17 +50,19 @@ User creation/update reject room email. Password errors are exact strings at `se
 
 Routes and guards: `server.bundle.js:1820-1826`. Create/update/delete/report require ADMIN; list, availability, detail require JWT.
 
+The current reconstruction intentionally separates account type from employee authorization role: room creation persists `type=room` with `role_id=NULL`, and room updates ignore `roleId`. The legacy bundle evidence below accepted `roleId`; those references remain as recovery evidence rather than the current role contract.
+
 | Method/path | Input | Success | PostgreSQL function | Evidence |
 |---|---|---|---|---|
 | `GET /rooms` | query optional `building,capacity,floor` | 200 DB array | `room_list` | `server.bundle.js:1598-1622` |
-| `POST /rooms` | ADMIN; body `name,email,password,roleId`; optional `building,capacity,floor,feature` | 200 signup message | `users_insert_data` | `server.bundle.js:1624-1683` |
+| `POST /rooms` | ADMIN; body `name,email`; optional `password,username,building,capacity,floor,feature`; `roleId` is not required or persisted | current: 201 account; legacy: 200 signup message | current repository insert; legacy `users_insert_data` | `server.bundle.js:1624-1683` |
 | `GET /rooms/available` | query optional `start_dates,end_dates,rooms`; defaults start now/end +30m | 200 DB array | `room_available_list` | `server.bundle.js:1556-1595` |
 | `GET /rooms/usage-report` | ADMIN; query `start,end` | 200 DB array | `report_rooms_usage(start,end)` | `server.bundle.js:1786-1805` |
 | `GET /rooms/:roomId` | JWT | 200 first DB row | `room_detail` | `server.bundle.js:1685-1704` |
-| `PUT /rooms/:roomId` | ADMIN; body `name,email,roleId`, optional room fields | 200 updated row | `users_update_data` | `server.bundle.js:1706-1760` |
+| `PUT /rooms/:roomId` | ADMIN; body `name,email`, optional `username` and room fields; `roleId` is ignored | 200 updated row | `users_update_data` | `server.bundle.js:1706-1760` |
 | `DELETE /rooms/:roomId` | ADMIN | 200 row with `is_deleted=true` | `users_update_data` | `server.bundle.js:1762-1784` |
 
-Room email must contain `@room.com`; defaults optional fields to `-`. Duplicate create maps to `Email room already exist` (`server.bundle.js:1636-1681`). Report validates dates/order, though missing-field comma-operator bug checks only `end` (`server.bundle.js:1792-1804`).
+The legacy room contract required `@room.com`, defaulted optional fields to `-`, and mapped duplicate creation to `Email room already exist` (`server.bundle.js:1636-1681`). The current service accepts normalized email domains and relies on explicit `type=room`. The legacy report validates dates/order, though its missing-field comma-operator bug checks only `end` (`server.bundle.js:1792-1804`).
 
 ## Settings and card master
 

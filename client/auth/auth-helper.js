@@ -1,3 +1,6 @@
+import i18n from "../i18n/index.js";
+import { getApiError } from "../domain/api-error.js";
+
 const sessionKey = "jwt";
 
 const isSession = (value) => (
@@ -42,7 +45,9 @@ export const signin = async (credentials) => {
     body: JSON.stringify(credentials),
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Sign in failed");
+  if (!response.ok) {
+    throw new Error(getApiError({ data }, i18n.t("auth:signin.error")));
+  }
   return data;
 };
 
@@ -54,7 +59,9 @@ export const signup = async (account) => {
     body: JSON.stringify(account),
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Sign up failed");
+  if (!response.ok) {
+    throw new Error(getApiError({ data }, i18n.t("auth:signup.error")));
+  }
   return data;
 };
 
