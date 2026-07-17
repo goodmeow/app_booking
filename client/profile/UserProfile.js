@@ -158,10 +158,15 @@ const UserProfile = () => {
   };
 
   if (isLoading) return <LoadingState label={t("auth:profile.loading")} />;
-  if (isError) return <ErrorState message={getApiError(error, t("auth:profile.loadError"))} busy={isFetching} onAction={refetch} />;
+  if (isError && !user) return <ErrorState message={getApiError(error, t("auth:profile.loadError"))} busy={isFetching} onAction={refetch} />;
 
   return (
     <Container maxWidth="sm" sx={{ py: { xs: 3, md: 6 } }}>
+      {isError ? (
+        <Box sx={{ mb: 2 }}>
+          <ErrorState message={getApiError(error, t("auth:profile.loadError"))} busy={isFetching} onAction={refetch} />
+        </Box>
+      ) : null}
       <Card component="main" elevation={2}>
         <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
           <Stack spacing={3} alignItems="center">

@@ -160,7 +160,7 @@ const RoomUsageReport = () => {
           variant="contained"
           color="success"
           startIcon={<FileDownloadIcon />}
-          disabled={!validRange || query.isFetching || query.isError || !rooms.length}
+          disabled={!validRange || query.isFetching || !rooms.length}
           onClick={() => void exportReport()}
           sx={{ ml: { sm: "auto" }, minHeight: 40 }}
         >
