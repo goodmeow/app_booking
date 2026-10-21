@@ -202,3 +202,15 @@ Fase B (jalur akses):
 - Helper klien `openKioskDoor()` tersedia untuk bridge.
 - Test regresi: master 200, kartu karyawan 200, kartu tak dikenal 400,
   body kosong 400, token non-kiosk 401.
+
+Fase B lanjutan (desain tablet ruang meeting):
+
+- `POST /api/kiosk/events/extend` — perpanjang meeting aktif +15 menit; tolak
+  dengan 409 `ROOM_CONFLICT` kalau bentrok jadwal berikutnya.
+- `POST /api/kiosk/events/complete` — selesaikan meeting aktif dengan token
+  kiosk (pasangan endpoint kartu `early-finish` tetap ada).
+- `POST /api/kiosk/events/instant` — pesan ruangan sekarang atas nama karyawan
+  pemilik kartu; opsi 30 menit atau sampai meeting berikutnya.
+- Kapasitas ruangan memakai kolom `tbl_users.capacity` yang sudah ada.
+- Uji regresi server 39/39 lolos; UI kioskapp mengikuti mockup di
+  `kioskapp/docs/design/tablet-ruang-meeting.html`.

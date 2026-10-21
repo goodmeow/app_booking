@@ -197,6 +197,7 @@ Protokol perangkat: `nauchara/hardware/` (APK, LED, relay).
 - [x] LED aktif secara default untuk perangkat baru (`010_kiosk_led_default.sql`).
 - [x] Tambah endpoint kiosk untuk membuka pintu (token kiosk, terikat room, rate-limit); relay tetap ditulis tablet.
 - [x] Izinkan kartu karyawan membuka pintu (bukan hanya kartu master), sesuai keputusan produk.
+- [x] Endpoint kiosk untuk desain tablet ruang meeting: `POST /api/kiosk/events/extend` (+15 menit), `POST /api/kiosk/events/complete` (Selesai), `POST /api/kiosk/events/instant` (Pesan sekarang, wajib kartu karyawan).
 - [ ] Petakan state ke kode LED (`0x05`, `0x14`, `0x04`) hanya bila `ledEnabled`.
 - [ ] Bangun APK kiosk React Native + modul native NFC/relay/sysfs dengan whitelist perintah.
 - [ ] Simpan `@ipServer`/sesi di penyimpanan native; sediakan layar first-run.
