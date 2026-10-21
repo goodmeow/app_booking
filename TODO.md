@@ -204,3 +204,31 @@ Protokol perangkat: `nauchara/hardware/` (APK, LED, relay).
 - [ ] Simpan `@ipServer`/sesi di penyimpanan native; sediakan layar first-run.
 - [x] Putuskan runtime kiosk: **React Native**, karena WebView tablet hanya Chrome 64 (Vite 8/MUI 5 tidak kompatibel). Web `/kiosk` tetap sebagai referensi.
 - [ ] Uji perangkat: matriks state, check-in, buka pintu, LED, offline, reboot.
+
+## Sisa pending 2026-10-21
+
+Hasil sesi hari ini (kioskapp + CMS). Detail di
+`docs/reconstruction/hardware-readiness-audit.md` dan
+`nauchara/hardware/KIOSKAPP-RN.md`.
+
+- [ ] Verifikasi relay fisik CH340: enumerasi USB, 9600 8N1, polaritas,
+  izin USB setelah reboot, frame `A00101A2` / `A00100A1` (tombol Buka Pintu
+  baru muncul kalau modul terdeteksi).
+- [ ] Uji NFC dengan beberapa tipe kartu (UID 4 byte vs 7 byte) dan
+  klik ganda pembacaan tag.
+- [ ] Alur "Lupa kata sandi?" di CMS masih pesan info; butuh endpoint reset
+  kata sandi + email/notifikasi.
+- [ ] Keputusan produk: tautan "Buat akun" di halaman masuk (desain tidak
+  menampilkannya) tetap dipertahankan atau disembunyikan.
+- [ ] CMS: pastikan kapasitas ruangan (`tbl_users.capacity`) bisa diisi lewat
+  layar manajemen, karena kiosk menampilkannya.
+- [ ] Web kiosk `/kiosk` (referensi desktop) belum memakai font tablet
+  Public Sans + Source Serif 4.
+- [ ] Perangkat kiosk baru dibuat tiap pairing; tambahkan dedupe/limit atau UX
+  revoke yang lebih jelas.
+- [ ] Untuk uji jangka panjang, ganti forwarder dev (`tools/dev-http-forward.py`
+  + `adb reverse`) dengan bind server IPv4 atau portproxy Windows, karena
+  `adb reverse` langsung ke server Node (IPv6 wildcard) tidak stabil.
+- [ ] Autostart saat boot + kiosk lock (device owner) untuk tablet.
+- [ ] `GET /api/users` masih bisa dibaca semua user login (paritas produksi);
+  perlu keputusan produk untuk membatasi.

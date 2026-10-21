@@ -214,3 +214,16 @@ Fase B lanjutan (desain tablet ruang meeting):
 - Kapasitas ruangan memakai kolom `tbl_users.capacity` yang sudah ada.
 - Uji regresi server 39/39 lolos; UI kioskapp mengikuti mockup di
   `kioskapp/docs/design/tablet-ruang-meeting.html`.
+
+## Sisa pending (2026-10-21)
+
+- Verifikasi relay fisik CH340 (modul belum tersedia).
+- Uji tipe kartu NFC (UID 4 vs 7 byte).
+- Reset kata sandi CMS (kini baru pesan info).
+- Keputusan tampilkan tautan "Buat akun" di halaman masuk.
+- Kapasitas ruangan dapat diisi dari layar manajemen CMS.
+- Web kiosk `/kiosk` disamakan fontnya dengan tablet.
+- Dedupe/limit perangkat kiosk per pairing.
+- Ganti forwarder dev dengan bind IPv4/portproxy untuk uji panjang.
+- Autostart boot + kiosk lock.
+- Batasi `GET /api/users` untuk semua user login (keputusan produk).
