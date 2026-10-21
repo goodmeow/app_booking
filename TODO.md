@@ -21,7 +21,7 @@
 - [x] Document Socket.io rooms, events, and payloads.
 - [x] Extract frontend routes, screens, Redux state, and API calls.
 - [x] Build screen-action-endpoint matrix.
-- [x] Document proposed Android WebView, RGB LED, and NFC integration boundary.
+- [x] Document proposed Android WebView, RGB LED, and NFC integration boundary. *(Hipotesis WebView dibantah 2026-10-21: APK asli React Native tanpa WebView; lihat `docs/reconstruction/tablet-integration-notes.md` dan `production-defects.md`.)*
 
 ## Phase 3 — Reconstruct database
 
