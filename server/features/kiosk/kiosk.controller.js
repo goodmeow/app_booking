@@ -1,6 +1,9 @@
 import {
   authorizeKioskDoor,
   checkInKioskEvent,
+  completeKioskEvent,
+  extendKioskEvent,
+  instantKioskBooking,
   deprovisionKioskDevice,
   finishKioskEvent,
   getKioskContext,
@@ -61,6 +64,15 @@ export const checkIn = run(async (req, res) => {
 export const doorOpen = run(async (req, res) => {
   await authorizeKioskDoor(req.body?.card_number, req.kiosk);
   res.json({ message: "Door opened" });
+});
+export const extendEvent = run(async (req, res) => {
+  res.json(await extendKioskEvent(req.body || {}, req.kiosk));
+});
+export const completeEvent = run(async (req, res) => {
+  res.json(await completeKioskEvent(req.body || {}, req.kiosk));
+});
+export const instantBooking = run(async (req, res) => {
+  res.json(await instantKioskBooking(req.body || {}, req.kiosk));
 });
 export const earlyFinish = run(async (req, res) => {
   const result = await finishKioskEvent(req.body, req.kiosk);

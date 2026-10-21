@@ -207,3 +207,46 @@ export const findKioskEventActionContext = async ({ eventId, roomId, cardNumber 
    FOR UPDATE OF e`,
   [eventId, roomId, String(cardNumber || "")]
 )).rows[0] || null;
+
+export const findEmployeeByCard = async (cardNumber) => (await query(
+  `SELECT _id, name, email, card_number
+   FROM tbl_users
+   WHERE type = 'employee'
+     AND is_deleted IS NOT TRUE
+     AND lower(card_number) = lower($1)
+   ORDER BY created_at
+   LIMIT 1`,
+  [String(cardNumber || "")]
+)).rows[0] || null;
+
+export const findKioskRoomEvent = async ({ eventId, roomId }, execute = query) => (await execute(
+  `SELECT
+     e._id,
+     e.subject,
+     e.start_date AT TIME ZONE e.timezone AS start_at,
+     e.end_date AT TIME ZONE e.timezone AS end_at,
+     e.checked_in
+   FROM tbl_events e
+   JOIN tbl_event_rooms booking
+     ON booking.event_id = e._id
+    AND booking.room_id = $2
+    AND booking.active
+   WHERE e._id = $1
+     AND e.is_cancel IS NOT TRUE
+   LIMIT 1
+   FOR UPDATE OF e`,
+  [eventId, roomId]
+)).rows[0] || null;
+
+export const extendKioskRoomEvent = async ({ eventId, endAt }, execute = query) => (await execute(
+  `UPDATE tbl_events
+   SET end_date = $2::timestamptz AT TIME ZONE timezone,
+       updated_at = now()
+   WHERE _id = $1
+   RETURNING
+     _id,
+     subject,
+     start_date AT TIME ZONE timezone AS start_at,
+     end_date AT TIME ZONE timezone AS end_at`,
+  [eventId, endAt]
+)).rows[0];

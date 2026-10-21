@@ -7,12 +7,15 @@ import { badRequest, conflict, forbidden, HttpError, notFound } from "../../lib/
 import { finishEventNow, markCheckedIn } from "../events/event.repository.js";
 import { hasDoorCard } from "../auth/auth.repository.js";
 import { formatLocalTime } from "../events/event-time.js";
-import { calendarRange } from "../events/event.service.js";
+import { calendarRange, createEvents } from "../events/event.service.js";
 import { getSettings } from "../settings/setting.repository.js";
 import {
   createKioskDevice,
+  extendKioskRoomEvent,
   findActiveKioskDeviceById,
+  findEmployeeByCard,
   findKioskEventActionContext,
+  findKioskRoomEvent,
   findKioskRoomByLogin,
   listKioskDevices,
   listKioskScheduleRows,
@@ -241,4 +244,87 @@ export const finishKioskEvent = async ({ event_id: eventId, card_number: cardNum
     }
     return finishEventNow(eventId, execute);
   });
+};
+
+const clampMinutes = (value, fallback, min, max) => {
+  const minutes = Number(value);
+  if (!Number.isFinite(minutes)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(minutes)));
+};
+
+export const extendKioskEvent = async ({ event_id: eventId, minutes }, room) => {
+  if (!eventId) throw badRequest("INVALID_KIOSK_ACTION", "Event is required");
+  const extra = clampMinutes(minutes, 15, 5, 60);
+  return withTransaction(async (client) => {
+    const execute = (text, values) => client.query(text, values);
+    const context = await findKioskRoomEvent({ eventId, roomId: room._id }, execute);
+    if (!context) throw notFound("Event not found for this room");
+    const now = Date.now();
+    if (!context.checked_in) throw conflict("NOT_CHECKED_IN", "Only a checked-in meeting can be extended");
+    if (now < new Date(context.start_at).getTime() || now >= new Date(context.end_at).getTime()) {
+      throw conflict("EXTEND_WINDOW", "Only the running meeting can be extended");
+    }
+    const endAt = new Date(new Date(context.end_at).getTime() + extra * 60_000).toISOString();
+    try {
+      const updated = await extendKioskRoomEvent({ eventId, endAt }, execute);
+      return { id: updated._id, title: updated.subject, start: updated.start_at, end: updated.end_at, extendedMinutes: extra };
+    } catch (error) {
+      if (error.code === "23P01") throw conflict("ROOM_CONFLICT", "Room is already booked right after this meeting");
+      throw error;
+    }
+  });
+};
+
+export const completeKioskEvent = async ({ event_id: eventId }, room) => {
+  if (!eventId) throw badRequest("INVALID_KIOSK_ACTION", "Event is required");
+  return withTransaction(async (client) => {
+    const execute = (text, values) => client.query(text, values);
+    const context = await findKioskRoomEvent({ eventId, roomId: room._id }, execute);
+    if (!context) throw notFound("Event not found for this room");
+    const now = Date.now();
+    if (!context.checked_in || now < new Date(context.start_at).getTime() || now >= new Date(context.end_at).getTime()) {
+      throw conflict("EARLY_FINISH_WINDOW", "Only an active checked-in meeting can be finished early");
+    }
+    const finished = await finishEventNow(eventId, execute);
+    return { id: eventId, title: context.subject, finishedAt: finished?.end_at || new Date().toISOString() };
+  });
+};
+
+export const instantKioskBooking = async ({ card_number: cardNumber, minutes, until_next: untilNext }, room) => {
+  const card = String(cardNumber || "").trim();
+  if (!card) throw badRequest("INVALID_CARD", "Card number is required");
+  const employee = await findEmployeeByCard(card);
+  if (!employee) throw badRequest("INVALID_CARD", "Card number not found");
+  const now = new Date();
+  const horizon = new Date(now.getTime() + 36 * 60 * 60_000);
+  const rows = await listKioskScheduleRows({ roomId: room._id, rangeStart: now, rangeEnd: horizon });
+  const next = rows.find((row) => new Date(row.start_at).getTime() > now.getTime());
+  const requested = clampMinutes(minutes, 30, 5, 240) * 60_000;
+  const maxEnd = now.getTime() + 240 * 60_000;
+  const effectiveEnd = untilNext && next
+    ? new Date(Math.min(new Date(next.start_at).getTime(), maxEnd))
+    : new Date(now.getTime() + requested);
+  if (effectiveEnd.getTime() - now.getTime() < 60_000) {
+    throw conflict("NO_FREE_WINDOW", "No free window before the next meeting");
+  }
+  const created = await createEvents(
+    [{
+      organizer: employee.email,
+      subject: `Pemakaian ruangan - ${employee.name}`,
+      description: "Pemesanan langsung dari kiosk",
+      start_date: now.toISOString(),
+      end_date: effectiveEnd.toISOString(),
+      attendee_email: room.email,
+    }],
+    { _id: employee._id, email: employee.email, name: employee.name, role: "USER" }
+  );
+  const first = Array.isArray(created) ? created[0] : null;
+  return {
+    id: first?.id || null,
+    title: first?.title || `Pemakaian ruangan - ${employee.name}`,
+    organizer: employee.name,
+    start: first?.start || now.toISOString(),
+    end: first?.end || effectiveEnd.toISOString(),
+    untilNext: Boolean(untilNext && next),
+  };
 };

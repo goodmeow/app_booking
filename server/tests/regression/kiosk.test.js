@@ -140,7 +140,8 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
   const current = listed.body.find((device) => device.id === kioskDevice.id);
   assert.equal(current.status, "active");
   assert.equal(current.nfcEnabled, false);
-  assert.equal(current.ledEnabled, false);
+  // Migrasi 010 mengaktifkan LED secara default untuk perangkat aktif.
+  assert.equal(current.ledEnabled, true);
   assert.equal(Object.hasOwn(current, "refreshTokenHash"), false);
 
   const capabilityDenied = await apiRequest(
@@ -280,6 +281,79 @@ test("kiosk check-in and early finish require room ownership and an authorized c
   assert.equal(await queryParityDatabase(`SELECT end_date <= now() AT TIME ZONE timezone FROM tbl_events WHERE _id='${own.body[0].id}';`), "t");
 });
 
+test("kiosk instant booking starts for an employee card and refuses a second overlap", async () => {
+  const unknown = await apiRequest(targets.reconstructed, "/api/kiosk/events/instant", {
+    method: "POST",
+    headers: kioskHeaders(),
+    body: JSON.stringify({ card_number: "UNKNOWN-CARD", minutes: 30 }),
+  });
+  assert.equal(unknown.status, 400);
+  assert.equal(unknown.body.code, "INVALID_CARD");
+
+  const created = await apiRequest(targets.reconstructed, "/api/kiosk/events/instant", {
+    method: "POST",
+    headers: kioskHeaders(),
+    body: JSON.stringify({ card_number: "TEST-USER-CARD", until_next: true }),
+  });
+  assert.equal(created.status, 200);
+  assert.ok(created.body.id);
+  assert.ok(new Date(created.body.end).getTime() > new Date(created.body.start).getTime());
+
+  const overlap = await apiRequest(targets.reconstructed, "/api/kiosk/events/instant", {
+    method: "POST",
+    headers: kioskHeaders(),
+    body: JSON.stringify({ card_number: "TEST-USER-CARD", minutes: 30 }),
+  });
+  assert.equal(overlap.status, 409);
+  assert.equal(overlap.body.code, "ROOM_CONFLICT");
+
+  await queryParityDatabase(`DELETE FROM tbl_events WHERE _id = '${created.body.id}';`);
+});
+
+test("kiosk extends a running meeting, refuses an overlap, then completes it", async () => {
+  const now = Date.now();
+  const running = await createMeeting({
+    room: identities.room.email,
+    subject: "Kiosk extend meeting",
+    start: new Date(now).toISOString(),
+    end: new Date(now + 30 * 60_000).toISOString(),
+  });
+  assert.equal(running.status, 200);
+  const eventId = running.body[0].id;
+
+  const checked = await apiRequest(targets.reconstructed, "/api/kiosk/events/check-in", {
+    method: "PUT",
+    headers: kioskHeaders(),
+    body: JSON.stringify({ event_id: eventId, card_number: "TEST-MASTER-CARD" }),
+  });
+  assert.equal(checked.status, 200);
+
+  const blocker = await createMeeting({
+    room: identities.room.email,
+    subject: "Kiosk next meeting",
+    start: new Date(now + 30 * 60_000).toISOString(),
+    end: new Date(now + 60 * 60_000).toISOString(),
+  });
+  assert.equal(blocker.status, 200);
+
+  const blocked = await apiRequest(targets.reconstructed, "/api/kiosk/events/extend", {
+    method: "POST",
+    headers: kioskHeaders(),
+    body: JSON.stringify({ event_id: eventId, minutes: 15 }),
+  });
+  assert.equal(blocked.status, 409);
+  assert.equal(blocked.body.code, "ROOM_CONFLICT");
+
+  const completed = await apiRequest(targets.reconstructed, "/api/kiosk/events/complete", {
+    method: "POST",
+    headers: kioskHeaders(),
+    body: JSON.stringify({ event_id: eventId }),
+  });
+  assert.equal(completed.status, 200);
+
+  await queryParityDatabase(`DELETE FROM tbl_events WHERE _id = '${blocker.body[0].id}';`);
+});
+
 test("deactivating the bound room revokes an issued kiosk token", async () => {
   try {
     await queryParityDatabase(`UPDATE tbl_users SET is_deleted=true WHERE _id='${identities.room._id}';`);
@@ -310,3 +384,4 @@ test("changing a room password revokes every paired device", async () => {
   });
   assert.equal(refresh.status, 401);
 });
+
