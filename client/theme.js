@@ -7,7 +7,7 @@ const theme = createTheme({
     background: { default: "#ffffff" },
   },
   typography: {
-    fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+    fontFamily: '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
   },
 });
 

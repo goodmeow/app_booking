@@ -1,0 +1,8 @@
+/* Inter (latin, variable 500-800) di-self-host agar CMS tetap benar saat offline. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url("/fonts/Inter-latin.woff2") format("woff2");
+}
