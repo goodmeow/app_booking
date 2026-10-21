@@ -3,7 +3,8 @@
     "name": "360 Scheduler",
     "descriptor": "Penjadwal Meeting & Ruangan",
     "documentTitle": "360 Scheduler — Penjadwal Meeting & Ruangan",
-    "kiosk": "360 Scheduler · Kiosk Ruangan"
+    "kiosk": "360 Scheduler · Kiosk Ruangan",
+    "adminPanel": "Panel admin ruang meeting"
   },
   "language": {
     "label": "Bahasa",

@@ -3,7 +3,8 @@
     "name": "360 Scheduler",
     "descriptor": "Meeting & Room Scheduler",
     "documentTitle": "360 Scheduler — Meeting & Room Scheduler",
-    "kiosk": "360 Scheduler · Room Kiosk"
+    "kiosk": "360 Scheduler · Room Kiosk",
+    "adminPanel": "Room meeting admin panel"
   },
   "language": {
     "label": "Language",

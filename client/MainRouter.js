@@ -1,5 +1,5 @@
 import React from "react";
-import { Redirect, Route, Switch } from "react-router-dom";
+import { Redirect, Route, Switch, useLocation } from "react-router-dom";
 import Signin from "./auth/Signin.js";
 import Signup from "./auth/Signup.js";
 import { isAuthenticated } from "./auth/auth-helper.js";
@@ -32,9 +32,14 @@ const ProtectedRoute = ({ component: Component, adminOnly = false, ...rest }) =>
   />
 );
 
+const WebChrome = () => {
+  const location = useLocation();
+  return location.pathname === "/signin" ? null : <Menu />;
+};
+
 const WebRouter = () => (
   <>
-    <Menu />
+    <WebChrome />
     <Switch>
       <Route path="/signup" component={Signup} />
       <Route path="/signin" component={Signin} />

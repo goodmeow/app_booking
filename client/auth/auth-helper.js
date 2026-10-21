@@ -10,30 +10,52 @@ const isSession = (value) => (
   && Boolean(value?.user?.role)
 );
 
-export const authenticate = (jwt, callback) => {
+export const authenticate = (jwt, callback, persist = false) => {
   if (typeof window !== "undefined") {
-    sessionStorage.setItem(sessionKey, JSON.stringify(jwt));
+    const target = persist ? window.localStorage : window.sessionStorage;
+    const other = persist ? window.sessionStorage : window.localStorage;
+    try {
+      if (other) other.removeItem(sessionKey);
+      if (target) target.setItem(sessionKey, JSON.stringify(jwt));
+    } catch {
+      // Private mode / storage penuh: sesi tetap berlaku selama tab hidup.
+    }
   }
   if (callback) callback();
 };
 
+export const readStoredSession = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.sessionStorage?.getItem(sessionKey) || window.localStorage?.getItem(sessionKey) || null;
+  } catch {
+    return sessionStorage.getItem(sessionKey);
+  }
+};
+
 export const isAuthenticated = () => {
   if (typeof window === "undefined") return false;
-  const value = sessionStorage.getItem(sessionKey);
+  const value = readStoredSession();
   if (!value) return false;
   try {
     const session = JSON.parse(value);
     if (isSession(session)) return session;
-    sessionStorage.removeItem(sessionKey);
+    clearStoredSession();
     return false;
   } catch {
-    sessionStorage.removeItem(sessionKey);
+    clearStoredSession();
     return false;
   }
 };
 
+export const clearStoredSession = () => {
+  if (typeof window === "undefined") return;
+  if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(sessionKey);
+  if (typeof localStorage !== "undefined") localStorage.removeItem(sessionKey);
+};
+
 export const clearJWT = (callback) => {
-  if (typeof window !== "undefined") sessionStorage.removeItem(sessionKey);
+  clearStoredSession();
   if (callback) callback();
 };
 
