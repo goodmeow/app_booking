@@ -183,3 +183,19 @@ Phase 10A software complete: a provisioned tablet is cryptographically bound to 
 - [ ] Add executable scenario catalog with sanitized demo accounts and request examples.
 - [ ] Add contribution, code ownership, and deployment/operations runbook.
 - [ ] Tag reconstructed baseline.
+
+## Phase 12 — Hardware (NFC, akses pintu, LED)
+
+Rencana lengkap + gap matrix: `docs/reconstruction/hardware-readiness-audit.md`.
+Protokol perangkat: `nauchara/hardware/` (APK, LED, relay).
+
+- [ ] Samakan state kiosk dengan perangkat: kuning bila meeting aktif belum check-in, merah bila sudah, hijau bila kosong.
+- [ ] Parameterkan jendela “akan mulai” (default 15 menit) dan palet kuning `#cccc00`.
+- [ ] Hubungkan `checkInKioskMeeting` ke UI/NFC, tampilkan hasil dan error.
+- [ ] Normalisasi nomor kartu (`parseInt` UID 4 byte dibalik) dan uji dengan kartu nyata.
+- [ ] Tambah endpoint kiosk untuk membuka pintu (token kiosk, terikat room, rate-limit); relay tetap ditulis tablet.
+- [ ] Petakan state ke kode LED (`0x05`, `0x14`, `0x04`) hanya bila `ledEnabled`.
+- [ ] Bangun wrapper APK WebView + bridge NFC/relay/sysfs dengan whitelist perintah.
+- [ ] Simpan `@ipServer`/sesi di penyimpanan native; sediakan layar first-run.
+- [ ] Verifikasi kompatibilitas WebView Android 8.1 (build legacy atau React Native).
+- [ ] Uji perangkat: matriks state, check-in, buka pintu, LED, offline, reboot.
