@@ -26,16 +26,29 @@
     "today": "Hari Ini",
     "count_one": "{{count}} meeting terjadwal",
     "count_other": "{{count}} meeting terjadwal",
-    "empty": "Jadwal kosong."
+    "empty": "Jadwal kosong.",
+    "offlineHelp": "Server tidak dapat dihubungi. Jangan anggap ruangan ini kosong."
   },
   "states": {
     "unknown": "Tidak Diketahui",
     "available": "Tersedia",
     "upcoming": "Segera Dimulai",
-    "occupied": "Digunakan"
+    "occupied": "Digunakan",
+    "awaitingCheckIn": "Menunggu check-in",
+    "offline": "Offline"
   },
   "errors": {
     "deprovisioned": "Kiosk telah dideprovisikan",
     "requestFailed": "Permintaan kiosk gagal."
+  },
+  "checkin": {
+    "action": "Check in",
+    "title": "Check in meeting",
+    "cardNumber": "Nomor kartu",
+    "submit": "Check in",
+    "submitting": "Memproses...",
+    "cancel": "Batal",
+    "cardRequired": "Nomor kartu wajib diisi.",
+    "success": "Meeting berhasil di-check in."
   }
 }

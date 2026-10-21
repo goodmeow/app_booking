@@ -5,6 +5,10 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Paper,
   Stack,
   TextField,
@@ -17,6 +21,7 @@ import LanguageSwitcher from "../components/common/LanguageSwitcher.js";
 import { normalizeLanguage } from "../i18n/languages.js";
 import {
   authenticateKiosk,
+  checkInKioskMeeting,
   deprovisionKiosk,
   fetchKioskContext,
   fetchKioskSchedule,
@@ -135,6 +140,11 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [connected, setConnected] = useState(false);
+  const [checkInFor, setCheckInFor] = useState(null);
+  const [cardNumber, setCardNumber] = useState("");
+  const [checkInBusy, setCheckInBusy] = useState(false);
+  const [checkInError, setCheckInError] = useState("");
+  const [notice, setNotice] = useState("");
   const changeRoomTimer = useRef(null);
   const refreshPromise = useRef(null);
   const latestSession = useRef(session);
@@ -228,18 +238,53 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
   useEffect(() => () => clearTimeout(changeRoomTimer.current), []);
 
   const state = useMemo(
-    () => scheduleFresh ? deriveKioskState(events, context.settings, now) : { mode: "unknown", current: null, next: null },
+    () => deriveKioskState(events, context.settings, now, { fresh: scheduleFresh }),
     [context.settings, events, now, scheduleFresh]
   );
   const palette = kioskPalette[state.mode];
   const paletteLabel = t(palette.labelKey);
   const ledChipColor = {
     occupied: "error",
-    upcoming: "warning",
+    awaitingCheckIn: "warning",
     available: "success",
+    offline: "default",
     unknown: "default",
   }[state.mode] || "default";
   const featured = state.current || state.next;
+
+  const openCheckIn = (event) => {
+    setCheckInFor(event);
+    setCardNumber("");
+    setCheckInError("");
+    setNotice("");
+  };
+
+  const closeCheckIn = () => {
+    if (checkInBusy) return;
+    setCheckInFor(null);
+  };
+
+  const submitCheckIn = async (event) => {
+    event.preventDefault();
+    const value = cardNumber.trim();
+    if (!value) {
+      setCheckInError(t("checkin.cardRequired"));
+      return;
+    }
+    setCheckInBusy(true);
+    setCheckInError("");
+    try {
+      await withRefresh((token) => checkInKioskMeeting(token, checkInFor.id, value));
+      setCheckInFor(null);
+      setCardNumber("");
+      setNotice(t("checkin.success"));
+      await load({ quiet: true });
+    } catch (reason) {
+      if (!handleUnauthorized(reason)) setCheckInError(reason.message || t("errors.requestFailed"));
+    } finally {
+      setCheckInBusy(false);
+    }
+  };
 
   const cancelChangeRoom = () => {
     clearTimeout(changeRoomTimer.current);
@@ -279,6 +324,7 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
         </Stack>
 
         {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
+        {notice ? <Alert severity="success" sx={{ mb: 2 }} onClose={() => setNotice("")}>{notice}</Alert> : null}
 
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1.8fr) minmax(360px, 1fr)" }, gap: 3 }}>
           <Paper sx={{ minHeight: { md: "calc(100vh - 150px)" }, p: { xs: 3, md: 5 }, borderRadius: 5, color: "common.white", background: `linear-gradient(145deg, ${palette.main}, ${palette.dark})`, display: "flex", flexDirection: "column" }}>
@@ -291,10 +337,10 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
             </Stack>
 
             <Box sx={{ flex: 1, display: "grid", alignContent: "center", py: 5 }}>
-              {state.mode === "unknown" ? (
+              {state.mode === "offline" || state.mode === "unknown" ? (
                 <>
-                  <Typography variant="h3" fontWeight={800}>{t("schedule.unavailable")}</Typography>
-                  <Typography variant="h6" sx={{ mt: 2, opacity: 0.85 }}>{t("schedule.unavailableHelp")}</Typography>
+                  <Typography variant="h3" fontWeight={800}>{t("states.offline")}</Typography>
+                  <Typography variant="h6" sx={{ mt: 2, opacity: 0.85 }}>{t("schedule.offlineHelp")}</Typography>
                 </>
               ) : featured ? (
                 <>
@@ -305,6 +351,13 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
                   <Typography variant="h5" sx={{ mt: 2, opacity: 0.9 }}>
                     {formatKioskTime(featured.start)} – {formatKioskTime(featured.end)}
                   </Typography>
+                  {state.current?.canCheckIn ? (
+                    <Box sx={{ mt: 3 }}>
+                      <Button variant="contained" color="inherit" size="large" onClick={() => openCheckIn(state.current)}>
+                        {t("checkin.action")}
+                      </Button>
+                    </Box>
+                  ) : null}
                 </>
               ) : (
                 <>
@@ -325,6 +378,32 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
           </Paper>
         </Box>
       </Box>
+
+      <Dialog open={Boolean(checkInFor)} onClose={closeCheckIn} fullWidth maxWidth="xs">
+        <Box component="form" onSubmit={submitCheckIn}>
+          <DialogTitle>{t("checkin.title")}</DialogTitle>
+          <DialogContent>
+            <Typography color="text.secondary" sx={{ mb: 2 }}>
+              {checkInFor?.title}
+            </Typography>
+            {checkInError ? <Alert severity="error" sx={{ mb: 2 }}>{checkInError}</Alert> : null}
+            <TextField
+              autoFocus
+              fullWidth
+              inputMode="numeric"
+              label={t("checkin.cardNumber")}
+              value={cardNumber}
+              onChange={(event) => setCardNumber(event.target.value.replace(/[^0-9]/g, ""))}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={closeCheckIn} disabled={checkInBusy}>{t("checkin.cancel")}</Button>
+            <Button type="submit" variant="contained" disabled={checkInBusy}>
+              {checkInBusy ? t("checkin.submitting") : t("checkin.submit")}
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
 
     </Box>
   );

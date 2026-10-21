@@ -189,13 +189,15 @@ Phase 10A software complete: a provisioned tablet is cryptographically bound to 
 Rencana lengkap + gap matrix: `docs/reconstruction/hardware-readiness-audit.md`.
 Protokol perangkat: `nauchara/hardware/` (APK, LED, relay).
 
-- [ ] Samakan state kiosk dengan perangkat: kuning bila meeting aktif belum check-in, merah bila sudah, hijau bila kosong.
-- [ ] Parameterkan jendela “akan mulai” (default 15 menit) dan palet kuning `#cccc00`.
-- [ ] Hubungkan `checkInKioskMeeting` ke UI/NFC, tampilkan hasil dan error.
+- [x] Samakan state kiosk dengan perangkat: kuning bila meeting aktif belum check-in, merah bila sudah, hijau bila kosong.
+- [x] Palet kuning/merah/hijau sesuai perangkat; jendela “akan mulai” dihapus (state hanya dari meeting aktif).
+- [x] Hubungkan `checkInKioskMeeting` ke UI (dialog kartu), tampilkan hasil dan error. Pemicu NFC menyusul di Phase 12 bridge.
 - [ ] Normalisasi nomor kartu (`parseInt` UID 4 byte dibalik) dan uji dengan kartu nyata.
+- [x] Tampilkan state `OFFLINE` eksplisit saat jadwal gagal dimuat (bukan “Available”).
+- [x] LED aktif secara default untuk perangkat baru (`010_kiosk_led_default.sql`).
 - [ ] Tambah endpoint kiosk untuk membuka pintu (token kiosk, terikat room, rate-limit); relay tetap ditulis tablet.
 - [ ] Petakan state ke kode LED (`0x05`, `0x14`, `0x04`) hanya bila `ledEnabled`.
-- [ ] Bangun wrapper APK WebView + bridge NFC/relay/sysfs dengan whitelist perintah.
+- [ ] Bangun APK kiosk React Native + modul native NFC/relay/sysfs dengan whitelist perintah.
 - [ ] Simpan `@ipServer`/sesi di penyimpanan native; sediakan layar first-run.
-- [ ] Verifikasi kompatibilitas WebView Android 8.1 (build legacy atau React Native).
+- [x] Putuskan runtime kiosk: **React Native**, karena WebView tablet hanya Chrome 64 (Vite 8/MUI 5 tidak kompatibel). Web `/kiosk` tetap sebagai referensi.
 - [ ] Uji perangkat: matriks state, check-in, buka pintu, LED, offline, reboot.

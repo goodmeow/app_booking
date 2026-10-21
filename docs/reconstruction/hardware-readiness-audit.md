@@ -160,3 +160,31 @@ Perkiraan kasar: A–B 2–3 hari, C 3–5 hari, D 1–2 hari, E 1–2 hari.
 3. LED default aktif atau tetap opt-in per perangkat?
 4. Perilaku saat offline: tampilkan `UNKNOWN` (sekarang) atau tetap state
    terakhir dengan peringatan?
+
+## 10. Keputusan & progres (2026-10-21)
+
+Keputusan pemilik produk:
+
+1. **Runtime kiosk: React Native.** WebView tablet hanya Chrome 64
+   (`64.0.3282.137`); build Vite 8 + MUI 5 tidak kompatibel. Web `/kiosk`
+   dipertahankan sebagai referensi desktop.
+2. **Kartu karyawan boleh membuka pintu**, bukan hanya check-in. Perubahan
+   validasi ada di Fase B.
+3. **LED aktif secara default** untuk perangkat kiosk.
+4. **Offline ditampilkan sebagai `OFFLINE`**, bukan “Available”.
+
+Sudah dikerjakan di Fase A:
+
+- `deriveKioskState` memakai `checkedIn`: aktif belum check-in → kuning,
+  sudah → merah, tidak ada meeting aktif → hijau.
+- Mode `upcoming` (60 menit) dihapus; state hanya dari meeting aktif, sesuai
+  perangkat.
+- Palet disamakan dengan perangkat: `#44865a`, `#c70039`, `#8a6d00`
+  (kuning dengan kontras teks), offline `#455a64`.
+- `deriveKioskState(..., { fresh:false })` → `offline`; UI menampilkan layar
+  OFFLINE dan tidak lagi menampilkan “Available” saat fetch gagal.
+- Dialog check-in memakai `checkInKioskMeeting` (nomor kartu manual untuk
+  sementara; pemicu NFC menyusul).
+- Kode LED tersedia sebagai `kioskLedCodeFor()` (`5/20/4/2`) untuk bridge.
+- Migrasi `010_kiosk_led_default.sql`: `led_enabled` default `true` dan
+  backfill perangkat aktif.

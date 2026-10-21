@@ -12,6 +12,7 @@ Order:
 007_phase10a_kiosk_devices.sql
 008_kiosk_capabilities.sql
 009_room_role_separation.sql
+010_kiosk_led_default.sql
 ```
 
 Files are generated mechanically from immutable `bjb.sql`:

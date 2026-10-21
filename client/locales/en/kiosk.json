@@ -26,16 +26,29 @@
     "today": "Today",
     "count_one": "{{count}} scheduled meeting",
     "count_other": "{{count}} scheduled meetings",
-    "empty": "Schedule is empty."
+    "empty": "Schedule is empty.",
+    "offlineHelp": "Cannot reach the server. Do not assume this room is free."
   },
   "states": {
     "unknown": "Unknown",
     "available": "Available",
     "upcoming": "Upcoming",
-    "occupied": "Occupied"
+    "occupied": "Occupied",
+    "awaitingCheckIn": "Awaiting check-in",
+    "offline": "Offline"
   },
   "errors": {
     "deprovisioned": "Kiosk deprovisioned",
     "requestFailed": "Kiosk request failed."
+  },
+  "checkin": {
+    "action": "Check in",
+    "title": "Check in meeting",
+    "cardNumber": "Card number",
+    "submit": "Check in",
+    "submitting": "Checking in...",
+    "cancel": "Cancel",
+    "cardRequired": "Enter the card number.",
+    "success": "Meeting checked in."
   }
 }
