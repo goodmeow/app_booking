@@ -60,3 +60,22 @@ export const hasMasterCard = async (cardNumber) => {
   );
   return result.rowCount > 0;
 };
+
+export const hasDoorCard = async (cardNumber) => {
+  const result = await query(
+    `SELECT 1
+     WHERE EXISTS (
+       SELECT 1 FROM tbl_card_masters
+       WHERE lower(card_number) = lower($1)
+     )
+     OR EXISTS (
+       SELECT 1 FROM tbl_users
+       WHERE type = 'employee'
+         AND is_deleted IS NOT TRUE
+         AND lower(card_number) = lower($1)
+     )
+     LIMIT 1`,
+    [cardNumber]
+  );
+  return result.rowCount > 0;
+};

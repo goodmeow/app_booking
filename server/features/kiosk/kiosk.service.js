@@ -5,6 +5,7 @@ import config from "../../../config/config.js";
 import { withTransaction } from "../../db/pool.js";
 import { badRequest, conflict, forbidden, HttpError, notFound } from "../../lib/http-error.js";
 import { finishEventNow, markCheckedIn } from "../events/event.repository.js";
+import { hasDoorCard } from "../auth/auth.repository.js";
 import { formatLocalTime } from "../events/event-time.js";
 import { calendarRange } from "../events/event.service.js";
 import { getSettings } from "../settings/setting.repository.js";
@@ -144,6 +145,13 @@ export const getKioskContext = async (room) => ({
   device: room.device,
   settings: (await getSettings()) || {},
 });
+
+export const authorizeKioskDoor = async (cardNumber, room) => {
+  const value = String(cardNumber ?? "").trim();
+  if (!value) throw badRequest("INVALID_CARD", "Card number is required");
+  if (!(await hasDoorCard(value))) throw badRequest("INVALID_CARD", "Card number not found");
+  return { roomId: room._id, deviceId: room.deviceId };
+};
 
 export const deprovisionKioskDevice = async (deviceId) => {
   const device = await revokeKioskDevice(deviceId);

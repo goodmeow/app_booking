@@ -1,4 +1,5 @@
 import {
+  authorizeKioskDoor,
   checkInKioskEvent,
   deprovisionKioskDevice,
   finishKioskEvent,
@@ -56,6 +57,10 @@ export const checkIn = run(async (req, res) => {
   const result = await checkInKioskEvent(req.body, req.kiosk);
   emitEventInvalidation(req.io, await findEventAudience([result?._id]));
   res.json(result);
+});
+export const doorOpen = run(async (req, res) => {
+  await authorizeKioskDoor(req.body?.card_number, req.kiosk);
+  res.json({ message: "Door opened" });
 });
 export const earlyFinish = run(async (req, res) => {
   const result = await finishKioskEvent(req.body, req.kiosk);

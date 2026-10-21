@@ -188,3 +188,17 @@ Sudah dikerjakan di Fase A:
 - Kode LED tersedia sebagai `kioskLedCodeFor()` (`5/20/4/2`) untuk bridge.
 - Migrasi `010_kiosk_led_default.sql`: `led_enabled` default `true` dan
   backfill perangkat aktif.
+
+Fase B (jalur akses):
+
+- Endpoint baru `POST /api/kiosk/door-open` — wajib token kiosk, terikat
+  device/room, rate-limit 60 per 15 menit. Server hanya memutuskan; relay
+  tetap ditulis tablet.
+- Validasi kartu sekarang menerima **kartu master atau kartu karyawan aktif**
+  (`tbl_card_masters` atau `tbl_users.card_number`). Berlaku juga untuk
+  `POST /api/door-open` versi web, sesuai keputusan produk.
+- Catatan skema: repo ini **tidak memiliki `tbl_user_cards`** seperti server
+  produksi; satu kartu per user disimpan di `tbl_users.card_number`.
+- Helper klien `openKioskDoor()` tersedia untuk bridge.
+- Test regresi: master 200, kartu karyawan 200, kartu tak dikenal 400,
+  body kosong 400, token non-kiosk 401.

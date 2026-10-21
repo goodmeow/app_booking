@@ -26,6 +26,11 @@ const kioskRequest = async (path, { token, method = "GET", body } = {}) => {
 export const authenticateKiosk = (credentials) => kioskRequest("/auth", { method: "POST", body: credentials });
 export const refreshKioskSession = (refreshToken) => kioskRequest("/refresh", { method: "POST", body: { refreshToken } });
 export const deprovisionKiosk = (token) => kioskRequest("/device", { token, method: "DELETE" });
+export const openKioskDoor = (token, cardNumber) => kioskRequest("/door-open", {
+  token,
+  method: "POST",
+  body: { card_number: cardNumber },
+});
 export const fetchKioskContext = (token) => kioskRequest("/context", { token });
 export const fetchKioskSchedule = (token, range) => kioskRequest(`/schedule?start=${range.start}&end=${range.end}`, { token });
 export const checkInKioskMeeting = (token, eventId, cardNumber) => kioskRequest("/events/check-in", {

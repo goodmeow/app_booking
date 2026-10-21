@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import config from "../../../config/config.js";
 import { badRequest, HttpError } from "../../lib/http-error.js";
 import { normalizedEmail, normalizedUsername, validatedPassword } from "../accounts/identity.validation.js";
-import { createEmployeeAccount, findActivePrincipalById, findPrincipalByLogin, hasMasterCard } from "./auth.repository.js";
+import { createEmployeeAccount, findActivePrincipalById, findPrincipalByLogin, hasDoorCard } from "./auth.repository.js";
 
 export const publicPrincipal = (principal) => ({
   _id: principal._id,
@@ -75,7 +75,7 @@ export const registerEmployee = async ({ name, email, username, password }) => {
 };
 
 export const validateDoorCard = async (cardNumber) => {
-  if (!cardNumber || !(await hasMasterCard(String(cardNumber)))) {
+  if (!cardNumber || !(await hasDoorCard(String(cardNumber).trim()))) {
     throw badRequest("INVALID_CARD", "Card number not found");
   }
 };

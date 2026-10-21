@@ -55,6 +55,39 @@ test("room credentials create an isolated kiosk session", async () => {
   assert.equal(webEndpoint.status, 401);
 });
 
+test("kiosk door accepts master and employee cards but not unknown cards", async () => {
+  const attempt = (card_number) => apiRequest(targets.reconstructed, "/api/kiosk/door-open", {
+    method: "POST",
+    headers: kioskHeaders(),
+    body: JSON.stringify({ card_number }),
+  });
+
+  const master = await attempt("TEST-MASTER-CARD");
+  assert.equal(master.status, 200);
+  assert.equal(master.body.message, "Door opened");
+
+  const employee = await attempt("TEST-USER-CARD");
+  assert.equal(employee.status, 200);
+
+  const unknown = await attempt("UNKNOWN-CARD");
+  assert.equal(unknown.status, 400);
+  assert.equal(unknown.body.code, "INVALID_CARD");
+
+  const missing = await apiRequest(targets.reconstructed, "/api/kiosk/door-open", {
+    method: "POST",
+    headers: kioskHeaders(),
+    body: JSON.stringify({}),
+  });
+  assert.equal(missing.status, 400);
+
+  const employeeSession = await apiRequest(targets.reconstructed, "/api/kiosk/door-open", {
+    method: "POST",
+    headers: bearer("admin"),
+    body: JSON.stringify({ card_number: "TEST-MASTER-CARD" }),
+  });
+  assert.equal(employeeSession.status, 401);
+});
+
 test("kiosk refresh tolerates one lost response then rejects replay", async () => {
   const previousToken = kioskToken;
   const previousRefresh = kioskRefreshToken;
