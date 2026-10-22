@@ -43,6 +43,7 @@ import {
   useStoreEventMutation,
   useUpdateEventMutation,
 } from "../redux/services/events.js";
+import { useLazyGetAvailableRoomsQuery } from "../redux/services/rooms.js";
 
 const pad = (value) => String(value).padStart(2, "0");
 
@@ -109,6 +110,9 @@ const EventEditor = ({
   const editing = Boolean(eventId);
   const details = useGetEventDetailsQuery(eventId, { skip: !open || !editing });
   const [previewEvents, previewState] = usePreviewEventsMutation();
+  const [fetchAvailableRooms] = useLazyGetAvailableRoomsQuery();
+  const [conflictCount, setConflictCount] = useState(0);
+  const [alternatives, setAlternatives] = useState([]);
   const [storeEvent, storeState] = useStoreEventMutation();
   const [updateEvent, updateState] = useUpdateEventMutation();
   const [deleteEventById, deleteState] = useDeleteEventByIdMutation();
@@ -184,6 +188,87 @@ const EventEditor = ({
     setError("");
     setGuidance("");
   };
+
+  const selectRoom = (value) => {
+    setDraft((current) => {
+      const people = current.attendees.filter((item) => !isRoomAttendee(item));
+      return {
+        ...current,
+        attendees: uniqueAttendees([
+          ...people,
+          ...(value?.email ? [{ attendee_email: value.email, type: "room", room_id: value._id }] : []),
+        ]),
+      };
+    });
+    setError("");
+    setGuidance("");
+  };
+
+  // Cek konflik saat waktu/ruangan berubah, lalu tawarkan ruangan lain yang kosong.
+  useEffect(() => {
+    if (!open || editing || readOnly || !location || !draft.start || !draft.end) {
+      setConflictCount(0);
+      setAlternatives([]);
+      return undefined;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const attendees = uniqueAttendees(draft.attendees);
+        const eventDraft = {
+          organizer,
+          subject: draft.subject || "preview",
+          description: encodeEventDescription(draft.description),
+          startDate: draft.start,
+          endDate: draft.end,
+          timezone: draft.timezone,
+          bookingKind: draft.bookingKind,
+          recurrence: draft.recurrence,
+          scope: draft.scope,
+          attendees,
+        };
+        let count = 0;
+        try {
+          const preview = await previewEvents(buildModernEventPayload(eventDraft)).unwrap();
+          count = Array.isArray(preview.conflicts) ? preview.conflicts.length : 0;
+        } catch {
+          setConflictCount(0);
+          setAlternatives([]);
+          return;
+        }
+        setConflictCount(count);
+        if (!count) {
+          setAlternatives([]);
+          return;
+        }
+        try {
+          const available = await fetchAvailableRooms({
+            start_dates: new Date(draft.start).toISOString(),
+            end_dates: new Date(draft.end).toISOString(),
+          }).unwrap();
+          const freeEmails = new Set((available || []).map((room) => String(room.email).toLowerCase()));
+          const peopleCount = attendees.filter((item) => !isRoomAttendee(item)).length;
+          setAlternatives(
+            rooms
+              .filter((room) => freeEmails.has(String(room.email).toLowerCase()))
+              .filter((room) => String(room.email).toLowerCase() !== String(location).toLowerCase())
+              .filter((room) => !room.capacity || Number(room.capacity) >= peopleCount)
+              .slice(0, 4)
+          );
+        } catch {
+          setAlternatives([]);
+        }
+      } catch {
+        setConflictCount(0);
+        setAlternatives([]);
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [
+    open, editing, readOnly, location, organizer, rooms,
+    draft.start, draft.end, draft.timezone, draft.subject, draft.description,
+    draft.bookingKind, draft.recurrence, draft.scope, draft.attendees,
+    previewEvents, fetchAvailableRooms,
+  ]);
 
   const close = () => {
     if (!busy) onClose();
@@ -433,25 +518,29 @@ const EventEditor = ({
               <Autocomplete
                 options={rooms}
                 value={locationValue}
-                onChange={(_, value) => {
-                  setDraft((current) => {
-                    const people = current.attendees.filter((item) => !isRoomAttendee(item));
-                    return {
-                      ...current,
-                      attendees: uniqueAttendees([
-                        ...people,
-                        ...(value?.email ? [{ attendee_email: value.email, type: "room", room_id: value._id }] : []),
-                      ]),
-                    };
-                  });
-                  setError("");
-                  setGuidance("");
-                }}
+                onChange={(_, value) => selectRoom(value)}
                 getOptionLabel={(option) => option?.name || option?.email || ""}
                 isOptionEqualToValue={(option, value) => option?.email === value?.email}
                 disabled={readOnly || busy}
                 renderInput={(params) => <TextField {...params} label={t("editor.location")} />}
               />
+              {conflictCount > 0 ? (
+                <Alert severity="warning">
+                  <Typography variant="body2">{t("calendar.conflictDetected")}</Typography>
+                  <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                    {t("calendar.alternativesTitle")}
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+                    {alternatives.length ? alternatives.map((room) => (
+                      <Button key={room._id} size="small" variant="outlined" onClick={() => selectRoom(room)}>
+                        {room.name}
+                      </Button>
+                    )) : (
+                      <Typography variant="caption">{t("calendar.noAlternatives")}</Typography>
+                    )}
+                  </Stack>
+                </Alert>
+              ) : null}
               <TextField
                 multiline
                 minRows={3}

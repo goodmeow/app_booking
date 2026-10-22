@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, Box, Button, Container, LinearProgress, Paper, Stack, Typography } from "@mui/material";
+import { Alert, Box, Button, Container, LinearProgress, Paper, Stack, Typography, useMediaQuery } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { isAuthenticated } from "../auth/auth-helper.js";
@@ -12,17 +12,25 @@ import { useListUserQuery } from "../redux/services/users.js";
 import { wsJoinRoom, wsLeaveRoom } from "../redux/websocket.js";
 import CalendarSidebar from "./CalendarSidebar.js";
 import EventEditor from "./EventEditor.js";
+import EventDetailsDrawer from "./EventDetailsDrawer.js";
 import MeetingWeek from "./MeetingWeek.js";
 
 const MeetingCalendar = () => {
   const { t } = useTranslation(["calendar", "common"]);
   const session = isAuthenticated();
   const dispatch = useDispatch();
+  const isNarrow = useMediaQuery("(max-width:900px)");
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [calendarView, setCalendarView] = useState("timeGridWeek");
+  const [calendarView, setCalendarView] = useState(isNarrow ? "agenda" : "timeGridWeek");
   const [scheduleMode, setScheduleMode] = useState(session?.user?.role === "ADMIN" ? "all" : "mine");
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [editor, setEditor] = useState({ open: false, event: null, start: null, end: null });
+  const [details, setDetails] = useState(null);
+
+  // Di layar sempit, agenda lebih nyaman daripada grid minggu.
+  useEffect(() => {
+    setCalendarView(isNarrow ? "agenda" : "timeGridWeek");
+  }, [isNarrow]);
   const activeRoom = scheduleMode === "room" ? selectedRoom : null;
   const range = useMemo(() => calendarRangeForView(selectedDate, calendarView), [selectedDate, calendarView]);
   const eventQuery = useGetEventsQuery(
@@ -124,12 +132,24 @@ const MeetingCalendar = () => {
               onEventClick={(event) => {
                 const mapped = calendarEventFromApi(event);
                 if (mapped.can_view_details === false || mapped.visibility === "busy") return;
-                setEditor({ open: true, event: mapped, start: event.start, end: event.end });
+                setDetails(mapped);
               }}
             />
           ) : null}
         </Paper>
       </Box>
+
+      <EventDetailsDrawer
+        open={Boolean(details)}
+        event={details}
+        rooms={allRooms}
+        canMutate={Boolean(details) && (isAdmin || String(details.organizer || "").toLowerCase() === String(session.user.email).toLowerCase())}
+        onClose={() => setDetails(null)}
+        onEdit={() => {
+          setEditor({ open: true, event: details, start: details.start, end: details.end });
+          setDetails(null);
+        }}
+      />
 
       <EventEditor
         open={editor.open}

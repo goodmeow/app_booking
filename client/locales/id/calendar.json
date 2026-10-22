@@ -116,6 +116,17 @@
     "roomFreeCount": "{{count}} kosong",
     "roomOfflineCount": "{{count}} tablet offline",
     "roomNoneOccupied": "Tidak ada ruangan yang dipakai saat ini.",
-    "tabletDetailLink": "Detail tablet"
+    "tabletDetailLink": "Detail tablet",
+    "notCheckedIn": "Belum check-in",
+    "detailRoom": "Ruangan",
+    "detailAttendees": "Peserta",
+    "detailsLoadError": "Detail peserta tidak dapat dimuat.",
+    "cancelMeeting": "Batalkan",
+    "cancelTitle": "Batalkan meeting?",
+    "cancelMessage": "Meeting akan dibatalkan untuk kejadian ini.",
+    "cancelError": "Tidak dapat membatalkan meeting.",
+    "conflictDetected": "Ruangan ini sudah dipakai pada waktu tersebut.",
+    "alternativesTitle": "Ruangan lain yang kosong:",
+    "noAlternatives": "Tidak ada ruangan lain yang kosong di waktu ini."
   }
 }

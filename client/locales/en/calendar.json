@@ -116,6 +116,17 @@
     "roomFreeCount": "{{count}} free",
     "roomOfflineCount": "{{count}} tablet offline",
     "roomNoneOccupied": "No rooms are in use right now.",
-    "tabletDetailLink": "Tablet details"
+    "tabletDetailLink": "Tablet details",
+    "notCheckedIn": "Not checked in",
+    "detailRoom": "Room",
+    "detailAttendees": "Attendees",
+    "detailsLoadError": "Attendee details could not be loaded.",
+    "cancelMeeting": "Cancel",
+    "cancelTitle": "Cancel this meeting?",
+    "cancelMessage": "The meeting will be cancelled for this occurrence.",
+    "cancelError": "Unable to cancel the meeting.",
+    "conflictDetected": "This room is already booked for that time.",
+    "alternativesTitle": "Other free rooms:",
+    "noAlternatives": "No other rooms are free at this time."
   }
 }

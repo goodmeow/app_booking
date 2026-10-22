@@ -14,4 +14,4 @@ export const roomsApi = api.injectEndpoints({
   }),
 });
 
-export const { useGetRoomsQuery, useGetAvailableRoomsQuery, useGetRoomByIdQuery, useGetRoomStatusQuery, useStoreRoomMutation, useUpdateRoomMutation, useDeleteRoomByIdMutation, useGetRoomUsageQuery } = roomsApi;
+export const { useGetRoomsQuery, useGetAvailableRoomsQuery, useLazyGetAvailableRoomsQuery, useGetRoomByIdQuery, useGetRoomStatusQuery, useStoreRoomMutation, useUpdateRoomMutation, useDeleteRoomByIdMutation, useGetRoomUsageQuery } = roomsApi;

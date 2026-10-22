@@ -55,6 +55,11 @@ sehingga tidak memakai header CMS.
 - API: `POST /api/auth/signup`.
 
 ### 3.3 Kalender Rapat (`/`) — `client/calendar/`
+- Klik event membuka **drawer detail** (judul, waktu, ruangan, peserta, status
+  check-in) dengan aksi **Edit** dan **Batalkan** (sesuai hak organizer/admin).
+- Saat membuat event, editor mengecek **konflik** dan menawarkan **ruangan lain
+  yang kosong** pada jam tersebut (mengikuti lantai user dan kapasitas).
+- Di layar sempit (<900 px) tampilan default otomatis **Agenda**.
 - Papan jadwal dengan **ruangan sebagai resource** (FullCalendar
   resource-timeline, tampilan minggu).
 - `MeetingCalendar.js`: orkestrasi data + socket; `MeetingWeek.js`: render
