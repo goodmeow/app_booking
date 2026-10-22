@@ -40,12 +40,13 @@ sehingga tidak memakai header CMS.
   (`public/the-prasada-logo.png`, tinggi 220 px) + teks "Panel admin ruang
   meeting".
 - Panel kanan: judul "Masuk", email, kata sandi dengan tombol
-  **Tampilkan/Sembunyikan**, tautan **Lupa kata sandi?** (saat ini hanya
-  menampilkan pesan info), checkbox **Tetap masuk di perangkat ini**, tombol
-  putih **Masuk**.
+  **Tampilkan/Sembunyikan**, tautan **Lupa kata sandi?** (menampilkan kontak
+  `helpdesk@integrasolution.id` lewat tautan mailto), checkbox **Tetap masuk
+  di perangkat ini**, tombol putih **Masuk**.
 - Alert merah `#B3261E` saat kredensial salah.
 - "Tetap masuk" mengubah penyimpanan sesi dari `sessionStorage` ke
   `localStorage` (`client/auth/auth-helper.js`).
+- Tautan "Buat akun" tidak ditampilkan; akun dibuat admin lewat tab Pengguna.
 - Header CMS disembunyikan di rute ini (`WebChrome` di `MainRouter.js`).
 - API: `POST /api/auth/signin`.
 
@@ -78,7 +79,7 @@ Empat tab (`AppManagement.js`):
 | Tab | Isi | API |
 |---|---|---|
 | Pengguna (`UserManagementSection.js`, `user-form.js`) | CRUD user **beserta akses kartunya**: kolom nomor kartu, tombol **kartu master** (langsung dari tabel atau lewat form), ganti sandi, hapus. | `/api/users` |
-| Ruangan (`RoomManagementSection.js`) | CRUD ruangan: nama, gedung, lantai, kapasitas, fitur, email, sandi. **Kolom Tablet: Online/Offline/Belum ada/Dicabut**, auto-refresh 15 s | `/api/rooms`, `/api/kiosk/devices` |
+| Ruangan (`RoomManagementSection.js`) | CRUD ruangan: nama, gedung, lantai, **kapasitas**, fitur, email, sandi. **Kolom Tablet: Online/Offline/Belum ada/Dicabut**, auto-refresh 15 s | `/api/rooms`, `/api/kiosk/devices` |
 | Perangkat Tablet (`KioskDeviceManagementSection.js`) | Daftar tablet: nama, ruangan, **Online/Offline/Dicabut/Kedaluwarsa**, switch **LED** (NFC sudah ditangani aplikasi kiosk), last seen, waktu pairing, cabut perangkat. Auto-refresh 15 s | `/api/kiosk/devices`, `PATCH …/capabilities`, `DELETE …/:id` |
 
 **Akses kartu digabung ke tab Pengguna** (sub-menu "Kartu Master" dihapus dari UI):
@@ -90,6 +91,13 @@ lama `/api/settings/card-master` tetap ada untuk kompatibilitas API.
 Status online dihitung server: `last_seen_at` diperbarui setiap request kiosk
 (throttle 10 s), dan `online = last_seen_at <= 60 s`
 (`server/features/kiosk/kiosk.service.js`, `kiosk.repository.js`).
+
+**Batas pairing:** satu ruangan hanya boleh punya **satu tablet aktif**.
+Percobaan pairing kedua ditolak `409 ROOM_ALREADY_PAIRED`; admin harus
+mencabut perangkat lama di tab Perangkat Tablet lebih dulu. Perangkat yang
+token refresh-nya sudah kedaluwarsa (tidak dipakai >30 hari) tidak menghalangi
+pairing baru. Ini mencegah tablet lain mengambil alih ruangan hanya dengan
+modal email + sandi ruangan.
 
 ### 3.7 Kiosk web (`/kiosk`, `/kiosk/setup`) — `client/kiosk/`
 - Versi web dari tampilan kiosk, dipakai sebagai referensi desktop — yang

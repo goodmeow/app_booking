@@ -55,6 +55,16 @@ test("room credentials create an isolated kiosk session", async () => {
   assert.equal(webEndpoint.status, 401);
 });
 
+test("a room can only have one active tablet at a time", async () => {
+  const second = await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: identities.room.email, password: "RoomTablet123!", deviceName: "Second Tablet" }),
+  });
+  assert.equal(second.status, 409);
+  assert.equal(second.body.code, "ROOM_ALREADY_PAIRED");
+});
+
 test("kiosk door accepts master and employee cards but not unknown cards", async () => {
   const attempt = (card_number) => apiRequest(targets.reconstructed, "/api/kiosk/door-open", {
     method: "POST",
@@ -181,10 +191,12 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
   assert.equal(capabilityContext.body.device.nfcEnabled, true);
   assert.equal(capabilityContext.body.device.ledEnabled, true);
 
+  // Ruangan kedua dipakai untuk menguji pencabutan perangkat tanpa mengganggu
+  // perangkat room-one yang masih dipakai test berikutnya.
   const replacement = await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: identities.room.email, password: "RoomTablet123!", deviceName: "Replacement Tablet" }),
+    body: JSON.stringify({ email: "room-two@room.com", password: "RoomTablet123!", deviceName: "Replacement Tablet" }),
   });
   assert.equal(replacement.status, 200);
   const revoked = await apiRequest(targets.reconstructed, `/api/kiosk/devices/${replacement.body.device.id}`, {
@@ -196,6 +208,17 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
     headers: { Authorization: `Bearer ${replacement.body.token}` },
   });
   assert.equal(rejectedAccess.status, 401);
+
+  const rePaired = await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "room-two@room.com", password: "RoomTablet123!", deviceName: "Replacement Tablet" }),
+  });
+  assert.equal(rePaired.status, 200);
+  await apiRequest(targets.reconstructed, `/api/kiosk/devices/${rePaired.body.device.id}`, {
+    method: "DELETE",
+    headers: bearer("admin"),
+  });
   const rejectedRefresh = await apiRequest(targets.reconstructed, "/api/kiosk/refresh", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

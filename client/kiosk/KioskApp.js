@@ -30,6 +30,9 @@ import {
 import { clearKioskSession, readKioskSession, saveKioskSession } from "./kiosk-session.js";
 import { deriveKioskState, formatKioskDate, formatKioskTime, kioskDayRange, kioskPalette } from "./kiosk-state.js";
 
+const kioskSans = "'Public Sans', system-ui, sans-serif";
+const kioskSerif = "'Source Serif 4', Georgia, serif";
+
 const KioskSignin = ({ onAuthenticated }) => {
   const { t } = useTranslation(["kiosk", "common"]);
   const [email, setEmail] = useState("");
@@ -64,7 +67,7 @@ const KioskSignin = ({ onAuthenticated }) => {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#07111f", display: "grid", placeItems: "center", p: 3 }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#07111f", display: "grid", placeItems: "center", p: 3, fontFamily: kioskSans }}>
       <Paper component="form" onSubmit={submit} elevation={16} sx={{ width: "100%", maxWidth: 520, p: 5, borderRadius: 4 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
           <Box>
@@ -121,7 +124,7 @@ const ScheduleItem = ({ event, now, timeZone }) => {
         <Typography variant="body2" color="text.secondary">{formatKioskTime(event.end, timeZone)}</Typography>
       </Box>
       <Box sx={{ borderLeft: 4, borderColor: active ? "error.main" : "primary.main", pl: 2, minWidth: 0 }}>
-        <Typography variant="h6" noWrap>{event.title}</Typography>
+        <Typography variant="h6" noWrap sx={{ fontFamily: kioskSerif, fontWeight: 600 }}>{event.title}</Typography>
         <Typography variant="body2" color="text.secondary">
           {active ? t("schedule.occupiedNow") : t("schedule.reserved")}
         </Typography>
@@ -298,12 +301,12 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
   if (loading) return <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", bgcolor: "#07111f" }}><CircularProgress /></Box>;
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#07111f", color: "common.white", p: { xs: 2, md: 3 }, overflow: "hidden" }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#07111f", color: "common.white", p: { xs: 2, md: 3 }, overflow: "hidden", fontFamily: kioskSans }}>
       <Box sx={{ maxWidth: 1500, mx: "auto" }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
           <Box>
             <Typography variant="overline" sx={{ letterSpacing: 3, opacity: 0.7 }}>{t("common:brand.kiosk")}</Typography>
-            <Typography variant="h4" fontWeight={800}>{context.room.name}</Typography>
+            <Typography variant="h4" fontWeight={700} sx={{ fontFamily: kioskSerif }}>{context.room.name}</Typography>
             <Typography sx={{ opacity: 0.7 }}>{[context.room.building, context.room.floor && t("schedule.floor", { floor: context.room.floor })].filter(Boolean).join(" · ")}</Typography>
           </Box>
           <Stack direction="row" spacing={1} alignItems="center">
@@ -328,9 +331,9 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1.8fr) minmax(360px, 1fr)" }, gap: 3 }}>
           <Paper sx={{ minHeight: { md: "calc(100vh - 150px)" }, p: { xs: 3, md: 5 }, borderRadius: 5, color: "common.white", background: `linear-gradient(145deg, ${palette.main}, ${palette.dark})`, display: "flex", flexDirection: "column" }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-              <Typography variant="h2" fontWeight={900} sx={{ letterSpacing: 2 }}>{paletteLabel}</Typography>
+              <Typography variant="h2" fontWeight={700} sx={{ letterSpacing: 2, fontFamily: kioskSerif }}>{paletteLabel}</Typography>
               <Box textAlign="right">
-                <Typography variant="h2" fontWeight={300}>{formatKioskTime(now, context.timezone)}</Typography>
+                <Typography variant="h2" fontWeight={600} sx={{ fontFamily: kioskSerif }}>{formatKioskTime(now, context.timezone)}</Typography>
                 <Typography sx={{ opacity: 0.85 }}>{formatKioskDate(now, language, context.timezone)}</Typography>
               </Box>
             </Stack>
@@ -346,7 +349,7 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
                   <Typography variant="overline" sx={{ letterSpacing: 2, opacity: 0.8 }}>
                     {state.current ? t("schedule.currentMeeting") : t("schedule.nextMeeting")}
                   </Typography>
-                  <Typography variant="h3" fontWeight={800} sx={{ mt: 1 }}>{featured.title}</Typography>
+                  <Typography variant="h3" fontWeight={700} sx={{ mt: 1, fontFamily: kioskSerif }}>{featured.title}</Typography>
                   <Typography variant="h5" sx={{ mt: 2, opacity: 0.9 }}>
                     {formatKioskTime(featured.start, context.timezone)} – {formatKioskTime(featured.end, context.timezone)}
                   </Typography>

@@ -260,3 +260,14 @@ export const touchKioskDevice = async (deviceId) => {
     [deviceId]
   );
 };
+
+export const findActiveKioskDeviceForRoom = async (roomId) => (await query(
+  `SELECT _id, name, last_seen_at
+   FROM tbl_kiosk_devices
+   WHERE room_id = $1
+     AND revoked_at IS NULL
+     AND refresh_expires_at > now()
+   ORDER BY created_at DESC
+   LIMIT 1`,
+  [roomId]
+)).rows[0] || null;

@@ -13,6 +13,7 @@ import {
   createKioskDevice,
   extendKioskRoomEvent,
   findActiveKioskDeviceById,
+  findActiveKioskDeviceForRoom,
   findEmployeeByCard,
   findKioskEventActionContext,
   findKioskRoomEvent,
@@ -106,6 +107,15 @@ const kioskSession = (device, refreshToken) => ({
 
 export const provisionKioskDevice = async ({ login, password, deviceName }) => {
   const room = await authenticateKioskCredentials(login, password);
+  // Satu ruangan hanya boleh punya satu tablet aktif. Pairing ulang harus
+  // lewat pencabutan perangkat lama di CMS supaya tidak bisa diambil alih.
+  const existing = await findActiveKioskDeviceForRoom(room._id);
+  if (existing) {
+    throw conflict(
+      "ROOM_ALREADY_PAIRED",
+      "Ruangan ini sudah punya tablet aktif. Cabut perangkat lama di CMS (Perangkat Tablet) sebelum pairing ulang."
+    );
+  }
   const refreshToken = newRefreshToken();
   const device = await createKioskDevice({
     roomId: room._id,

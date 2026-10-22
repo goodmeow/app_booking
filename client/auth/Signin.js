@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useHistory, useLocation } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { authenticate, signin } from "./auth-helper.js";
+
+const HELPDESK_EMAIL = "helpdesk@integrasolution.id";
 
 const focusStyles = `
   .kiosk-auth button:focus-visible,
@@ -146,7 +148,17 @@ const Signin = () => {
                 color: "#FFD25A",
               }}
             >
-              <div style={{ fontSize: 18, lineHeight: 1.4, fontWeight: 600 }}>{notice}</div>
+              <div style={{ fontSize: 18, lineHeight: 1.4, fontWeight: 600 }}>
+                {notice}
+                {notice === t("auth:signin.forgotNotice") ? (
+                  <>
+                    {" "}
+                    <a href={`mailto:${HELPDESK_EMAIL}`} style={{ color: "#FFD25A", fontWeight: 700 }}>
+                      {HELPDESK_EMAIL}
+                    </a>
+                  </>
+                ) : null}
+              </div>
             </div>
           ) : null}
 
@@ -271,9 +283,6 @@ const Signin = () => {
             </button>
           </form>
 
-          <Link to="/signup" style={{ textAlign: "center", fontSize: 16, fontWeight: 700, color: "#A9B3BF" }}>
-            {t("auth:signin.createAccount")}
-          </Link>
         </div>
       </main>
     </div>
