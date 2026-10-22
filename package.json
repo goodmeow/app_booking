@@ -8,6 +8,7 @@
   },
   "scripts": {
     "demo": "node scripts/demo.js",
+    "demo:accounts": "node scripts/demo-accounts.js",
     "demo:stop": "docker --context default compose --project-name 360booking --file compose.yaml --env-file .env.demo stop postgres-test",
     "development": "node scripts/dev-combined.js",
     "dev:client": "node scripts/dev-client.js",
