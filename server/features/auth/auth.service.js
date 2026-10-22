@@ -11,6 +11,7 @@ export const publicPrincipal = (principal) => ({
   email: principal.email,
   username: principal.username || null,
   type: principal.type,
+  floor: principal.floor || null,
   role: String(principal.role || "user").toUpperCase(),
 });
 

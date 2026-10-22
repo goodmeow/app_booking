@@ -31,6 +31,15 @@ const MeetingCalendar = () => {
   );
   const roomQuery = useGetRoomsQuery();
   const userQuery = useListUserQuery();
+  const isAdmin = session?.user?.role === "ADMIN";
+  const userFloor = String(session?.user?.floor ?? "").trim();
+  const allRooms = Array.isArray(roomQuery.data) ? roomQuery.data : [];
+  // Non-admin hanya melihat ruangan di lantai kerjanya (server tetap menolak
+  // booking lintas lantai walau UI diakali).
+  const bookableRooms = useMemo(
+    () => (isAdmin ? allRooms : allRooms.filter((room) => String(room.floor ?? "").trim() === userFloor)),
+    [allRooms, isAdmin, userFloor]
+  );
   const eventHasData = Array.isArray(eventQuery.data);
   const eventInitialLoading = eventQuery.isFetching && !eventHasData;
   const eventRefreshing = eventQuery.isFetching && eventHasData;
@@ -51,12 +60,15 @@ const MeetingCalendar = () => {
 
   return (
     <Container maxWidth={false} sx={{ py: 3 }}>
+      {!isAdmin && !userFloor ? <Alert severity="warning" sx={{ mb: 2 }}>{t("calendar.floorMissing")}</Alert> : null}
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "340px minmax(0, 1fr)" }, gap: 2 }}>
         <Paper sx={{ p: 2 }}>
           <CalendarSidebar
             selectedDate={selectedDate}
             onDateChange={setSelectedDate}
-            rooms={Array.isArray(roomQuery.data) ? roomQuery.data : []}
+            rooms={bookableRooms}
+            floor={userFloor}
+            isAdmin={isAdmin}
             scheduleMode={scheduleMode}
             onScheduleModeChange={(mode) => {
               setScheduleMode(mode);
@@ -116,7 +128,7 @@ const MeetingCalendar = () => {
         initialEnd={editor.end}
         sessionEmail={session.user.email}
         users={Array.isArray(userQuery.data) ? userQuery.data : []}
-        rooms={Array.isArray(roomQuery.data) ? roomQuery.data : []}
+        rooms={bookableRooms}
         initialRoom={activeRoom}
         onClose={() => setEditor({ open: false, event: null, start: null, end: null })}
       />

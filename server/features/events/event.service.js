@@ -16,6 +16,7 @@ import {
   findEventAccess,
   findParticipantEvent,
   findRoomConflicts,
+  findRoomFloors,
   finishEventNow,
   insertEvent,
   insertEventParticipant,
@@ -127,6 +128,25 @@ const createPlan = async (body) => {
 
 const roomIdsFor = (participants) => participants.filter((item) => item.roomId).map((item) => item.roomId);
 
+
+const FLOOR_EXEMPT_ROLES = new Set(["ADMIN"]);
+const normalizedFloor = (value) => String(value ?? "").trim();
+
+// Non-admin hanya boleh memesan ruangan di lantai kerjanya sendiri.
+const assertRoomFloorAccess = async (roomIds, principal) => {
+  if (!roomIds.length || FLOOR_EXEMPT_ROLES.has(String(principal.role || "").toUpperCase())) return;
+  const floor = normalizedFloor(principal.floor);
+  if (!floor) {
+    throw new HttpError(403, "FLOOR_REQUIRED", "Akun Anda belum memiliki lantai kerja. Minta admin mengisinya di Manajemen > Pengguna.");
+  }
+  const rooms = await findRoomFloors(roomIds);
+  const outside = rooms.filter((room) => normalizedFloor(room.floor) !== floor);
+  if (outside.length) {
+    const names = outside.map((room) => room.name).join(", ");
+    throw new HttpError(403, "FLOOR_RESTRICTED", `Anda hanya dapat memesan ruangan di lantai ${floor}. Ruangan di luar lantai Anda: ${names}.`);
+  }
+};
+
 export const previewEvents = async (body) => {
   const plan = await createPlan(body);
   return {
@@ -141,6 +161,7 @@ export const previewEvents = async (body) => {
 
 export const createEvents = async (body, principal) => {
   const plan = await createPlan(body);
+  await assertRoomFloorAccess(roomIdsFor(plan.participants), principal);
   try {
     const result = await transaction(async (client) => {
       const series = plan.rule ? await insertSeries(client, {
@@ -336,6 +357,7 @@ export const updateEvents = async (body, principal) => {
     timezone,
   });
   const participants = await participantsForUpdate(body, eventId);
+  await assertRoomFloorAccess(participants.filter((participant) => participant.roomId).map((participant) => participant.roomId), principal);
   const pivotLocal = zonedParts(access.start_at, access.timezone);
   const desiredStartLocal = zonedParts(header.start, timezone);
   const desiredEndLocal = zonedParts(header.end, timezone);
@@ -398,6 +420,7 @@ export const addAttendee = async (body, principal) => {
   if (!access) throw notFound("Event not found");
   if (!canMutate(access, principal)) throw forbidden();
   const participants = await resolveParticipants({ legacy: true, attendeeEmails: [item.attendee_email] }, { requireRoom: false });
+  await assertRoomFloorAccess(participants.filter((participant) => participant.roomId).map((participant) => participant.roomId), principal);
   return transaction((client) => insertEventParticipant(client, eventId, participants[0]));
 };
 

@@ -209,7 +209,7 @@ export const findKioskEventActionContext = async ({ eventId, roomId, cardNumber 
 )).rows[0] || null;
 
 export const findEmployeeByCard = async (cardNumber) => (await query(
-  `SELECT _id, name, email, card_number
+  `SELECT _id, name, email, card_number, floor
    FROM tbl_users
    WHERE type = 'employee'
      AND is_deleted IS NOT TRUE

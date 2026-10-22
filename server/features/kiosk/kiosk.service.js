@@ -319,6 +319,14 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
   if (!card) throw badRequest("INVALID_CARD", "Card number is required");
   const employee = await findEmployeeByCard(card);
   if (!employee) throw badRequest("INVALID_CARD", "Card number not found");
+  const employeeFloor = String(employee.floor || "").trim();
+  const roomFloor = String(room.floor || "").trim();
+  if (!employeeFloor) {
+    throw new HttpError(403, "FLOOR_REQUIRED", "Kartu ini belum terhubung ke lantai kerja. Minta admin mengisinya di Manajemen > Pengguna.");
+  }
+  if (employeeFloor !== roomFloor) {
+    throw new HttpError(403, "FLOOR_RESTRICTED", `Kartu ini terdaftar di lantai ${employeeFloor}, sedangkan ruangan ini di lantai ${roomFloor}.`);
+  }
   const now = new Date();
   const horizon = new Date(now.getTime() + 36 * 60 * 60_000);
   const rows = await listKioskScheduleRows({ roomId: room._id, rangeStart: now, rangeEnd: horizon });
@@ -340,7 +348,7 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
       end_date: effectiveEnd.toISOString(),
       attendee_email: room.email,
     }],
-    { _id: employee._id, email: employee.email, name: employee.name, role: "USER" }
+    { _id: employee._id, email: employee.email, name: employee.name, role: "USER", floor: employee.floor }
   );
   const first = Array.isArray(created) ? created[0] : null;
   return {

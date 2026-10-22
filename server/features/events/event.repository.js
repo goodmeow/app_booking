@@ -341,3 +341,15 @@ export const finishEventNow = async (eventId, execute = query) => (await execute
    RETURNING _id, end_date AT TIME ZONE timezone AS end_at`,
   [eventId]
 )).rows[0] || null;
+
+export const findRoomFloors = async (roomIds, client = { query }) => {
+  if (!roomIds.length) return [];
+  return (await client.query(
+    `SELECT _id, name, floor
+     FROM tbl_users
+     WHERE _id = ANY($1::uuid[])
+       AND type = 'room'
+       AND is_deleted IS NOT TRUE`,
+    [roomIds]
+  )).rows;
+};

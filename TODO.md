@@ -235,3 +235,12 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
   22 temuan (6 moderate, 15 high, 1 critical); `npm audit fix` tersedia.
 - [ ] Patch review #5: rapikan README (URL clone, Vite 8, port 8081/9091,
   output `build/`, catatan `TRUST_PROXY` untuk reverse proxy).
+
+## Aturan lantai (2026-10-22)
+
+- [x] Karyawan hanya bisa memesan ruangan di lantai kerjanya
+  (`tbl_users.floor`), admin bebas. Ditegakkan di server (403
+  `FLOOR_RESTRICTED` / `FLOOR_REQUIRED`), UI kalender, dan "Pesan sekarang"
+  di kiosk.
+- [ ] Pastikan semua akun karyawan sudah diisi lantai kerjanya di produksi
+  (kalau kosong, booking akan ditolak).

@@ -8,6 +8,7 @@ const principalSelect = `
     u.username,
     u.password,
     u.type,
+    u.floor,
     u.is_deleted,
     lower(r.role_name) AS role
   FROM tbl_users u

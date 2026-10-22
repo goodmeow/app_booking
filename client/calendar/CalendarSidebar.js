@@ -27,6 +27,8 @@ const CalendarSidebar = ({
   selectedDate,
   onDateChange,
   rooms = [],
+  floor = "",
+  isAdmin = false,
   scheduleMode = "mine",
   onScheduleModeChange,
   selectedRoom,
@@ -84,6 +86,13 @@ const CalendarSidebar = ({
       <Box>
         <Typography variant="subtitle2" component="h2" sx={{ mb: 1 }}>
           {t("sidebar.filterTitle")}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+          {isAdmin
+            ? t("calendar.floorScopeAdmin")
+            : floor
+              ? t("calendar.floorScope", { floor })
+              : t("calendar.floorMissing")}
         </Typography>
         <Autocomplete
           options={buildings}

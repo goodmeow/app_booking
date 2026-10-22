@@ -89,6 +89,13 @@ UPDATE tbl_users SET
   feature = 'Display,NFC'
 WHERE type = 'room';
 
+-- Lantai kerja tiap karyawan (dipakai untuk aturan booking per lantai).
+UPDATE tbl_users SET floor = '1'
+WHERE type = 'employee';
+
+UPDATE tbl_users SET floor = '2' WHERE email = 'room-two@room.com';
+UPDATE tbl_users SET floor = '3' WHERE email = 'room-three@room.com';
+
 INSERT INTO tbl_app_settings (
   _id,
   lock_timer,

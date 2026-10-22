@@ -97,5 +97,8 @@
     "recurringCue": "Seri berulang",
     "recurringOccurrenceCue": "Seri berulang · occurrence {{count}}",
     "selectRoomPrompt": "Pilih ruangan untuk melihat Jadwal Ruangan."
-  }
+  },
+  "floorScope": "Ruangan yang tampil hanya lantai {{floor}}.",
+  "floorScopeAdmin": "Mode admin: semua lantai tampil.",
+  "floorMissing": "Akun Anda belum punya lantai kerja. Minta admin mengisinya di Manajemen > Pengguna."
 }

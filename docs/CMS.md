@@ -63,6 +63,12 @@ sehingga tidak memakai header CMS.
 - API: `GET /api/events`, `GET /api/events/details`,
   `POST /api/events/preview`, `POST/PUT/DELETE /api/events`,
   `GET /api/rooms`, `GET /api/users/`.
+- **Aturan lantai:** karyawan hanya boleh memesan ruangan di **lantai kerjanya**
+  (`tbl_users.floor`). Server menolak booking lintas lantai dengan
+  `403 FLOOR_RESTRICTED`; akun tanpa lantai mendapat `403 FLOOR_REQUIRED`.
+  Admin dikecualikan. Di UI, daftar ruangan pada sidebar dan pemilih lokasi
+  editor sudah difilter sesuai lantai user, dan sidebar menampilkan keterangan
+  lantai. Kiosk "Pesan sekarang" juga memeriksa lantai pemilik kartu.
 
 ### 3.4 Profil Pengguna (`/user/:userId`) — `client/profile/UserProfile.js`
 - Detail akun, edit profil, ganti kata sandi, hapus akun.
@@ -146,5 +152,7 @@ modal email + sandi ruangan.
   sub-menu Kartu Master dihapus dari UI.
 - Switch **NFC** dihapus dari daftar perangkat karena NFC sudah ditangani
   aplikasi kiosk; switch LED tetap ada.
+- Aturan booking per lantai kerja ditegakkan di server (karyawan hanya lantai
+  sendiri; admin bebas) dan diterapkan juga di UI serta pemesanan cepat kiosk.
 - Endpoint kiosk tambahan: `POST /api/kiosk/events/extend`,
   `POST /api/kiosk/events/complete`, `POST /api/kiosk/events/instant`.
