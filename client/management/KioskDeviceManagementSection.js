@@ -18,7 +18,7 @@ const formatDateTime = (value, language, neverLabel) => value
 
 const KioskDeviceManagementSection = () => {
   const { t, i18n } = useTranslation(["management", "common"]);
-  const { data: devices = [], error: queryError, isLoading, isFetching, refetch } = useGetKioskDevicesQuery();
+  const { data: devices = [], error: queryError, isLoading, isFetching, refetch } = useGetKioskDevicesQuery(undefined, { pollingInterval: 15000 });
   const [revokeDevice, { isLoading: isRevoking }] = useRevokeKioskDeviceMutation();
   const [updateCapabilities, { isLoading: isUpdatingCapabilities }] = useUpdateKioskDeviceCapabilitiesMutation();
   const [revokeTarget, setRevokeTarget] = useState(null);
@@ -64,13 +64,13 @@ const KioskDeviceManagementSection = () => {
       field: "status",
       headerName: t("common:fields.status"),
       minWidth: 110,
-      renderCell: ({ value }) => (
-        <Chip
-          size="small"
-          label={t(`devices.status.${value === "active" || value === "revoked" ? value : "unknown"}`)}
-          color={value === "active" ? "success" : "default"}
-        />
-      ),
+      renderCell: ({ row }) => {
+        if (row.status === "revoked") return <Chip size="small" color="error" label={t("devices.status.revoked")} />;
+        if (row.status === "expired") return <Chip size="small" color="warning" label={t("devices.status.expired")} />;
+        return row.online
+          ? <Chip size="small" color="success" label={t("devices.status.online")} />
+          : <Chip size="small" label={t("devices.status.offline")} />;
+      },
     },
     {
       field: "nfcEnabled",

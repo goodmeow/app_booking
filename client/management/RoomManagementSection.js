@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Alert, Box, Button, Stack, TextField, Typography } from "@mui/material";
+import React, { useEffect, useMemo, useState } from "react";
+import { Alert, Box, Button, Chip, Stack, TextField, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import FormDialog from "../components/common/FormDialog.js";
@@ -15,6 +15,7 @@ import {
   useUpdateRoomMutation,
 } from "../redux/services/rooms.js";
 import { useChangePasswordMutation } from "../redux/services/users.js";
+import { useGetKioskDevicesQuery } from "../redux/services/kiosk-devices.js";
 
 const emptyForm = {
   name: "",
@@ -29,6 +30,12 @@ const emptyForm = {
 const RoomManagementSection = () => {
   const { t } = useTranslation(["management", "common"]);
   const rooms = useGetRoomsQuery();
+  const devicesQuery = useGetKioskDevicesQuery(undefined, { pollingInterval: 15000 });
+  const deviceByRoom = useMemo(() => {
+    const map = new Map();
+    (devicesQuery.data || []).forEach((device) => map.set(String(device.roomId), device));
+    return map;
+  }, [devicesQuery.data]);
   const [storeRoom, storeState] = useStoreRoomMutation();
   const [updateRoom, updateState] = useUpdateRoomMutation();
   const [deleteRoom, deleteState] = useDeleteRoomByIdMutation();
@@ -103,6 +110,22 @@ const RoomManagementSection = () => {
     { field: "capacity", headerName: t("rooms.capacity"), minWidth: 100, flex: 0.6 },
     { field: "floor", headerName: t("rooms.floor"), minWidth: 90, flex: 0.5 },
     { field: "email", headerName: t("common:fields.email"), minWidth: 190, flex: 1 },
+    {
+      field: "tablet",
+      headerName: t("rooms.tablet"),
+      minWidth: 140,
+      flex: 0.7,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }) => {
+        const device = deviceByRoom.get(String(row._id));
+        if (!device) return <Chip size="small" label={t("rooms.tabletNone")} />;
+        if (device.status === "revoked") return <Chip size="small" color="error" label={t("rooms.tabletRevoked")} />;
+        return device.online
+          ? <Chip size="small" color="success" label={t("rooms.tabletOnline")} />
+          : <Chip size="small" color="default" label={t("rooms.tabletOffline")} />;
+      },
+    },
     {
       field: "actions",
       headerName: t("common:fields.action"),

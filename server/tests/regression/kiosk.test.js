@@ -234,6 +234,19 @@ test("kiosk context and schedule are bound to one room with a safe projection", 
   }
 });
 
+test("kiosk device status reflects live last-seen", async () => {
+  const context = await apiRequest(targets.reconstructed, "/api/kiosk/context", { headers: kioskHeaders() });
+  assert.equal(context.status, 200);
+
+  const online = await apiRequest(targets.reconstructed, "/api/kiosk/devices", { headers: bearer("admin") });
+  assert.equal(online.status, 200);
+  assert.equal(online.body.find((item) => item.id === kioskDevice.id).online, true);
+
+  await queryParityDatabase(`UPDATE tbl_kiosk_devices SET last_seen_at = now() - interval '10 minutes' WHERE _id = '${kioskDevice.id}';`);
+  const stale = await apiRequest(targets.reconstructed, "/api/kiosk/devices", { headers: bearer("admin") });
+  assert.equal(stale.body.find((item) => item.id === kioskDevice.id).online, false);
+});
+
 test("kiosk check-in and early finish require room ownership and an authorized card", async () => {
   const now = Date.now();
   const own = await createMeeting({

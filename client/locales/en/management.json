@@ -39,7 +39,10 @@
     "status": {
       "active": "Active",
       "revoked": "Revoked",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "online": "Online",
+      "offline": "Offline",
+      "expired": "Expired"
     }
   },
   "rooms": {
@@ -58,7 +61,12 @@
     "capacity": "Capacity",
     "floor": "Floor",
     "feature": "Features",
-    "passwordMismatch": "New password and confirmation password do not match."
+    "passwordMismatch": "New password and confirmation password do not match.",
+    "tablet": "Tablet",
+    "tabletOnline": "Online",
+    "tabletOffline": "Offline",
+    "tabletNone": "None",
+    "tabletRevoked": "Revoked"
   },
   "users": {
     "title": "Users",

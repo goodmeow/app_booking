@@ -250,3 +250,13 @@ export const extendKioskRoomEvent = async ({ eventId, endAt }, execute = query) 
      end_date AT TIME ZONE timezone AS end_at`,
   [eventId, endAt]
 )).rows[0];
+
+export const touchKioskDevice = async (deviceId) => {
+  await query(
+    `UPDATE tbl_kiosk_devices
+     SET last_seen_at = now()
+     WHERE _id = $1
+       AND (last_seen_at IS NULL OR last_seen_at < now() - interval '10 seconds')`,
+    [deviceId]
+  );
+};

@@ -39,7 +39,10 @@
     "status": {
       "active": "Aktif",
       "revoked": "Dicabut",
-      "unknown": "Tidak diketahui"
+      "unknown": "Tidak diketahui",
+      "online": "Online",
+      "offline": "Offline",
+      "expired": "Kedaluwarsa"
     }
   },
   "rooms": {
@@ -58,7 +61,12 @@
     "capacity": "Kapasitas",
     "floor": "Lantai",
     "feature": "Fitur",
-    "passwordMismatch": "Kata sandi baru dan konfirmasinya tidak cocok."
+    "passwordMismatch": "Kata sandi baru dan konfirmasinya tidak cocok.",
+    "tablet": "Tablet",
+    "tabletOnline": "Online",
+    "tabletOffline": "Offline",
+    "tabletNone": "Belum ada",
+    "tabletRevoked": "Dicabut"
   },
   "users": {
     "title": "Pengguna",

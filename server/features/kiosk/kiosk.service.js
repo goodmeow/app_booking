@@ -20,6 +20,7 @@ import {
   listKioskDevices,
   listKioskScheduleRows,
   revokeKioskDevice,
+  touchKioskDevice,
   rotateKioskRefreshToken,
   updateKioskDeviceCapabilities,
 } from "./kiosk.repository.js";
@@ -46,6 +47,9 @@ const roomFromDevice = (device) => ({
   feature: device.feature,
 });
 
+// Perangkat dianggap online kalau masih mengirim request dalam jendela ini.
+const KIOSK_ONLINE_WINDOW_MS = 60_000;
+
 export const publicKioskDevice = (device) => ({
   id: device.device_id,
   name: device.device_name,
@@ -53,6 +57,9 @@ export const publicKioskDevice = (device) => ({
   roomName: device.room_name,
   roomEmail: device.room_email,
   status: device.revoked_at ? "revoked" : device.refresh_expires_at && new Date(device.refresh_expires_at) <= new Date() ? "expired" : "active",
+  online: Boolean(!device.revoked_at
+    && device.last_seen_at
+    && Date.now() - new Date(device.last_seen_at).getTime() <= KIOSK_ONLINE_WINDOW_MS),
   lastSeenAt: device.last_seen_at,
   refreshExpiresAt: device.refresh_expires_at,
   createdAt: device.created_at,
@@ -138,6 +145,12 @@ export const verifyKioskToken = async (token) => {
     || String(claims.room_id) !== String(device.room_id)
     || Number(claims.ver) !== Number(device.token_version)) {
     throw new HttpError(401, "INACTIVE_KIOSK_DEVICE", "Kiosk authentication required");
+  }
+  try {
+    await touchKioskDevice(device.device_id);
+    device.last_seen_at = new Date();
+  } catch {
+    // Kegagalan mencatat last-seen tidak boleh memblokir kiosk.
   }
   const room = publicKioskRoom(roomFromDevice(device));
   return { ...room, kind: "kiosk", roomId: room._id, deviceId: device.device_id, device: publicKioskDevice(device) };
