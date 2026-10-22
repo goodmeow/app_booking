@@ -23,6 +23,10 @@ import {
   Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import dayjs from "dayjs";
 import FeedbackSnackbar from "../components/common/FeedbackSnackbar.js";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
@@ -44,6 +48,7 @@ import {
   useUpdateEventMutation,
 } from "../redux/services/events.js";
 import { useLazyGetAvailableRoomsQuery } from "../redux/services/rooms.js";
+import { calendarLocaleForLanguage } from "../i18n/languages.js";
 
 const pad = (value) => String(value).padStart(2, "0");
 
@@ -105,7 +110,8 @@ const EventEditor = ({
   initialRoom,
   onClose,
 }) => {
-  const { t } = useTranslation(["calendar", "common"]);
+  const { t, i18n } = useTranslation(["calendar", "common"]);
+  const dateLocale = calendarLocaleForLanguage(i18n.resolvedLanguage || i18n.language);
   const eventId = event?.id;
   const editing = Boolean(eventId);
   const details = useGetEventDetailsQuery(eventId, { skip: !open || !editing });
@@ -135,11 +141,14 @@ const EventEditor = ({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [feedback, setFeedback] = useState({ open: false, message: "", severity: "error" });
 
-  // Input type="time" tidak mengenal "24:00", jadi batas akhir hari memakai 23:59
+  // Input "24:00" tidak dikenal, jadi batas akhir hari memakai 23:59
   // (satu menit sebelum tengah malam). Timezone tidak lagi dipilih: server
   // memakai zona waktu aplikasi.
   const startValue = draft.startDate ? `${draft.startDate}T${draft.startTime}` : "";
-  const endValue = draft.endDate ? `${draft.endDate}T${draft.endTime}` : "";
+  // Pada Recurring, rentang tanggal dikuasai "Ulangi sampai"; durasi tiap
+  // occurrence ikut jam mulai-jam selesai hari pertama.
+  const endDay = !editing && draft.bookingKind === "recurring" ? draft.startDate : draft.endDate;
+  const endValue = endDay ? `${endDay}T${draft.endTime}` : "";
 
   const userEmails = useMemo(() => uniqueAttendees(users).map(({ attendee_email }) => attendee_email), [users]);
   const usersByEmail = useMemo(() => new Map(users.map((user) => [String(user.email || "").toLowerCase(), user])), [users]);
@@ -196,6 +205,13 @@ const EventEditor = ({
 
   const change = (name) => (changeEvent) => {
     setDraft((current) => ({ ...current, [name]: changeEvent.target.value }));
+    setError("");
+    setGuidance("");
+  };
+
+  // Setter untuk nilai langsung (mis. hasil TimePicker berupa string "HH:mm").
+  const changeValue = (name) => (value) => {
+    setDraft((current) => ({ ...current, [name]: value }));
     setError("");
     setGuidance("");
   };
@@ -426,37 +442,53 @@ const EventEditor = ({
                   disabled={readOnly || busy}
                   InputLabelProps={{ shrink: true }}
                 />
-                <TextField
-                  fullWidth
-                  type="time"
-                  label={t("editor.startTime")}
-                  value={draft.startTime}
-                  onChange={change("startTime")}
-                  disabled={readOnly || busy}
-                  inputProps={{ step: 60 }}
-                  InputLabelProps={{ shrink: true }}
-                />
+                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={dateLocale}>
+                  <TimePicker
+                    fullWidth
+                    label={t("editor.startTime")}
+                    value={draft.startTime ? dayjs(`2000-01-01T${draft.startTime}`) : null}
+                    onChange={(value) => changeValue("startTime")(value ? value.format("HH:mm") : "")}
+                    ampm={false}
+                    format="HH:mm"
+                    views={["hours", "minutes"]}
+                    disabled={readOnly || busy}
+                    slotProps={{ textField: { fullWidth: true, size: "small" } }}
+                  />
+                </LocalizationProvider>
               </Stack>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label={t("editor.endDate")}
-                  value={draft.endDate}
-                  onChange={change("endDate")}
-                  disabled={readOnly || busy}
-                  InputLabelProps={{ shrink: true }}
-                />
-                <TextField
-                  fullWidth
-                  type="time"
-                  label={t("editor.endTime")}
-                  value={draft.endTime}
-                  onChange={change("endTime")}
-                  disabled={readOnly || busy}
-                  inputProps={{ step: 60 }}
-                  InputLabelProps={{ shrink: true }}
-                />
+                {!(!editing && draft.bookingKind === "recurring") ? (
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label={t("editor.endDate")}
+                    value={draft.endDate}
+                    onChange={change("endDate")}
+                    disabled={readOnly || busy}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                ) : (
+                  <TextField
+                    fullWidth
+                    label={t("editor.endDate")}
+                    value={t("editor.endDateFollowsRepeat")}
+                    disabled
+                    InputLabelProps={{ shrink: true }}
+                  />
+                )}
+                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={dateLocale}>
+                  <TimePicker
+                    fullWidth
+                    label={t("editor.endTime")}
+                    value={draft.endTime ? dayjs(`2000-01-01T${draft.endTime}`) : null}
+                    onChange={(value) => changeValue("endTime")(value ? value.format("HH:mm") : "")}
+                    ampm={false}
+                    format="HH:mm"
+                    views={["hours", "minutes"]}
+                    disabled={readOnly || busy}
+                    slotProps={{ textField: { fullWidth: true, size: "small" } }}
+                  />
+                </LocalizationProvider>
               </Stack>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
                 {!editing ? (

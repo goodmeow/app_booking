@@ -171,6 +171,9 @@ export const getKioskContext = async (room) => ({
   room: publicKioskRoom(room),
   device: room.device,
   timezone: config.appTimezone,
+  // Jam internal tablet sering melenceng; tablet memakai waktu ini untuk
+  // mengkalibrasi jam yang ditampilkan setiap kali berhasil konek.
+  serverTime: new Date().toISOString(),
   settings: (await getSettings()) || {},
 });
 

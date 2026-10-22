@@ -21,6 +21,7 @@
     "attendees": "Undang peserta",
     "startDate": "Tanggal mulai",
     "endDate": "Tanggal selesai",
+    "endDateFollowsRepeat": "Mengikuti 'Ulangi sampai' di bawah.",
     "location": "Lokasi",
     "description": "Tambahkan deskripsi",
     "duration": "{{count}} menit",

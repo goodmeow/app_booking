@@ -21,6 +21,7 @@
     "attendees": "Invite attendees",
     "startDate": "Start date",
     "endDate": "End date",
+    "endDateFollowsRepeat": "Followed by 'Repeat until' below.",
     "location": "Location",
     "description": "Add a description",
     "duration": "{{count}} minute",

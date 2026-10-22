@@ -59,9 +59,14 @@ sehingga tidak memakai header CMS.
   check-in) dengan aksi **Edit** dan **Batalkan** (sesuai hak organizer/admin).
 - **Form tambah/edit meeting** (`EventEditor.js`):
   - **Tanggal dipisah dari jam** — Tanggal mulai, Tanggal selesai, Jam mulai,
-    Jam selesai (input bebas 00:00–23:59; memo `24:00` memakai 23:59). Form
+    Jam selesai. Jam memakai **TimePicker 24 jam** (`ampm={false}`, format
+    `HH:mm`, tanpa AM/PM; mencakup 00:00–23:59, `24:00` teknis = 23:59). Form
     kosong default **seharian penuh** (00:00–23:59); klik slot kalender tetap
     memakai jam slot.
+  - **Mode Recurring** — field **Tanggal selesai disembunyikan** (ditampilkan
+    sebagai keterangan "mengikuti Ulangi sampai") karena rentang pengulangan
+    dikuasai **Ulangi sampai**; durasi tiap occurrence mengikuti Jam
+    mulai–Jam selesai hari pertama.
   - **Zona waktu dihapus** — server otomatis memakai zona waktu aplikasi
     (`APP_TIMEZONE`, default `Asia/Jakarta`); pengguna tidak lagi memilih
     Asia/Jakarta/UTC. Saat mengedit event lama, `timezone` tersimpan tetap
