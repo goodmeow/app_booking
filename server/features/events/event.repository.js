@@ -88,7 +88,7 @@ export const insertEventParticipant = async (client, eventId, participant) => (a
   [eventId, participant.email, participant.userId || null, participant.roomId || null, participant.visitorEmail || null, Boolean(participant.visitorEmail)]
 )).rows[0];
 
-export const listEventsForPrincipal = async ({ principalId, role, roomId, rangeStart, rangeEnd }) => (await query(
+export const listEventsForPrincipal = async ({ principalId, role, roomId, rangeStart, rangeEnd, allEvents = false }) => (await query(
   `SELECT DISTINCT
      ${eventInstantColumns},
      split_part(btrim(organizer_account.name), ' ', 1) AS organizer_first_name,
@@ -114,7 +114,8 @@ export const listEventsForPrincipal = async ({ principalId, role, roomId, rangeS
      AND (
        ($3::uuid IS NOT NULL AND room_booking.room_id = $3)
        OR ($3::uuid IS NULL AND (
-         e.organizer_id = $1
+         ($6::boolean AND $2 = 'ADMIN')
+         OR e.organizer_id = $1
          OR EXISTS (
            SELECT 1 FROM tbl_event_details personal_detail
            WHERE personal_detail.event_id = e._id
@@ -124,7 +125,7 @@ export const listEventsForPrincipal = async ({ principalId, role, roomId, rangeS
        ))
      )
    ORDER BY start_at, e._id`,
-  [principalId, role, roomId || null, rangeStart, rangeEnd]
+  [principalId, role, roomId || null, rangeStart, rangeEnd, allEvents]
 )).rows;
 
 export const findEventAccess = async (eventId, principalId) => (await query(

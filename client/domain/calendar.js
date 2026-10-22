@@ -52,9 +52,10 @@ export const navigateCalendarDate = (value, view, direction) => {
   return addDays(value, amount * 7);
 };
 
-export const calendarEventFilters = ({ email, roomEmail, range }) => ({
-  users: roomEmail ? undefined : email,
+export const calendarEventFilters = ({ email, roomEmail, range, all = false }) => ({
+  users: all || roomEmail ? undefined : email,
   rooms: roomEmail || undefined,
+  all: all ? true : undefined,
   start: range.start,
   end: range.end,
 });

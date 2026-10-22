@@ -9,7 +9,9 @@
     "mySchedule": "My Schedule",
     "roomSchedule": "Room Schedule",
     "mineHint": "Shows meetings connected to your account.",
-    "roomHint": "Choose a room to see only that room schedule."
+    "roomHint": "Choose a room to see only that room schedule.",
+    "allSchedule": "All schedules",
+    "allHint": "Shows bookings from every employee and room."
   },
   "editor": {
     "addTitle": "Add Meeting",

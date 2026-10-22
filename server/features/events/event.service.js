@@ -285,6 +285,7 @@ export const listEvents = async (queryParams, principal) => {
     principalId: principal._id,
     role: principal.role,
     roomId: room?._id,
+    allEvents: queryParams.all === "true" && principal.role === "ADMIN",
     ...range,
   });
   return rows.map(projectCalendarEvent);

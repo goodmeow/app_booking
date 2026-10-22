@@ -20,13 +20,13 @@ const MeetingCalendar = () => {
   const dispatch = useDispatch();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarView, setCalendarView] = useState("timeGridWeek");
-  const [scheduleMode, setScheduleMode] = useState("mine");
+  const [scheduleMode, setScheduleMode] = useState(session?.user?.role === "ADMIN" ? "all" : "mine");
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [editor, setEditor] = useState({ open: false, event: null, start: null, end: null });
   const activeRoom = scheduleMode === "room" ? selectedRoom : null;
   const range = useMemo(() => calendarRangeForView(selectedDate, calendarView), [selectedDate, calendarView]);
   const eventQuery = useGetEventsQuery(
-    calendarEventFilters({ email: session.user.email, roomEmail: activeRoom?.email, range }),
+    calendarEventFilters({ email: session.user.email, roomEmail: activeRoom?.email, range, all: scheduleMode === "all" }),
     { skip: scheduleMode === "room" && !activeRoom }
   );
   const roomQuery = useGetRoomsQuery();
@@ -76,6 +76,7 @@ const MeetingCalendar = () => {
             rooms={bookableRooms}
             floor={userFloor}
             showAllFloors={showAllFloors}
+            isAdmin={isAdmin}
             showTabletStatus={isAdmin}
             roomStatus={roomStatus}
             scheduleMode={scheduleMode}

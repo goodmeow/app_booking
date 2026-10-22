@@ -155,6 +155,10 @@ modal email + sandi ruangan.
   sub-menu Kartu Master dihapus dari UI.
 - Switch **NFC** dihapus dari daftar perangkat karena NFC sudah ditangani
   aplikasi kiosk; switch LED tetap ada.
+- **Mode jadwal**: "Jadwal saya" (default user), "Per ruangan", dan
+  **"Semua jadwal"** khusus admin (default untuk admin). Server hanya
+  mengizinkan `all=true` untuk role ADMIN; user biasa tetap dibatasi ke
+  jadwalnya sendiri.
 - **Status ruangan** tampil di sidebar kalender (auto-refresh 30 detik): nama
   ruangan, **Dipakai/Kosong**, siapa dan sampai jam berapa, plus status tablet
   online/offline. Event yang sudah check-in diberi tanda "✓ Sudah check-in"

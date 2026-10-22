@@ -35,6 +35,7 @@ const CalendarSidebar = ({
   rooms = [],
   floor = "",
   showAllFloors = false,
+  isAdmin = false,
   showTabletStatus = false,
   roomStatus = [],
   scheduleMode = "mine",
@@ -77,9 +78,16 @@ const CalendarSidebar = ({
         >
           <ToggleButton value="mine">{t("sidebar.mySchedule")}</ToggleButton>
           <ToggleButton value="room">{t("sidebar.roomSchedule")}</ToggleButton>
+          {isAdmin ? <ToggleButton value="all">{t("sidebar.allSchedule")}</ToggleButton> : null}
         </ToggleButtonGroup>
         <Alert severity="info" sx={{ mt: 1 }}>
-          {t(scheduleMode === "room" ? "sidebar.roomHint" : "sidebar.mineHint")}
+          {t(
+            scheduleMode === "room"
+              ? "sidebar.roomHint"
+              : scheduleMode === "all"
+                ? "sidebar.allHint"
+                : "sidebar.mineHint"
+          )}
         </Alert>
       </Box>
 

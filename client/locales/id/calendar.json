@@ -9,7 +9,9 @@
     "mySchedule": "Jadwal Saya",
     "roomSchedule": "Jadwal Ruangan",
     "mineHint": "Menampilkan meeting yang terhubung ke akun Anda.",
-    "roomHint": "Pilih ruangan untuk melihat jadwal ruangan itu saja."
+    "roomHint": "Pilih ruangan untuk melihat jadwal ruangan itu saja.",
+    "allSchedule": "Semua jadwal",
+    "allHint": "Menampilkan jadwal semua karyawan dan ruangan."
   },
   "editor": {
     "addTitle": "Tambah Meeting",
