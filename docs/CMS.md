@@ -59,6 +59,9 @@ sehingga tidak memakai header CMS.
   check-in) dengan aksi **Edit** dan **Batalkan** (sesuai hak organizer/admin).
 - Saat membuat event, editor mengecek **konflik** dan menawarkan **ruangan lain
   yang kosong** pada jam tersebut (mengikuti lantai user dan kapasitas).
+  Respons preview dibatasi `MAX_PREVIEW_CONFLICTS` (default 50) dan menyertakan
+  `conflictTotal` + `conflictsTruncated`; editor menampilkan ringkasan bila
+  konflik lebih banyak dari batas.
 - Di layar sempit (<900 px) tampilan default otomatis **Agenda**.
 - Papan jadwal dengan **ruangan sebagai resource** (FullCalendar
   resource-timeline, tampilan minggu).

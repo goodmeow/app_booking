@@ -127,6 +127,7 @@
     "cancelError": "Tidak dapat membatalkan meeting.",
     "conflictDetected": "Ruangan ini sudah dipakai pada waktu tersebut.",
     "alternativesTitle": "Ruangan lain yang kosong:",
-    "noAlternatives": "Tidak ada ruangan lain yang kosong di waktu ini."
+    "noAlternatives": "Tidak ada ruangan lain yang kosong di waktu ini.",
+    "conflictTruncated": "Menampilkan {{shown}} dari {{total}} konflik."
   }
 }

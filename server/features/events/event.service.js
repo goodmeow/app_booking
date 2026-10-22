@@ -151,13 +151,17 @@ const assertRoomFloorAccess = async (roomIds, principal) => {
 
 export const previewEvents = async (body) => {
   const plan = await createPlan(body);
+  const conflicts = await findRoomConflicts(roomIdsFor(plan.participants), plan.occurrences);
+  const total = conflicts.length;
   return {
     occurrences: plan.occurrences,
-    conflicts: (await findRoomConflicts(roomIdsFor(plan.participants), plan.occurrences)).map((item) => ({
+    conflicts: conflicts.slice(0, config.maxPreviewConflicts).map((item) => ({
       roomId: item.room_id,
       start: item.start_at,
       end: item.end_at,
     })),
+    conflictTotal: total,
+    conflictsTruncated: total > config.maxPreviewConflicts,
   };
 };
 

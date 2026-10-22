@@ -45,6 +45,7 @@ const config = {
   appTimezone: env.APP_TIMEZONE || "Asia/Jakarta",
   maxBookingDurationHours: Number(env.MAX_BOOKING_DURATION_HOURS || 168),
   maxCalendarRangeDays: Number(env.MAX_CALENDAR_RANGE_DAYS || 366),
+  maxPreviewConflicts: Number(env.MAX_PREVIEW_CONFLICTS || 50),
   recurrenceMaxDays: Number(env.RECURRENCE_MAX_DAYS || 366),
   recurrenceMaxOccurrences: Number(env.RECURRENCE_MAX_OCCURRENCES || 200),
   pgConn: {
@@ -79,6 +80,9 @@ export const validateRuntimeConfig = () => {
   }
   if (!Number.isInteger(config.maxCalendarRangeDays) || config.maxCalendarRangeDays <= 0) {
     throw new Error("MAX_CALENDAR_RANGE_DAYS must be a positive integer");
+  }
+  if (!Number.isInteger(config.maxPreviewConflicts) || config.maxPreviewConflicts <= 0) {
+    throw new Error("MAX_PREVIEW_CONFLICTS must be a positive integer");
   }
   if (!Number.isInteger(config.recurrenceMaxDays) || config.recurrenceMaxDays <= 0) {
     throw new Error("RECURRENCE_MAX_DAYS must be a positive integer");

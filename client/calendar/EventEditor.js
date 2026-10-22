@@ -112,6 +112,8 @@ const EventEditor = ({
   const [previewEvents, previewState] = usePreviewEventsMutation();
   const [fetchAvailableRooms] = useLazyGetAvailableRoomsQuery();
   const [conflictCount, setConflictCount] = useState(0);
+  const [conflictShown, setConflictShown] = useState(0);
+  const [conflictTruncated, setConflictTruncated] = useState(false);
   const [alternatives, setAlternatives] = useState([]);
   const [storeEvent, storeState] = useStoreEventMutation();
   const [updateEvent, updateState] = useUpdateEventMutation();
@@ -208,6 +210,8 @@ const EventEditor = ({
   useEffect(() => {
     if (!open || editing || readOnly || !location || !draft.start || !draft.end) {
       setConflictCount(0);
+      setConflictShown(0);
+      setConflictTruncated(false);
       setAlternatives([]);
       return undefined;
     }
@@ -229,15 +233,21 @@ const EventEditor = ({
         let count = 0;
         try {
           const preview = await previewEvents(buildModernEventPayload(eventDraft)).unwrap();
-          count = Array.isArray(preview.conflicts) ? preview.conflicts.length : 0;
+          const returned = Array.isArray(preview.conflicts) ? preview.conflicts.length : 0;
+          count = Number.isFinite(Number(preview.conflictTotal)) ? Number(preview.conflictTotal) : returned;
+          setConflictShown(returned);
+          setConflictTruncated(Boolean(preview.conflictsTruncated));
         } catch {
           setConflictCount(0);
+          setConflictShown(0);
+          setConflictTruncated(false);
           setAlternatives([]);
           return;
         }
         setConflictCount(count);
         if (!count) {
           setAlternatives([]);
+          setConflictTruncated(false);
           return;
         }
         try {
@@ -308,8 +318,11 @@ const EventEditor = ({
       let previewSummary = "";
       if (!editing) {
         const preview = await previewEvents(buildModernEventPayload(eventDraft)).unwrap();
-        if (Array.isArray(preview.conflicts) && preview.conflicts.length) {
-          setError(t("editor.conflictSummary", { count: preview.conflicts.length }));
+        const conflictTotal = Number.isFinite(Number(preview.conflictTotal))
+          ? Number(preview.conflictTotal)
+          : (Array.isArray(preview.conflicts) ? preview.conflicts.length : 0);
+        if (conflictTotal > 0) {
+          setError(t("editor.conflictSummary", { count: conflictTotal }));
           return;
         }
         if (Array.isArray(preview.occurrences)) {
@@ -527,6 +540,11 @@ const EventEditor = ({
               {conflictCount > 0 ? (
                 <Alert severity="warning">
                   <Typography variant="body2">{t("calendar.conflictDetected")}</Typography>
+                  {conflictTruncated ? (
+                    <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                      {t("calendar.conflictTruncated", { shown: conflictShown, total: conflictCount })}
+                    </Typography>
+                  ) : null}
                   <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
                     {t("calendar.alternativesTitle")}
                   </Typography>

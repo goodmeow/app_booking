@@ -127,6 +127,7 @@
     "cancelError": "Unable to cancel the meeting.",
     "conflictDetected": "This room is already booked for that time.",
     "alternativesTitle": "Other free rooms:",
-    "noAlternatives": "No other rooms are free at this time."
+    "noAlternatives": "No other rooms are free at this time.",
+    "conflictTruncated": "Showing {{shown}} of {{total}} conflicts."
   }
 }
