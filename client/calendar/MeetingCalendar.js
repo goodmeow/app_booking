@@ -30,6 +30,7 @@ const MeetingCalendar = () => {
     { skip: scheduleMode === "room" && !activeRoom }
   );
   const roomQuery = useGetRoomsQuery();
+  const roomStatusQuery = useGetRoomStatusQuery(undefined, { pollingInterval: 30_000 });
   const userQuery = useListUserQuery();
   const isAdmin = session?.user?.role === "ADMIN";
   const userFloor = String(session?.user?.floor ?? "").trim();

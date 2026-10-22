@@ -260,6 +260,9 @@ const UserManagementSection = () => {
           {floorOptions.map((floor) => (
             <MenuItem key={floor} value={floor}>{t("users.floorValue", { floor })}</MenuItem>
           ))}
+          {row.floor && row.floor !== "all" && !floorOptions.includes(row.floor) ? (
+            <MenuItem value={row.floor}>{t("users.floorValue", { floor: row.floor })}</MenuItem>
+          ) : null}
         </TextField>
       ),
     },

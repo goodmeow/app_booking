@@ -96,18 +96,18 @@
     "multiDayCue": "Continues across {{dates}}",
     "recurringCue": "Recurring series",
     "recurringOccurrenceCue": "Recurring series · occurrence {{count}}",
-    "selectRoomPrompt": "Select a room to view room schedule."
-  },
-  "floorScope": "Only rooms on floor {{floor}} are shown.",
-  "floorScopeAdmin": "Admin mode: all floors are shown.",
-  "floorMissing": "Your account has no work floor yet. Ask an admin to set it in Management > Users.",
-  "floorScopeAll": "All floors are shown.",
-  "roomStatusTitle": "Room status",
-  "roomOccupied": "In use",
-  "roomFree": "Free",
-  "roomOccupiedBy": "Used by {{name}} until {{until}}",
-  "roomFreeText": "Ready to use",
-  "tabletOnline": "Tablet online",
-  "tabletOffline": "Tablet offline",
-  "checkedIn": "Checked in"
+    "selectRoomPrompt": "Select a room to view room schedule.",
+    "floorScope": "Only rooms on floor {{floor}} are shown.",
+    "floorScopeAdmin": "Admin mode: all floors are shown.",
+    "floorMissing": "Your account has no work floor yet. Ask an admin to set it in Management > Users.",
+    "floorScopeAll": "All floors are shown.",
+    "roomStatusTitle": "Room status",
+    "roomOccupied": "In use",
+    "roomFree": "Free",
+    "roomOccupiedBy": "Used by {{name}} until {{until}}",
+    "roomFreeText": "Ready to use",
+    "tabletOnline": "Tablet online",
+    "tabletOffline": "Tablet offline",
+    "checkedIn": "Checked in"
+  }
 }
