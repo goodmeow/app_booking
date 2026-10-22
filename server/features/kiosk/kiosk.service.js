@@ -6,7 +6,7 @@ import { withTransaction } from "../../db/pool.js";
 import { badRequest, conflict, forbidden, HttpError, notFound } from "../../lib/http-error.js";
 import { finishEventNow, markCheckedIn } from "../events/event.repository.js";
 import { hasDoorCard } from "../auth/auth.repository.js";
-import { formatLocalTime } from "../events/event-time.js";
+import { formatLocalTime, zonedParts, zonedPartsToDate } from "../events/event-time.js";
 import { calendarRange, createEvents } from "../events/event.service.js";
 import { getSettings } from "../settings/setting.repository.js";
 import {
@@ -314,6 +314,31 @@ export const completeKioskEvent = async ({ event_id: eventId }, room) => {
   });
 };
 
+
+// Jendela pemakaian langsung: selalu berakhir di hari yang sama (zona server),
+// maksimal 4 jam atau sampai meeting berikutnya bila masih hari itu.
+export const instantBookingWindow = ({ now, nextStart, minutes, timezone }) => {
+  const requestedMs = clampMinutes(minutes, 30, 5, 240) * 60_000;
+  const nowParts = zonedParts(now, timezone);
+  const endOfDay = zonedPartsToDate(
+    { ...nowParts, hour: 23, minute: 59, second: 59, millisecond: 0 },
+    timezone
+  );
+  const maxEnd = Math.min(now.getTime() + 240 * 60_000, endOfDay.getTime());
+  const nextToday = nextStart && new Date(nextStart).getTime() <= endOfDay.getTime()
+    ? new Date(nextStart).getTime()
+    : null;
+  const endMs = nextToday
+    ? Math.min(nextToday, maxEnd)
+    : Math.min(now.getTime() + requestedMs, maxEnd);
+  return {
+    start: now,
+    end: new Date(endMs),
+    untilNext: Boolean(nextToday),
+    endOfDay,
+  };
+};
+
 export const instantKioskBooking = async ({ card_number: cardNumber, minutes, until_next: untilNext }, room) => {
   const card = String(cardNumber || "").trim();
   if (!card) throw badRequest("INVALID_CARD", "Card number is required");
@@ -331,13 +356,14 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
   const horizon = new Date(now.getTime() + 36 * 60 * 60_000);
   const rows = await listKioskScheduleRows({ roomId: room._id, rangeStart: now, rangeEnd: horizon });
   const next = rows.find((row) => new Date(row.start_at).getTime() > now.getTime());
-  const requested = clampMinutes(minutes, 30, 5, 240) * 60_000;
-  const maxEnd = now.getTime() + 240 * 60_000;
-  const effectiveEnd = untilNext && next
-    ? new Date(Math.min(new Date(next.start_at).getTime(), maxEnd))
-    : new Date(now.getTime() + requested);
-  if (effectiveEnd.getTime() - now.getTime() < 60_000) {
-    throw conflict("NO_FREE_WINDOW", "No free window before the next meeting");
+  const window = instantBookingWindow({
+    now,
+    nextStart: next?.start_at,
+    minutes,
+    timezone: config.appTimezone,
+  });
+  if (window.end.getTime() - now.getTime() < 60_000) {
+    throw conflict("NO_FREE_WINDOW", "Tidak ada sisa waktu di hari ini untuk pemakaian langsung");
   }
   const created = await createEvents(
     [{
@@ -345,7 +371,7 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
       subject: `Pemakaian ruangan - ${employee.name}`,
       description: "Pemesanan langsung dari kiosk",
       start_date: now.toISOString(),
-      end_date: effectiveEnd.toISOString(),
+      end_date: window.end.toISOString(),
       attendee_email: room.email,
     }],
     { _id: employee._id, email: employee.email, name: employee.name, role: "USER", floor: employee.floor }
@@ -359,8 +385,8 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
     title: first?.title || `Pemakaian ruangan - ${employee.name}`,
     organizer: employee.name,
     start: first?.start || now.toISOString(),
-    end: first?.end || effectiveEnd.toISOString(),
+    end: first?.end || window.end.toISOString(),
     checkedIn: true,
-    untilNext: Boolean(untilNext && next),
+    untilNext: window.untilNext,
   };
 };

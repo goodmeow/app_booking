@@ -169,3 +169,7 @@ modal email + sandi ruangan.
 "Pesan sekarang" di kiosk membuat event **sekaligus menandai check-in**
 (orangnya sudah berada di ruangan), dan server mengirim invalidasi Socket.io
 sehingga kalender CMS langsung memperbarui status ruangan tanpa refresh manual.
+
+Pemakaian langsung selalu **berakhir di hari yang sama** (zona `APP_TIMEZONE`),
+maksimal 4 jam atau sampai meeting berikutnya bila masih hari itu. Bila sisa
+waktu hari ini kurang dari 1 menit, permintaan ditolak `NO_FREE_WINDOW`.
