@@ -165,7 +165,18 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", onViewC
       weekends
       dayMaxEvents
       selectOverlap={false}
-      eventMinHeight={28}
+      // Jam kerja + slot 30 menit supaya tinggi baris cukup untuk 2 baris teks.
+      slotMinTime="07:00:00"
+      slotMaxTime="20:00:00"
+      slotDuration="00:30:00"
+      slotLabelInterval="01:00"
+      scrollTime={`${String(Math.max(7, Math.min(19, new Date().getHours() - 1))).padStart(2, "0")}:00:00`}
+      scrollTimeReset={false}
+      allDaySlot={false}
+      expandRows
+      height={780}
+      eventMinHeight={40}
+      slotEventOverlap={false}
       displayEventTime={false}
       eventTimeFormat={{ hour12: false }}
       events={events}
@@ -187,16 +198,16 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", onViewC
             }}
           >
             {busy ? null : (
-              <Typography component="span" variant="caption" display="block" noWrap>
+              <Typography component="span" display="block" noWrap sx={{ fontSize: 11.5, lineHeight: 1.1, opacity: 0.95 }}>
                 {checked ? "✓ " : ""}
                 {formatMeetingTimeRange(info.event.start, info.event.end, browserLocale)}
               </Typography>
             )}
-            <Typography component="span" variant="body2" fontWeight={600} display="block" noWrap>
+            <Typography component="span" display="block" noWrap sx={{ fontSize: 14, lineHeight: 1.15, fontWeight: 600 }}>
               {info.event.title}
             </Typography>
             {cues.length ? (
-              <Typography component="span" variant="caption" display="block" noWrap>
+              <Typography component="span" display="block" noWrap sx={{ fontSize: 11, lineHeight: 1.1, opacity: 0.9 }}>
                 {cues.join(" · ")}
               </Typography>
             ) : null}
