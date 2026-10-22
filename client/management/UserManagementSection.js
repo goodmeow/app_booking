@@ -241,6 +241,29 @@ const UserManagementSection = () => {
     { field: "name", headerName: t("common:fields.name"), flex: 1, minWidth: 140 },
     { field: "email", headerName: t("common:fields.email"), flex: 1.25, minWidth: 190 },
     {
+      field: "floor",
+      headerName: t("users.floorGroup"),
+      minWidth: 170,
+      sortable: true,
+      filterable: false,
+      valueGetter: ({ row }) => floorLabel(row.floor),
+      renderCell: ({ row }) => (
+        <TextField
+          select
+          size="small"
+          value={row.floor || ""}
+          onChange={(event) => void changeFloor(row, event.target.value)}
+          sx={{ minWidth: 140 }}
+        >
+          <MenuItem value="">{t("users.floorUnset")}</MenuItem>
+          <MenuItem value="all">{t("users.floorAll")}</MenuItem>
+          {floorOptions.map((floor) => (
+            <MenuItem key={floor} value={floor}>{t("users.floorValue", { floor })}</MenuItem>
+          ))}
+        </TextField>
+      ),
+    },
+    {
       field: "card_number",
       headerName: t("users.cardNumber"),
       minWidth: 150,
