@@ -211,6 +211,7 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 `docs/reconstruction/hardware-readiness-audit.md` dan
 `nauchara/hardware/KIOSKAPP-RN.md`.
 
+- [ ] Beli modul relay USB (LCUS-1/CH340 serial, atau relay HID + dukungan native HID).
 - [ ] Verifikasi relay fisik CH340: enumerasi USB, 9600 8N1, polaritas,
   izin USB setelah reboot, frame `A00101A2` / `A00100A1` (tombol Buka Pintu
   baru muncul kalau modul terdeteksi).
