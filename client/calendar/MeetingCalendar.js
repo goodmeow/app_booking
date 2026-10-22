@@ -76,6 +76,7 @@ const MeetingCalendar = () => {
             rooms={bookableRooms}
             floor={userFloor}
             showAllFloors={showAllFloors}
+            showTabletStatus={isAdmin}
             roomStatus={roomStatus}
             scheduleMode={scheduleMode}
             onScheduleModeChange={(mode) => {

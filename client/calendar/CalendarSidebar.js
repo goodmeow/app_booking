@@ -34,6 +34,7 @@ const CalendarSidebar = ({
   rooms = [],
   floor = "",
   showAllFloors = false,
+  showTabletStatus = false,
   roomStatus = [],
   scheduleMode = "mine",
   onScheduleModeChange,
@@ -158,8 +159,12 @@ const CalendarSidebar = ({
                       until: formatClock(room.end, dateLocale),
                     })
                     : t("calendar.roomFreeText")}
-                  {" · "}
-                  {room.tabletOnline ? t("calendar.tabletOnline") : t("calendar.tabletOffline")}
+                  {showTabletStatus ? (
+                    <>
+                      {" · "}
+                      {room.tabletOnline ? t("calendar.tabletOnline") : t("calendar.tabletOffline")}
+                    </>
+                  ) : null}
                 </Typography>
               </Paper>
             ))}
