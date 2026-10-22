@@ -57,6 +57,23 @@ sehingga tidak memakai header CMS.
 ### 3.3 Kalender Rapat (`/`) — `client/calendar/`
 - Klik event membuka **drawer detail** (judul, waktu, ruangan, peserta, status
   check-in) dengan aksi **Edit** dan **Batalkan** (sesuai hak organizer/admin).
+- **Form tambah/edit meeting** (`EventEditor.js`):
+  - **Tanggal dipisah dari jam** — Tanggal mulai, Tanggal selesai, Jam mulai,
+    Jam selesai (input bebas 00:00–23:59; memo `24:00` memakai 23:59). Form
+    kosong default **seharian penuh** (00:00–23:59); klik slot kalender tetap
+    memakai jam slot.
+  - **Zona waktu dihapus** — server otomatis memakai zona waktu aplikasi
+    (`APP_TIMEZONE`, default `Asia/Jakarta`); pengguna tidak lagi memilih
+    Asia/Jakarta/UTC. Saat mengedit event lama, `timezone` tersimpan tetap
+    dikirim agar occurrence tidak bergeser.
+  - **Jenis booking**: `One Time` (sekali) dan `Recurring` (berulang) dengan
+    pola **Harian / Mingguan / Bulanan**: interval "setiap N" (harian/mingguan/
+    bulanan), hari pilihan untuk mingguan, dan untuk bulanan pilih **Pada
+    tanggal yang sama** atau **Pada hari tertentu** (Senin ke-2, Jumat
+    terakhir, dst). Berakhir dengan tanggal (`Ulangi sampai`; horizon server
+    `RECURRENCE_MAX_DAYS` = 366 hari, maksimum occurrence 200). Pola bulanan
+    yang hari tanggalnya tidak ada (mis. tgl 31) melompat ke bulan berikutnya
+    yang punya tanggal itu.
 - Saat membuat event, editor mengecek **konflik** dan menawarkan **ruangan lain
   yang kosong** pada jam tersebut (mengikuti lantai user dan kapasitas).
   Respons preview dibatasi `MAX_PREVIEW_CONFLICTS` (default 50) dan menyertakan

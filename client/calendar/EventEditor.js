@@ -120,12 +120,13 @@ const EventEditor = ({
   const [deleteEventById, deleteState] = useDeleteEventByIdMutation();
   const [draft, setDraft] = useState({
     subject: "",
-    start: "",
-    end: "",
+    startDate: "",
+    startTime: "00:00",
+    endDate: "",
+    endTime: "23:59",
     description: "",
-    timezone: "Asia/Jakarta",
     bookingKind: "single",
-    recurrence: { cadence: "daily", interval: 1, endDate: "", weekdays: [] },
+    recurrence: { cadence: "daily", interval: 1, endDate: "", weekdays: [], monthlyPattern: "date", monthWeekIndex: 1, monthWeekday: 1 },
     scope: "occurrence",
     attendees: [],
   });
@@ -133,6 +134,12 @@ const EventEditor = ({
   const [guidance, setGuidance] = useState("");
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [feedback, setFeedback] = useState({ open: false, message: "", severity: "error" });
+
+  // Input type="time" tidak mengenal "24:00", jadi batas akhir hari memakai 23:59
+  // (satu menit sebelum tengah malam). Timezone tidak lagi dipilih: server
+  // memakai zona waktu aplikasi.
+  const startValue = draft.startDate ? `${draft.startDate}T${draft.startTime}` : "";
+  const endValue = draft.endDate ? `${draft.endDate}T${draft.endTime}` : "";
 
   const userEmails = useMemo(() => uniqueAttendees(users).map(({ attendee_email }) => attendee_email), [users]);
   const usersByEmail = useMemo(() => new Map(users.map((user) => [String(user.email || "").toLowerCase(), user])), [users]);
@@ -147,22 +154,33 @@ const EventEditor = ({
   const readOnly = editing && (!isOrganizer || hasEnded);
   const recurringEvent = Boolean(eventField(event, "series_id"));
   const busy = storeState.isLoading || updateState.isLoading || deleteState.isLoading || previewState.isLoading;
-  const duration = durationMinutes(draft.start, draft.end);
+  const duration = durationMinutes(startValue, endValue);
 
   useEffect(() => {
     if (!open) return;
     const range = defaultRange(initialStart, initialEnd);
+    const storedStart = toDateTimeInput(eventField(event, "start")) || range.start;
+    const storedEnd = toDateTimeInput(eventEnd) || range.end;
     const initialAttendees = initialRoom?.email
       ? [{ attendee_email: initialRoom.email, type: "room", room_id: initialRoom._id }]
       : [];
+    // Form kosong (bukan dari klik slot kalender atau meeting lama) memakai
+    // seharian penuh 00:00-23:59 agar pengguna tidak berhadapan dengan jam.
+    const freshForm = !initialStart && !eventField(event, "start");
+    const startDay = storedStart.slice(0, 10);
     setDraft({
       subject: event?.title || eventField(event, "subject") || "",
-      start: toDateTimeInput(eventField(event, "start")) || range.start,
-      end: toDateTimeInput(eventEnd) || range.end,
+      startDate: startDay,
+      startTime: freshForm ? "00:00" : (storedStart.slice(11, 16) || "00:00"),
+      endDate: freshForm ? startDay : storedEnd.slice(0, 10),
+      endTime: freshForm ? "23:59" : (storedEnd.slice(11, 16) || "23:59"),
       description: safeDecode(eventField(event, "description")),
-      timezone: eventField(event, "timezone") || "Asia/Jakarta",
+      // Timezone rumpun dipilih sendiri oleh pengguna: server memakai zona
+      // waktu aplikasi. Saat mengedit, timezone tersimpan ikut dikirim agar
+      // occurrence lama tidak bergeser.
+      ...(eventField(event, "timezone") ? { timezone: eventField(event, "timezone") } : {}),
       bookingKind: "single",
-      recurrence: { cadence: "daily", interval: 1, endDate: "", weekdays: [] },
+      recurrence: { cadence: "daily", interval: 1, endDate: "", weekdays: [], monthlyPattern: "date", monthWeekIndex: 1, monthWeekday: 1 },
       scope: "occurrence",
       attendees: initialAttendees,
     });
@@ -208,7 +226,7 @@ const EventEditor = ({
 
   // Cek konflik saat waktu/ruangan berubah, lalu tawarkan ruangan lain yang kosong.
   useEffect(() => {
-    if (!open || editing || readOnly || !location || !draft.start || !draft.end) {
+    if (!open || editing || readOnly || !location || !startValue || !endValue) {
       setConflictCount(0);
       setConflictShown(0);
       setConflictTruncated(false);
@@ -222,8 +240,8 @@ const EventEditor = ({
           organizer,
           subject: draft.subject || "preview",
           description: encodeEventDescription(draft.description),
-          startDate: draft.start,
-          endDate: draft.end,
+          startDate: startValue,
+          endDate: endValue,
           timezone: draft.timezone,
           bookingKind: draft.bookingKind,
           recurrence: draft.recurrence,
@@ -252,8 +270,8 @@ const EventEditor = ({
         }
         try {
           const available = await fetchAvailableRooms({
-            start_dates: new Date(draft.start).toISOString(),
-            end_dates: new Date(draft.end).toISOString(),
+            start_dates: new Date(startValue).toISOString(),
+            end_dates: new Date(endValue).toISOString(),
           }).unwrap();
           const freeEmails = new Set((available || []).map((room) => String(room.email).toLowerCase()));
           const peopleCount = attendees.filter((item) => !isRoomAttendee(item)).length;
@@ -275,7 +293,7 @@ const EventEditor = ({
     return () => clearTimeout(timer);
   }, [
     open, editing, readOnly, location, organizer, rooms,
-    draft.start, draft.end, draft.timezone, draft.subject, draft.description,
+    startValue, endValue, draft.timezone, draft.subject, draft.description,
     draft.bookingKind, draft.recurrence, draft.scope, draft.attendees,
     previewEvents, fetchAvailableRooms,
   ]);
@@ -289,8 +307,8 @@ const EventEditor = ({
     const attendees = uniqueAttendees(draft.attendees);
     const validationError = validateEventDraft({
       subject: draft.subject,
-      startDate: draft.start,
-      endDate: draft.end,
+      startDate: startValue,
+      endDate: endValue,
       attendees,
       bookingKind: draft.bookingKind,
       recurrence: draft.recurrence,
@@ -305,8 +323,8 @@ const EventEditor = ({
       organizer,
       subject: draft.subject,
       description: encodeEventDescription(draft.description),
-      startDate: draft.start,
-      endDate: draft.end,
+      startDate: startValue,
+      endDate: endValue,
       timezone: draft.timezone,
       bookingKind: draft.bookingKind,
       recurrence: draft.recurrence,
@@ -401,37 +419,46 @@ const EventEditor = ({
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <TextField
                   fullWidth
-                  type="datetime-local"
+                  type="date"
                   label={t("editor.startDate")}
-                  value={draft.start}
-                  onChange={change("start")}
+                  value={draft.startDate}
+                  onChange={change("startDate")}
                   disabled={readOnly || busy}
                   InputLabelProps={{ shrink: true }}
                 />
                 <TextField
                   fullWidth
-                  type="datetime-local"
-                  label={t("editor.endDate")}
-                  value={draft.end}
-                  onChange={change("end")}
+                  type="time"
+                  label={t("editor.startTime")}
+                  value={draft.startTime}
+                  onChange={change("startTime")}
                   disabled={readOnly || busy}
+                  inputProps={{ step: 60 }}
                   InputLabelProps={{ shrink: true }}
                 />
               </Stack>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <FormControl fullWidth size="small" disabled={readOnly || busy}>
-                  <InputLabel id="event-timezone-label">{t("editor.timezone")}</InputLabel>
-                  <Select
-                    labelId="event-timezone-label"
-                    label={t("editor.timezone")}
-                    value={draft.timezone}
-                    onChange={change("timezone")}
-                  >
-                    <MenuItem value="Asia/Jakarta">Asia/Jakarta</MenuItem>
-                    <MenuItem value="UTC">UTC</MenuItem>
-                  </Select>
-                  <FormHelperText>{duration ? t("editor.duration", { count: duration }) : t("editor.durationHelp")}</FormHelperText>
-                </FormControl>
+                <TextField
+                  fullWidth
+                  type="date"
+                  label={t("editor.endDate")}
+                  value={draft.endDate}
+                  onChange={change("endDate")}
+                  disabled={readOnly || busy}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                  fullWidth
+                  type="time"
+                  label={t("editor.endTime")}
+                  value={draft.endTime}
+                  onChange={change("endTime")}
+                  disabled={readOnly || busy}
+                  inputProps={{ step: 60 }}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Stack>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
                 {!editing ? (
                   <FormControl fullWidth size="small" disabled={readOnly || busy}>
                     <InputLabel id="event-kind-label">{t("editor.bookingKind")}</InputLabel>
@@ -447,6 +474,7 @@ const EventEditor = ({
                     <FormHelperText>{t("editor.bookingKindHelp")}</FormHelperText>
                   </FormControl>
                 ) : null}
+                <FormHelperText>{duration ? t("editor.duration", { count: duration }) : t("editor.durationHelp")}</FormHelperText>
               </Stack>
               {!editing && draft.bookingKind === "recurring" ? (
                 <Box>
@@ -464,6 +492,7 @@ const EventEditor = ({
                     >
                       <MenuItem value="daily">{t("editor.daily")}</MenuItem>
                       <MenuItem value="weekly">{t("editor.weekly")}</MenuItem>
+                      <MenuItem value="monthly">{t("editor.monthly")}</MenuItem>
                     </TextField>
                     <TextField
                       fullWidth
@@ -513,6 +542,50 @@ const EventEditor = ({
                         ))}
                       </Stack>
                     </FormControl>
+                  ) : null}
+                  {draft.recurrence.cadence === "monthly" ? (
+                    <Box sx={{ mt: 1.5 }}>
+                      <RadioGroup
+                        row
+                        value={draft.recurrence.monthlyPattern}
+                        onChange={changeRecurrence("monthlyPattern")}
+                      >
+                        <FormControlLabel value="date" control={<Radio />} label={t("editor.monthlyByDate")} />
+                        <FormControlLabel value="weekday" control={<Radio />} label={t("editor.monthlyByWeekday")} />
+                      </RadioGroup>
+                      {draft.recurrence.monthlyPattern === "weekday" ? (
+                        <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                          <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label={t("editor.monthWeekLabel")}
+                            value={draft.recurrence.monthWeekIndex}
+                            onChange={changeRecurrence("monthWeekIndex")}
+                            disabled={busy}
+                          >
+                            <MenuItem value={1}>{t("editor.monthWeek.1")}</MenuItem>
+                            <MenuItem value={2}>{t("editor.monthWeek.2")}</MenuItem>
+                            <MenuItem value={3}>{t("editor.monthWeek.3")}</MenuItem>
+                            <MenuItem value={4}>{t("editor.monthWeek.4")}</MenuItem>
+                            <MenuItem value={-1}>{t("editor.monthWeek.last")}</MenuItem>
+                          </TextField>
+                          <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label={t("editor.monthWeekdayLabel")}
+                            value={draft.recurrence.monthWeekday}
+                            onChange={changeRecurrence("monthWeekday")}
+                            disabled={busy}
+                          >
+                            {[0, 1, 2, 3, 4, 5, 6].map((day) => (
+                              <MenuItem key={day} value={day}>{t(`editor.weekdays.${day}`)}</MenuItem>
+                            ))}
+                          </TextField>
+                        </Stack>
+                      ) : null}
+                    </Box>
                   ) : null}
                   <FormHelperText>{t("editor.previewHelp")}</FormHelperText>
                 </Box>

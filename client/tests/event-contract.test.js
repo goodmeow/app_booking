@@ -47,6 +47,26 @@ test("returns semantic meeting validation keys", () => {
     validateEventDraft({ ...validDraft, bookingKind: "recurring", recurrence: { cadence: "weekly", endDate: "2030-02-01", weekdays: [] } }, { now }),
     "validation.recurrenceWeekday"
   );
+  assert.equal(
+    validateEventDraft({ ...validDraft, bookingKind: "recurring", recurrence: { cadence: "monthly", endDate: "2030-02-15", monthlyPattern: "yearly" } }, { now }),
+    "validation.recurrenceMonthly"
+  );
+  assert.equal(
+    validateEventDraft({
+      ...validDraft,
+      bookingKind: "recurring",
+      recurrence: { cadence: "monthly", endDate: "2030-02-15", monthlyPattern: "weekday", monthWeekIndex: 2, monthWeekday: 1 },
+    }, { now }),
+    null
+  );
+  assert.equal(
+    validateEventDraft({
+      ...validDraft,
+      bookingKind: "recurring",
+      recurrence: { cadence: "monthly", endDate: "2030-02-15", monthlyPattern: "date" },
+    }, { now }),
+    null
+  );
 });
 
 test("builds recovered create and update payload shapes with encoded description state", () => {

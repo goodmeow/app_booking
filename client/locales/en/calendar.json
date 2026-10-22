@@ -23,14 +23,13 @@
     "endDate": "End date",
     "location": "Location",
     "description": "Add a description",
-    "timezone": "Timezone",
     "duration": "{{count}} minute",
     "duration_plural": "{{count}} minutes",
-    "durationHelp": "Choose valid start and end times.",
+    "durationHelp": "Times are set in the app's timezone (between 00:00 and 24:00).",
     "bookingKind": "Booking type",
-    "singleBooking": "One continuous booking",
-    "recurringBooking": "Repeated meeting",
-    "bookingKindHelp": "Choose one long booking for multi-day use, or repeated meeting for separate occurrences.",
+    "singleBooking": "One Time",
+    "recurringBooking": "Recurring",
+    "bookingKindHelp": "One Time books a single slot. Recurring repeats with a pattern: daily, weekly, or monthly, with your own interval and days.",
     "recurrenceTitle": "Repeat schedule",
     "recurrenceCadence": "Repeats",
     "recurrenceInterval": "Every",
@@ -66,7 +65,21 @@
     "deleteError": "Unable to delete meeting.",
     "created": "Meeting successfully created.",
     "updated": "Meeting successfully updated.",
-    "deleted": "Meeting successfully deleted."
+    "deleted": "Meeting successfully deleted.",
+    "startTime": "Start time",
+    "endTime": "End time",
+    "monthly": "Monthly",
+    "monthlyByDate": "On the same date",
+    "monthlyByWeekday": "On a weekday (e.g. 2nd Monday, last Friday)",
+    "monthWeek": {
+      "1": "1st",
+      "2": "2nd",
+      "3": "3rd",
+      "4": "4th",
+      "last": "Last"
+    },
+    "monthWeekdayLabel": "Weekday",
+    "monthWeekLabel": "Occurrence in month"
   },
   "validation": {
     "subjectRequired": "Enter a meeting title.",
@@ -77,7 +90,8 @@
     "roomRequired": "Select a meeting room.",
     "recurrenceCadence": "Choose a supported repeat cadence.",
     "recurrenceEnd": "Choose a repeat end date after the first occurrence.",
-    "recurrenceWeekday": "Choose at least one repeat weekday."
+    "recurrenceWeekday": "Choose at least one repeat weekday.",
+    "recurrenceMonthly": "Choose the monthly pattern (date or weekday of the month)."
   },
   "calendar": {
     "loading": "Loading meetings...",

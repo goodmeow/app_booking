@@ -19,18 +19,17 @@
     "readOnly": "Meeting ini hanya dapat dilihat.",
     "title": "Judul meeting",
     "attendees": "Undang peserta",
-    "startDate": "Waktu mulai",
-    "endDate": "Waktu selesai",
+    "startDate": "Tanggal mulai",
+    "endDate": "Tanggal selesai",
     "location": "Lokasi",
     "description": "Tambahkan deskripsi",
-    "timezone": "Zona waktu",
     "duration": "{{count}} menit",
     "duration_plural": "{{count}} menit",
-    "durationHelp": "Pilih waktu mulai dan selesai yang valid.",
+    "durationHelp": "Jam mengikuti zona waktu aplikasi (dapat diisi 00:00–24:00).",
     "bookingKind": "Jenis booking",
-    "singleBooking": "Satu booking berkelanjutan",
-    "recurringBooking": "Meeting berulang",
-    "bookingKindHelp": "Pilih satu booking panjang untuk multi-hari, atau meeting berulang untuk occurrence terpisah.",
+    "singleBooking": "One Time",
+    "recurringBooking": "Recurring",
+    "bookingKindHelp": "One Time membooking sekali. Recurring berulang dengan pola: harian, mingguan, atau bulanan, dengan interval dan hari pilihan sendiri.",
     "recurrenceTitle": "Jadwal pengulangan",
     "recurrenceCadence": "Berulang",
     "recurrenceInterval": "Setiap",
@@ -66,7 +65,21 @@
     "deleteError": "Tidak dapat menghapus meeting.",
     "created": "Meeting berhasil dibuat.",
     "updated": "Meeting berhasil diperbarui.",
-    "deleted": "Meeting berhasil dihapus."
+    "deleted": "Meeting berhasil dihapus.",
+    "startTime": "Jam mulai",
+    "endTime": "Jam selesai",
+    "monthly": "Bulanan",
+    "monthlyByDate": "Pada tanggal yang sama",
+    "monthlyByWeekday": "Pada hari tertentu (mis. Senin ke-2, Jumat terakhir)",
+    "monthWeek": {
+      "1": "Ke-1",
+      "2": "Ke-2",
+      "3": "Ke-3",
+      "4": "Ke-4",
+      "last": "Terakhir"
+    },
+    "monthWeekdayLabel": "Hari",
+    "monthWeekLabel": "Kejadian dalam bulan"
   },
   "validation": {
     "subjectRequired": "Isi judul meeting.",
@@ -77,7 +90,8 @@
     "roomRequired": "Pilih ruangan meeting.",
     "recurrenceCadence": "Pilih cadence pengulangan yang didukung.",
     "recurrenceEnd": "Pilih tanggal selesai pengulangan setelah occurrence pertama.",
-    "recurrenceWeekday": "Pilih minimal satu hari pengulangan."
+    "recurrenceWeekday": "Pilih minimal satu hari pengulangan.",
+    "recurrenceMonthly": "Pilih pola bulanan (tanggal atau hari dalam bulan)."
   },
   "calendar": {
     "loading": "Memuat meeting...",

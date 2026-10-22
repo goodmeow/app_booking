@@ -7,13 +7,46 @@ const normalizeRecurrence = (recurrence = {}) => {
   const interval = Number(recurrence.interval || 1);
   const endDate = String(recurrence.endDate || "");
   const weekdays = [...new Set((recurrence.weekdays || []).map(Number))].sort((a, b) => a - b);
-  if (!['daily', 'weekly'].includes(cadence)) throw badRequest("INVALID_RECURRENCE", "Cadence must be daily or weekly");
+  const monthlyPattern = String(recurrence.monthlyPattern || "date").toLowerCase();
+  const monthWeekIndex = Number(recurrence.monthWeekIndex || 1);
+  const monthWeekday = Number(recurrence.monthWeekday || 0);
+  if (!['daily', 'weekly', 'monthly'].includes(cadence)) throw badRequest("INVALID_RECURRENCE", "Cadence must be daily, weekly, or monthly");
   if (!Number.isInteger(interval) || interval < 1 || interval > 52) throw badRequest("INVALID_RECURRENCE", "Recurrence interval must be between 1 and 52");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) throw badRequest("INVALID_RECURRENCE", "Recurrence end date is required");
   if (cadence === "weekly" && (!weekdays.length || weekdays.some((day) => day < 0 || day > 6))) {
     throw badRequest("INVALID_RECURRENCE", "Weekly recurrence requires weekdays from 0 through 6");
   }
-  return { cadence, interval, endDate, weekdays };
+  if (cadence === "monthly" && !["date", "weekday"].includes(monthlyPattern)) {
+    throw badRequest("INVALID_RECURRENCE", "Monthly recurrence pattern must be date or weekday");
+  }
+  if (cadence === "monthly" && monthlyPattern === "weekday") {
+    if (![1, 2, 3, 4, -1].includes(monthWeekIndex)) {
+      throw badRequest("INVALID_RECURRENCE", "Month weekday index must be 1-4 or -1 for the last occurrence");
+    }
+    if (!Number.isInteger(monthWeekday) || monthWeekday < 0 || monthWeekday > 6) {
+      throw badRequest("INVALID_RECURRENCE", "Monthly weekday recurrence requires a weekday from 0 through 6");
+    }
+  }
+  return { cadence, interval, endDate, weekdays, monthlyPattern, monthWeekIndex, monthWeekday };
+};
+
+const daysInLocalMonth = ({ year, month }) => new Date(Date.UTC(year, month, 0)).getUTCDate();
+
+const weeksOfMonth = (day) => Math.floor((day - 1) / 7) + 1;
+
+const isLastWeekOfMonth = (parts) => parts.day + 7 > daysInLocalMonth(parts);
+
+// Pola "bulanan pada tanggal" melompati bulan yang tidak punya tanggal yang sama
+// (misal 31 Januari tidak berulang pada Februari).
+const monthsFromBase = (base, localStart) => (localStart.year - base.year) * 12 + (localStart.month - base.month);
+
+const monthlyDue = (base, localStart, rule) => {
+  if (monthsFromBase(base, localStart) % rule.interval !== 0) return false;
+  if (rule.monthlyPattern === "date") return localStart.day === base.day;
+  if (localWeekday(localStart) !== rule.monthWeekday) return false;
+  return rule.monthWeekIndex === -1
+    ? isLastWeekOfMonth(localStart)
+    : weeksOfMonth(localStart.day) === rule.monthWeekIndex;
 };
 
 export const buildOccurrences = ({ start, end, timezone, recurrence }) => {
@@ -39,7 +72,9 @@ export const buildOccurrences = ({ start, end, timezone, recurrence }) => {
     const localStart = addLocalDays(base, offset);
     const due = rule.cadence === "daily"
       ? offset % rule.interval === 0
-      : Math.floor(offset / 7) % rule.interval === 0 && rule.weekdays.includes(localWeekday(localStart));
+      : rule.cadence === "weekly"
+        ? Math.floor(offset / 7) % rule.interval === 0 && rule.weekdays.includes(localWeekday(localStart))
+        : monthlyDue(base, localStart, rule);
     if (!due) continue;
     const occurrenceStart = zonedPartsToDate(localStart, timezone);
     const occurrenceEnd = zonedPartsToDate({

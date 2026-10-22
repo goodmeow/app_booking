@@ -23,12 +23,21 @@ export const validateEventDraft = (
   if (start >= end) return "validation.endBeforeStart";
   if (!attendees.some(isRoomAttendee)) return "validation.roomRequired";
   if (bookingKind === "recurring") {
-    if (!["daily", "weekly"].includes(recurrence.cadence)) return "validation.recurrenceCadence";
+    if (!["daily", "weekly", "monthly"].includes(recurrence.cadence)) return "validation.recurrenceCadence";
     if (!recurrence.endDate) return "validation.recurrenceEnd";
     const endDate = asDate(`${recurrence.endDate}T23:59:59`);
     if (Number.isNaN(endDate.getTime()) || endDate < start) return "validation.recurrenceEnd";
     if (recurrence.cadence === "weekly" && (!Array.isArray(recurrence.weekdays) || !recurrence.weekdays.length)) {
       return "validation.recurrenceWeekday";
+    }
+    if (recurrence.cadence === "monthly") {
+      const monthlyPattern = recurrence.monthlyPattern || "date";
+      if (!["date", "weekday"].includes(monthlyPattern)) return "validation.recurrenceMonthly";
+      if (monthlyPattern === "weekday") {
+        if (![1, 2, 3, 4, -1].includes(Number(recurrence.monthWeekIndex))) return "validation.recurrenceMonthly";
+        const monthWeekday = Number(recurrence.monthWeekday);
+        if (!(monthWeekday >= 0 && monthWeekday <= 6)) return "validation.recurrenceWeekday";
+      }
     }
   }
   return null;
