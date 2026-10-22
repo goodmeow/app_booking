@@ -112,6 +112,8 @@
     "tabletOfflineWarning": "Room tablet is offline — kiosk check-in is unavailable. Contact an admin.",
     "roomUsedCount": "{{count}} in use",
     "roomFreeCount": "{{count}} free",
-    "roomOfflineCount": "{{count}} tablet offline"
+    "roomOfflineCount": "{{count}} tablet offline",
+    "roomNoneOccupied": "No rooms are in use right now.",
+    "tabletDetailLink": "Tablet details"
   }
 }

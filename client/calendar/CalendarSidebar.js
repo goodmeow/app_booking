@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Autocomplete,
   Alert,
@@ -146,45 +147,36 @@ const CalendarSidebar = ({
               ) : null}
             </Stack>
           </Stack>
-          <Stack spacing={1} sx={{ maxHeight: 280, overflowY: "auto", pr: 0.5 }}>
-            {[...roomStatus]
-              .sort((a, b) => Number(b.occupied) - Number(a.occupied) || String(a.name).localeCompare(String(b.name)))
-              .map((room) => (
-              <Paper
-                key={room.id}
-                variant="outlined"
-                sx={{ p: 1.25, borderColor: room.occupied ? "error.light" : "success.light" }}
-              >
-                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                  <Typography variant="body2" fontWeight={600} noWrap>{room.name}</Typography>
-                  <Chip
-                    size="small"
-                    color={room.occupied ? "error" : "success"}
-                    label={room.occupied ? t("calendar.roomOccupied") : t("calendar.roomFree")}
-                  />
-                </Stack>
-                <Typography variant="caption" color="text.secondary" display="block">
-                  {room.occupied
-                    ? t("calendar.roomOccupiedBy", {
-                      name: room.organizerFirstName || "-",
-                      until: formatClock(room.end, dateLocale),
-                    })
-                    : t("calendar.roomFreeText")}
-                  {showTabletStatus ? (
-                    <>
-                      {" · "}
-                      {room.tabletOnline ? t("calendar.tabletOnline") : t("calendar.tabletOffline")}
-                    </>
-                  ) : null}
-                </Typography>
-                {!showTabletStatus && !room.tabletOnline ? (
-                  <Typography variant="caption" color="warning.main" display="block">
-                    ⚠ {t("calendar.tabletOfflineWarning")}
-                  </Typography>
-                ) : null}
-              </Paper>
-            ))}
-          </Stack>
+          {roomStatus.some((room) => room.occupied) ? (
+            <Stack spacing={1} sx={{ maxHeight: 200, overflowY: "auto", pr: 0.5 }}>
+              {roomStatus
+                .filter((room) => room.occupied)
+                .sort((a, b) => String(a.name).localeCompare(String(b.name)))
+                .map((room) => (
+                  <Paper key={room.id} variant="outlined" sx={{ p: 1, borderColor: "error.light" }}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                      <Typography variant="body2" fontWeight={600} noWrap>{room.name}</Typography>
+                      <Chip size="small" color="error" label={t("calendar.roomOccupied")} />
+                    </Stack>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      {t("calendar.roomOccupiedBy", {
+                        name: room.organizerFirstName || "-",
+                        until: formatClock(room.end, dateLocale),
+                      })}
+                    </Typography>
+                  </Paper>
+                ))}
+            </Stack>
+          ) : (
+            <Typography variant="caption" color="text.secondary">
+              {t("calendar.roomNoneOccupied")}
+            </Typography>
+          )}
+          {showTabletStatus ? (
+            <Button component={Link} to="/app-management?section=devices" size="small" sx={{ mt: 1, px: 0 }}>
+              {t("calendar.tabletDetailLink")}
+            </Button>
+          ) : null}
         </Box>
       ) : null}
     </Stack>

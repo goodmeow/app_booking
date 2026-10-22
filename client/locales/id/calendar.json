@@ -112,6 +112,8 @@
     "tabletOfflineWarning": "Tablet ruangan offline — check-in lewat kiosk tidak tersedia. Hubungi admin.",
     "roomUsedCount": "{{count}} dipakai",
     "roomFreeCount": "{{count}} kosong",
-    "roomOfflineCount": "{{count}} tablet offline"
+    "roomOfflineCount": "{{count}} tablet offline",
+    "roomNoneOccupied": "Tidak ada ruangan yang dipakai saat ini.",
+    "tabletDetailLink": "Detail tablet"
   }
 }

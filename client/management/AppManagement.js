@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Container, Paper, Tab, Tabs, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import { useGetSettingsQuery } from "../redux/services/settings.js";
 import RoomManagementSection from "./RoomManagementSection.js";
 import UserManagementSection from "./UserManagementSection.js";
@@ -8,7 +9,9 @@ import KioskDeviceManagementSection from "./KioskDeviceManagementSection.js";
 
 const AppManagement = () => {
   const { t } = useTranslation("management");
-  const [section, setSection] = useState("users");
+  const location = useLocation();
+  const requestedSection = new URLSearchParams(location.search).get("section");
+  const [section, setSection] = useState(requestedSection || "users");
   // Recovered page loads settings, but exposes no confirmed settings controls.
   useGetSettingsQuery();
   const sections = [
