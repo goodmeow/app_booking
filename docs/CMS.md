@@ -182,6 +182,12 @@ modal email + sandi ruangan.
 (orangnya sudah berada di ruangan), dan server mengirim invalidasi Socket.io
 sehingga kalender CMS langsung memperbarui status ruangan tanpa refresh manual.
 
+**Auto-release no-show:** meeting yang belum check-in sampai
+`not_checked_in_time_limit` (default 15 menit) setelah jam mulai akan
+**melepaskan ruangannya** (meeting tetap ada di kalender peserta). Pelepasan
+berjalan tiap 60 detik di server dan dicek ulang setiap request jadwal kiosk,
+sehingga ruangan langsung bisa dipakai lewat "Pesan sekarang".
+
 Pemakaian langsung selalu **berakhir di hari yang sama** (zona `APP_TIMEZONE`),
 maksimal 4 jam atau sampai meeting berikutnya bila masih hari itu. Bila sisa
 waktu hari ini kurang dari 1 menit, permintaan ditolak `NO_FREE_WINDOW`.

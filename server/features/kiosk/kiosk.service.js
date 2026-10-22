@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import config from "../../../config/config.js";
 import { withTransaction } from "../../db/pool.js";
 import { badRequest, conflict, forbidden, HttpError, notFound } from "../../lib/http-error.js";
-import { finishEventNow, markCheckedIn } from "../events/event.repository.js";
+import { finishEventNow, markCheckedIn, releaseAbandonedRoomBookings } from "../events/event.repository.js";
 import { hasDoorCard } from "../auth/auth.repository.js";
 import { formatLocalTime, zonedParts, zonedPartsToDate } from "../events/event-time.js";
 import { calendarRange, createEvents } from "../events/event.service.js";
@@ -222,6 +222,7 @@ const kioskCapabilities = (row, now = Date.now()) => {
 };
 
 export const getKioskSchedule = async (query, room) => {
+  await maybeReleaseAbandonedBookings();
   const range = calendarRange(query.start, query.end, config.appTimezone);
   const rows = await listKioskScheduleRows({ roomId: room._id, ...range });
   return rows.map((row) => ({
@@ -268,6 +269,11 @@ export const finishKioskEvent = async ({ event_id: eventId, card_number: cardNum
     }
     return finishEventNow(eventId, execute);
   });
+};
+
+// Lepas booking no-show sebelum membaca jadwal / membuat pemakaian langsung.
+const maybeReleaseAbandonedBookings = async () => {
+  await releaseAbandonedRoomBookings().catch(() => {});
 };
 
 const clampMinutes = (value, fallback, min, max) => {
@@ -340,6 +346,7 @@ export const instantBookingWindow = ({ now, nextStart, minutes, timezone }) => {
 };
 
 export const instantKioskBooking = async ({ card_number: cardNumber, minutes, until_next: untilNext }, room) => {
+  await maybeReleaseAbandonedBookings();
   const card = String(cardNumber || "").trim();
   if (!card) throw badRequest("INVALID_CARD", "Card number is required");
   const employee = await findEmployeeByCard(card);

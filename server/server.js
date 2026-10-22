@@ -5,6 +5,9 @@ import webSocket from "./socket/webSocket.js";
 import routes from "./routes/index.js";
 import { createHttpServer } from "./runtime/create-http-server.js";
 import { closePool } from "./db/pool.js";
+import { releaseAbandonedBookings } from "./features/events/event.service.js";
+import { findEventAudience } from "./features/events/event.repository.js";
+import { emitEventInvalidation } from "./socket/event-invalidation.js";
 import { log } from "./observability/logger.js";
 
 validateRuntimeConfig();
@@ -41,6 +44,19 @@ app.use((err, req, res, next) => {
 server.listen(port, () => {
   log("info", "server_started", { operation: config.ssrMode ? "client_server" : "server" });
 });
+
+// Lepas ruangan dari meeting yang tidak check-in sampai batas telat.
+const releaseAbandonedTimer = setInterval(async () => {
+  try {
+    const releasedEventIds = await releaseAbandonedBookings();
+    if (releasedEventIds.length) {
+      emitEventInvalidation(io, await findEventAudience(releasedEventIds));
+    }
+  } catch (error) {
+    log("error", "auto_release_failed", { message: error.message });
+  }
+}, 60_000);
+releaseAbandonedTimer.unref();
 
 const shutdown = async (signal) => {
   log("info", "server_stopping", { operation: signal });

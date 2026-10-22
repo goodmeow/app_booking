@@ -15,6 +15,7 @@ import {
   findActiveRoom,
   findEventAccess,
   findParticipantEvent,
+  releaseAbandonedRoomBookings,
   findRoomConflicts,
   findRoomFloors,
   finishEventNow,
@@ -479,3 +480,5 @@ export const earlyFinishEvent = async (eventId, principal) => {
   }
   return finishEventNow(eventId);
 };
+
+export const releaseAbandonedBookings = async () => releaseAbandonedRoomBookings();

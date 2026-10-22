@@ -354,3 +354,42 @@ export const findRoomFloors = async (roomIds, client = { query }) => {
     [roomIds]
   )).rows;
 };
+
+// Lepas booking ruangan untuk meeting yang tidak check-in sampai batas telat.
+// Meeting tetap ada di kalender peserta; hanya ruangannya yang dibebaskan.
+export const releaseAbandonedRoomBookings = async (execute = query) => {
+  const released = (await execute(
+    `WITH settings AS (
+       SELECT not_checked_in_time_limit AS limit_minutes
+       FROM tbl_app_settings
+       ORDER BY created_at
+       LIMIT 1
+     ),
+     abandoned AS (
+       UPDATE tbl_event_rooms room_booking
+       SET active = false
+       FROM tbl_events event, settings setting
+       WHERE room_booking.event_id = event._id
+         AND room_booking.active
+         AND event.checked_in IS NULL
+         AND event.is_cancel IS NOT TRUE
+         AND now() >= (event.start_date AT TIME ZONE event.timezone)
+           + make_interval(mins => setting.limit_minutes)
+       RETURNING room_booking.event_id
+     )
+     SELECT DISTINCT event_id FROM abandoned`,
+    []
+  )).rows;
+  const eventIds = released.map((row) => row.event_id);
+  if (eventIds.length) {
+    await execute(
+      `UPDATE tbl_event_details
+       SET is_deleted = true
+       WHERE event_id = ANY($1::uuid[])
+         AND room_id IS NOT NULL
+         AND is_deleted IS NOT TRUE`,
+      [eventIds]
+    );
+  }
+  return eventIds;
+};
