@@ -7,7 +7,7 @@ import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import { calendarEventFilters, calendarEventFromApi, calendarRangeForView, defaultEventRange, navigateCalendarDate } from "../domain/calendar.js";
 import { getApiError } from "../domain/api-error.js";
 import { useGetEventsQuery } from "../redux/services/events.js";
-import { useGetRoomsQuery } from "../redux/services/rooms.js";
+import { useGetRoomStatusQuery, useGetRoomsQuery } from "../redux/services/rooms.js";
 import { useListUserQuery } from "../redux/services/users.js";
 import { wsJoinRoom, wsLeaveRoom } from "../redux/websocket.js";
 import CalendarSidebar from "./CalendarSidebar.js";
@@ -42,6 +42,10 @@ const MeetingCalendar = () => {
     () => (showAllFloors ? allRooms : allRooms.filter((room) => String(room.floor ?? "").trim() === userFloor)),
     [allRooms, showAllFloors, userFloor]
   );
+  const roomStatus = useMemo(() => {
+    const allowed = new Set(bookableRooms.map((room) => room._id));
+    return (Array.isArray(roomStatusQuery.data) ? roomStatusQuery.data : []).filter((room) => allowed.has(room.id));
+  }, [bookableRooms, roomStatusQuery.data]);
   const eventHasData = Array.isArray(eventQuery.data);
   const eventInitialLoading = eventQuery.isFetching && !eventHasData;
   const eventRefreshing = eventQuery.isFetching && eventHasData;
@@ -71,6 +75,7 @@ const MeetingCalendar = () => {
             rooms={bookableRooms}
             floor={userFloor}
             showAllFloors={showAllFloors}
+            roomStatus={roomStatus}
             scheduleMode={scheduleMode}
             onScheduleModeChange={(mode) => {
               setScheduleMode(mode);

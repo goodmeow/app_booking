@@ -194,3 +194,42 @@ export const roomUsageReport = async ({ start, end, timezone }) => (await query(
    ORDER BY u.name`,
   [start, end, timezone]
 )).rows;
+
+// Status ruangan saat ini: dipakai siapa, sampai kapan, dan tablet-nya online.
+export const listRoomStatus = async () => (await query(
+  `SELECT
+     u._id,
+     u.name,
+     u.floor,
+     u.capacity,
+     u.building,
+     e._id AS event_id,
+     split_part(btrim(organizer.name), ' ', 1) AS organizer_first_name,
+     e.start_date AT TIME ZONE e.timezone AS start_at,
+     e.end_date AT TIME ZONE e.timezone AS end_at,
+     e.checked_in,
+     COALESCE(dev.online, false) AS tablet_online
+   FROM tbl_users u
+   LEFT JOIN LATERAL (
+     SELECT room_booking.event_id
+     FROM tbl_event_rooms room_booking
+     WHERE room_booking.room_id = u._id
+       AND room_booking.active
+       AND room_booking.occupied_at @> now()
+     LIMIT 1
+   ) occupancy ON TRUE
+   LEFT JOIN tbl_events e
+     ON e._id = occupancy.event_id
+    AND e.is_cancel IS NOT TRUE
+   LEFT JOIN tbl_users organizer ON organizer._id = e.organizer_id
+   LEFT JOIN LATERAL (
+     SELECT bool_or(
+       device.revoked_at IS NULL
+       AND device.last_seen_at > now() - interval '60 seconds'
+     ) AS online
+     FROM tbl_kiosk_devices device
+     WHERE device.room_id = u._id
+   ) dev ON TRUE
+   WHERE u.type = 'room' AND u.is_deleted IS NOT TRUE
+   ORDER BY u.building, u.floor, u.name`
+)).rows;

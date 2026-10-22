@@ -334,6 +334,16 @@ test("kiosk instant booking starts for an employee card and refuses a second ove
   assert.equal(created.status, 200);
   assert.ok(created.body.id);
   assert.ok(new Date(created.body.end).getTime() > new Date(created.body.start).getTime());
+  // Pemakaian langsung di kiosk harus langsung dianggap check-in.
+  assert.equal(created.body.checkedIn, true);
+  assert.equal(
+    await queryParityDatabase(`SELECT checked_in IS NOT NULL FROM tbl_events WHERE _id = '${created.body.id}';`),
+    "t"
+  );
+
+  const status = await apiRequest(targets.reconstructed, "/api/rooms/status", { headers: bearer("admin") });
+  assert.equal(status.status, 200);
+  assert.equal(status.body.find((room) => room.name === "Test Room One").occupied, true);
 
   const overlap = await apiRequest(targets.reconstructed, "/api/kiosk/events/instant", {
     method: "POST",

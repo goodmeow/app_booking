@@ -155,7 +155,17 @@ modal email + sandi ruangan.
   sub-menu Kartu Master dihapus dari UI.
 - Switch **NFC** dihapus dari daftar perangkat karena NFC sudah ditangani
   aplikasi kiosk; switch LED tetap ada.
+- **Status ruangan** tampil di sidebar kalender (auto-refresh 30 detik): nama
+  ruangan, **Dipakai/Kosong**, siapa dan sampai jam berapa, plus status tablet
+  online/offline. Event yang sudah check-in diberi tanda "✓ Sudah check-in"
+  di kalender dan agenda.
 - Aturan booking per lantai kerja ditegakkan di server (karyawan hanya lantai
   sendiri; admin bebas) dan diterapkan juga di UI serta pemesanan cepat kiosk.
 - Endpoint kiosk tambahan: `POST /api/kiosk/events/extend`,
   `POST /api/kiosk/events/complete`, `POST /api/kiosk/events/instant`.
+
+### Catatan pemakaian kiosk
+
+"Pesan sekarang" di kiosk membuat event **sekaligus menandai check-in**
+(orangnya sudah berada di ruangan), dan server mengirim invalidasi Socket.io
+sehingga kalender CMS langsung memperbarui status ruangan tanpa refresh manual.

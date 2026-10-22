@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import config from "../../../config/config.js";
 import { badRequest, HttpError, notFound } from "../../lib/http-error.js";
 import { isValidLocalDate, parseInstant } from "../events/event-time.js";
-import { findRoomById, insertAccount, listAvailableRooms, listRooms, roomUsageReport, softDeleteAccount, updateAccount } from "../accounts/account.repository.js";
+import { findRoomById, insertAccount, listAvailableRooms, listRoomStatus, listRooms, roomUsageReport, softDeleteAccount, updateAccount } from "../accounts/account.repository.js";
 import { normalizedEmail, normalizedUsername, validatedPassword } from "../accounts/identity.validation.js";
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
@@ -88,3 +88,17 @@ export const getRoomUsage = ({ start, end }) => {
   }
   return roomUsageReport({ start, end, timezone: config.appTimezone });
 };
+
+export const getRoomStatus = async () => (await listRoomStatus()).map((row) => ({
+  id: row._id,
+  name: row.name,
+  floor: row.floor,
+  capacity: row.capacity,
+  building: row.building,
+  occupied: Boolean(row.event_id),
+  organizerFirstName: row.organizer_first_name || null,
+  start: row.start_at,
+  end: row.end_at,
+  checkedIn: Boolean(row.checked_in),
+  tabletOnline: Boolean(row.tablet_online),
+}));

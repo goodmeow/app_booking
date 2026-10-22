@@ -96,6 +96,11 @@ const MeetingAgenda = ({ events, locale, onEventClick }) => {
                 {cue}
               </Typography>
             ))}
+            {event.checked_in ? (
+              <Typography variant="caption" color="success.main" display="block">
+                ✓ {t("calendar.checkedIn")}
+              </Typography>
+            ) : null}
           </Paper>
         );
       })}
@@ -182,6 +187,9 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", onViewC
             {cues.map((cue) => (
               <Typography key={cue} component="span" variant="caption">{cue}</Typography>
             ))}
+            {eventProp(info.event, "checked_in") ? (
+              <Typography component="span" variant="caption">✓ {t("calendar.checkedIn")}</Typography>
+            ) : null}
           </Stack>
         );
       }}

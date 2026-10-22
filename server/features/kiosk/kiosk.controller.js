@@ -66,13 +66,19 @@ export const doorOpen = run(async (req, res) => {
   res.json({ message: "Door opened" });
 });
 export const extendEvent = run(async (req, res) => {
-  res.json(await extendKioskEvent(req.body || {}, req.kiosk));
+  const result = await extendKioskEvent(req.body || {}, req.kiosk);
+  emitEventInvalidation(req.io, await findEventAudience([result?.id]));
+  res.json(result);
 });
 export const completeEvent = run(async (req, res) => {
-  res.json(await completeKioskEvent(req.body || {}, req.kiosk));
+  const result = await completeKioskEvent(req.body || {}, req.kiosk);
+  emitEventInvalidation(req.io, await findEventAudience([result?.id]));
+  res.json(result);
 });
 export const instantBooking = run(async (req, res) => {
-  res.json(await instantKioskBooking(req.body || {}, req.kiosk));
+  const result = await instantKioskBooking(req.body || {}, req.kiosk);
+  emitEventInvalidation(req.io, await findEventAudience([result?.id]));
+  res.json(result);
 });
 export const earlyFinish = run(async (req, res) => {
   const result = await finishKioskEvent(req.body, req.kiosk);

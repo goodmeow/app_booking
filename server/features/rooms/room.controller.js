@@ -1,4 +1,4 @@
-import { createRoom, deleteRoom, editRoom, getAvailableRooms, getRoom, getRooms, getRoomUsage } from "./room.service.js";
+import { createRoom, deleteRoom, editRoom, getAvailableRooms, getRoom, getRooms, getRoomStatus, getRoomUsage } from "./room.service.js";
 import { revokeRoomKioskDevices } from "../kiosk/kiosk.repository.js";
 
 const run = (handler) => async (req, res, next) => {
@@ -19,3 +19,4 @@ export const remove = run(async (req, res) => {
   res.json(room);
 });
 export const usage = run(async (req, res) => res.json(await getRoomUsage(req.query)));
+export const status = run(async (req, res) => res.json(await getRoomStatus()));

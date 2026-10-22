@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Chip,
+  Paper,
   Stack,
   TextField,
   ToggleButton,
@@ -23,12 +24,17 @@ import { calendarLocaleForLanguage } from "../i18n/languages.js";
 const roomKey = (room) => room?._id || room?.id || room?.email || room?.name || "";
 const roomLabel = (room) => room?.name || room?.email || "";
 
+const formatClock = (value, locale) => value
+  ? new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(value))
+  : "";
+
 const CalendarSidebar = ({
   selectedDate,
   onDateChange,
   rooms = [],
   floor = "",
   showAllFloors = false,
+  roomStatus = [],
   scheduleMode = "mine",
   onScheduleModeChange,
   selectedRoom,
@@ -124,6 +130,42 @@ const CalendarSidebar = ({
           />
         ) : null}
       </Box>
+
+      {roomStatus.length ? (
+        <Box>
+          <Typography variant="subtitle2" component="h2" sx={{ mb: 1 }}>
+            {t("calendar.roomStatusTitle")}
+          </Typography>
+          <Stack spacing={1}>
+            {roomStatus.map((room) => (
+              <Paper
+                key={room.id}
+                variant="outlined"
+                sx={{ p: 1.25, borderColor: room.occupied ? "error.light" : "success.light" }}
+              >
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                  <Typography variant="body2" fontWeight={600} noWrap>{room.name}</Typography>
+                  <Chip
+                    size="small"
+                    color={room.occupied ? "error" : "success"}
+                    label={room.occupied ? t("calendar.roomOccupied") : t("calendar.roomFree")}
+                  />
+                </Stack>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  {room.occupied
+                    ? t("calendar.roomOccupiedBy", {
+                      name: room.organizerFirstName || "-",
+                      until: formatClock(room.end, dateLocale),
+                    })
+                    : t("calendar.roomFreeText")}
+                  {" · "}
+                  {room.tabletOnline ? t("calendar.tabletOnline") : t("calendar.tabletOffline")}
+                </Typography>
+              </Paper>
+            ))}
+          </Stack>
+        </Box>
+      ) : null}
     </Stack>
   </Box>
   );

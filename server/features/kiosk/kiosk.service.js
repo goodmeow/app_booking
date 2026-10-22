@@ -351,12 +351,16 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
     { _id: employee._id, email: employee.email, name: employee.name, role: "USER", floor: employee.floor }
   );
   const first = Array.isArray(created) ? created[0] : null;
+  // Pemakaian langsung di kiosk berarti orangnya sudah ada di ruangan, jadi
+  // booking ini sekaligus ditandai check-in.
+  if (first?.id) await markCheckedIn(first.id);
   return {
     id: first?.id || null,
     title: first?.title || `Pemakaian ruangan - ${employee.name}`,
     organizer: employee.name,
     start: first?.start || now.toISOString(),
     end: first?.end || effectiveEnd.toISOString(),
+    checkedIn: true,
     untilNext: Boolean(untilNext && next),
   };
 };

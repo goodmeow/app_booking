@@ -6,6 +6,7 @@ export const roomsApi = api.injectEndpoints({
     getRooms: builder.query({ query: (filters) => withQuery("rooms", filters), providesTags: ["rooms"] }),
     getAvailableRooms: builder.query({ query: ({ start_dates, end_dates, rooms } = {}) => withQuery("rooms/available", { start_dates, end_dates, rooms }), providesTags: ["rooms"] }),
     getRoomById: builder.query({ query: (id) => `rooms/${id}`, providesTags: ["rooms"] }),
+    getRoomStatus: builder.query({ query: () => "rooms/status", providesTags: ["rooms"] }),
     storeRoom: builder.mutation({ query: (body) => ({ url: "rooms/", method: "POST", body }), invalidatesTags: ["rooms"] }),
     updateRoom: builder.mutation({ query: ({ roomId, ...body }) => ({ url: `rooms/${roomId}`, method: "PUT", body }), invalidatesTags: ["rooms"] }),
     deleteRoomById: builder.mutation({ query: (id) => ({ url: `rooms/${id}`, method: "DELETE", body: {} }), invalidatesTags: ["rooms"] }),
@@ -13,4 +14,4 @@ export const roomsApi = api.injectEndpoints({
   }),
 });
 
-export const { useGetRoomsQuery, useGetAvailableRoomsQuery, useGetRoomByIdQuery, useStoreRoomMutation, useUpdateRoomMutation, useDeleteRoomByIdMutation, useGetRoomUsageQuery } = roomsApi;
+export const { useGetRoomsQuery, useGetAvailableRoomsQuery, useGetRoomByIdQuery, useGetRoomStatusQuery, useStoreRoomMutation, useUpdateRoomMutation, useDeleteRoomByIdMutation, useGetRoomUsageQuery } = roomsApi;
