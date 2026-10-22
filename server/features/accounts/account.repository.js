@@ -18,7 +18,7 @@ const masterCardFlag = `EXISTS (
 ) AS is_master_card`;
 
 export const listEmployees = async () => (await query(
-  `SELECT u._id, u.name, u.email, u.username, u.type, u.card_number,
+  `SELECT u._id, u.name, u.email, u.username, u.type, u.card_number, u.floor,
           ${masterCardFlag}
    FROM tbl_users u
    WHERE u.type = 'employee' AND u.is_deleted IS NOT TRUE

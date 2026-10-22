@@ -100,5 +100,6 @@
   },
   "floorScope": "Only rooms on floor {{floor}} are shown.",
   "floorScopeAdmin": "Admin mode: all floors are shown.",
-  "floorMissing": "Your account has no work floor yet. Ask an admin to set it in Management > Users."
+  "floorMissing": "Your account has no work floor yet. Ask an admin to set it in Management > Users.",
+  "floorScopeAll": "All floors are shown."
 }

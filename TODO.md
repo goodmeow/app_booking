@@ -242,5 +242,6 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
   (`tbl_users.floor`), admin bebas. Ditegakkan di server (403
   `FLOOR_RESTRICTED` / `FLOOR_REQUIRED`), UI kalender, dan "Pesan sekarang"
   di kiosk.
-- [ ] Pastikan semua akun karyawan sudah diisi lantai kerjanya di produksi
-  (kalau kosong, booking akan ditolak).
+- [ ] Pastikan semua akun karyawan sudah diisi grup lantainya di produksi
+  (kalau kosong, booking akan ditolak). Gunakan **Semua lantai** hanya untuk
+  orang yang memang perlu lintas lantai (mis. resepsionis).

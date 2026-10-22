@@ -64,6 +64,7 @@ export const editUser = async (id, body, principal) => {
     // Hanya admin yang boleh mengubah role, nomor kartu, dan flag kartu master.
     delete values.roleId;
     delete values.card_number;
+    delete values.floor;
   }
   try {
     const user = await updateAccount(id, values, "employee");

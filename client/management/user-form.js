@@ -7,5 +7,6 @@ export const createEmptyUserForm = () => ({
   password: "",
   card_number: "",
   master_card: false,
+  floor: "",
   roleId: ROLE_IDS.USER,
 });

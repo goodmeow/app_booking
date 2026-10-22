@@ -12,12 +12,12 @@ before(async () => {
 
 after(() => stopServer(server));
 
-const meetingBody = (roomEmail) => JSON.stringify([{
+const meetingBody = (roomEmail, start = "2031-06-02T09:00:00.000Z", end = "2031-06-02T10:00:00.000Z") => JSON.stringify([{
   organizer: identities.user.email,
   subject: "Uji batas lantai",
   description: "uji",
-  start_date: "2031-06-02T09:00:00.000Z",
-  end_date: "2031-06-02T10:00:00.000Z",
+  start_date: start,
+  end_date: end,
   attendee_email: roomEmail,
 }]);
 
@@ -46,6 +46,39 @@ test("admin tetap boleh memesan ruangan lintas lantai", async () => {
     body: meetingBody("room-two@room.com"),
   });
   assert.equal(response.status, 200);
+});
+
+test("grup lantai all boleh lintas lantai dan hanya admin yang bisa mengubahnya", async () => {
+  const ownChange = await apiRequest(targets.reconstructed, `/api/users/${identities.user._id}`, {
+    method: "PUT",
+    headers: bearer("user"),
+    body: JSON.stringify({ floor: "all" }),
+  });
+  assert.equal(ownChange.status, 200);
+  assert.equal(ownChange.body.floor, "1");
+
+  const adminChange = await apiRequest(targets.reconstructed, `/api/users/${identities.user._id}`, {
+    method: "PUT",
+    headers: bearer("admin"),
+    body: JSON.stringify({ floor: "all" }),
+  });
+  assert.equal(adminChange.status, 200);
+  assert.equal(adminChange.body.floor, "all");
+
+  try {
+    const anyFloor = await apiRequest(targets.reconstructed, "/api/events", {
+      method: "POST",
+      headers: bearer("user"),
+      body: meetingBody("room-two@room.com", "2031-06-02T11:00:00.000Z", "2031-06-02T12:00:00.000Z"),
+    });
+    assert.equal(anyFloor.status, 200);
+  } finally {
+    await apiRequest(targets.reconstructed, `/api/users/${identities.user._id}`, {
+      method: "PUT",
+      headers: bearer("admin"),
+      body: JSON.stringify({ floor: "1" }),
+    });
+  }
 });
 
 test("kiosk menolak pemesanan cepat bila kartu bukan dari lantai ruangan", async () => {

@@ -33,12 +33,14 @@ const MeetingCalendar = () => {
   const userQuery = useListUserQuery();
   const isAdmin = session?.user?.role === "ADMIN";
   const userFloor = String(session?.user?.floor ?? "").trim();
+  // Grup lantai "all" (atau admin) boleh melihat dan memesan semua lantai.
+  const showAllFloors = isAdmin || userFloor.toLowerCase() === "all";
   const allRooms = Array.isArray(roomQuery.data) ? roomQuery.data : [];
-  // Non-admin hanya melihat ruangan di lantai kerjanya (server tetap menolak
-  // booking lintas lantai walau UI diakali).
+  // Selain itu hanya ruangan di lantai kerjanya (server tetap menolak booking
+  // lintas lantai walau UI diakali).
   const bookableRooms = useMemo(
-    () => (isAdmin ? allRooms : allRooms.filter((room) => String(room.floor ?? "").trim() === userFloor)),
-    [allRooms, isAdmin, userFloor]
+    () => (showAllFloors ? allRooms : allRooms.filter((room) => String(room.floor ?? "").trim() === userFloor)),
+    [allRooms, showAllFloors, userFloor]
   );
   const eventHasData = Array.isArray(eventQuery.data);
   const eventInitialLoading = eventQuery.isFetching && !eventHasData;
@@ -60,7 +62,7 @@ const MeetingCalendar = () => {
 
   return (
     <Container maxWidth={false} sx={{ py: 3 }}>
-      {!isAdmin && !userFloor ? <Alert severity="warning" sx={{ mb: 2 }}>{t("calendar.floorMissing")}</Alert> : null}
+      {!showAllFloors && !userFloor ? <Alert severity="warning" sx={{ mb: 2 }}>{t("calendar.floorMissing")}</Alert> : null}
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "340px minmax(0, 1fr)" }, gap: 2 }}>
         <Paper sx={{ p: 2 }}>
           <CalendarSidebar
@@ -68,7 +70,7 @@ const MeetingCalendar = () => {
             onDateChange={setSelectedDate}
             rooms={bookableRooms}
             floor={userFloor}
-            isAdmin={isAdmin}
+            showAllFloors={showAllFloors}
             scheduleMode={scheduleMode}
             onScheduleModeChange={(mode) => {
               setScheduleMode(mode);

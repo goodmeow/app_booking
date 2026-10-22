@@ -37,6 +37,7 @@ import {
   useListUserQuery,
   useUpdateUserMutation,
 } from "../redux/services/users.js";
+import { useGetRoomsQuery } from "../redux/services/rooms.js";
 
 const AddIcon = resolveMuiIcon(AddIconModule);
 const DeleteIcon = resolveMuiIcon(DeleteIconModule);
@@ -47,6 +48,16 @@ const UserManagementSection = () => {
   const { t } = useTranslation(["management", "common", "auth"]);
   const { data, isLoading, isFetching, isError, error, refetch } = useListUserQuery();
   const users = Array.isArray(data) ? data : [];
+  const roomsQuery = useGetRoomsQuery();
+  // Pilihan grup lantai diambil dari lantai ruangan yang ada.
+  const floorOptions = useMemo(() => {
+    const seen = new Set();
+    for (const room of roomsQuery.data || []) {
+      const floor = String(room.floor ?? "").trim();
+      if (floor) seen.add(floor);
+    }
+    return [...seen].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  }, [roomsQuery.data]);
 
   const [formMode, setFormMode] = useState(null);
   const [form, setForm] = useState(createEmptyUserForm);
@@ -80,6 +91,7 @@ const UserManagementSection = () => {
       password: "",
       card_number: editUser.card_number || "",
       master_card: Boolean(editUser.is_master_card),
+      floor: editUser.floor || "",
       roleId: editUser.role_id || ROLE_IDS.USER,
     });
   }, [editUser, editUserId]);
@@ -144,6 +156,7 @@ const UserManagementSection = () => {
       username: form.username.trim(),
       card_number: cardNumber,
       master_card: Boolean(form.master_card),
+      floor: form.floor,
       roleId: form.roleId,
     };
 
@@ -207,6 +220,21 @@ const UserManagementSection = () => {
     } catch (mutationError) {
       showFeedback(getApiError(mutationError, t("users.updateError")), "error");
     }
+  };
+
+  const changeFloor = async (row, floor) => {
+    try {
+      await updateUser({ userId: row._id, floor }).unwrap();
+      showFeedback(t("users.floorUpdated"));
+    } catch (mutationError) {
+      showFeedback(getApiError(mutationError, t("users.updateError")), "error");
+    }
+  };
+
+  const floorLabel = (value) => {
+    if (value === "all") return t("users.floorAll");
+    if (!value) return t("users.floorUnset");
+    return t("users.floorValue", { floor: value });
   };
 
   const columns = useMemo(() => [
@@ -284,7 +312,7 @@ const UserManagementSection = () => {
         </Stack>
       ),
     },
-  ], [isUpdating, resetDelete, resetPassword, t]);
+  ], [floorOptions, isUpdating, resetDelete, resetPassword, t]);
 
   const formField = (name) => ({
     value: form[name],
@@ -333,6 +361,18 @@ const UserManagementSection = () => {
             <TextField required label={t("common:fields.name")} autoFocus {...formField("name")} />
             <TextField required type="email" label={t("common:fields.email")} {...formField("email")} />
             <TextField label={t("common:fields.usernameOptional")} {...formField("username")} />
+            <TextField
+              select
+              label={t("users.floorGroup")}
+              helperText={t("users.floorHelp")}
+              {...formField("floor")}
+            >
+              <MenuItem value="">{t("users.floorUnset")}</MenuItem>
+              <MenuItem value="all">{t("users.floorAll")}</MenuItem>
+              {floorOptions.map((floor) => (
+                <MenuItem key={floor} value={floor}>{t("users.floorValue", { floor })}</MenuItem>
+              ))}
+            </TextField>
             {formMode === "create" ? (
               <TextField required type="password" label={t("common:fields.password")} {...formField("password")} />
             ) : null}

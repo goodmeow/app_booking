@@ -104,6 +104,12 @@
     "masterCardNeedsCard": "Isi nomor kartu dulu sebelum menandai master.",
     "masterCardAria": "Tandai kartu master untuk {{name}}",
     "masterCardEnabled": "Kartu ditandai sebagai master.",
-    "masterCardDisabled": "Tanda kartu master dicabut."
+    "masterCardDisabled": "Tanda kartu master dicabut.",
+    "floorGroup": "Grup lantai",
+    "floorUnset": "Belum diatur",
+    "floorAll": "Semua lantai",
+    "floorValue": "Lantai {{floor}}",
+    "floorHelp": "Menentukan ruangan mana yang boleh dipesan.",
+    "floorUpdated": "Grup lantai diperbarui."
   }
 }

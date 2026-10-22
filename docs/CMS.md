@@ -63,12 +63,15 @@ sehingga tidak memakai header CMS.
 - API: `GET /api/events`, `GET /api/events/details`,
   `POST /api/events/preview`, `POST/PUT/DELETE /api/events`,
   `GET /api/rooms`, `GET /api/users/`.
-- **Aturan lantai:** karyawan hanya boleh memesan ruangan di **lantai kerjanya**
-  (`tbl_users.floor`). Server menolak booking lintas lantai dengan
-  `403 FLOOR_RESTRICTED`; akun tanpa lantai mendapat `403 FLOOR_REQUIRED`.
-  Admin dikecualikan. Di UI, daftar ruangan pada sidebar dan pemilih lokasi
-  editor sudah difilter sesuai lantai user, dan sidebar menampilkan keterangan
-  lantai. Kiosk "Pesan sekarang" juga memeriksa lantai pemilik kartu.
+- **Aturan lantai:** karyawan hanya boleh memesan ruangan di **grup lantainya**
+  (`tbl_users.floor`). Nilai `all` berarti **semua lantai**. Server menolak
+  booking lintas lantai dengan `403 FLOOR_RESTRICTED`; akun tanpa lantai
+  mendapat `403 FLOOR_REQUIRED`. Admin dikecualikan. Di UI, daftar ruangan
+  pada sidebar dan pemilih lokasi editor difilter sesuai grup lantai user, dan
+  sidebar menampilkan keterangan lantai. Kiosk "Pesan sekarang" juga memeriksa
+  lantai pemilik kartu.
+- Grup lantai hanya bisa diubah **admin** (lewat tab Pengguna); user biasa tidak
+  bisa menaikkan haknya sendiri menjadi `all`.
 
 ### 3.4 Profil Pengguna (`/user/:userId`) — `client/profile/UserProfile.js`
 - Detail akun, edit profil, ganti kata sandi, hapus akun.
@@ -84,7 +87,7 @@ Empat tab (`AppManagement.js`):
 
 | Tab | Isi | API |
 |---|---|---|
-| Pengguna (`UserManagementSection.js`, `user-form.js`) | CRUD user **beserta akses kartunya**: kolom nomor kartu, tombol **kartu master** (langsung dari tabel atau lewat form), ganti sandi, hapus. | `/api/users` |
+| Pengguna (`UserManagementSection.js`, `user-form.js`) | CRUD user **beserta akses kartunya**: kolom nomor kartu, tombol **kartu master**, dan **kolom grup lantai** (pilih **Semua lantai**, lantai tertentu, atau belum diatur) yang bisa diubah langsung dari tabel atau lewat form; ganti sandi, hapus. | `/api/users` |
 | Ruangan (`RoomManagementSection.js`) | CRUD ruangan: nama, gedung, lantai, **kapasitas**, fitur, email, sandi. **Kolom Tablet: Online/Offline/Belum ada/Dicabut**, auto-refresh 15 s | `/api/rooms`, `/api/kiosk/devices` |
 | Perangkat Tablet (`KioskDeviceManagementSection.js`) | Daftar tablet: nama, ruangan, **Online/Offline/Dicabut/Kedaluwarsa**, switch **LED** (NFC sudah ditangani aplikasi kiosk), last seen, waktu pairing, cabut perangkat. Auto-refresh 15 s | `/api/kiosk/devices`, `PATCH …/capabilities`, `DELETE …/:id` |
 

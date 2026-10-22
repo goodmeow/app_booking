@@ -100,5 +100,6 @@
   },
   "floorScope": "Ruangan yang tampil hanya lantai {{floor}}.",
   "floorScopeAdmin": "Mode admin: semua lantai tampil.",
-  "floorMissing": "Akun Anda belum punya lantai kerja. Minta admin mengisinya di Manajemen > Pengguna."
+  "floorMissing": "Akun Anda belum punya lantai kerja. Minta admin mengisinya di Manajemen > Pengguna.",
+  "floorScopeAll": "Semua lantai ditampilkan."
 }

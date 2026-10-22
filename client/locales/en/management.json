@@ -104,6 +104,12 @@
     "masterCardNeedsCard": "Enter a card number before flagging it as master.",
     "masterCardAria": "Flag master card for {{name}}",
     "masterCardEnabled": "Card flagged as master.",
-    "masterCardDisabled": "Master flag removed."
+    "masterCardDisabled": "Master flag removed.",
+    "floorGroup": "Floor group",
+    "floorUnset": "Not set",
+    "floorAll": "All floors",
+    "floorValue": "Floor {{floor}}",
+    "floorHelp": "Controls which rooms this user may book.",
+    "floorUpdated": "Floor group updated."
   }
 }

@@ -139,6 +139,8 @@ const assertRoomFloorAccess = async (roomIds, principal) => {
   if (!floor) {
     throw new HttpError(403, "FLOOR_REQUIRED", "Akun Anda belum memiliki lantai kerja. Minta admin mengisinya di Manajemen > Pengguna.");
   }
+  // Grup lantai "all" boleh memesan ruangan di lantai mana pun.
+  if (floor.toLowerCase() === "all") return;
   const rooms = await findRoomFloors(roomIds);
   const outside = rooms.filter((room) => normalizedFloor(room.floor) !== floor);
   if (outside.length) {

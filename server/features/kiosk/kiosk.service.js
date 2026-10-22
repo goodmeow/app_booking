@@ -324,7 +324,7 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
   if (!employeeFloor) {
     throw new HttpError(403, "FLOOR_REQUIRED", "Kartu ini belum terhubung ke lantai kerja. Minta admin mengisinya di Manajemen > Pengguna.");
   }
-  if (employeeFloor !== roomFloor) {
+  if (employeeFloor.toLowerCase() !== "all" && employeeFloor !== roomFloor) {
     throw new HttpError(403, "FLOOR_RESTRICTED", `Kartu ini terdaftar di lantai ${employeeFloor}, sedangkan ruangan ini di lantai ${roomFloor}.`);
   }
   const now = new Date();
