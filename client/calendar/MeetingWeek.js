@@ -129,7 +129,7 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", onViewC
   };
 
   return (
-    <Box>
+    <Box sx={{ "& .fc-event": { overflow: "hidden" }, "& .fc-event-main": { overflow: "hidden" } }}>
       <CalendarControls
         view={view}
         onToday={onToday}
@@ -165,32 +165,42 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", onViewC
       weekends
       dayMaxEvents
       selectOverlap={false}
+      eventMinHeight={28}
       displayEventTime={false}
       eventTimeFormat={{ hour12: false }}
       events={events}
       eventContent={(info) => {
         const cues = cueLinesFor(info.event, browserLocale, t);
-        if (isBusyProjection(info.event)) {
-          return (
-            <Stack component="span" spacing={0.25}>
-              <Typography component="span" variant="body2">{info.event.title}</Typography>
-              {cues.map((cue) => (
-                <Typography key={cue} component="span" variant="caption">{cue}</Typography>
-              ))}
-            </Stack>
-          );
-        }
+        const busy = isBusyProjection(info.event);
+        const checked = Boolean(eventProp(info.event, "checked_in"));
         return (
-          <Stack component="span" spacing={0.25}>
-            <Typography component="span" variant="caption">{formatMeetingTimeRange(info.event.start, info.event.end, browserLocale)}</Typography>
-            <Typography component="span" variant="body2">{info.event.title}</Typography>
-            {cues.map((cue) => (
-              <Typography key={cue} component="span" variant="caption">{cue}</Typography>
-            ))}
-            {eventProp(info.event, "checked_in") ? (
-              <Typography component="span" variant="caption">✓ {t("calendar.checkedIn")}</Typography>
+          <Box
+            component="span"
+            sx={{
+              display: "block",
+              width: "100%",
+              maxWidth: "100%",
+              height: "100%",
+              overflow: "hidden",
+              lineHeight: 1.15,
+              px: 0.25,
+            }}
+          >
+            {busy ? null : (
+              <Typography component="span" variant="caption" display="block" noWrap>
+                {checked ? "✓ " : ""}
+                {formatMeetingTimeRange(info.event.start, info.event.end, browserLocale)}
+              </Typography>
+            )}
+            <Typography component="span" variant="body2" fontWeight={600} display="block" noWrap>
+              {info.event.title}
+            </Typography>
+            {cues.length ? (
+              <Typography component="span" variant="caption" display="block" noWrap>
+                {cues.join(" · ")}
+              </Typography>
             ) : null}
-          </Stack>
+          </Box>
         );
       }}
       select={handleSelect}
