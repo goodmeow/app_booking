@@ -108,6 +108,7 @@
     "roomFreeText": "Siap dipakai",
     "tabletOnline": "Tablet online",
     "tabletOffline": "Tablet offline",
-    "checkedIn": "Sudah check-in"
+    "checkedIn": "Sudah check-in",
+    "tabletOfflineWarning": "Tablet ruangan offline — check-in lewat kiosk tidak tersedia. Hubungi admin."
   }
 }

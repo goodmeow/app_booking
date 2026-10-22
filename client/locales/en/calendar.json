@@ -108,6 +108,7 @@
     "roomFreeText": "Ready to use",
     "tabletOnline": "Tablet online",
     "tabletOffline": "Tablet offline",
-    "checkedIn": "Checked in"
+    "checkedIn": "Checked in",
+    "tabletOfflineWarning": "Room tablet is offline — kiosk check-in is unavailable. Contact an admin."
   }
 }

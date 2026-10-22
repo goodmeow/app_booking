@@ -166,6 +166,11 @@ const CalendarSidebar = ({
                     </>
                   ) : null}
                 </Typography>
+                {!showTabletStatus && !room.tabletOnline ? (
+                  <Typography variant="caption" color="warning.main" display="block">
+                    ⚠ {t("calendar.tabletOfflineWarning")}
+                  </Typography>
+                ) : null}
               </Paper>
             ))}
           </Stack>
