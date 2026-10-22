@@ -29,7 +29,7 @@ test("normalizes RTK Query and Error messages", () => {
   assert.equal(getApiError(null, "Fallback"), "Fallback");
 });
 
-test("tablet management keeps the LED toggle and drops the NFC toggle", () => {
+test("tablet management keeps the LED toggle and lets admin hide meeting titles", () => {
   const service = fs.readFileSync(new URL("../redux/services/kiosk-devices.js", import.meta.url), "utf8");
   const section = fs.readFileSync(new URL("../management/KioskDeviceManagementSection.js", import.meta.url), "utf8");
   assert.match(service, /\/capabilities/);
@@ -37,6 +37,10 @@ test("tablet management keeps the LED toggle and drops the NFC toggle", () => {
   // NFC sudah ditangani aplikasi kiosk, jadi tidak lagi diatur dari CMS.
   assert.doesNotMatch(section, /"nfcEnabled"/);
   assert.match(section, /"ledEnabled"/);
+  // Toggle judul meeting (migrasi 011) bersebelahan dengan LED.
+  assert.match(section, /"showSubject"/);
+  // Service hanya meneruskan capability apa pun (passthrough PATCH).
+  assert.match(service, /capabilities/);
   assert.match(section, /row\.online/);
 });
 

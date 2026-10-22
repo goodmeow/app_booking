@@ -1,3 +1,13 @@
+# Docker 29 memindahkan compose ke binary terpisah; coba "docker compose"
+# dulu, jatuh ke "docker-compose" kalau tidak tersedia.
+run_compose() {
+  if docker compose version >/dev/null 2>&1; then
+    docker compose "$@"
+  else
+    docker-compose "$@"
+  fi
+}
+
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -12,11 +22,11 @@ if [[ "$DATABASE_NAME" != "360booking_reconstruction_test" ]]; then
   exit 1
 fi
 
-docker compose up -d postgres-test
+run_compose up -d postgres-test
 
 readonly PG_READY_MAX_ATTEMPTS=30
 for ((attempt = 1; attempt <= PG_READY_MAX_ATTEMPTS; attempt++)); do
-  if docker compose exec -T postgres-test pg_isready \
+  if run_compose exec -T postgres-test pg_isready \
     -U "$DATABASE_USER" -d postgres >/dev/null 2>&1; then
     break
   fi
@@ -29,25 +39,25 @@ for ((attempt = 1; attempt <= PG_READY_MAX_ATTEMPTS; attempt++)); do
   sleep 1
 done
 
-docker compose exec -T postgres-test dropdb \
-  -U "$DATABASE_USER" --if-exists "$DATABASE_NAME"
-docker compose exec -T postgres-test createdb \
+run_compose exec -T postgres-test dropdb \
+  --force -U "$DATABASE_USER" --if-exists "$DATABASE_NAME"
+run_compose exec -T postgres-test createdb \
   -U "$DATABASE_USER" -O "$DATABASE_USER" "$DATABASE_NAME"
 
 for migration in database/migrations/*.sql; do
   echo "Applying $migration"
-  docker compose exec -T postgres-test psql \
+  run_compose exec -T postgres-test psql \
     -v ON_ERROR_STOP=1 -U "$DATABASE_USER" -d "$DATABASE_NAME" \
     < "$migration"
 done
 
-docker compose exec -T postgres-test psql \
+run_compose exec -T postgres-test psql \
   -v ON_ERROR_STOP=1 -U "$DATABASE_USER" -d "$DATABASE_NAME" \
   < database/seeds/development.sql
 
 for test_file in database/tests/*.sql; do
   echo "Running $test_file"
-  docker compose exec -T postgres-test psql \
+  run_compose exec -T postgres-test psql \
     -v ON_ERROR_STOP=1 -U "$DATABASE_USER" -d "$DATABASE_NAME" \
     < "$test_file"
 done

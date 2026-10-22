@@ -188,8 +188,16 @@ async function main() {
   addDemoOrigins();
   await Promise.all([assertPortFree(env.PORT), assertPortFree(env.SERVER_PORT)]);
 
-  run("docker", ["compose", "version"], "Docker Compose preflight");
-  run("docker", ["compose", "--env-file", ".env.demo", "up", "-d", "--wait", "postgres-test"], "Demo database startup");
+  // Docker 29 memindahkan compose ke binary terpisah; pilih command yang
+  // memang tersedia sebelum menyalakan database demo.
+  let composeCommand = null;
+  try {
+    run("docker", ["compose", "version"], "Docker Compose preflight");
+    composeCommand = ["docker", "compose"];
+  } catch {
+    composeCommand = ["docker-compose"];
+  }
+  run(composeCommand[0], [...composeCommand.slice(1), "--env-file", ".env.demo", "up", "-d", "--wait", "postgres-test"], "Demo database startup");
   run(path.join(root, "database/scripts/rebuild-test-db.sh"), [], "Demo database rebuild");
 
   start("scripts/dev-server.js");

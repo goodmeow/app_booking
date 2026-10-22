@@ -8,7 +8,7 @@ const kioskRoomColumns = `
 const kioskDeviceColumns = `
   d._id AS device_id, d.room_id, d.name AS device_name,
   d.token_version, d.refresh_expires_at, d.last_seen_at,
-  d.nfc_enabled, d.led_enabled,
+  d.nfc_enabled, d.led_enabled, d.show_subject,
   d.revoked_at, d.created_at, d.updated_at,
   u.name AS room_name, u.email AS room_email, u.type AS room_type,
   u.floor, u.capacity, u.building, u.feature, u.is_deleted AS room_deleted
@@ -105,7 +105,7 @@ export const listKioskDevices = async (roomId = null) => (await query(
   `SELECT
      d._id AS device_id, d.room_id, d.name AS device_name,
      d.refresh_expires_at, d.last_seen_at, d.revoked_at,
-     d.nfc_enabled, d.led_enabled,
+     d.nfc_enabled, d.led_enabled, d.show_subject,
      d.created_at, d.updated_at,
      u.name AS room_name, u.email AS room_email
    FROM tbl_kiosk_devices d
@@ -115,11 +115,12 @@ export const listKioskDevices = async (roomId = null) => (await query(
   [roomId || null]
 )).rows;
 
-export const updateKioskDeviceCapabilities = async ({ deviceId, nfcEnabled = null, ledEnabled = null }) => (await query(
+export const updateKioskDeviceCapabilities = async ({ deviceId, nfcEnabled = null, ledEnabled = null, showSubject = null }) => (await query(
   `WITH updated AS (
      UPDATE tbl_kiosk_devices
      SET nfc_enabled = COALESCE($2::boolean, nfc_enabled),
          led_enabled = COALESCE($3::boolean, led_enabled),
+         show_subject = COALESCE($4::boolean, show_subject),
          updated_at = now()
      WHERE _id = $1 AND revoked_at IS NULL
      RETURNING *
@@ -127,7 +128,7 @@ export const updateKioskDeviceCapabilities = async ({ deviceId, nfcEnabled = nul
    SELECT ${kioskDeviceColumns}
    FROM updated d
    JOIN tbl_users u ON u._id = d.room_id`,
-  [deviceId, nfcEnabled, ledEnabled]
+  [deviceId, nfcEnabled, ledEnabled, showSubject]
 )).rows[0] || null;
 
 export const findKioskRoomByLogin = async (login) => (await query(
@@ -152,6 +153,8 @@ export const listKioskScheduleRows = async ({ roomId, rangeStart, rangeEnd }) =>
   `SELECT
      e._id,
      split_part(btrim(organizer.name), ' ', 1) AS organizer_first_name,
+     btrim(organizer.name) AS organizer_name,
+     btrim(e.subject) AS subject,
      e.start_date AT TIME ZONE e.timezone AS start_at,
      e.end_date AT TIME ZONE e.timezone AS end_at,
      e.timezone,

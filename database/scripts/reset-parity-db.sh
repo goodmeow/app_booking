@@ -12,17 +12,27 @@ if [[ "$DATABASE_NAME" != "360booking_reconstruction_test" ]]; then
   exit 1
 fi
 
-docker compose up -d --wait postgres-test
-docker compose exec -T postgres-test dropdb \
-  -U "$DATABASE_USER" --if-exists "$DATABASE_NAME"
-docker compose exec -T postgres-test createdb \
+# Docker 29 memindahkan compose ke binary terpisah; coba "docker compose"
+# dulu, jatuh ke "docker-compose" kalau tidak tersedia.
+run_compose() {
+  if docker compose version >/dev/null 2>&1; then
+    docker compose "$@"
+  else
+    docker-compose "$@"
+  fi
+}
+
+run_compose up -d --wait postgres-test
+run_compose exec -T postgres-test dropdb \
+  --force -U "$DATABASE_USER" --if-exists "$DATABASE_NAME"
+run_compose exec -T postgres-test createdb \
   -U "$DATABASE_USER" -O "$DATABASE_USER" "$DATABASE_NAME"
 
 for file in database/migrations/*.sql \
   database/seeds/development.sql \
   database/seeds/parity.sql; do
   echo "Applying $file"
-  docker compose exec -T postgres-test psql \
+  run_compose exec -T postgres-test psql \
     -v ON_ERROR_STOP=1 -U "$DATABASE_USER" -d "$DATABASE_NAME" < "$file"
 done
 

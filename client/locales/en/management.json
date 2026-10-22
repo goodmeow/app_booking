@@ -20,7 +20,7 @@
   },
   "devices": {
     "title": "Tablet Devices",
-    "description": "Paired room tablets with online status and indicator light.",
+    "description": "Paired room tablets with online status, indicator light, and optional meeting titles.",
     "device": "Device",
     "room": "Room",
     "unknownRoom": "Unknown room",
@@ -35,6 +35,8 @@
     "revokeError": "Unable to revoke kiosk device.",
     "nfcAria": "NFC for {{name}}",
     "ledAria": "LED for {{name}}",
+    "subjectColumn": "Subject",
+    "subjectAria": "Meeting title for {{name}}",
     "revokeAria": "Revoke kiosk {{name}}",
     "status": {
       "active": "Active",

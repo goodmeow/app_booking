@@ -152,6 +152,8 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
   assert.equal(current.nfcEnabled, false);
   // Migrasi 010 mengaktifkan LED secara default untuk perangkat aktif.
   assert.equal(current.ledEnabled, true);
+  // Migrasi 011: judul meeting default tampil, admin bisa menyembunyikannya.
+  assert.equal(current.showSubject, true);
   assert.equal(Object.hasOwn(current, "refreshTokenHash"), false);
 
   const capabilityDenied = await apiRequest(
@@ -186,10 +188,38 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
   assert.equal(capability.status, 200);
   assert.equal(capability.body.nfcEnabled, true);
   assert.equal(capability.body.ledEnabled, true);
+  assert.equal(capability.body.showSubject, true);
   const capabilityContext = await apiRequest(targets.reconstructed, "/api/kiosk/context", { headers: kioskHeaders() });
   assert.equal(capabilityContext.status, 200);
   assert.equal(capabilityContext.body.device.nfcEnabled, true);
   assert.equal(capabilityContext.body.device.ledEnabled, true);
+  assert.equal(capabilityContext.body.device.showSubject, true);
+
+  const hideTitle = await apiRequest(
+    targets.reconstructed,
+    `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
+    {
+      method: "PATCH",
+      headers: bearer("admin"),
+      body: JSON.stringify({ showSubject: false }),
+    }
+  );
+  assert.equal(hideTitle.status, 200);
+  assert.equal(hideTitle.body.showSubject, false);
+  const hiddenContext = await apiRequest(targets.reconstructed, "/api/kiosk/context", { headers: kioskHeaders() });
+  assert.equal(hiddenContext.body.device.showSubject, false);
+  // Kembalikan default agar test berikutnya selalu mendapat judul tampil.
+  const restoreTitle = await apiRequest(
+    targets.reconstructed,
+    `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
+    {
+      method: "PATCH",
+      headers: bearer("admin"),
+      body: JSON.stringify({ showSubject: true }),
+    }
+  );
+  assert.equal(restoreTitle.status, 200);
+  assert.equal(restoreTitle.body.showSubject, true);
 
   // Ruangan kedua dipakai untuk menguji pencabutan perangkat tanpa mengganggu
   // perangkat room-one yang masih dipakai test berikutnya.
@@ -251,10 +281,44 @@ test("kiosk context and schedule are bound to one room with a safe projection", 
   assert.equal(schedule.body.some((event) => event.id === roomTwoEvent.body[0].id), false);
   for (const event of schedule.body) {
     assert.deepEqual(Object.keys(event).sort(), [
-      "canCheckIn", "canFinish", "checkedIn", "end", "id", "organizerFirstName", "start", "timezone", "title",
+      "canCheckIn", "canFinish", "checkedIn", "end", "id", "organizerFirstName", "organizerName", "start", "subject", "timezone", "title",
     ]);
     assert.equal(event.title.includes("Private"), false);
   }
+  const seededRoomOneEvent = schedule.body.find(
+    (event) => event.id === "60000000-0000-4000-8000-000000000001"
+  );
+  // Default perangkat: judul tampil sesuai seed database.
+  assert.equal(seededRoomOneEvent.subject, "Test Meeting");
+  assert.ok(seededRoomOneEvent.organizerName);
+
+  // Admin menyembunyikan judul: schedule memasok null, personalisasi hilang.
+  const hideTitles = await apiRequest(
+    targets.reconstructed,
+    `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
+    { method: "PATCH", headers: bearer("admin"), body: JSON.stringify({ showSubject: false }) }
+  );
+  assert.equal(hideTitles.status, 200);
+  const hiddenSchedule = await apiRequest(
+    targets.reconstructed,
+    "/api/kiosk/schedule?start=20300101&end=20300131&rooms=room-two%40room.com",
+    { headers: kioskHeaders() }
+  );
+  assert.equal(hiddenSchedule.status, 200);
+  for (const event of hiddenSchedule.body) {
+    assert.equal(event.subject, null);
+    assert.equal(event.organizerName, null);
+    // organizerFirstName tetap dikirim agar tampilan lama tetap berfungsi.
+    assert.ok(event.organizerFirstName);
+  }
+
+  // Buka lagi supaya pengaturan perangkat kembali ke default tampil.
+  const showTitles = await apiRequest(
+    targets.reconstructed,
+    `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
+    { method: "PATCH", headers: bearer("admin"), body: JSON.stringify({ showSubject: true }) }
+  );
+  assert.equal(showTitles.status, 200);
 });
 
 test("kiosk device status reflects live last-seen", async () => {

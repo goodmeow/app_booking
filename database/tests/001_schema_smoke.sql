@@ -46,9 +46,9 @@ BEGIN
     FROM information_schema.columns
     WHERE table_schema = 'public'
       AND table_name = 'tbl_kiosk_devices'
-      AND column_name IN ('nfc_enabled', 'led_enabled')
+      AND column_name IN ('nfc_enabled', 'led_enabled', 'show_subject')
     GROUP BY table_schema, table_name
-    HAVING count(*) = 2
+    HAVING count(*) = 3
   ) THEN
     RAISE EXCEPTION 'Kiosk capability columns are missing';
   END IF;

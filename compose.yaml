@@ -1,3 +1,7 @@
+# Nama project ditetapkan supaya skrip perawatan menemukan kontainer demo
+# yang sudah berjalan (tidak perlu COMPOSE_PROJECT_NAME eksternal).
+name: 360booking
+
 services:
   postgres-test:
     image: postgres:14-alpine

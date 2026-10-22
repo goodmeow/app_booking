@@ -77,13 +77,18 @@ test("builds a thirty-minute default event range", () => {
 
 test("repairs the legacy room filter by avoiding the conflicting user predicate", () => {
   const range = { start: "20300113", end: "20300119" };
-  assert.deepEqual(
-    calendarEventFilters({ email: "user@example.test", roomEmail: null, range }),
-    { users: "user@example.test", rooms: undefined, ...range }
+  // Node membandingkan properti dengan nilai undefined secara berbeda
+  // antar versi; bandingkan hanya properti yang benar-benar terisi.
+  const defined = (filters) => Object.fromEntries(
+    Object.entries(filters).filter(([, value]) => value !== undefined)
   );
   assert.deepEqual(
-    calendarEventFilters({ email: "user@example.test", roomEmail: "meeting@room.com", range }),
-    { users: undefined, rooms: "meeting@room.com", ...range }
+    defined(calendarEventFilters({ email: "user@example.test", roomEmail: null, range })),
+    { users: "user@example.test", ...range }
+  );
+  assert.deepEqual(
+    defined(calendarEventFilters({ email: "user@example.test", roomEmail: "meeting@room.com", range })),
+    { rooms: "meeting@room.com", ...range }
   );
 });
 

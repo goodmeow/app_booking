@@ -54,12 +54,27 @@ async function runProcess(command, args, input) {
 }
 
 export async function queryParityDatabase(sql) {
+  const compose = await composeInvocation();
   const command =
-    "docker compose exec -T postgres-test psql " +
+    `${compose} exec -T postgres-test psql ` +
     "-v ON_ERROR_STOP=1 -At -U booking_test " +
     "-d 360booking_reconstruction_test";
   return (await runProcess("sg", ["docker", "-c", command], sql)).trim();
 }
+
+// Docker 29 memindahkan compose ke binary terpisah. Deteksi sekali per
+// proses: "docker compose" bila tersedia, selain itu "docker-compose".
+let cachedComposeInvocation = null;
+export const composeInvocation = async () => {
+  if (cachedComposeInvocation) return cachedComposeInvocation;
+  try {
+    await runProcess("docker", ["compose", "version"], "");
+    cachedComposeInvocation = "docker compose";
+  } catch {
+    cachedComposeInvocation = "docker-compose";
+  }
+  return cachedComposeInvocation;
+};
 
 export async function resetParityDatabase() {
   const script = "database/scripts/reset-parity-db.sh";

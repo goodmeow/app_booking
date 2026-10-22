@@ -87,6 +87,20 @@ const KioskDeviceManagementSection = () => {
       ),
     },
     {
+      field: "showSubject",
+      headerName: t("devices.subjectColumn"),
+      width: 100,
+      sortable: false,
+      renderCell: ({ row }) => (
+        <Switch
+          checked={Boolean(row.showSubject)}
+          disabled={row.status !== "active" || isUpdatingCapabilities}
+          inputProps={{ "aria-label": t("devices.subjectAria", { name: row.name }) }}
+          onChange={(event) => void toggleCapability(row.id, "showSubject", event.target.checked)}
+        />
+      ),
+    },
+    {
       field: "lastSeenAt",
       headerName: t("devices.lastSeen"),
       minWidth: 190,

@@ -67,6 +67,7 @@ export const publicKioskDevice = (device) => ({
   revokedAt: device.revoked_at,
   nfcEnabled: Boolean(device.nfc_enabled),
   ledEnabled: Boolean(device.led_enabled),
+  showSubject: Boolean(device.show_subject),
 });
 
 export const authenticateKioskCredentials = async (login, password) => {
@@ -195,16 +196,23 @@ export const revokeManagedKioskDevice = async (deviceId, principalId) => {
 };
 
 export const updateManagedKioskCapabilities = async (deviceId, input = {}) => {
-  const hasNfc = Object.hasOwn(input, "nfcEnabled");
-  const hasLed = Object.hasOwn(input, "ledEnabled");
-  if (!hasNfc && !hasLed) throw badRequest("INVALID_KIOSK_CAPABILITIES", "NFC or LED setting is required");
-  if ((hasNfc && typeof input.nfcEnabled !== "boolean") || (hasLed && typeof input.ledEnabled !== "boolean")) {
-    throw badRequest("INVALID_KIOSK_CAPABILITIES", "NFC and LED settings must be boolean");
+  const flags = {
+    nfcEnabled: Object.hasOwn(input, "nfcEnabled") ? input.nfcEnabled : null,
+    ledEnabled: Object.hasOwn(input, "ledEnabled") ? input.ledEnabled : null,
+    showSubject: Object.hasOwn(input, "showSubject") ? input.showSubject : null,
+  };
+  const changedKeys = Object.keys(flags).filter((key) => flags[key] !== null);
+  if (!changedKeys.length) {
+    throw badRequest("INVALID_KIOSK_CAPABILITIES", "NFC, LED, or subject visibility setting is required");
+  }
+  for (const key of changedKeys) {
+    if (typeof flags[key] !== "boolean") throw badRequest("INVALID_KIOSK_CAPABILITIES", `${key} setting must be boolean`);
   }
   const device = await updateKioskDeviceCapabilities({
     deviceId,
-    nfcEnabled: hasNfc ? input.nfcEnabled : null,
-    ledEnabled: hasLed ? input.ledEnabled : null,
+    nfcEnabled: flags.nfcEnabled,
+    ledEnabled: flags.ledEnabled,
+    showSubject: flags.showSubject,
   });
   if (!device) throw notFound("Kiosk device not found");
   return publicKioskDevice(device);
@@ -225,9 +233,20 @@ export const getKioskSchedule = async (query, room) => {
   await maybeReleaseAbandonedBookings();
   const range = calendarRange(query.start, query.end, config.appTimezone);
   const rows = await listKioskScheduleRows({ roomId: room._id, ...range });
+  // Toggle admin di Perangkat Tablet: kalau off, jangan kirim judul maupun
+  // organizer lengkap supaya privasi jam/organizer saja yang tersisa.
+  const revealTitle = Boolean(room.device?.showSubject);
+  const cleanSubject = (value) => {
+    const text = String(value || "").trim();
+    return text.length ? text : null;
+  };
   return rows.map((row) => ({
     id: row._id,
     title: `[${row.organizer_first_name || "Booked"}, ${formatLocalTime(row.start_at, row.timezone)} - ${formatLocalTime(row.end_at, row.timezone)}]`,
+    subject: revealTitle ? cleanSubject(row.subject) : null,
+    organizerName: revealTitle
+      ? (cleanSubject(row.organizer_name) || row.organizer_first_name || "Booked")
+      : null,
     organizerFirstName: row.organizer_first_name || "Booked",
     start: row.start_at,
     end: row.end_at,

@@ -20,7 +20,7 @@
   },
   "devices": {
     "title": "Perangkat Tablet",
-    "description": "Tablet ruangan yang sudah dipasangkan beserta status online dan lampunya.",
+    "description": "Tablet ruangan yang sudah dipasangkan beserta status online, lampu, dan judul meeting yang bisa disembunyikan.",
     "device": "Perangkat",
     "room": "Ruangan",
     "unknownRoom": "Ruangan tidak diketahui",
@@ -35,6 +35,8 @@
     "revokeError": "Tidak dapat mencabut perangkat kiosk.",
     "nfcAria": "NFC untuk {{name}}",
     "ledAria": "LED untuk {{name}}",
+    "subjectColumn": "Judul",
+    "subjectAria": "Judul meeting untuk {{name}}",
     "revokeAria": "Cabut kiosk {{name}}",
     "status": {
       "active": "Aktif",
