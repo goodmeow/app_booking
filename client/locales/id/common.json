@@ -96,7 +96,8 @@
     "invalidKioskCredentials": "Login ruangan atau kata sandi tidak valid",
     "kioskProvisioningRequired": "Lakukan provisioning kiosk kembali untuk melanjutkan",
     "kioskAuthenticationRequired": "Autentikasi kiosk diperlukan",
-    "requestFailed": "Permintaan tidak dapat diselesaikan"
+    "requestFailed": "Permintaan tidak dapat diselesaikan",
+    "invalidVisitor": "Periksa alamat email peserta yang diundang"
   },
   "dataGrid": {
     "noRows": "Tidak ada baris",

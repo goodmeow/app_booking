@@ -80,7 +80,8 @@
       "last": "Terakhir"
     },
     "monthWeekdayLabel": "Hari",
-    "monthWeekLabel": "Kejadian dalam bulan"
+    "monthWeekLabel": "Kejadian dalam bulan",
+    "guestInvalid": "Peserta \"{{value}}\" bukan alamat email yang valid. Tulis email lengkap, mis. harun@prasada.id."
   },
   "validation": {
     "subjectRequired": "Isi judul meeting.",
@@ -92,7 +93,8 @@
     "recurrenceCadence": "Pilih cadence pengulangan yang didukung.",
     "recurrenceEnd": "Pilih tanggal selesai pengulangan setelah occurrence pertama.",
     "recurrenceWeekday": "Pilih minimal satu hari pengulangan.",
-    "recurrenceMonthly": "Pilih pola bulanan (tanggal atau hari dalam bulan)."
+    "recurrenceMonthly": "Pilih pola bulanan (tanggal atau hari dalam bulan).",
+    "guestEmail": "Semua tamu yang diundang harus memakai alamat email yang valid."
   },
   "calendar": {
     "loading": "Memuat meeting...",

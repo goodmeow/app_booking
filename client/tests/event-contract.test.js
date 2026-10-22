@@ -40,6 +40,14 @@ test("returns semantic meeting validation keys", () => {
     "validation.roomRequired"
   );
   assert.equal(
+    validateEventDraft({ ...validDraft, attendees: [...attendees, { attendee_email: "harun" }] }, { now }),
+    "validation.guestEmail"
+  );
+  assert.equal(
+    validateEventDraft({ ...validDraft, attendees: [...attendees, { attendee_email: "harun@prasada.id" }] }, { now }),
+    null
+  );
+  assert.equal(
     validateEventDraft(validDraft, { now: new Date("2030-01-15T11:00:00"), editing: true }),
     "validation.pastEdit"
   );

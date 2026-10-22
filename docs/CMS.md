@@ -67,6 +67,11 @@ sehingga tidak memakai header CMS.
     sebagai keterangan "mengikuti Ulangi sampai") karena rentang pengulangan
     dikuasai **Ulangi sampai**; durasi tiap occurrence mengikuti Jam
     mulai–Jam selesai hari pertama.
+  - **Undang peserta** — pengguna yang sudah terdaftar cukup dipilih dari
+    saran (kirim lewat akun). Tamu tanpa akun wajib ditulis **email lengkap**
+    (mis. `harun@prasada.id`); sebelum kirim, editor memvalidasi dan
+    menampilkan chip yang salah ketik (`editor.guestInvalid`), bukan lagi
+    pesan generik `INVALID_VISITOR`.
   - **Zona waktu dihapus** — server otomatis memakai zona waktu aplikasi
     (`APP_TIMEZONE`, default `Asia/Jakarta`); pengguna tidak lagi memilih
     Asia/Jakarta/UTC. Saat mengedit event lama, `timezone` tersimpan tetap

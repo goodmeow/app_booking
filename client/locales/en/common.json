@@ -96,7 +96,8 @@
     "invalidKioskCredentials": "Invalid room login or password",
     "kioskProvisioningRequired": "Provision this kiosk again to continue",
     "kioskAuthenticationRequired": "Kiosk authentication is required",
-    "requestFailed": "The request could not be completed"
+    "requestFailed": "The request could not be completed",
+    "invalidVisitor": "Check the invited guest email addresses"
   },
   "dataGrid": {
     "noRows": "No rows",

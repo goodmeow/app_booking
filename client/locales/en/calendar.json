@@ -80,7 +80,8 @@
       "last": "Last"
     },
     "monthWeekdayLabel": "Weekday",
-    "monthWeekLabel": "Occurrence in month"
+    "monthWeekLabel": "Occurrence in month",
+    "guestInvalid": "Participant \"{{value}}\" is not a valid email address. Write a full email, e.g. harun@prasada.id."
   },
   "validation": {
     "subjectRequired": "Enter a meeting title.",
@@ -92,7 +93,8 @@
     "recurrenceCadence": "Choose a supported repeat cadence.",
     "recurrenceEnd": "Choose a repeat end date after the first occurrence.",
     "recurrenceWeekday": "Choose at least one repeat weekday.",
-    "recurrenceMonthly": "Choose the monthly pattern (date or weekday of the month)."
+    "recurrenceMonthly": "Choose the monthly pattern (date or weekday of the month).",
+    "guestEmail": "Every invited guest must use a valid email address."
   },
   "calendar": {
     "loading": "Loading meetings...",

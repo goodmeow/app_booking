@@ -38,6 +38,7 @@ import {
   buildUpdateEventPayload,
   encodeEventDescription,
   isRoomAttendee,
+  isValidGuestEmail,
   validateEventDraft,
 } from "../domain/events/event-contract.js";
 import {
@@ -321,6 +322,15 @@ const EventEditor = ({
   const submit = async (submitEvent) => {
     submitEvent.preventDefault();
     const attendees = uniqueAttendees(draft.attendees);
+    // Tunjukkan chip yang mandul supaya pengguna tahu peserta mana yang
+    // salah ketik, bukan pesan generik dari server.
+    const invalidGuest = attendees.find((attendee) => !isRoomAttendee(attendee)
+      && !(attendee.attendee_user_id || attendee.userId)
+      && !isValidGuestEmail(emailOf(attendee)));
+    if (invalidGuest) {
+      setError(t("editor.guestInvalid", { value: emailOf(invalidGuest).trim() }));
+      return;
+    }
     const validationError = validateEventDraft({
       subject: draft.subject,
       startDate: startValue,

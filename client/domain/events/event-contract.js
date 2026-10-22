@@ -22,6 +22,12 @@ export const validateEventDraft = (
   }
   if (start >= end) return "validation.endBeforeStart";
   if (!attendees.some(isRoomAttendee)) return "validation.roomRequired";
+  // Tamu tanpa akun harus berformat email; server menolak dengan
+  // INVALID_VISITOR bila pengguna salah mengetik nama tanpa domain.
+  const guestEmailInvalid = attendees.some((attendee) => !isRoomAttendee(attendee)
+    && !(attendee.attendee_user_id || attendee.userId)
+    && !isValidGuestEmail(attendeeEmail(attendee)));
+  if (guestEmailInvalid) return "validation.guestEmail";
   if (bookingKind === "recurring") {
     if (!["daily", "weekly", "monthly"].includes(recurrence.cadence)) return "validation.recurrenceCadence";
     if (!recurrence.endDate) return "validation.recurrenceEnd";
@@ -52,6 +58,10 @@ const eventFields = ({ organizer, subject, description, startDate, endDate }) =>
 });
 
 const attendeeEmail = (attendee) => attendee?.attendee_email || attendee?.email || "";
+
+const VALID_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export const isValidGuestEmail = (email) => VALID_EMAIL_PATTERN.test(String(email).trim());
 
 export const buildModernEventPayload = (draft) => {
   const roomIds = draft.attendees.filter(isRoomAttendee).map((attendee) => attendee.room_id).filter(Boolean);
