@@ -2,21 +2,53 @@ import { localeForLanguage } from "../i18n/languages.js";
 
 const pad = (value) => String(value).padStart(2, "0");
 
-export const kioskDayRange = (now = new Date()) => {
-  const key = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
+// Server membaca tanggal kiosk memakai APP_TIMEZONE-nya. Tablet yang zonanya
+// berbeda harus memakai zona yang sama, kalau tidak akan menanyakan hari lain.
+const zonedFields = (date, timeZone) => {
+  if (!timeZone) {
+    return {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date.getDate(),
+      hour: date.getHours(),
+      minute: date.getMinutes(),
+    };
+  }
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).formatToParts(date).map((part) => [part.type, part.value]));
+  return {
+    year: Number(parts.year),
+    month: Number(parts.month),
+    day: Number(parts.day),
+    hour: Number(parts.hour) % 24,
+    minute: Number(parts.minute),
+  };
+};
+
+export const kioskDayRange = (now = new Date(), timeZone) => {
+  const { year, month, day } = zonedFields(now, timeZone);
+  const key = `${year}${pad(month)}${pad(day)}`;
   return { start: key, end: key };
 };
 
-export const formatKioskTime = (value) => {
-  const date = value instanceof Date ? value : new Date(value);
-  return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+export const formatKioskTime = (value, timeZone) => {
+  const { hour, minute } = zonedFields(value instanceof Date ? value : new Date(value), timeZone);
+  return `${pad(hour)}:${pad(minute)}`;
 };
 
-export const formatKioskDate = (value, language) => new Intl.DateTimeFormat(localeForLanguage(language), {
+export const formatKioskDate = (value, language, timeZone) => new Intl.DateTimeFormat(localeForLanguage(language), {
   weekday: "long",
   day: "2-digit",
   month: "long",
   year: "numeric",
+  ...(timeZone ? { timeZone } : {}),
 }).format(value instanceof Date ? value : new Date(value));
 
 // Traffic-light semantics verified on the RK3288 tablet. LED codes are only

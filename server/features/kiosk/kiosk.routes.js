@@ -1,12 +1,12 @@
 import express from "express";
 import { adminOnly, requireSignin } from "../../security/auth.middleware.js";
-import { fixedWindowRateLimit } from "../../security/rate-limit.middleware.js";
+import { failedLoginRateLimits, fixedWindowRateLimit } from "../../security/rate-limit.middleware.js";
 import { requireKiosk } from "../../security/kiosk-auth.middleware.js";
 import { checkIn, completeEvent, context, deprovision, devices, doorOpen, earlyFinish, extendEvent, instantBooking, refresh, revokeDevice, schedule, signin, updateDeviceCapabilities } from "./kiosk.controller.js";
 
 const router = express.Router();
-router.post("/auth", fixedWindowRateLimit({ windowMs: 15 * 60_000, max: 10 }), signin);
-router.post("/refresh", fixedWindowRateLimit({ windowMs: 15 * 60_000, max: 60 }), refresh);
+router.post("/auth", ...failedLoginRateLimits(), signin);
+router.post("/refresh", fixedWindowRateLimit({ windowMs: 15 * 60_000, max: 60, skipSuccessfulRequests: true }), refresh);
 router.get("/devices", requireSignin, adminOnly, devices);
 router.patch("/devices/:deviceId/capabilities", requireSignin, adminOnly, updateDeviceCapabilities);
 router.delete("/devices/:deviceId", requireSignin, adminOnly, revokeDevice);

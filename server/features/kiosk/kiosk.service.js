@@ -159,6 +159,7 @@ export const verifyKioskToken = async (token) => {
 export const getKioskContext = async (room) => ({
   room: publicKioskRoom(room),
   device: room.device,
+  timezone: config.appTimezone,
   settings: (await getSettings()) || {},
 });
 

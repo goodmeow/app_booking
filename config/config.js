@@ -44,6 +44,7 @@ const config = {
   tlsKeyPath: env.TLS_KEY_PATH,
   appTimezone: env.APP_TIMEZONE || "Asia/Jakarta",
   maxBookingDurationHours: Number(env.MAX_BOOKING_DURATION_HOURS || 168),
+  maxCalendarRangeDays: Number(env.MAX_CALENDAR_RANGE_DAYS || 366),
   recurrenceMaxDays: Number(env.RECURRENCE_MAX_DAYS || 366),
   recurrenceMaxOccurrences: Number(env.RECURRENCE_MAX_OCCURRENCES || 200),
   pgConn: {
@@ -75,6 +76,9 @@ export const validateRuntimeConfig = () => {
     new Intl.DateTimeFormat("en", { timeZone: config.appTimezone }).format();
   } catch {
     throw new Error("APP_TIMEZONE must be a supported IANA timezone");
+  }
+  if (!Number.isInteger(config.maxCalendarRangeDays) || config.maxCalendarRangeDays <= 0) {
+    throw new Error("MAX_CALENDAR_RANGE_DAYS must be a positive integer");
   }
   if (!Number.isInteger(config.recurrenceMaxDays) || config.recurrenceMaxDays <= 0) {
     throw new Error("RECURRENCE_MAX_DAYS must be a positive integer");

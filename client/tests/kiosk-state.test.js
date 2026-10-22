@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { deriveKioskState, formatKioskDate, kioskDayRange, kioskLedCodeFor } from "../kiosk/kiosk-state.js";
+import { deriveKioskState, formatKioskDate, formatKioskTime, kioskDayRange, kioskLedCodeFor } from "../kiosk/kiosk-state.js";
 
 const meeting = (start, end, values = {}) => ({ id: "event-1", start, end, checkedIn: false, canCheckIn: false, ...values });
 const now = new Date("2031-05-10T02:00:00.000Z");
@@ -65,4 +65,18 @@ test("LED codes match the verified tablet traffic light", () => {
   assert.equal(kioskLedCodeFor("occupied"), 4);
   assert.equal(kioskLedCodeFor("offline"), 2);
   assert.equal(kioskLedCodeFor("unknown"), null);
+});
+
+test("hari dan jam kiosk mengikuti zona waktu server, bukan zona tablet", () => {
+  // 18:30 UTC 9 Mei sudah 01:30 tanggal 10 Mei di Jakarta (UTC+7).
+  const instant = new Date("2031-05-09T18:30:00.000Z");
+  assert.deepEqual(kioskDayRange(instant, "Asia/Jakarta"), { start: "20310510", end: "20310510" });
+  assert.deepEqual(kioskDayRange(instant, "UTC"), { start: "20310509", end: "20310509" });
+  assert.equal(formatKioskTime(instant, "Asia/Jakarta"), "01:30");
+  assert.equal(formatKioskTime(instant, "UTC"), "18:30");
+  assert.match(formatKioskDate(instant, "en", "Asia/Jakarta"), /10/);
+});
+
+test("tengah malam kiosk tampil 00:00 bukan 24:00", () => {
+  assert.equal(formatKioskTime(new Date("2031-05-09T17:00:00.000Z"), "Asia/Jakarta"), "00:00");
 });

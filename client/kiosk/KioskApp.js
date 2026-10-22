@@ -110,15 +110,15 @@ const KioskSignin = ({ onAuthenticated }) => {
   );
 };
 
-const ScheduleItem = ({ event, now }) => {
+const ScheduleItem = ({ event, now, timeZone }) => {
   const { t } = useTranslation("kiosk");
   const active = new Date(event.start) <= now && now < new Date(event.end);
   const past = new Date(event.end) <= now;
   return (
     <Box sx={{ display: "grid", gridTemplateColumns: "110px minmax(0, 1fr)", gap: 2, py: 2, opacity: past ? 0.45 : 1 }}>
       <Box>
-        <Typography variant="h6" fontWeight={800}>{formatKioskTime(event.start)}</Typography>
-        <Typography variant="body2" color="text.secondary">{formatKioskTime(event.end)}</Typography>
+        <Typography variant="h6" fontWeight={800}>{formatKioskTime(event.start, timeZone)}</Typography>
+        <Typography variant="body2" color="text.secondary">{formatKioskTime(event.end, timeZone)}</Typography>
       </Box>
       <Box sx={{ borderLeft: 4, borderColor: active ? "error.main" : "primary.main", pl: 2, minWidth: 0 }}>
         <Typography variant="h6" noWrap>{event.title}</Typography>
@@ -200,10 +200,9 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
     const canApply = () => mounted.current && requestSequence === loadSequence.current;
     if (!quiet && mounted.current) setLoading(true);
     try {
-      const [nextContext, nextEvents] = await Promise.all([
-        withRefresh((token) => fetchKioskContext(token)),
-        withRefresh((token) => fetchKioskSchedule(token, kioskDayRange(new Date()))),
-      ]);
+      // Hari jadwal ditentukan zona waktu server, jadi konteks dibaca dulu.
+      const nextContext = await withRefresh((token) => fetchKioskContext(token));
+      const nextEvents = await withRefresh((token) => fetchKioskSchedule(token, kioskDayRange(new Date(), nextContext.timezone)));
       if (!canApply()) return;
       setContext(nextContext);
       setEvents(Array.isArray(nextEvents) ? nextEvents : []);
@@ -331,8 +330,8 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
               <Typography variant="h2" fontWeight={900} sx={{ letterSpacing: 2 }}>{paletteLabel}</Typography>
               <Box textAlign="right">
-                <Typography variant="h2" fontWeight={300}>{formatKioskTime(now)}</Typography>
-                <Typography sx={{ opacity: 0.85 }}>{formatKioskDate(now, language)}</Typography>
+                <Typography variant="h2" fontWeight={300}>{formatKioskTime(now, context.timezone)}</Typography>
+                <Typography sx={{ opacity: 0.85 }}>{formatKioskDate(now, language, context.timezone)}</Typography>
               </Box>
             </Stack>
 
@@ -349,7 +348,7 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
                   </Typography>
                   <Typography variant="h3" fontWeight={800} sx={{ mt: 1 }}>{featured.title}</Typography>
                   <Typography variant="h5" sx={{ mt: 2, opacity: 0.9 }}>
-                    {formatKioskTime(featured.start)} – {formatKioskTime(featured.end)}
+                    {formatKioskTime(featured.start, context.timezone)} – {formatKioskTime(featured.end, context.timezone)}
                   </Typography>
                   {state.current?.canCheckIn ? (
                     <Box sx={{ mt: 3 }}>
@@ -372,7 +371,7 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
           <Paper sx={{ minHeight: { md: "calc(100vh - 150px)" }, maxHeight: { md: "calc(100vh - 150px)" }, p: 3, borderRadius: 5, overflow: "auto" }}>
             <Typography variant="h4" fontWeight={800}>{t("schedule.today")}</Typography>
             <Typography color="text.secondary" sx={{ mb: 2 }}>{t("schedule.count", { count: events.length })}</Typography>
-            {events.length ? events.map((event) => <ScheduleItem key={event.id} event={event} now={now} />) : (
+            {events.length ? events.map((event) => <ScheduleItem key={event.id} event={event} now={now} timeZone={context.timezone} />) : (
               <Box sx={{ py: 8, textAlign: "center" }}><Typography color="text.secondary">{t("schedule.empty")}</Typography></Box>
             )}
           </Paper>

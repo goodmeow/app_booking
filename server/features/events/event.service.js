@@ -208,6 +208,10 @@ export const calendarRange = (start, end, timezone) => {
   const startParts = parts(start);
   const rawEndParts = parts(end);
   if (!isValidLocalDate(startParts) || !isValidLocalDate(rawEndParts)) throw badRequest("INVALID_RANGE", "Calendar dates are invalid");
+  // Batasi rentang supaya satu permintaan tidak menarik puluhan tahun jadwal.
+  if (daysBetweenLocalDates(startParts, rawEndParts) + 1 > config.maxCalendarRangeDays) {
+    throw badRequest("RANGE_TOO_LARGE", `Calendar range cannot exceed ${config.maxCalendarRangeDays} days`);
+  }
   const endParts = addLocalDays(rawEndParts, 1);
   return {
     rangeStart: zonedPartsToDate(startParts, timezone).toISOString(),

@@ -233,3 +233,10 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 - [ ] Autostart saat boot + kiosk lock (device owner) untuk tablet.
 - [ ] `GET /api/users` masih bisa dibaca semua user login (paritas produksi);
   perlu keputusan produk untuk membatasi.
+
+## Sisa pending 2026-10-22 (lanjutan review)
+
+- [ ] Patch review #4: jalankan `npm audit fix` non-breaking. Audit terakhir:
+  22 temuan (6 moderate, 15 high, 1 critical); `npm audit fix` tersedia.
+- [ ] Patch review #5: rapikan README (URL clone, Vite 8, port 8081/9091,
+  output `build/`, catatan `TRUST_PROXY` untuk reverse proxy).
