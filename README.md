@@ -5,6 +5,7 @@ Meeting & Room Scheduler dengan pembaruan real-time menggunakan React, Node.js, 
 Antarmuka menggunakan English sebagai bahasa sumber/default dan Bahasa Indonesia
 sebagai bahasa kedua. Katalog JSON dan alur Crowdin dijelaskan di
 [`docs/localization.md`](docs/localization.md).
+Peta halaman web admin ada di [`docs/CMS.md`](docs/CMS.md).
 
 ## 🚀 Tech Stack
 
