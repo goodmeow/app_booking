@@ -109,6 +109,9 @@
     "tabletOnline": "Tablet online",
     "tabletOffline": "Tablet offline",
     "checkedIn": "Sudah check-in",
-    "tabletOfflineWarning": "Tablet ruangan offline — check-in lewat kiosk tidak tersedia. Hubungi admin."
+    "tabletOfflineWarning": "Tablet ruangan offline — check-in lewat kiosk tidak tersedia. Hubungi admin.",
+    "roomUsedCount": "{{count}} dipakai",
+    "roomFreeCount": "{{count}} kosong",
+    "roomOfflineCount": "{{count}} tablet offline"
   }
 }

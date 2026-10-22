@@ -134,11 +134,22 @@ const CalendarSidebar = ({
 
       {roomStatus.length ? (
         <Box>
-          <Typography variant="subtitle2" component="h2" sx={{ mb: 1 }}>
-            {t("calendar.roomStatusTitle")}
-          </Typography>
-          <Stack spacing={1}>
-            {roomStatus.map((room) => (
+          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" component="h2">
+              {t("calendar.roomStatusTitle")}
+            </Typography>
+            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+              <Chip size="small" variant="outlined" color="error" label={t("calendar.roomUsedCount", { count: roomStatus.filter((room) => room.occupied).length })} />
+              <Chip size="small" variant="outlined" color="success" label={t("calendar.roomFreeCount", { count: roomStatus.filter((room) => !room.occupied).length })} />
+              {roomStatus.some((room) => !room.tabletOnline) ? (
+                <Chip size="small" variant="outlined" color="warning" label={t("calendar.roomOfflineCount", { count: roomStatus.filter((room) => !room.tabletOnline).length })} />
+              ) : null}
+            </Stack>
+          </Stack>
+          <Stack spacing={1} sx={{ maxHeight: 280, overflowY: "auto", pr: 0.5 }}>
+            {[...roomStatus]
+              .sort((a, b) => Number(b.occupied) - Number(a.occupied) || String(a.name).localeCompare(String(b.name)))
+              .map((room) => (
               <Paper
                 key={room.id}
                 variant="outlined"
