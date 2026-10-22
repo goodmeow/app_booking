@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Container, Paper, Tab, Tabs, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useGetSettingsQuery } from "../redux/services/settings.js";
-import CardMasterSection from "./CardMasterSection.js";
 import RoomManagementSection from "./RoomManagementSection.js";
 import UserManagementSection from "./UserManagementSection.js";
 import KioskDeviceManagementSection from "./KioskDeviceManagementSection.js";
@@ -15,7 +14,6 @@ const AppManagement = () => {
   const sections = [
     { value: "users", label: t("users.title"), content: <UserManagementSection /> },
     { value: "rooms", label: t("rooms.title"), content: <RoomManagementSection /> },
-    { value: "cards", label: t("cards.title"), content: <CardMasterSection /> },
     { value: "devices", label: t("devices.title"), content: <KioskDeviceManagementSection /> },
   ];
   const active = sections.find((item) => item.value === section) || sections[0];

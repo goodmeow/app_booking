@@ -29,27 +29,31 @@ test("normalizes RTK Query and Error messages", () => {
   assert.equal(getApiError(null, "Fallback"), "Fallback");
 });
 
-test("kiosk management exposes independent NFC and LED capability toggles", () => {
+test("tablet management keeps the LED toggle and drops the NFC toggle", () => {
   const service = fs.readFileSync(new URL("../redux/services/kiosk-devices.js", import.meta.url), "utf8");
   const section = fs.readFileSync(new URL("../management/KioskDeviceManagementSection.js", import.meta.url), "utf8");
   assert.match(service, /\/capabilities/);
   assert.match(service, /method: "PATCH"/);
-  assert.match(section, /"nfcEnabled"/);
+  // NFC sudah ditangani aplikasi kiosk, jadi tidak lagi diatur dari CMS.
+  assert.doesNotMatch(section, /"nfcEnabled"/);
   assert.match(section, /"ledEnabled"/);
+  assert.match(section, /row\.online/);
 });
 
-test("Phase 10B admin shell uses tabs and hides technical ID columns", () => {
+test("admin shell uses tabs, hides technical ID columns, and merges cards into users", () => {
   const appManagement = fs.readFileSync(new URL("../management/AppManagement.js", import.meta.url), "utf8");
   const users = fs.readFileSync(new URL("../management/UserManagementSection.js", import.meta.url), "utf8");
   const rooms = fs.readFileSync(new URL("../management/RoomManagementSection.js", import.meta.url), "utf8");
-  const cards = fs.readFileSync(new URL("../management/CardMasterSection.js", import.meta.url), "utf8");
   assert.match(appManagement, /<Tabs/);
   assert.match(appManagement, /value: "users"/);
   assert.match(appManagement, /value: "rooms"/);
-  assert.match(appManagement, /value: "cards"/);
+  assert.match(appManagement, /value: "devices"/);
+  // Akses kartu digabung ke tab Pengguna (ada flag master card), bukan tab sendiri.
+  assert.doesNotMatch(appManagement, /value: "cards"/);
+  assert.match(users, /field: "card_number"/);
+  assert.match(users, /field: "is_master_card"/);
   assert.doesNotMatch(users, /field: "_id"/);
   assert.doesNotMatch(rooms, /field: "_id"/);
-  assert.doesNotMatch(cards, /field: "_id"/);
 });
 
 test("Phase 10B resource errors are retryable and routes have a not-found page", () => {

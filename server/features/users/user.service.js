@@ -1,7 +1,16 @@
 import bcrypt from "bcrypt";
 import { withTransaction } from "../../db/pool.js";
 import { badRequest, forbidden, HttpError, notFound } from "../../lib/http-error.js";
-import { findAccountById, findAccountWithPassword, insertAccount, listEmployees, softDeleteAccount, updateAccount, updatePassword } from "../accounts/account.repository.js";
+import {
+  findAccountById,
+  findAccountWithPassword,
+  insertAccount,
+  listEmployees,
+  setMasterCard,
+  softDeleteAccount,
+  updateAccount,
+  updatePassword,
+} from "../accounts/account.repository.js";
 import { normalizedEmail, normalizedUsername, validatedPassword } from "../accounts/identity.validation.js";
 import { revokeRoomKioskDevices } from "../kiosk/kiosk.repository.js";
 
@@ -28,11 +37,21 @@ export const getUser = async (id) => {
   return user;
 };
 
-export const createUser = async (body) => {
+export const createUser = async (body, principal) => {
   const values = cleanIdentity(body);
   if (!values.name || !values.email || !body.password || !body.roleId) throw badRequest("INVALID_USER", "Name, email, password, and role are required");
   try {
-    return await insertAccount({ ...values, roleId: body.roleId, cardNumber: body.card_number, type: "employee", password: await bcrypt.hash(validatedPassword(body.password), 12) });
+    const user = await insertAccount({
+      ...values,
+      roleId: body.roleId,
+      cardNumber: body.card_number,
+      type: "employee",
+      password: await bcrypt.hash(validatedPassword(body.password), 12),
+    });
+    if (body.master_card === true && user.card_number) {
+      await setMasterCard(user.card_number, true, principal?._id);
+    }
+    return { ...user, is_master_card: body.master_card === true && Boolean(user.card_number) };
   } catch (error) {
     mapIdentityError(error);
   }
@@ -40,14 +59,25 @@ export const createUser = async (body) => {
 
 export const editUser = async (id, body, principal) => {
   const values = cleanIdentity(body);
-  if (principal.role !== "ADMIN") {
+  const isAdmin = principal.role === "ADMIN";
+  if (!isAdmin) {
+    // Hanya admin yang boleh mengubah role, nomor kartu, dan flag kartu master.
     delete values.roleId;
     delete values.card_number;
   }
   try {
     const user = await updateAccount(id, values, "employee");
     if (!user || user.type !== "employee") throw notFound("User not found");
-    return user;
+    let isMasterCard = null;
+    if (isAdmin && body.master_card !== undefined) {
+      if (user.card_number) {
+        await setMasterCard(user.card_number, body.master_card === true, principal._id);
+        isMasterCard = body.master_card === true;
+      } else {
+        isMasterCard = false;
+      }
+    }
+    return { ...user, ...(isMasterCard === null ? {} : { is_master_card: isMasterCard }) };
   } catch (error) {
     mapIdentityError(error);
   }

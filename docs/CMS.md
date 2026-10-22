@@ -77,10 +77,15 @@ Empat tab (`AppManagement.js`):
 
 | Tab | Isi | API |
 |---|---|---|
-| Pengguna (`UserManagementSection.js`, `user-form.js`) | CRUD user, ganti sandi, hapus | `/api/users` |
+| Pengguna (`UserManagementSection.js`, `user-form.js`) | CRUD user **beserta akses kartunya**: kolom nomor kartu, tombol **kartu master** (langsung dari tabel atau lewat form), ganti sandi, hapus. | `/api/users` |
 | Ruangan (`RoomManagementSection.js`) | CRUD ruangan: nama, gedung, lantai, kapasitas, fitur, email, sandi. **Kolom Tablet: Online/Offline/Belum ada/Dicabut**, auto-refresh 15 s | `/api/rooms`, `/api/kiosk/devices` |
-| Kartu Master (`CardMasterSection.js`) | CRUD kartu master pintu | `/api/settings/card-master` |
-| Perangkat (`KioskDeviceManagementSection.js`) | Daftar tablet kiosk: nama, ruangan, **Online/Offline/Dicabut/Kedaluwarsa**, switch NFC & LED, last seen, waktu pairing, cabut perangkat. Auto-refresh 15 s | `/api/kiosk/devices`, `PATCH …/capabilities`, `DELETE …/:id` |
+| Perangkat Tablet (`KioskDeviceManagementSection.js`) | Daftar tablet: nama, ruangan, **Online/Offline/Dicabut/Kedaluwarsa**, switch **LED** (NFC sudah ditangani aplikasi kiosk), last seen, waktu pairing, cabut perangkat. Auto-refresh 15 s | `/api/kiosk/devices`, `PATCH …/capabilities`, `DELETE …/:id` |
+
+**Akses kartu digabung ke tab Pengguna** (sub-menu "Kartu Master" dihapus dari UI):
+nomor kartu tampil dan bisa dikoreksi di baris user, dan kartu bisa ditandai
+**kartu master** dengan satu tombol. Di server, flag ini menulis/menghapus baris
+`tbl_card_masters`; kartu master otomatis boleh membuka semua pintu. Endpoint
+lama `/api/settings/card-master` tetap ada untuk kompatibilitas API.
 
 Status online dihitung server: `last_seen_at` diperbarui setiap request kiosk
 (throttle 10 s), dan `online = last_seen_at <= 60 s`
@@ -128,6 +133,10 @@ Status online dihitung server: `last_seen_at` diperbarui setiap request kiosk
 - Halaman masuk dibuat ulang sesuai desain (logo The Prasada, alert gagal,
   tetap-masuk) + font Inter di-self-host.
 - Status **Online/Offline** tablet dihitung live dan tampil di tab Perangkat
-  serta kolom Tablet di tab Ruangan, dengan auto-refresh 15 detik.
+  Tablet serta kolom Tablet di tab Ruangan, dengan auto-refresh 15 detik.
+- Akses kartu dipindahkan ke tab Pengguna (nomor kartu + flag kartu master);
+  sub-menu Kartu Master dihapus dari UI.
+- Switch **NFC** dihapus dari daftar perangkat karena NFC sudah ditangani
+  aplikasi kiosk; switch LED tetap ada.
 - Endpoint kiosk tambahan: `POST /api/kiosk/events/extend`,
   `POST /api/kiosk/events/complete`, `POST /api/kiosk/events/instant`.

@@ -19,8 +19,8 @@
     "deleteAria": "Hapus kartu {{number}}"
   },
   "devices": {
-    "title": "Perangkat Kiosk",
-    "description": "Layar ruangan yang telah diprovisikan beserta status aksesnya.",
+    "title": "Perangkat Tablet",
+    "description": "Tablet ruangan yang sudah dipasangkan beserta status online dan lampunya.",
     "device": "Perangkat",
     "room": "Ruangan",
     "unknownRoom": "Ruangan tidak diketahui",
@@ -90,12 +90,20 @@
     "passwordChanged": "Kata sandi berhasil diubah.",
     "passwordError": "Tidak dapat mengubah kata sandi.",
     "id": "ID Pengguna",
-    "cardNumber": "Nomor Kartu",
+    "cardNumber": "Nomor kartu",
     "editTooltip": "Edit pengguna",
     "passwordTooltip": "Ubah kata sandi",
     "deleteTooltip": "Hapus pengguna",
     "editAria": "Edit {{name}}",
     "passwordAria": "Ubah kata sandi untuk {{name}}",
-    "deleteAria": "Hapus {{name}}"
+    "deleteAria": "Hapus {{name}}",
+    "cardNumberHelp": "Kartu ini dipakai untuk check-in dan membuka pintu.",
+    "cardMissing": "Belum ada",
+    "masterCard": "Kartu master",
+    "masterCardHelp": "Kartu master bisa membuka semua pintu.",
+    "masterCardNeedsCard": "Isi nomor kartu dulu sebelum menandai master.",
+    "masterCardAria": "Tandai kartu master untuk {{name}}",
+    "masterCardEnabled": "Kartu ditandai sebagai master.",
+    "masterCardDisabled": "Tanda kartu master dicabut."
   }
 }

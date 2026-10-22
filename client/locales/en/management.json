@@ -19,8 +19,8 @@
     "deleteAria": "Delete card {{number}}"
   },
   "devices": {
-    "title": "Kiosk Devices",
-    "description": "Provisioned room displays and access status.",
+    "title": "Tablet Devices",
+    "description": "Paired room tablets with online status and indicator light.",
     "device": "Device",
     "room": "Room",
     "unknownRoom": "Unknown room",
@@ -90,12 +90,20 @@
     "passwordChanged": "Password successfully changed.",
     "passwordError": "Unable to change password.",
     "id": "User ID",
-    "cardNumber": "Card Number",
+    "cardNumber": "Card number",
     "editTooltip": "Edit user",
     "passwordTooltip": "Change password",
     "deleteTooltip": "Delete user",
     "editAria": "Edit {{name}}",
     "passwordAria": "Change password for {{name}}",
-    "deleteAria": "Delete {{name}}"
+    "deleteAria": "Delete {{name}}",
+    "cardNumberHelp": "This card is used for check-in and door access.",
+    "cardMissing": "None",
+    "masterCard": "Master card",
+    "masterCardHelp": "A master card can open every door.",
+    "masterCardNeedsCard": "Enter a card number before flagging it as master.",
+    "masterCardAria": "Flag master card for {{name}}",
+    "masterCardEnabled": "Card flagged as master.",
+    "masterCardDisabled": "Master flag removed."
   }
 }

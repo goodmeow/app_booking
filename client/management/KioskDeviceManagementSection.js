@@ -73,20 +73,6 @@ const KioskDeviceManagementSection = () => {
       },
     },
     {
-      field: "nfcEnabled",
-      headerName: "NFC",
-      width: 90,
-      sortable: false,
-      renderCell: ({ row }) => (
-        <Switch
-          checked={Boolean(row.nfcEnabled)}
-          disabled={row.status !== "active" || isUpdatingCapabilities}
-          inputProps={{ "aria-label": t("devices.nfcAria", { name: row.name }) }}
-          onChange={(event) => void toggleCapability(row.id, "nfcEnabled", event.target.checked)}
-        />
-      ),
-    },
-    {
       field: "ledEnabled",
       headerName: "LED",
       width: 90,

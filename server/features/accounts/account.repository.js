@@ -13,8 +13,13 @@ const publicRoomColumns = `
 
 const managedRoomColumns = `${publicRoomColumns}, u.role_id`;
 
+const masterCardFlag = `EXISTS (
+  SELECT 1 FROM tbl_card_masters c WHERE lower(c.card_number) = lower(u.card_number)
+) AS is_master_card`;
+
 export const listEmployees = async () => (await query(
-  `SELECT u._id, u.name, u.email, u.username, u.type
+  `SELECT u._id, u.name, u.email, u.username, u.type, u.card_number,
+          ${masterCardFlag}
    FROM tbl_users u
    WHERE u.type = 'employee' AND u.is_deleted IS NOT TRUE
    ORDER BY u.name`
@@ -41,7 +46,7 @@ export const findRoomById = async (id, privileged = false) => (await query(
 )).rows[0] || null;
 
 export const findAccountById = async (id, type) => (await query(
-  `SELECT ${safeColumns}
+  `SELECT ${safeColumns}, ${masterCardFlag}
    FROM tbl_users u
    WHERE u._id = $1
      AND ($2::text IS NULL OR u.type = $2)
@@ -55,6 +60,21 @@ export const findAccountWithPassword = async (id) => (await query(
    FROM tbl_users u WHERE u._id = $1 LIMIT 1`,
   [id]
 )).rows[0] || null;
+
+export const setMasterCard = async (cardNumber, enabled, principalId, execute = query) => {
+  const value = String(cardNumber || "").trim();
+  if (!value) return;
+  if (enabled) {
+    await execute(
+      `INSERT INTO tbl_card_masters (card_number, created_by)
+       VALUES ($1, $2)
+       ON CONFLICT (card_number) DO NOTHING`,
+      [value, principalId || null]
+    );
+    return;
+  }
+  await execute(`DELETE FROM tbl_card_masters WHERE lower(card_number) = lower($1)`, [value]);
+};
 
 export const insertAccount = async ({ name, email, username, password, roleId, cardNumber, type, floor, capacity, building, feature }) => (await query(
   `INSERT INTO tbl_users

@@ -3,9 +3,12 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
+  FormControlLabel,
   IconButton,
   MenuItem,
   Stack,
+  Switch,
   TextField,
   Tooltip,
   Typography,
@@ -76,6 +79,7 @@ const UserManagementSection = () => {
       username: editUser.username || "",
       password: "",
       card_number: editUser.card_number || "",
+      master_card: Boolean(editUser.is_master_card),
       roleId: editUser.role_id || ROLE_IDS.USER,
     });
   }, [editUser, editUserId]);
@@ -128,11 +132,18 @@ const UserManagementSection = () => {
       return;
     }
 
+    const cardNumber = form.card_number.trim();
+    if (form.master_card && !cardNumber) {
+      setFormError(t("users.masterCardNeedsCard"));
+      return;
+    }
+
     const body = {
       name,
       email,
       username: form.username.trim(),
-      card_number: form.card_number.trim(),
+      card_number: cardNumber,
+      master_card: Boolean(form.master_card),
       roleId: form.roleId,
     };
 
@@ -189,9 +200,47 @@ const UserManagementSection = () => {
     }
   };
 
+  const toggleMasterCard = async (row, enabled) => {
+    try {
+      await updateUser({ userId: row._id, card_number: row.card_number || "", master_card: enabled }).unwrap();
+      showFeedback(enabled ? t("users.masterCardEnabled") : t("users.masterCardDisabled"));
+    } catch (mutationError) {
+      showFeedback(getApiError(mutationError, t("users.updateError")), "error");
+    }
+  };
+
   const columns = useMemo(() => [
     { field: "name", headerName: t("common:fields.name"), flex: 1, minWidth: 140 },
     { field: "email", headerName: t("common:fields.email"), flex: 1.25, minWidth: 190 },
+    {
+      field: "card_number",
+      headerName: t("users.cardNumber"),
+      minWidth: 150,
+      flex: 0.8,
+      renderCell: ({ row }) => row.card_number
+        ? <span>{row.card_number}</span>
+        : <Chip size="small" label={t("users.cardMissing")} />,
+    },
+    {
+      field: "is_master_card",
+      headerName: t("users.masterCard"),
+      width: 130,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }) => (
+        <Tooltip title={row.card_number ? t("users.masterCardHelp") : t("users.masterCardNeedsCard")}>
+          <span>
+            <Switch
+              size="small"
+              checked={Boolean(row.is_master_card)}
+              disabled={!row.card_number || isUpdating}
+              inputProps={{ "aria-label": t("users.masterCardAria", { name: row.name }) }}
+              onChange={(event) => void toggleMasterCard(row, event.target.checked)}
+            />
+          </span>
+        </Tooltip>
+      ),
+    },
     {
       field: "actions",
       headerName: t("common:fields.action"),
@@ -235,7 +284,7 @@ const UserManagementSection = () => {
         </Stack>
       ),
     },
-  ], [resetDelete, resetPassword, t]);
+  ], [isUpdating, resetDelete, resetPassword, t]);
 
   const formField = (name) => ({
     value: form[name],
@@ -287,7 +336,20 @@ const UserManagementSection = () => {
             {formMode === "create" ? (
               <TextField required type="password" label={t("common:fields.password")} {...formField("password")} />
             ) : null}
-            <TextField label={t("users.cardNumber")} {...formField("card_number")} />
+            <TextField
+              label={t("users.cardNumber")}
+              helperText={t("users.cardNumberHelp")}
+              {...formField("card_number")}
+            />
+            <FormControlLabel
+              control={(
+                <Switch
+                  checked={Boolean(form.master_card)}
+                  onChange={(event) => setForm((current) => ({ ...current, master_card: event.target.checked }))}
+                />
+              )}
+              label={t("users.masterCard")}
+            />
             <TextField required select label={t("common:fields.role")} {...formField("roleId")}>
               {ROLE_OPTIONS.map((role) => (
                 <MenuItem key={role.value} value={role.value}>{t(`common:${role.labelKey}`)}</MenuItem>
