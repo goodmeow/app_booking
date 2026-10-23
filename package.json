@@ -25,7 +25,8 @@
     "test:server:parity:prepare": "node --test --test-concurrency=1 server/tests/parity/prepare.test.js",
     "test:server:parity": "node --test --test-concurrency=1 server/tests/parity/*.test.js",
     "test:server:regression": "node --test --test-concurrency=1 server/tests/regression/*.test.js",
-    "verify": "npm run build:client && npm run build:server:check && npm run test:client && npm run test:server:unit"
+    "verify": "npm run build:client && npm run build:server:check && npm run test:client && npm run test:server:unit",
+    "demo:resume": "node scripts/demo-resume.js"
   },
   "dependencies": {
     "@emotion/react": "^11.10.6",
