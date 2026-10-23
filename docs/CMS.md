@@ -5,6 +5,11 @@ lokasi kodenya. Terakhir diperbarui: 2026-10-22.
 
 ## 1. Ringkasan teknis
 
+Tema CMS disamakan dengan tablet kios (dark #11151B, aksen #3DDC84/#2FB46A,
+Public Sans); sumber token ada di `client/theme.js` dan sejajar dengan
+`App.tsx` kioskapp serta halaman masuk. Lihat `docs/VERSIONING.md` untuk
+versi yang ditampilkan di footer.
+
 | Lapisan | Teknologi | Lokasi |
 |---|---|---|
 | Runtime | Node.js 22 | – |

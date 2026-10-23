@@ -75,7 +75,21 @@ const LocalizedDataGrid = ({ localeText: localeTextOverrides, ...props }) => {
     ...localeTextOverrides,
   }), [localeTextOverrides, t]);
 
-  return <DataGrid {...props} localeText={localeText} />;
+  return (
+    <DataGrid
+      {...props}
+      localeText={localeText}
+      // DataGrid mengikuti tema; hanya strip DoubleBuffer bg yang perlu
+      // diganggu jadi tembus pandang agar kartu gelap terlihat rapi.
+      sx={{
+        backgroundColor: "transparent",
+        "--DataGrid-background": "transparent",
+        "& .MuiDataGrid-cell": { borderColor: "divider" },
+        "& .withBorder": { borderColor: "divider" },
+        ...(props.sx || {}),
+      }}
+    />
+  );
 };
 
 export default LocalizedDataGrid;

@@ -34,9 +34,12 @@ const MenuLink = ({ to, children }) => {
       to={to}
       color="inherit"
       sx={{
-        color: active ? "common.white" : "#003049",
+        color: active ? "primary.contrastText" : "text.secondary",
         bgcolor: active ? "primary.main" : "transparent",
-        "&:hover": { bgcolor: active ? "primary.dark" : "action.hover" },
+        "&:hover": {
+          bgcolor: active ? "primary.dark" : "rgba(237,242,246,0.06)",
+          color: active ? "primary.contrastText" : "text.primary",
+        },
       }}
     >
       {children}
@@ -64,7 +67,7 @@ const Menu = () => {
   ];
 
   return (
-    <AppBar position="static" color="inherit" elevation={1} sx={{ bgcolor: "common.white", color: "#003049" }}>
+    <AppBar position="static" color="inherit" elevation={0}>
       <Container maxWidth={false}>
         <Toolbar disableGutters>
           <Box component={Link} to="/" color="inherit" sx={{ display: "flex", alignItems: "center", gap: 1, textDecoration: "none" }}>

@@ -46,7 +46,7 @@ const Signup = () => {
 
   return (
     <Box sx={{ minHeight: "calc(100vh - 64px)", display: "grid", placeItems: "center", p: 2 }}>
-      <Paper component="form" onSubmit={submit} sx={{ width: "100%", maxWidth: 420, p: 4, bgcolor: "common.white" }}>
+      <Paper component="form" onSubmit={submit} sx={{ width: "100%", maxWidth: 420, p: 4 }}>
         <Box component="img" src="/icon.svg" alt={t("common:brand.name")} sx={{ display: "block", width: 80, height: 80, mx: "auto", mb: 2 }} />
         <Typography variant="h4" color="primary" align="center" gutterBottom>{t("common:brand.name")}</Typography>
         <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>{t("common:brand.descriptor")}</Typography>
