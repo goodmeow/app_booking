@@ -90,7 +90,7 @@ Credential demo:
 |---|---|---|---|
 | Admin | `admin@example.test` | `ParityTest123!` | akses penuh CMS |
 | Ruangan (kiosk) | `room-one@room.com` | `RoomTablet123!` | untuk pairing tablet |
-| Karyawan uji | `karyawan@uji.prasada.test` | `1234` | mob/janasan, kartu uji NFC |
+| Karyawan uji | `karyawan@uji.prasada.test` | `1234` | kartu uji NFC dummy |
 | Karyawan uji 2 | `emp@uji.local` | `1234` | kartu `DEMO-UJI-CARD` |
 
 ### Restore akun demo setelah regression suite

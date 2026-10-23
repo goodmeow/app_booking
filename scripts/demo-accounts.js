@@ -20,6 +20,8 @@ for (const line of envText.split("\n")) {
 
 const ROLE_USER = "67e9500b-908a-497d-9d3b-54bc020700cb";
 const accounts = [
+  // Kartu di sini dummy; UID kartu nyata tidak pernah disimpan di repo dan
+  // diatur langsung di DB demo lokal memakai SQL pribadi bila diperlukan.
   { name: "Karyawan Prasada", email: "karyawan@uji.prasada.test", password: "1234", floor: "1", card: "DEMO-PRASADA-CARD" },
   { name: "Karyawan Uji", email: "emp@uji.local", password: "1234", floor: "1", card: "DEMO-UJI-CARD" },
 ];
