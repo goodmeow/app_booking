@@ -161,5 +161,8 @@
     "lastPage": "Ke halaman terakhir",
     "nextPage": "Ke halaman berikutnya",
     "previousPage": "Ke halaman sebelumnya"
+  },
+  "messages": {
+    "passwordRule": "Kata sandi minimal 8 karakter."
   }
 }

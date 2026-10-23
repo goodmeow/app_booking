@@ -34,7 +34,13 @@ const PasswordDialog = ({ open, requireOldPassword = true, loading = false, erro
       <Stack spacing={2} sx={{ mt: 1 }}>
         {error && <Alert severity="error">{error}</Alert>}
         {requireOldPassword && <TextField required type="password" label={t("common:fields.oldPassword")} {...field("oldPassword")} />}
-        <TextField required type="password" label={t("common:fields.newPassword")} {...field("newPassword")} />
+        <TextField
+          required
+          type="password"
+          label={t("common:fields.newPassword")}
+          helperText={t("common:messages.passwordRule")}
+          {...field("newPassword")}
+        />
         <TextField required type="password" label={t("common:fields.confirmPassword")} {...field("newPasswordConfirmation")} />
       </Stack>
     </FormDialog>

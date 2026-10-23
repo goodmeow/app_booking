@@ -119,6 +119,8 @@
     "floorAria": "Floor group for {{name}}",
     "floorShowMissing": "Show only these",
     "floorShowAll": "Show all",
-    "floorMissingNotice": "{{count}} user(s) have no floor group and cannot book rooms until one is set."
+    "floorMissingNotice": "{{count}} user(s) have no floor group and cannot book rooms until one is set.",
+    "passwordRule": "Password must be at least 8 characters.",
+    "passwordTooShort": "Password is too short — at least 8 characters are required."
   }
 }

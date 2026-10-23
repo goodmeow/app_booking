@@ -119,6 +119,8 @@
     "floorAria": "Grup lantai untuk {{name}}",
     "floorShowMissing": "Tampilkan saja",
     "floorShowAll": "Tampilkan semua",
-    "floorMissingNotice": "{{count}} pengguna belum punya grup lantai dan belum bisa memesan ruangan sampai diisi."
+    "floorMissingNotice": "{{count}} pengguna belum punya grup lantai dan belum bisa memesan ruangan sampai diisi.",
+    "passwordRule": "Kata sandi minimal 8 karakter.",
+    "passwordTooShort": "Kata sandi terlalu pendek — minimal 8 karakter."
   }
 }

@@ -143,6 +143,10 @@ const UserManagementSection = () => {
       setFormError(t("users.required"));
       return;
     }
+    if (formMode === "create" && form.password.length < 8) {
+      setFormError(t("users.passwordTooShort"));
+      return;
+    }
 
     const cardNumber = form.card_number.trim();
     if (form.master_card && !cardNumber) {
@@ -422,7 +426,13 @@ const UserManagementSection = () => {
               ))}
             </TextField>
             {formMode === "create" ? (
-              <TextField required type="password" label={t("common:fields.password")} {...formField("password")} />
+              <TextField
+                required
+                type="password"
+                label={t("common:fields.password")}
+                helperText={t("users.passwordRule")}
+                {...formField("password")}
+              />
             ) : null}
             <TextField
               label={t("users.cardNumber")}

@@ -161,5 +161,8 @@
     "lastPage": "Go to last page",
     "nextPage": "Go to next page",
     "previousPage": "Go to previous page"
+  },
+  "messages": {
+    "passwordRule": "Password must be at least 8 characters."
   }
 }
