@@ -1,5 +1,8 @@
 import { HttpError } from "../lib/http-error.js";
 
+// One named window for the short-lived limits used by auth and kiosk routes.
+export const SHORT_WINDOW_MS = 15 * 60_000;
+
 const clientAddress = (req) => req.ip || req.socket?.remoteAddress || "unknown";
 
 // Kunci untuk membatasi percobaan terhadap satu akun dari satu alamat, supaya
@@ -60,7 +63,7 @@ export const fixedWindowRateLimit = ({
 
 // Hanya percobaan gagal yang dihitung. Satu limiter menjaga satu akun per
 // alamat, satu lagi menjaga alamat yang mencoba banyak akun sekaligus.
-export const failedLoginRateLimits = ({ windowMs = 15 * 60_000, perAccount = 10, perAddress = 100 } = {}) => [
+export const failedLoginRateLimits = ({ windowMs = SHORT_WINDOW_MS, perAccount = 10, perAddress = 100 } = {}) => [
   fixedWindowRateLimit({ windowMs, max: perAddress, skipSuccessfulRequests: true }),
   fixedWindowRateLimit({ windowMs, max: perAccount, keyGenerator: ipAndLoginKey, skipSuccessfulRequests: true }),
 ];

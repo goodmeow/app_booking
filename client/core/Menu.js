@@ -101,6 +101,10 @@ const Menu = () => {
   const { data: currentUser } = useDetailUserQuery(session?.user?._id, { skip: !session?.user?._id });
   const displayName = currentUser?.name || session?.user?.name;
   const closeDrawer = () => setDrawerOpen(false);
+  const handleSignOutClick = () => {
+    closeDrawer();
+    handleSignout();
+  };
   const handleSignout = () => signout(() => history.push("/"));
   const navItems = [
     ...(admin ? [{ to: "/app-management", label: t("nav.management") }, { to: "/report", label: t("nav.report") }] : []),
@@ -160,7 +164,7 @@ const Menu = () => {
           <Box sx={{ p: 2 }}>
             <LanguageSwitcher />
             {session ? (
-              <Button fullWidth sx={{ mt: 2 }} onClick={() => { closeDrawer(); handleSignout(); }}>{t("nav.signOut")}</Button>
+              <Button fullWidth sx={{ mt: 2 }} onClick={handleSignOutClick}>{t("nav.signOut")}</Button>
             ) : null}
           </Box>
         </Box>

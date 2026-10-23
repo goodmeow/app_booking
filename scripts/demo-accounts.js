@@ -38,7 +38,12 @@ const client = new Client({
 
 try {
   await client.connect();
-  const { rows } = await client.query("SELECT _id FROM tbl_role WHERE lower(role_name) = 'user' LIMIT 1");
+  const { rows } = await client.query(
+    `SELECT _id
+     FROM tbl_role
+     WHERE lower(role_name) = 'user'
+     LIMIT 1`
+  );
   const roleId = rows[0]?._id;
   if (!roleId) {
     throw new Error("tbl_role tidak berisi role user; role_id tidak bisa dipasang");

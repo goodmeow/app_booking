@@ -182,7 +182,12 @@ export const findEventAudience = async (eventIds) => {
 
 export const findMutationAudience = async (eventId, scope = "occurrence") => (await query(
   `WITH pivot AS (
-     SELECT _id, series_id, occurrence_index FROM tbl_events WHERE _id = $1
+     SELECT
+       _id,
+       series_id,
+       occurrence_index
+     FROM tbl_events
+     WHERE _id = $1
    ), targets AS (
      SELECT e._id
      FROM tbl_events e, pivot p
@@ -201,7 +206,11 @@ export const findMutationAudience = async (eventId, scope = "occurrence") => (aw
      FROM tbl_event_details d JOIN targets t ON t._id = d.event_id
      WHERE d.room_id IS NOT NULL AND d.is_deleted IS NOT TRUE
    )
-   SELECT DISTINCT kind, id FROM audience WHERE id IS NOT NULL`,
+   SELECT DISTINCT
+     kind,
+     id
+   FROM audience
+   WHERE id IS NOT NULL`,
   [eventId, scope || "occurrence"]
 )).rows;
 
@@ -233,7 +242,12 @@ export const findRoomConflicts = async (roomIds, occurrences) => {
 
 export const eventsForMutationScope = async (client, eventId, scope) => (await client.query(
   `WITH pivot AS (
-     SELECT _id, series_id, occurrence_index FROM tbl_events WHERE _id = $1
+     SELECT
+       _id,
+       series_id,
+       occurrence_index
+     FROM tbl_events
+     WHERE _id = $1
    )
    SELECT ${eventInstantColumns}
    FROM tbl_events e, pivot p

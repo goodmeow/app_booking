@@ -48,8 +48,22 @@ const roomFromDevice = (device) => ({
   feature: device.feature,
 });
 
-// Perangkat dianggap online kalau masih mengirim request dalam jendela ini.
-const KIOSK_ONLINE_WINDOW_MS = 60_000;
+// Satuan waktu dan batas booking diberi nama sekali agar aturannya tidak
+// berbeda-beda antar tempat.
+const MILLISECONDS_PER_MINUTE = 60_000;
+const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
+const KIOSK_ONLINE_WINDOW_MS = 60 * 1000;
+const MIN_BOOKING_MINUTES = 5;
+const MAX_BOOKING_MINUTES = 240;
+const DEFAULT_INSTANT_MINUTES = 30;
+const SCHEDULE_LOOKAHEAD_HOURS = 36;
+
+// One place decides the device lifecycle state shown in the CMS.
+const deviceStatus = (device) => {
+  if (device.revoked_at) return "revoked";
+  if (device.refresh_expires_at && new Date(device.refresh_expires_at) <= new Date()) return "expired";
+  return "active";
+};
 
 export const publicKioskDevice = (device) => ({
   id: device.device_id,
@@ -57,7 +71,7 @@ export const publicKioskDevice = (device) => ({
   roomId: device.room_id,
   roomName: device.room_name,
   roomEmail: device.room_email,
-  status: device.revoked_at ? "revoked" : device.refresh_expires_at && new Date(device.refresh_expires_at) <= new Date() ? "expired" : "active",
+  status: deviceStatus(device),
   online: Boolean(!device.revoked_at
     && device.last_seen_at
     && Date.now() - new Date(device.last_seen_at).getTime() <= KIOSK_ONLINE_WINDOW_MS),
@@ -224,8 +238,8 @@ export const updateManagedKioskCapabilities = async (deviceId, input = {}) => {
 const kioskCapabilities = (row, now = Date.now()) => {
   const start = new Date(row.start_at).getTime();
   const end = new Date(row.end_at).getTime();
-  const opens = start - Number(row.early_minutes || 0) * 60_000;
-  const closes = start + Number(row.late_minutes || 0) * 60_000;
+  const opens = start - Number(row.early_minutes || 0) * MILLISECONDS_PER_MINUTE;
+  const closes = start + Number(row.late_minutes || 0) * MILLISECONDS_PER_MINUTE;
   return {
     canCheckIn: !row.checked_in && now >= opens && now < closes,
     canFinish: Boolean(row.checked_in) && now >= start && now < end,
@@ -273,8 +287,8 @@ export const checkInKioskEvent = async ({ event_id: eventId, card_number: cardNu
     const context = await kioskActionContext({ eventId, cardNumber, room }, execute);
     const now = Date.now();
     const start = new Date(context.start_at).getTime();
-    const opens = start - Number(context.early_minutes || 0) * 60_000;
-    const closes = start + Number(context.late_minutes || 0) * 60_000;
+    const opens = start - Number(context.early_minutes || 0) * MILLISECONDS_PER_MINUTE;
+    const closes = start + Number(context.late_minutes || 0) * MILLISECONDS_PER_MINUTE;
     if (now < opens || now >= closes) throw conflict("CHECK_IN_WINDOW", "Meeting is outside its check-in window");
     if (context.checked_in) throw conflict("ALREADY_CHECKED_IN", "Meeting is already checked in");
     return markCheckedIn(eventId, execute);
@@ -335,18 +349,18 @@ export const validateKioskBookedSlot = ({ now, start, end, timezone }) => {
   if (!Number.isFinite(startDate.getTime()) || !Number.isFinite(endDate.getTime())) {
     throw badRequest("INVALID_TIME", "Waktu mulai dan selesai wajib diisi");
   }
-  if (startDate.getTime() < now.getTime() - 60_000) {
+  if (startDate.getTime() < now.getTime() - MILLISECONDS_PER_MINUTE) {
     throw badRequest("INVALID_TIME", "Waktu mulai sudah lewat");
   }
   const today = localDayKey(now, timezone);
   if (localDayKey(startDate, timezone) !== today || localDayKey(endDate, timezone) !== today) {
     throw badRequest("INVALID_TIME", "Pemesanan dari kiosk hanya untuk hari ini");
   }
-  const minutes = (endDate.getTime() - startDate.getTime()) / 60_000;
-  if (minutes < 5 || minutes > 240) {
+  const minutes = (endDate.getTime() - startDate.getTime()) / MILLISECONDS_PER_MINUTE;
+  if (minutes < MIN_BOOKING_MINUTES || minutes > MAX_BOOKING_MINUTES) {
     throw badRequest("INVALID_TIME", "Durasi pemesanan 5-240 menit");
   }
-  return { startDate, endDate, startsNow: startDate.getTime() - now.getTime() <= 2 * 60_000 };
+  return { startDate, endDate, startsNow: startDate.getTime() - now.getTime() <= 2 * MILLISECONDS_PER_MINUTE };
 };
 
 export const extendKioskEvent = async ({ event_id: eventId, minutes }, room) => {
@@ -361,7 +375,7 @@ export const extendKioskEvent = async ({ event_id: eventId, minutes }, room) => 
     if (now < new Date(context.start_at).getTime() || now >= new Date(context.end_at).getTime()) {
       throw conflict("EXTEND_WINDOW", "Only the running meeting can be extended");
     }
-    const endAt = new Date(new Date(context.end_at).getTime() + extra * 60_000).toISOString();
+    const endAt = new Date(new Date(context.end_at).getTime() + extra * MILLISECONDS_PER_MINUTE).toISOString();
     try {
       const updated = await extendKioskRoomEvent({ eventId, endAt }, execute);
       return { id: updated._id, title: updated.subject, start: updated.start_at, end: updated.end_at, extendedMinutes: extra };
@@ -396,7 +410,7 @@ export const instantBookingWindow = ({ now, nextStart, minutes, untilNext = fals
     { ...nowParts, hour: 23, minute: 59, second: 59, millisecond: 0 },
     timezone
   );
-  const maxEnd = Math.min(now.getTime() + 240 * 60_000, endOfDay.getTime());
+  const maxEnd = Math.min(now.getTime() + MAX_BOOKING_MINUTES * MILLISECONDS_PER_MINUTE, endOfDay.getTime());
   const nextToday = nextStart && new Date(nextStart).getTime() <= endOfDay.getTime()
     ? new Date(nextStart).getTime()
     : null;
@@ -404,7 +418,7 @@ export const instantBookingWindow = ({ now, nextStart, minutes, untilNext = fals
   // batas atas, atau tujuan akhir bila pemanggil meminta "sampai berikutnya".
   const requestedEnd = untilNext
     ? maxEnd
-    : now.getTime() + clampMinutes(minutes, 30, 5, 240) * 60_000;
+    : now.getTime() + clampMinutes(minutes, DEFAULT_INSTANT_MINUTES, MIN_BOOKING_MINUTES, MAX_BOOKING_MINUTES) * MILLISECONDS_PER_MINUTE;
   const endMs = Math.min(requestedEnd, maxEnd, nextToday ?? Infinity);
   return {
     start: now,
@@ -418,7 +432,7 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
   await maybeReleaseAbandonedBookings();
   const employee = await resolveKioskEmployeeByCard(cardNumber, room);
   const now = new Date();
-  const horizon = new Date(now.getTime() + 36 * 60 * 60_000);
+  const horizon = new Date(now.getTime() + SCHEDULE_LOOKAHEAD_HOURS * MILLISECONDS_PER_HOUR);
   const rows = await listKioskScheduleRows({ roomId: room._id, rangeStart: now, rangeEnd: horizon });
   const next = rows.find((row) => new Date(row.start_at).getTime() > now.getTime());
   const window = instantBookingWindow({
@@ -428,7 +442,7 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
     untilNext: untilNextRequested === true || untilNextRequested === "true",
     timezone: config.appTimezone,
   });
-  if (window.end.getTime() - now.getTime() < 60_000) {
+  if (window.end.getTime() - now.getTime() < MILLISECONDS_PER_MINUTE) {
     throw conflict("NO_FREE_WINDOW", "Tidak ada sisa waktu di hari ini untuk pemakaian langsung");
   }
   const created = await createEvents(

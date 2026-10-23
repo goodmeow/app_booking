@@ -38,6 +38,11 @@ const KioskDeviceManagementSection = () => {
     }
   };
 
+  const openRevokeDialog = (row) => {
+    setRevokeError("");
+    setRevokeTarget(row);
+  };
+
   const closeRevoke = () => {
     if (isRevoking) return;
     setRevokeTarget(null);
@@ -128,7 +133,7 @@ const KioskDeviceManagementSection = () => {
         <Button
           color="error"
           size="small"
-          onClick={() => { setRevokeError(""); setRevokeTarget(row); }}
+          onClick={() => openRevokeDialog(row)}
           aria-label={t("devices.revokeAria", { name: row.name })}
         >
           {t("devices.revoke")}

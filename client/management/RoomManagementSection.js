@@ -149,12 +149,12 @@ const RoomManagementSection = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title={t("common:actions.changePassword")}>
-            <IconButton size="small" aria-label={`${t("common:actions.changePassword")} ${row.name}`} onClick={() => { setSelected(row); setError(""); setDialog("password"); }}>
+            <IconButton size="small" aria-label={`${t("common:actions.changePassword")} ${row.name}`} onClick={() => openPasswordDialog(row)}>
               <PasswordIcon fontSize="small" />
             </IconButton>
           </Tooltip>
           <Tooltip title={t("common:actions.delete")}>
-            <IconButton size="small" color="error" aria-label={`${t("common:actions.delete")} ${row.name}`} onClick={() => { setSelected(row); setDeleteError(""); setDialog("delete"); }}>
+            <IconButton size="small" color="error" aria-label={`${t("common:actions.delete")} ${row.name}`} onClick={() => openDeleteDialog(row)}>
               <DeleteIcon fontSize="small" />
             </IconButton>
           </Tooltip>
