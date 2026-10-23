@@ -71,7 +71,7 @@ const Menu = () => {
       <Container maxWidth={false}>
         <Toolbar disableGutters>
           <Box component={Link} to="/" color="inherit" sx={{ display: "flex", alignItems: "center", gap: 1, textDecoration: "none" }}>
-            <Box component="img" src="/icon.svg" alt="" sx={{ width: 32, height: 32 }} />
+            <Box component="img" src="/the-prasada-logo.png" alt={t("brand.name")} sx={{ height: 34, width: "auto", display: "block" }} />
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.1 }}>{t("brand.name")}</Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: { xs: "none", lg: "block" } }}>{t("brand.descriptor")}</Typography>
