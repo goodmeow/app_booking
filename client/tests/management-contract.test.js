@@ -46,18 +46,21 @@ test("tablet management keeps the LED toggle and lets admin hide meeting titles"
 
 test("admin shell uses tabs, hides technical ID columns, and merges cards into users", () => {
   const appManagement = fs.readFileSync(new URL("../management/AppManagement.js", import.meta.url), "utf8");
-  const users = fs.readFileSync(new URL("../management/UserManagementSection.js", import.meta.url), "utf8");
+  const userColumns = fs.readFileSync(new URL("../management/users/user-columns.js", import.meta.url), "utf8");
   const rooms = fs.readFileSync(new URL("../management/RoomManagementSection.js", import.meta.url), "utf8");
+  const roomColumns = fs.readFileSync(new URL("../management/rooms/room-columns.js", import.meta.url), "utf8");
   assert.match(appManagement, /<Tabs/);
   assert.match(appManagement, /value: "users"/);
   assert.match(appManagement, /value: "rooms"/);
   assert.match(appManagement, /value: "devices"/);
   // Card access is merged into the Users tab (it has the master card flag), not a tab of its own.
   assert.doesNotMatch(appManagement, /value: "cards"/);
-  assert.match(users, /field: "card_number"/);
-  assert.match(users, /field: "is_master_card"/);
-  assert.doesNotMatch(users, /field: "_id"/);
+  assert.match(userColumns, /field: "card_number"/);
+  assert.match(userColumns, /field: "is_master_card"/);
+  assert.doesNotMatch(userColumns, /field: "_id"/);
+  assert.match(roomColumns, /field: "name"/);
   assert.doesNotMatch(rooms, /field: "_id"/);
+  assert.doesNotMatch(roomColumns, /field: "_id"/);
 });
 
 test("Phase 10B resource errors are retryable and routes have a not-found page", () => {

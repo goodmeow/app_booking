@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { authenticate, signin } from "./auth-helper.js";
+import SigninBrandPanel from "./SigninBrandPanel.js";
 
 const HELPDESK_EMAIL = "helpdesk@integrasolution.id";
 
@@ -61,35 +62,7 @@ const Signin = () => {
       }}
     >
       <style>{focusStyles}</style>
-      <section
-        aria-label="The Prasada"
-        style={{
-          flex: "1 1 480px",
-          boxSizing: "border-box",
-          minHeight: 360,
-          padding: 56,
-          background: "#1A2027",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 32,
-        }}
-      >
-        {/* The same identity lockup as the header: the mark on top,
-            the wordmark below it, not the full two-line logo. */}
-        <img
-          src="/the-prasada-mark.png"
-          alt="The Prasada"
-          style={{ display: "block", height: 150, width: "auto" }}
-        />
-        <img
-          src="/the-prasada-wordmark.png"
-          alt=""
-          style={{ display: "block", height: 46, width: "auto" }}
-        />
-        <div style={{ fontSize: 20, fontWeight: 600, color: "#A9B3BF" }}>{t("common:brand.adminPanel")}</div>
-      </section>
+      <SigninBrandPanel />
 
       <main
         style={{

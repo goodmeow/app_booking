@@ -1,48 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
-import {
-  Alert,
-  Avatar,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Container,
-  Divider,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import DeleteIconModule from "@mui/icons-material/Delete";
-import EditIconModule from "@mui/icons-material/Edit";
-import LockResetIconModule from "@mui/icons-material/LockReset";
-import PersonIconModule from "@mui/icons-material/Person";
+import { Box, Card, CardContent, Container } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { authenticate, isAuthenticated, signout } from "../auth/auth-helper.js";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import FeedbackSnackbar from "../components/common/FeedbackSnackbar.js";
-import FormDialog from "../components/common/FormDialog.js";
 import PasswordDialog from "../components/common/PasswordDialog.js";
-import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import { getApiError } from "../domain/api-error.js";
-import { canManageProfile, formatJoinedDate } from "../domain/profile.js";
-import { normalizeLanguage } from "../i18n/languages.js";
+import { canManageProfile } from "../domain/profile.js";
 import {
   useChangePasswordMutation,
   useDeleteUserMutation,
   useDetailUserQuery,
   useUpdateUserMutation,
 } from "../redux/services/users.js";
-
-const DeleteIcon = resolveMuiIcon(DeleteIconModule);
-const EditIcon = resolveMuiIcon(EditIconModule);
-const LockResetIcon = resolveMuiIcon(LockResetIconModule);
-const PersonIcon = resolveMuiIcon(PersonIconModule);
+import ProfileEditDialog from "./ProfileEditDialog.js";
+import ProfileSummaryCard from "./ProfileSummaryCard.js";
 
 const UserProfile = () => {
-  const { i18n, t } = useTranslation(["auth", "common"]);
-  const language = normalizeLanguage(i18n.resolvedLanguage || i18n.language);
+  const { t } = useTranslation(["auth", "common"]);
   const { userId } = useParams();
   const history = useHistory();
   const session = isAuthenticated();
@@ -86,6 +63,32 @@ const UserProfile = () => {
     setEditOpen(false);
     setEditError("");
     resetUpdate();
+  };
+
+  const openPasswordDialog = () => {
+    resetPassword();
+    setPasswordError("");
+    setPasswordOpen(true);
+  };
+
+  const closePasswordDialog = () => {
+    if (isChangingPassword) return;
+    setPasswordOpen(false);
+    setPasswordError("");
+    resetPassword();
+  };
+
+  const openDeleteDialog = () => {
+    resetDelete();
+    setDeleteError("");
+    setDeleteOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    if (isDeleting) return;
+    setDeleteOpen(false);
+    setDeleteError("");
+    resetDelete();
   };
 
   const submitEdit = async (event) => {
@@ -169,92 +172,32 @@ const UserProfile = () => {
       ) : null}
       <Card component="main" elevation={2}>
         <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
-          <Stack spacing={3} alignItems="center">
-            <Avatar sx={{ width: 88, height: 88, bgcolor: "primary.main" }}>
-              <PersonIcon sx={{ fontSize: 52 }} />
-            </Avatar>
-            <Box sx={{ textAlign: "center" }}>
-              <Typography variant="h4" component="h1">{user?.name || t("common:states.unknown")}</Typography>
-              <Typography color="text.secondary">{user?.email || t("common:states.unknown")}</Typography>
-            </Box>
-            <Divider flexItem />
-            <Typography color="text.secondary">
-              {t("auth:profile.joined", { date: formatJoinedDate(user?.created_at, language) })}
-            </Typography>
-            {isOwner ? (
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ width: "100%" }}>
-                <Button fullWidth variant="contained" startIcon={<EditIcon />} onClick={openEdit}>
-                  {t("auth:profile.edit")}
-                </Button>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<LockResetIcon />}
-                  onClick={() => {
-                    resetPassword();
-                    setPasswordError("");
-                    setPasswordOpen(true);
-                  }}
-                >
-                  {t("common:actions.changePassword")}
-                </Button>
-                <Button
-                  fullWidth
-                  color="error"
-                  variant="outlined"
-                  startIcon={<DeleteIcon />}
-                  onClick={() => {
-                    resetDelete();
-                    setDeleteError("");
-                    setDeleteOpen(true);
-                  }}
-                >
-                  {t("common:actions.delete")}
-                </Button>
-              </Stack>
-            ) : null}
-          </Stack>
+          <ProfileSummaryCard
+            user={user}
+            isOwner={isOwner}
+            onEdit={openEdit}
+            onChangePassword={openPasswordDialog}
+            onDelete={openDeleteDialog}
+          />
         </CardContent>
       </Card>
 
-      <FormDialog
+      <ProfileEditDialog
         open={editOpen}
-        title={t("auth:profile.edit")}
-        formId="profile-edit-form"
-        loading={isUpdating}
+        form={editForm}
+        setForm={setEditForm}
+        error={editError}
+        isSaving={isUpdating}
         onClose={closeEdit}
         onSubmit={submitEdit}
-      >
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          {editError ? <Alert severity="error">{editError}</Alert> : null}
-          <TextField
-            required
-            autoFocus
-            label={t("common:fields.name")}
-            value={editForm.name}
-            onChange={(event) => setEditForm((current) => ({ ...current, name: event.target.value }))}
-          />
-          <TextField
-            required
-            type="email"
-            label={t("common:fields.email")}
-            value={editForm.email}
-            onChange={(event) => setEditForm((current) => ({ ...current, email: event.target.value }))}
-          />
-        </Stack>
-      </FormDialog>
+      />
 
       <PasswordDialog
         open={passwordOpen}
         requireOldPassword
         loading={isChangingPassword}
         error={passwordError}
-        onClose={() => {
-          if (isChangingPassword) return;
-          setPasswordOpen(false);
-          setPasswordError("");
-          resetPassword();
-        }}
+        onClose={closePasswordDialog}
         onSubmit={submitPassword}
       />
 
@@ -263,12 +206,7 @@ const UserProfile = () => {
         title={t("auth:profile.delete")}
         message={deleteError || t("auth:profile.deleteMessage")}
         loading={isDeleting}
-        onCancel={() => {
-          if (isDeleting) return;
-          setDeleteOpen(false);
-          setDeleteError("");
-          resetDelete();
-        }}
+        onCancel={closeDeleteDialog}
         onConfirm={confirmDelete}
       />
 

@@ -1,15 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, Box, Button, Chip, IconButton, Stack, TextField, Tooltip, Typography } from "@mui/material";
-import DeleteIconModule from "@mui/icons-material/Delete";
-import EditIconModule from "@mui/icons-material/Edit";
-import PasswordIconModule from "@mui/icons-material/Password";
+import { Alert, Box, Button, Stack, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
-import FormDialog from "../components/common/FormDialog.js";
 import PasswordDialog from "../components/common/PasswordDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import LocalizedDataGrid from "../components/common/LocalizedDataGrid.js";
-import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { getApiError } from "../domain/api-error.js";
 import {
   useDeleteRoomByIdMutation,
@@ -20,10 +15,8 @@ import {
 } from "../redux/services/rooms.js";
 import { useChangePasswordMutation } from "../redux/services/users.js";
 import { useGetKioskDevicesQuery } from "../redux/services/kiosk-devices.js";
-
-const DeleteIcon = resolveMuiIcon(DeleteIconModule);
-const EditIcon = resolveMuiIcon(EditIconModule);
-const PasswordIcon = resolveMuiIcon(PasswordIconModule);
+import RoomFormDialog from "./rooms/RoomFormDialog.js";
+import { buildRoomColumns } from "./rooms/room-columns.js";
 
 const emptyForm = {
   name: "",
@@ -90,9 +83,19 @@ const RoomManagementSection = () => {
     setDialog("edit");
   };
 
-  const change = (name) => (event) => setForm((current) => ({ ...current, [name]: event.target.value }));
+  const openPasswordDialog = (room) => {
+    setSelected(room);
+    setError("");
+    setDialog("password");
+  };
 
-  const submit = async (event) => {
+  const openDeleteDialog = (room) => {
+    setSelected(room);
+    setDeleteError("");
+    setDialog("delete");
+  };
+
+  const submitRoom = async (event) => {
     event.preventDefault();
     setError("");
     const body = Object.fromEntries(Object.entries(form).map(([key, value]) => [key, typeof value === "string" ? value.trim() : value]));
@@ -112,60 +115,42 @@ const RoomManagementSection = () => {
     }
   };
 
-  const columns = [
-    { field: "name", headerName: t("common:fields.name"), minWidth: 140, flex: 1 },
-    { field: "building", headerName: t("rooms.building"), minWidth: 120, flex: 0.7 },
-    { field: "capacity", headerName: t("rooms.capacity"), minWidth: 100, flex: 0.6 },
-    { field: "floor", headerName: t("rooms.floor"), minWidth: 90, flex: 0.5 },
-    { field: "email", headerName: t("common:fields.email"), minWidth: 190, flex: 1 },
-    {
-      field: "tablet",
-      headerName: t("rooms.tablet"),
-      minWidth: 140,
-      flex: 0.7,
-      sortable: false,
-      filterable: false,
-      renderCell: ({ row }) => {
-        const device = deviceByRoom.get(String(row._id));
-        if (!device) return <Chip size="small" label={t("rooms.tabletNone")} />;
-        if (device.status === "revoked") return <Chip size="small" color="error" label={t("rooms.tabletRevoked")} />;
-        return device.online
-          ? <Chip size="small" color="success" label={t("rooms.tabletOnline")} />
-          : <Chip size="small" color="default" label={t("rooms.tabletOffline")} />;
-      },
-    },
-    {
-      field: "actions",
-      headerName: t("common:fields.action"),
-      sortable: false,
-      filterable: false,
-      // Three icon buttons like the Users tab: text buttons get clipped at 1440 px wide.
-      width: 150,
-      renderCell: ({ row }) => (
-        <Stack direction="row" spacing={0.25}>
-          <Tooltip title={t("common:actions.edit")}>
-            <IconButton size="small" aria-label={`${t("common:actions.edit")} ${row.name}`} onClick={() => openEdit(row)}>
-              <EditIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t("common:actions.changePassword")}>
-            <IconButton size="small" aria-label={`${t("common:actions.changePassword")} ${row.name}`} onClick={() => openPasswordDialog(row)}>
-              <PasswordIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t("common:actions.delete")}>
-            <IconButton size="small" color="error" aria-label={`${t("common:actions.delete")} ${row.name}`} onClick={() => openDeleteDialog(row)}>
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      ),
-    },
-  ];
+  const submitPassword = async ({ newPassword, newPasswordConfirmation }) => {
+    setError("");
+    if (newPassword !== newPasswordConfirmation) {
+      setError(t("rooms.passwordMismatch"));
+      return;
+    }
+    try {
+      await changePassword({ userId: selected._id, newPassword, newPasswordConfirmation }).unwrap();
+      close();
+    } catch (reason) {
+      setError(getApiError(reason, t("common:states.error")));
+    }
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteRoom(selected._id).unwrap();
+      close();
+    } catch (reason) {
+      setDeleteError(getApiError(reason, t("common:states.error")));
+    }
+  };
+
+  const columns = buildRoomColumns({
+    t,
+    deviceByRoom,
+    openEdit,
+    openPasswordDialog,
+    openDeleteDialog,
+  });
 
   if (rooms.isLoading) return <LoadingState label={t("rooms.loading")} />;
   const hasRoomRows = Array.isArray(rooms.data) && rooms.data.length > 0;
   if (rooms.isError && !hasRoomRows) return <ErrorState message={getApiError(rooms.error, t("rooms.loadError"))} busy={rooms.isFetching} onAction={rooms.refetch} />;
+
+  const isEditing = dialog === "edit";
 
   return (
     <Box component="section">
@@ -186,29 +171,20 @@ const RoomManagementSection = () => {
         disableRowSelectionOnClick
       />
 
-      <FormDialog
-        open={dialog === "create" || dialog === "edit"}
-        title={dialog === "create" ? t("rooms.createTitle") : t("rooms.editTitle")}
-        formId="room-form"
-        loading={storeState.isLoading || updateState.isLoading || (dialog === "edit" && roomDetail.isFetching)}
-        submitDisabled={dialog === "edit" && (roomDetail.isError || !roomDetail.data)}
+      <RoomFormDialog
+        open={dialog === "create" || isEditing}
+        mode={dialog}
+        form={form}
+        setForm={setForm}
+        error={error}
+        detailError={isEditing && roomDetail.isError ? roomDetail.error : null}
+        isDetailLoading={roomDetail.isFetching}
+        isSaving={storeState.isLoading || updateState.isLoading}
+        submitDisabled={isEditing && (roomDetail.isError || !roomDetail.data)}
         onClose={close}
-        onSubmit={submit}
-      >
-        {dialog === "edit" && roomDetail.isFetching ? <LoadingState label={t("rooms.loadingOne")} /> : (
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          {error && <Alert severity="error">{error}</Alert>}
-          {dialog === "edit" && roomDetail.isError && <Alert severity="error">{getApiError(roomDetail.error, t("rooms.loadOneError"))}</Alert>}
-          <TextField required label={t("common:fields.name")} value={form.name} onChange={change("name")} />
-          <TextField required type="email" label={t("common:fields.email")} value={form.email} onChange={change("email")} />
-          {dialog === "create" && <TextField required type="password" label={t("common:fields.password")} value={form.password} onChange={change("password")} />}
-          <TextField label={t("rooms.floor")} value={form.floor} onChange={change("floor")} />
-          <TextField label={t("rooms.building")} value={form.building} onChange={change("building")} />
-          <TextField label={t("rooms.capacity")} value={form.capacity} onChange={change("capacity")} />
-          <TextField label={t("rooms.feature")} value={form.feature} onChange={change("feature")} />
-        </Stack>
-        )}
-      </FormDialog>
+        onSubmit={submitRoom}
+        t={t}
+      />
 
       <PasswordDialog
         open={dialog === "password"}
@@ -216,19 +192,7 @@ const RoomManagementSection = () => {
         loading={passwordState.isLoading}
         error={dialog === "password" ? error : ""}
         onClose={close}
-        onSubmit={async ({ newPassword, newPasswordConfirmation }) => {
-          setError("");
-          if (newPassword !== newPasswordConfirmation) {
-            setError(t("rooms.passwordMismatch"));
-            return;
-          }
-          try {
-            await changePassword({ userId: selected._id, newPassword, newPasswordConfirmation }).unwrap();
-            close();
-          } catch (reason) {
-            setError(getApiError(reason, t("common:states.error")));
-          }
-        }}
+        onSubmit={submitPassword}
       />
 
       <ConfirmDialog
@@ -237,14 +201,7 @@ const RoomManagementSection = () => {
         message={deleteError || t("rooms.deleteMessage", { name: selected?.name || "" })}
         loading={deleteState.isLoading}
         onCancel={close}
-        onConfirm={async () => {
-          try {
-            await deleteRoom(selected._id).unwrap();
-            close();
-          } catch (reason) {
-            setDeleteError(getApiError(reason, t("common:states.error")));
-          }
-        }}
+        onConfirm={confirmDelete}
       />
     </Box>
   );
