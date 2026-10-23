@@ -1,0 +1,24 @@
+[Unit]
+Description=360 Scheduler API + Socket.io (server.bundle)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=360booking
+Group=360booking
+WorkingDirectory=/opt/360booking/server
+EnvironmentFile=-/etc/360booking/app.env
+ExecStart=/usr/bin/node server.bundle.cjs
+Restart=on-failure
+RestartSec=3
+
+# Minimal privileges: bundle hanya butuh membaca kode dan menulis sementara.
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/360booking
+PrivateTmp=true
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target
