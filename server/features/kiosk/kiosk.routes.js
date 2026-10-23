@@ -2,7 +2,7 @@ import express from "express";
 import { adminOnly, requireSignin } from "../../security/auth.middleware.js";
 import { failedLoginRateLimits, fixedWindowRateLimit } from "../../security/rate-limit.middleware.js";
 import { requireKiosk } from "../../security/kiosk-auth.middleware.js";
-import { checkIn, completeEvent, context, deprovision, devices, doorOpen, earlyFinish, extendEvent, instantBooking, refresh, revokeDevice, schedule, signin, updateDeviceCapabilities } from "./kiosk.controller.js";
+import { bookSlot, checkIn, completeEvent, context, deprovision, devices, doorOpen, earlyFinish, extendEvent, instantBooking, refresh, revokeDevice, schedule, signin, updateDeviceCapabilities } from "./kiosk.controller.js";
 
 const router = express.Router();
 router.post("/auth", ...failedLoginRateLimits(), signin);
@@ -19,6 +19,8 @@ router.put("/events/check-in", checkIn);
 router.post("/events/extend", fixedWindowRateLimit({ windowMs: 15 * 60_000, max: 60 }), extendEvent);
 router.post("/events/complete", fixedWindowRateLimit({ windowMs: 15 * 60_000, max: 60 }), completeEvent);
 router.post("/events/instant", fixedWindowRateLimit({ windowMs: 15 * 60_000, max: 30 }), instantBooking);
+// Pemesanan terjadwal hari ini dari kiosk (pilih jam mulai & selesai).
+router.post("/events/book", fixedWindowRateLimit({ windowMs: 15 * 60_000, max: 30 }), bookSlot);
 router.put("/events/early-finish", earlyFinish);
 
 export default router;

@@ -304,6 +304,51 @@ const clampMinutes = (value, fallback, min, max) => {
   return Math.min(max, Math.max(min, Math.round(minutes)));
 };
 
+// Kartu kios harus milik karyawan aktif dan lantainya cocok dengan ruangan.
+// Dipakai oleh pemakaian langsung maupun pemesanan terjadwal hari ini.
+const resolveKioskEmployeeByCard = async (cardNumber, room) => {
+  const card = String(cardNumber || "").trim();
+  if (!card) throw badRequest("INVALID_CARD", "Card number is required");
+  const employee = await findEmployeeByCard(card);
+  if (!employee) throw badRequest("INVALID_CARD", "Card number not found");
+  const employeeFloor = String(employee.floor || "").trim();
+  const roomFloor = String(room.floor || "").trim();
+  if (!employeeFloor) {
+    throw new HttpError(403, "FLOOR_REQUIRED", "Kartu ini belum terhubung ke lantai kerja. Minta admin mengisinya di Manajemen > Pengguna.");
+  }
+  if (employeeFloor.toLowerCase() !== "all" && employeeFloor !== roomFloor) {
+    throw new HttpError(403, "FLOOR_RESTRICTED", `Kartu ini terdaftar di lantai ${employeeFloor}, sedangkan ruangan ini di lantai ${roomFloor}.`);
+  }
+  return employee;
+};
+
+const localDayKey = (date, timezone) => {
+  const parts = zonedParts(date, timezone);
+  return `${parts.year}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}`;
+};
+
+// Aturan pemesanan terjadwal dari kiosk: hanya hari ini (zona server),
+// mulai tidak boleh lewat, durasi 5-240 menit, selesai di hari yang sama.
+export const validateKioskBookedSlot = ({ now, start, end, timezone }) => {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  if (!Number.isFinite(startDate.getTime()) || !Number.isFinite(endDate.getTime())) {
+    throw badRequest("INVALID_TIME", "Waktu mulai dan selesai wajib diisi");
+  }
+  if (startDate.getTime() < now.getTime() - 60_000) {
+    throw badRequest("INVALID_TIME", "Waktu mulai sudah lewat");
+  }
+  const today = localDayKey(now, timezone);
+  if (localDayKey(startDate, timezone) !== today || localDayKey(endDate, timezone) !== today) {
+    throw badRequest("INVALID_TIME", "Pemesanan dari kiosk hanya untuk hari ini");
+  }
+  const minutes = (endDate.getTime() - startDate.getTime()) / 60_000;
+  if (minutes < 5 || minutes > 240) {
+    throw badRequest("INVALID_TIME", "Durasi pemesanan 5-240 menit");
+  }
+  return { startDate, endDate, startsNow: startDate.getTime() - now.getTime() <= 2 * 60_000 };
+};
+
 export const extendKioskEvent = async ({ event_id: eventId, minutes }, room) => {
   if (!eventId) throw badRequest("INVALID_KIOSK_ACTION", "Event is required");
   const extra = clampMinutes(minutes, 15, 5, 60);
@@ -371,18 +416,7 @@ export const instantBookingWindow = ({ now, nextStart, minutes, untilNext = fals
 
 export const instantKioskBooking = async ({ card_number: cardNumber, minutes, until_next: untilNextRequested }, room) => {
   await maybeReleaseAbandonedBookings();
-  const card = String(cardNumber || "").trim();
-  if (!card) throw badRequest("INVALID_CARD", "Card number is required");
-  const employee = await findEmployeeByCard(card);
-  if (!employee) throw badRequest("INVALID_CARD", "Card number not found");
-  const employeeFloor = String(employee.floor || "").trim();
-  const roomFloor = String(room.floor || "").trim();
-  if (!employeeFloor) {
-    throw new HttpError(403, "FLOOR_REQUIRED", "Kartu ini belum terhubung ke lantai kerja. Minta admin mengisinya di Manajemen > Pengguna.");
-  }
-  if (employeeFloor.toLowerCase() !== "all" && employeeFloor !== roomFloor) {
-    throw new HttpError(403, "FLOOR_RESTRICTED", `Kartu ini terdaftar di lantai ${employeeFloor}, sedangkan ruangan ini di lantai ${roomFloor}.`);
-  }
+  const employee = await resolveKioskEmployeeByCard(cardNumber, room);
   const now = new Date();
   const horizon = new Date(now.getTime() + 36 * 60 * 60_000);
   const rows = await listKioskScheduleRows({ roomId: room._id, rangeStart: now, rangeEnd: horizon });
@@ -420,5 +454,37 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
     end: first?.end || window.end.toISOString(),
     checkedIn: true,
     untilNext: window.untilNext,
+  };
+};
+
+// Pemesanan terjadwal dari kiosk: pengguna memilih jam mulai dan selesai di
+// hari yang sama. Bila mulai <= 2 menit dari sekarang, booking langsung
+// ditandai check-in seperti pemakaian langsung.
+export const bookKioskSlot = async ({ card_number: cardNumber, start, end }, room) => {
+  await maybeReleaseAbandonedBookings();
+  const employee = await resolveKioskEmployeeByCard(cardNumber, room);
+  const now = new Date();
+  const slot = validateKioskBookedSlot({ now, start, end, timezone: config.appTimezone });
+  const created = await createEvents(
+    [{
+      organizer: employee.email,
+      subject: `Pemakaian ruangan - ${employee.name}`,
+      description: "Pemesanan terjadwal dari kiosk",
+      start_date: slot.startDate.toISOString(),
+      end_date: slot.endDate.toISOString(),
+      attendee_email: room.email,
+    }],
+    { _id: employee._id, email: employee.email, name: employee.name, role: "USER", floor: employee.floor }
+  );
+  const first = Array.isArray(created) ? created[0] : null;
+  if (first?.id && slot.startsNow) await markCheckedIn(first.id);
+  return {
+    id: first?.id || null,
+    title: first?.title || `Pemakaian ruangan - ${employee.name}`,
+    organizer: employee.name,
+    start: first?.start || slot.startDate.toISOString(),
+    end: first?.end || slot.endDate.toISOString(),
+    checkedIn: Boolean(slot.startsNow),
+    scheduled: !slot.startsNow,
   };
 };

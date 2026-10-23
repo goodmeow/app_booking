@@ -3,6 +3,7 @@ import {
   checkInKioskEvent,
   completeKioskEvent,
   extendKioskEvent,
+  bookKioskSlot,
   instantKioskBooking,
   deprovisionKioskDevice,
   finishKioskEvent,
@@ -77,6 +78,11 @@ export const completeEvent = run(async (req, res) => {
 });
 export const instantBooking = run(async (req, res) => {
   const result = await instantKioskBooking(req.body || {}, req.kiosk);
+  emitEventInvalidation(req.io, await findEventAudience([result?.id]));
+  res.json(result);
+});
+export const bookSlot = run(async (req, res) => {
+  const result = await bookKioskSlot(req.body || {}, req.kiosk);
   emitEventInvalidation(req.io, await findEventAudience([result?.id]));
   res.json(result);
 });
