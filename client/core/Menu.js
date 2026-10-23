@@ -23,6 +23,48 @@ import LanguageSwitcher from "../components/common/LanguageSwitcher.js";
 import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { useDetailUserQuery } from "../redux/services/users.js";
 
+const BrandLockup = () => {
+  const { t } = useTranslation("common");
+  return (
+    <Box
+      component={Link}
+      to="/"
+      color="inherit"
+      sx={{ display: "flex", alignItems: "center", gap: 1.5, textDecoration: "none" }}
+    >
+      <Box
+        component="img"
+        src="/the-prasada-mark.png"
+        alt=""
+        sx={{ height: 38, width: "auto", display: "block" }}
+      />
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+        {/* Wordmark resmi "The Prasada" sebagai gambar, agar tipografi sama
+            persis dengan tablet; Room Booking di bawahnya pakai aksen. */}
+        <Box
+          component="img"
+          src="/the-prasada-wordmark.png"
+          alt="The Prasada"
+          sx={{ height: 15, width: "auto", display: "block" }}
+        />
+        <Typography
+          component="span"
+          sx={{
+            fontSize: 10.5,
+            fontWeight: 700,
+            lineHeight: 1,
+            letterSpacing: "0.4em",
+            textTransform: "uppercase",
+            color: "primary.main",
+          }}
+        >
+          {t("brand.name")}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
 const MenuIcon = resolveMuiIcon(MenuIconModule);
 
 const MenuLink = ({ to, children }) => {
@@ -70,11 +112,7 @@ const Menu = () => {
     <AppBar position="static" color="inherit" elevation={0}>
       <Container maxWidth={false}>
         <Toolbar disableGutters>
-          {/* Brand: logo The Prasada di atas, dua kata "Room Booking" di bawah. */}
-          <Box component={Link} to="/" color="inherit" sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 0.25, textDecoration: "none" }}>
-            <Box component="img" src="/the-prasada-logo.png" alt={t("brand.name")} sx={{ height: 26, width: "auto", display: "block" }} />
-            <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1, letterSpacing: 0.2 }}>{t("brand.name")}</Typography>
-          </Box>
+        <BrandLockup />
           <Box sx={{ flexGrow: 1, ml: 3, display: { xs: "none", md: "block" } }}>
             {navItems.filter(({ to }) => to === "/app-management" || to === "/report").map(({ to, label }) => (
               <MenuLink key={to} to={to}>{label}</MenuLink>
