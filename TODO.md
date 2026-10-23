@@ -233,6 +233,16 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 - [ ] `GET /api/users` masih bisa dibaca semua user login (paritas produksi);
   perlu keputusan produk untuk membatasi.
 
+## Keputusan produk 2026-10-23
+
+- [x] **Selesaikan meeting lebih awal** di kiosk tetap memakai tombol
+  "Selesai" + dialog konfirmasi, **tanpa kartu/kartu master**. Alasan:
+  akses ruangan sudah dijaga pintu ber-kartu dan kiosk berada di dalam
+  ruangan; friksi kartu membuat orang memilih meninggalkan ruangan
+  (okupansi jadi lebih buruk). Guardrail server dipertahankan: wajib
+  checked-in, hanya dalam jendela start-end, rate limit 60/15 menit,
+  token kiosk per ruangan.
+
 ## Sanitasi rahasia 2026-10-23
 
 - [x] Kartu NFC nyata dan email pribadi karyawan dihapus dari tree dan RIWAYAT:
