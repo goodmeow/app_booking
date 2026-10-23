@@ -244,8 +244,12 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
   langsung check-in, selain itu `scheduled: true` (check-in menunggu jam).
   Unit test `kiosk-book-slot.test.js`; uji fungsional curl OK, event uji
   dibatalkan lagi.
-- [ ] UI tablet: tombol "Pilih waktu" + input jam mulai/selesai (subagent,
-  APK 1.3 code 7) — menyusul commit kioskapp.
+- [x] UI tablet: tombol "Pilih waktu" + input jam HH:MM (24 jam) + alur
+  kartu + i18n ID/EN + APK 1.3 code 7 (kioskapp `c8842a9`). Diuji di tablet:
+  slot bentrok menampilkan 409, slot bebas membuat booking 21:00-22:00
+  (event uji dibatalkan).
+- [ ] Test regresi end-to-end `/events/book` (butuh reset DB → pairing tablet
+  hilang; jadwalkan sekali jalan bersama regresi berikutnya).
 
 ## Keputusan produk 2026-10-23
 
