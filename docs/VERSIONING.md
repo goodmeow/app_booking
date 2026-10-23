@@ -19,7 +19,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 - CMS + API: **Ver 3 Rev 6**, `package.json` `3.6.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.3 / versionCode 7`, menampilkan ver + UUID
+- APK kiosk: `versionName 1.3 / versionCode 8`, menampilkan ver + UUID
   perangkat di layar; string di res/values + values-en (bahasa ID/EN),
   panel AVAILABLE tidak meluber, dan ada tombol "Pilih waktu" untuk
   memesan ruangan hari ini dengan jam mulai/selesai sendiri.

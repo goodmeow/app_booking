@@ -35,3 +35,7 @@ Riwayat isi paket:
   pesan ruangan hari ini dengan jam mulai & selesai sendiri (validasi
   client+server, konflik 409, kartu karyawan, langsung check-in bila mulai
   <=2 menit). String baru ID/EN di res/values + values-en.
+
+- 2026-10-23: 1.3 (versionCode 8)—sanitasi: alamat server bawaan (IP vendor)
+  dihapus dari kioskapp; field Server kini kosong dengan placeholder
+  http://<ip-server>:5100, alamat diisi operator saat provisioning.
