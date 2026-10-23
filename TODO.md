@@ -241,6 +241,27 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
   `nauchara/360Booking/`). Semua author/committer dinormalisasi ke
   `goodmeow <aarunalr@pm.me>`.
 
+## Gelombang Ver 3 Rev 5 — 2026-10-23
+
+- [x] Tablet dan laptop satu segment LAN: portproxy Windows 5100, IP statis
+  tablet persisten (Settings), firewall rule; USB tidak lagi dibutuhkan kios.
+- [x] APK kios `network_security_config.xml` tanpa daftar IP (URL diisi saat
+  provisioning); HTTPS server siap (`HTTPS=true` + `TLS_CERT_PATH`/`KEY`),
+  CA self-signed dipercaya lewat anchor user (kioskapp `30195cd`).
+- [x] Tablet menampilkan versi `v1.1 (2)` + awalan UUID perangkat di layar;
+  CMS drawer/footer menampilkan `CMS v3.5.0`. Skema versioning `Ver.Rev`
+  di `docs/VERSIONING.md`; package.json naik `3.5.0`.
+- [x] APK distribusi naik repo CMS (`public/apk/kiosk-release.apk`) +
+  tombol **Unduh APK Tablet** di halaman Perangkat Tablet (unduh saja).
+- [x] Tema CMS disamai tablet: dark `#11151B`, aksen `#3DDC84`/`#2FB46A`,
+  Public Sans, AppBar/Menu/DataGrid/surface mengikuti token tema.
+- [x] Brand dua kata: logo The Prasada di atas `Room Booking` (header,
+  favicon, judul dokumen, locales en/id; icon.svg tak lagi dirujuk).
+- [x] `deploy/` Ubuntu 22.04: runbook + 5 skrip (prereqs, provisi DB+migrasi,
+  build, install systemd+nginx, admin pertama) + unit systemd + nginx conf.
+- [x] `npm run demo` diperbaiki: berikan blok shebang bash yang hilang di
+  `rebuild-test-db.sh`; urutan demo→`demo:accounts` didokumentasikan.
+
 ## Sisa pending 2026-10-22 (lanjutan review)
 
 
