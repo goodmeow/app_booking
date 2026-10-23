@@ -70,12 +70,10 @@ const Menu = () => {
     <AppBar position="static" color="inherit" elevation={0}>
       <Container maxWidth={false}>
         <Toolbar disableGutters>
-          <Box component={Link} to="/" color="inherit" sx={{ display: "flex", alignItems: "center", gap: 1, textDecoration: "none" }}>
-            <Box component="img" src="/the-prasada-logo.png" alt={t("brand.name")} sx={{ height: 34, width: "auto", display: "block" }} />
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.1 }}>{t("brand.name")}</Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: { xs: "none", lg: "block" } }}>{t("brand.descriptor")}</Typography>
-            </Box>
+          {/* Brand: logo The Prasada di atas, dua kata "Room Booking" di bawah. */}
+          <Box component={Link} to="/" color="inherit" sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 0.25, textDecoration: "none" }}>
+            <Box component="img" src="/the-prasada-logo.png" alt={t("brand.name")} sx={{ height: 26, width: "auto", display: "block" }} />
+            <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1, letterSpacing: 0.2 }}>{t("brand.name")}</Typography>
           </Box>
           <Box sx={{ flexGrow: 1, ml: 3, display: { xs: "none", md: "block" } }}>
             {navItems.filter(({ to }) => to === "/app-management" || to === "/report").map(({ to, label }) => (

@@ -15,7 +15,7 @@ const VersionFooter = () => (
     }}
   >
     <Box sx={{ typography: "caption", display: "block" }}>
-      {`360 Scheduler CMS v${CMS_VERSION}`}
+      {`Room Booking CMS v${CMS_VERSION}`}
     </Box>
   </Box>
 );

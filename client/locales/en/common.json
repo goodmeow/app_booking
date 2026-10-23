@@ -1,9 +1,9 @@
 {
   "brand": {
-    "name": "360 Scheduler",
-    "descriptor": "Meeting & Room Scheduler",
-    "documentTitle": "360 Scheduler — Meeting & Room Scheduler",
-    "kiosk": "360 Scheduler · Room Kiosk",
+    "name": "Room Booking",
+    "descriptor": "The Prasada meeting scheduler",
+    "documentTitle": "Room Booking — The Prasada",
+    "kiosk": "Room Booking · Room Kiosk",
     "adminPanel": "Room meeting admin panel"
   },
   "language": {
