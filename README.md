@@ -134,6 +134,28 @@ Tablet dan laptop dijadikan satu subnet (contoh `192.168.1.0/24`):
 Origin LAN untuk CMS (mis. `http://<ip-server>:8081`) jangan di-commit: salin
 ke `.env.local` (di-ignore) yang ditimpa di atas `.env.demo` saat `npm run demo`.
 
+Verifikasi tablet benar-benar lewat LAN (bukan USB/adb reverse):
+
+```bash
+# 1. Koneksi TCP TCP masuk ke portproxy di laptop (harus dari IP tablet)
+powershell.exe -NoProfile -Command "Get-NetTCPConnection -LocalPort 5100 -State Established |
+  Group-Object RemoteAddress | Select-Object Count,Name"
+
+# 2. Log server tetap menerima polling tablet (tiap ~20 detik) walau adb mati
+python3 - <<'PY'
+import json
+for line in open("/tmp/opencode/demo.log"):
+    try: event = json.loads(line)
+    except: continue
+    if event.get("event") == "http_request" and event.get("path") in ("/context", "/schedule"):
+        print(event["timestamp"][11:19], event["path"], event["status"])
+PY
+```
+
+Bila baris pertama menampilkan IP tablet dan baris kedua terus bertambah,
+koneksi tablet ↔ server murni LAN; `adb` hanya diperlukan untuk instalasi APK
+dan pengambilan screenshot.
+
 Jalur USB `adb reverse` tidak lagi dibutuhkan untuk kerja tablet, Yang perlu
 diproses ulang hanya bila laptop restart: jalankan forwarder lagi
 (`python3 ~/bin/forward9091.py`). Detail perubahan tablet ada di repo
