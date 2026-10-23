@@ -1,49 +1,51 @@
 # 360 Scheduler
 
-Meeting & Room Scheduler dengan pembaruan real-time menggunakan React, Node.js, dan Socket.io.
+Meeting & Room Scheduler dengan pembaruan real-time untuk CMS (web admin)
+dan kiosk tablet (aplikasi khusus, repo [`kioskapp`](../kioskapp)) menggunakan
+React, Node.js, PostgreSQL, dan Socket.io.
 
-Antarmuka menggunakan English sebagai bahasa sumber/default dan Bahasa Indonesia
-sebagai bahasa kedua. Katalog JSON dan alur Crowdin dijelaskan di
-[`docs/localization.md`](docs/localization.md).
-Peta halaman web admin ada di [`docs/CMS.md`](docs/CMS.md).
+Antarmuka memakai English sebagai bahasa sumber/default dan Bahasa Indonesia
+sebagai bahasa kedua. Katalog JSON dan alur Crowdin ada di
+[`docs/localization.md`](docs/localization.md). Peta halaman CMS ada di
+[`docs/CMS.md`](docs/CMS.md). Status pengerjaan keseluruhan ada di
+[`TODO.md`](TODO.md).
 
 ## 🚀 Tech Stack
 
-### Frontend
+### Frontend (CMS)
 
-- **React 17.0.2** - Library UI
-- **Vite 4.0.4** - Build tool dan dev server
-- **Material-UI** - Component library
+- **React 17** - Library UI
+- **Vite 8** - Build tool dan dev server
+- **Material-UI 5** - Component library (termasuk `@mui/x-date-pickers`)
 - **Redux Toolkit** - State management
-- **React Router 5.3.4** - Client-side routing
-- **Socket.io Client** - Real-time communication
+- **React Router 5** - Client-side routing
+- **Socket.io Client 4** - Real-time communication
 - **FullCalendar** - Calendar component
-- **Bootstrap** - CSS framework
+- **dayjs** - Manipulasi tanggal/waktu
 
 ### Backend
 
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **Socket.io** - Real-time WebSocket server
-- **PostgreSQL** - Database
+- **Node.js** (v20.19+ / v22.12+) - Runtime environment
+- **Express 4** - Web framework
+- **Socket.io 4** - Real-time WebSocket server
+- **PostgreSQL 14** - Database
 - **JWT** - Authentication
-- **Webpack 5** - Server bundling
+- **Webpack 5** - Server bundling untuk production
+- **node:test** - Unit, paritas, dan regression tests
 
 ## 📋 Prerequisites
 
-Pastikan Anda telah menginstall:
-
-- **Node.js** (v20.19+ atau v22.12+)
-- **npm** atau **yarn**
-- **PostgreSQL** database
+- **Node.js** v20.19+ atau v22.12+
+- **Docker** (untuk demo database PostgreSQL; tidak perlu install PostgreSQL di host)
+- **npm**
 
 ## 🛠️ Installation
 
 1. **Clone repository**
 
    ```bash
-   git clone https://github.com/kouuzaki/360Books-WebApps.git
-   cd 360Books-WebApps
+   git clone https://github.com/goodmeow/app_booking.git
+   cd app_booking
    ```
 
 2. **Install dependencies**
@@ -55,299 +57,257 @@ Pastikan Anda telah menginstall:
 3. **Pilih environment**
 
    - `.env.demo` dilacak Git dan hanya berisi konfigurasi publik untuk database disposable.
-   - `.env.example` adalah template production. Salin menjadi `.env.production`, lalu ganti seluruh placeholder dan secret.
-   - `.env` tetap di-ignore untuk development kustom, tetapi tidak diperlukan untuk demo standar.
+   - `.env.example` adalah template (termasuk HTTPS/`TLS_CERT_PATH`/`TLS_KEY_PATH` dan
+     `TRUST_PROXY`). Salin menjadi `.env.production` atau `.env`, lalu isi secret.
+   - `.env` tetap di-ignore untuk development kustom; demo standar tidak memerlukannya.
 
-   Jangan arahkan `.env.demo` atau script reconstruction ke database production, staging, atau shared.
+   Jangan arahkan `.env.demo` ke database production, staging, atau shared.
 
 ## 🔧 Development
 
-### Start deterministic demo
+### Demo deterministic
 
 ```bash
 npm run demo
 ```
 
-Perintah ini menjalankan PostgreSQL Compose pada `127.0.0.1:54320`, mereset hanya database
-`360booking_reconstruction_test`, menerapkan migration dan seed sanitized, lalu menyalakan
-client `8081` serta API/Socket.io `9091`. Status `Demo ready` baru tampil setelah login database
-dan proxy client terverifikasi. Tekan `Ctrl+C` untuk menghentikan proses aplikasi. Container
-database sengaja dapat dipakai ulang; hentikan eksplisit dengan `npm run demo:stop`.
+Perintah ini menjalankan container PostgreSQL compose (`127.0.0.1:54320`,
+project `360booking`, container `360booking-postgres-test`), mereset database
+`360booking_reconstruction_test`, menerapkan migration + seed sanitized, lalu
+menyalakan:
+
+- **CMS/Vite dev**: http://localhost:8081
+- **API/Socket.io**: http://localhost:9091
+
+Status `Demo ready` baru tampil setelah login database dan proxy client
+terverifikasi. Container database sengaja dipakai ulang agar restart cepat;
+`Ctrl+C` menghentikan aplikasi (database tetap hidup), `npm run demo:stop`
+menghentikan container.
 
 Credential demo:
 
-- Web: `admin@example.test` / `ParityTest123!`
-- Kiosk: `room-one@room.com` / `RoomTablet123!`
+| Akun | Email | Sandi | Keterangan |
+|---|---|---|---|
+| Admin | `admin@example.test` | `ParityTest123!` | akses penuh CMS |
+| Ruangan (kiosk) | `room-one@room.com` | `RoomTablet123!` | untuk pairing tablet |
+| Karyawan uji | `karyawan@uji.prasada.test` | `1234` | mob/janasan, kartu uji NFC |
+| Karyawan uji 2 | `emp@uji.local` | `1234` | kartu `DEMO-UJI-CARD` |
+
+### Restore akun demo setelah regression suite
+
+Regression suite (`test:server:regression`) me-reset database dengan
+`dropdb --force`. Setelah itu kembalikan akun demo:
+
+```bash
+npm run demo:accounts
+```
+
+Langkah ini juga menjamin `role_id` terisi (syarat login server) dan
+upsert akun di tabel di atas.
 
 ### Custom development
 
 ```bash
 cp .env.example .env
-# Ubah NODE_ENV ke development dan isi koneksi lokal yang aman.
+# Isi koneksi PostgreSQL lokal yang aman.
 npm run development
 ```
 
-### Development URLs
+Serves terpisah juga tersedia: `npm run dev:client` dan `npm run dev:server`.
 
-- **Frontend/Kiosk**: http://localhost:8081
-- **Backend API**: http://localhost:9091/api
-- **WebSocket**: ws://localhost:9091
+### Tablet kiosk: satu segment LAN (tanpa USB reverse)
+
+Tablet dan laptop dijadikan satu subnet `192.168.18.0/24`:
+
+| Sisi | Konfigurasi |
+|---|---|
+| Tablet (`eth0`) | statis `192.168.18.10/24` via Settings → Ethernet (persisten) |
+| Windows host | statis `192.168.18.1/24` via `netsh` |
+| Portproxy | `192.168.18.1:5100 → 127.0.0.1:5100` (`netsh interface portproxy`) |
+| Forwarder | `python3 ~/bin/forward9091.py` (WSL) meneruskan `0.0.0.0:5100 → 127.0.0.1:9091` |
+| Firewall | rule inbound TCP 5100 (`360booking-kiosk-5100`) |
+| APK | URL server diketik saat provisioning; HTTP polos diizinkan lewat `network_security_config.xml` |
+
+Jalur USB `adb reverse` tidak lagi dibutuhkan untuk kerja tablet. Yang perlu
+diproses ulang hanya bila laptop restart: jalankan forwarder lagi
+(`python3 ~/bin/forward9091.py`). Detail perubahan tablet ada di repo
+`kioskapp` dan `TODO.md` (item LAN).
+
+Riwayat perubahan kiosk terpih di repo terpisah `kioskapp` (React Native):
+
+```bash
+cd ../kioskapp && npm install
+```
 
 ## 🏗️ Build untuk Production
-
-### Build Complete Application
 
 ```bash
 npm run build
 ```
 
-Command ini akan menjalankan:
+Output **`build/`** (bukan `dist/`):
 
-1. `npm run build:client` - Build frontend ke `dist/client/`
-2. `npm run build:server` - Bundle backend ke `dist/server/`
-3. `npm run create:server:package` - Generate package.json untuk production
-
-### Build Individual Components
-
-**Build frontend saja:**
-
-```bash
-npm run build:client
+```
+build/
+├── client/          # Hasil vite build (statis)
+└── server/          # Hasil webpack bundle + package.json
 ```
 
-**Build backend saja:**
-
-```bash
-npm run build:server
-```
-
-**Generate production package.json:**
-
-```bash
-npm run create:server:package
-```
+Bagian-bagian individu: `npm run build:client`, `npm run build:server`,
+`npm run create:server:package`.
 
 ## 🚀 Production Deployment
 
-### Start Production Server
+1. Buat `.env.production` dari `.env.example` (secret, koneksi DB).
+2. `npm run build` lalu deploy folder `build/` bersama `node_modules`.
+3. Jalankan:
+
+   ```bash
+   npm run start:client   # serves build/client di PORT (default 8081)
+   npm run start:server   # API/Socket.io di SERVER_PORT (default 9091)
+   ```
+
+Kedua script membaca `.env` pada root proyek.
+
+### HTTPS
+
+Server mendukung TLS langsung tanpa reverse proxy:
 
 ```bash
-npm start
+HTTPS=true TLS_CERT_PATH=/path/server.crt TLS_KEY_PATH=/path/server.key \
+  npm run start:server
 ```
 
-Server akan berjalan di:
+- Sertifikat dari CA publik dipercaya oleh tablet tanpa perubahan apa pun.
+- Sertifikat self-signed/CA internal: install CA pada tablet lewat Settings
+  (anchor `user` di `network_security_config.xml` menampungnya).
 
-- **Application**: http://localhost:5000 (melayani frontend dan API)
-- **API Endpoints**: http://localhost:5000/api
+### Di balik reverse proxy (nginx/Caddy)
 
-### Production Structure
-
-```
-dist/
-├── client/           # Built frontend files
-│   ├── index.html
-│   ├── assets/
-│   ├── vite.config.js
-│   ├── node_modules/    -> symlink to root
-│   └── README.md
-├── server/           # Bundled backend
-│   ├── server.bundle.js
-│   ├── node_modules/    -> symlink to root
-│   ├── .env.*
-│   └── README.md
-```
-
-### Standalone Frontend Serving
-
-Jika ingin serve frontend secara terpisah menggunakan Vite preview:
-
-```bash
-cd dist/client
-npm install
-npm run preview
-```
-
-### Standalone Mode (Frontend + Backend Terpisah)
-
-**Jalankan frontend dan backend secara standalone:**
-
-```bash
-npm run start:standalone
-```
-
-**Atau jalankan secara terpisah:**
-
-Frontend dengan Vite preview (port 3000):
-
-```bash
-npm run start:standalone:client
-```
-
-Backend standalone (port 5000):
-
-```bash
-npm run start:standalone:server
-```
-
-#### Standalone URLs:
-
-- **Frontend**: http://localhost:3000 (Vite preview server)
-- **Backend API**: http://localhost:5000/api
-- **WebSocket**: ws://localhost:5000
+Bila TLS ditangani reverse proxy, set `TRUST_PROXY=true` (atau jumlah hop
+untuk `req.app.get("trust proxy")`) supaya parsing `X-Forwarded-For` benar.
+Semua port diatur lewat env (`PORT`, `SERVER_PORT`, `HOST`).
 
 ## 📁 Project Structure
 
 ```
-360 Scheduler/
-├── client/                 # Frontend source code
-│   ├── App.js             # Main App component
-│   ├── entry-client.js    # Client entry point
-│   ├── MainRouter.js      # Route configuration
-│   ├── auth/              # Authentication components
-│   ├── core/              # Core components
-│   │   ├── Dashboard.js   # Main dashboard
-│   │   ├── Menu.js        # Navigation
-│   │   └── calendar/      # Calendar components
-│   ├── redux/             # State management
-│   │   ├── store.js
-│   │   ├── api.js
-│   │   ├── services/      # API services
-│   │   └── middleware/    # Redux middleware
-│   ├── user/              # User management
-│   └── config/            # Client configuration
-├── server/                # Backend source code
-│   ├── server.js          # Main server file
-│   ├── express.js         # Express configuration
-│   ├── controllers/       # Route controllers
-│   ├── models/           # Database models
-│   ├── routes/           # API routes
-│   ├── socket/           # WebSocket handlers
-│   └── utils/            # Utilities
-├── config/               # Server configuration
-├── public/              # Static assets
-├── dist/               # Built files (generated)
-├── package.json        # Dependencies & scripts
-├── vite.config.js     # Vite configuration
-└── webpack.config.cjs # Webpack configuration
+app_booking/
+├── client/                   # Frontend CMS (Vite)
+│   ├── auth/                 # Halaman masuk
+│   ├── core/                 # Layout, dashboard, navigasi
+│   ├── calendar/             # Kalender + EventEditor
+│   ├── domain/               # Kontrak data & helper (event-contract, dll.)
+│   ├── locales/              # en/id JSON + workflow Crowdin
+│   ├── redux/                # Store, api layer, services, middleware
+│   ├── user/                 # Pengelolaan users/cards/rooms (CMS)
+│   ├── reports/              # Laporan pemakaian ruangan + XLSX
+│   └── tests/                # node:test client
+├── server/                   # Backend (Express)
+│   ├── features/             # events/, kiosk/, rooms/, users/, auth/, ...
+│   ├── routes/               # index.js pemasangan rute fitur
+│   ├── runtime/              # create-http-server (http/https), dll.
+│   ├── socket/               # Socket.io handlers
+│   ├── db/                   # Pool & SQL helpers
+│   ├── observability/        # Logger terstruktur
+│   └── tests/                # unit/, parity/, regression/
+├── config/config.js          # Baca env + validasi runtime
+├── scripts/                  # demo.js, demo-accounts.js, dev-*, start-*, dll.
+├── database/migrations/      # Migrasi SQL berurutan (incl. kiosk)
+├── compose.yaml              # PostgreSQL util demo
+├── build/                    # Hasil build (generated)
+├── docs/                     # CMS.md, localization.md, reconstruction/
+└── TODO.md                   # Peta pengerjaan & sisa item
 ```
 
-## 🔌 API Endpoints
+## 🔌 API Endpoints (ringkas)
 
-### Authentication
+Semua berada di bawah `/api`, autentikasi JWT bearer. Referensi lengkap ada
+di modul `server/features/*/routes.js`.
 
-- `POST /api/auth/signin` - User login
-- `POST /api/auth/signup` - User registration
+### Auth
+
+- `POST /api/auth/signin` - Login (akun dibuat lewat CMS, bukan signup)
+- `POST /api/auth/refresh` - Memperbarui token
+- `PUT /api/users/change-password` - Ganti sandi mandiri
+
+### Users & Rooms (admin)
+
+- `GET /api/users`, `GET|PUT|DELETE /api/users/:userId`
+- `GET /api/rooms`, `GET /api/rooms/:roomId`, `POST|PUT|DELETE`
+- `GET /api/rooms/available`, `GET /api/rooms/status`, `GET /api/rooms/usage-report`
 
 ### Events
 
-- `GET /api/events` - Get all events
-- `POST /api/events` - Create new event
-- `PUT /api/events/:id` - Update event
-- `DELETE /api/events/:id` - Delete event
+- `GET|POST /api/events`, `GET|PUT|DELETE /api/events/:eventId`
+- `POST /api/events/preview`, `POST /api/events/attendee`
+- `PUT /api/events/check-in`, `PUT /api/events/early-finish`, `PUT /api/events/delete` (batal)
 
-### Users
+### Kiosk (token kiosk khusus)
 
-- `GET /api/users` - Get all users
-- `GET /api/users/:id` - Get user by ID
-- `PUT /api/users/:id` - Update user
-- `DELETE /api/users/:id` - Delete user
-
-### Rooms
-
-- `GET /api/rooms` - Get all rooms
-- `POST /api/rooms` - Create new room
+- `POST /api/kiosk/auth`, `POST /api/kiosk/refresh` - Login kartu ruangan
+- `GET /api/kiosk/context`, `GET /api/kiosk/schedule` - Data tablet (incl. `serverTime`)
+- `PUT /api/kiosk/events/check-in`, `POST /api/kiosk/events/extend|complete|instant|early-finish`
+- `POST /api/kiosk/door-open` - Pemicu relay di tablet
+- `GET /api/kiosk/devices` (admin), `DELETE /api/kiosk/devices/:deviceId` (revulkanisasi)
 
 ## 🔄 Real-time Features
 
-Aplikasi menggunakan Socket.io untuk fitur real-time:
+Socket.io dipakai untuk invalidation scoping, bukan broadcast payload besar:
 
-- **Live event updates** - Event yang dibuat/diupdate langsung tersinkronisasi
-- **Room management** - Real-time room availability
-- **User notifications** - Notifikasi real-time untuk user
+- Channel per user dan per ruangan; event dibuat/diubah/dibatal langsung
+  merangkai kalender CMS dan kiosk milik pihak yang terdampak.
+- Payload Socket.io mematuhi proyeksi privasi yang sama seperti HTTP (tidak
+  membocorkan subjek/aturan meeting orang lain).
 
-### Socket Events
-
-- `room:join` - Join room for updates
-- `response:event` - Event data updates
-
-## 🧪 Scripts Available
+## 🧪 Testing
 
 ```bash
-# Development
-npm run demo             # Reset disposable DB + start verified demo
-npm run demo:stop        # Stop disposable PostgreSQL container
-npm run development      # Start frontend + backend
-npm run dev:client      # Start frontend only
-npm run dev:server      # Start backend only
-
-# Build
-npm run build           # Build complete application
-npm run build:client    # Build frontend only
-npm run build:server    # Build backend only
-
-# Production
-npm start              # Start production server (unified)
-npm run start:dev      # Start server in dev mode
-
-# Standalone Mode
-npm run start:standalone           # Start both frontend & backend standalone
-npm run start:standalone:client   # Start frontend with Vite preview
-npm run start:standalone:server   # Start backend standalone
-
-# Utilities
-npm run preview        # Preview built frontend
-npm run create:server:package  # Generate production package.json
+npm run test:client              # Test helper & kontrak client
+npm run test:server:unit         # Test unit server
+npm run test:server:parity:prepare  # persiapan database paritas
+npm run test:server:parity       # Pembandingan bundle lama vs rekonstruksi
+npm run test:server:regression   # Routen geseran: reset DB + uji akhir-ke-akhir
 ```
+
+Catatan:
+
+- Suite paritas/regression menaklukkan DB via Docker demo (port 54320).
+- Setelah regression, jalankan `npm run demo:accounts` untuk memulihkan akun
+  demo (role_id terjamin), lalu pasangkan ulang tablet bila sesi kiosk ikut
+  hilang.
+- Regresi terakhir yang terekam: unit 32/32, regressi 52/52, client 59/59.
 
 ## 🐛 Troubleshooting
 
-### Common Issues
+### Port dipakai
 
-1. **"React is not defined" error**
+`PORT=8081 SERVER_PORT=9091` diatur env — ubah satu-duanya lewat `.env`
+atau override sebelum menjalankan script.
 
-   - Pastikan semua komponen yang menggunakan JSX mengimpor React
-   - Sudah diperbaiki dengan menambahkan `jsxRuntime: 'classic'` di Vite config
+### Database connection error
 
-2. **"Failed to resolve module specifier 'dotenv'"**
+- Demo: pastikan container `360booking-postgres-test` hidup
+  (`docker ps`, lalu `npm run demo` untuk menghidupkannya lagi).
+- Host DB non-default: isi `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`.
 
-   - File client menggunakan `client/config/client-config.js` yang tidak mengimpor dotenv
-   - Server menggunakan `config/config.js` yang mengimpor dotenv
+### Tablet gagal `Network request failed`
 
-3. **404 pada assets**
+Alamat LAN server yang baru diketik perlu diizinkan HTTP polos: konfigurasi
+app memakai `network_security_config.xml` dengan `cleartextTrafficPermitted`
+(global). Bila pakai HTTPS, pastikan sertifikat valid atau install CA di
+Settings tablet.
 
-   - Pastikan server production melayani static files dari `dist/client/`
-   - Vite config menggunakan `base: "/"` untuk absolute paths
+### Akses 403 `FLOOR_RESTRICTED`
 
-4. **Database connection error**
-   - Periksa konfigurasi PostgreSQL di file `.env`
-   - Pastikan database service berjalan
-
-### Development Tips
-
-- Gunakan browser DevTools Network tab untuk monitor API calls
-- WebSocket connection terlihat di DevTools Application tab
-- Redux DevTools extension untuk debugging state
-- Hot reload aktif di development mode
-
-## 📝 Contributing
-
-1. Fork repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
+Karyawan hanya dapat memesan ruangan pada grup lantai kerjanya
+(`tbl_users.floor`). Admin bebas. Isi lantai karyawan dari tab Users.
 
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-## 👥 Team
-
-- **Frontend**: React, Vite, Material-UI
-- **Backend**: Node.js, Express, Socket.io
-- **Database**: PostgreSQL
-- **Real-time**: WebSocket dengan Socket.io
-
 ---
 
-**Developed with ❤️ for 360 Scheduler**
+**360 Scheduler** — rekonstruksi hardened dari 360 Booking (nauchara).
+Model perilaku tersimpan sebagai artefak referensi; detail status ada di
+`TODO.md` dan `docs/reconstruction/`.
