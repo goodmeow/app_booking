@@ -248,6 +248,18 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 - [x] Terverifikasi: tablet pulih Online sendiri (poll `/context 200` tiap 20 dtk)
   dan tetap terhubung setelah adb dimatikan.
 
+## Code review 2026-10-24
+
+- [x] Patch English-only diterapkan (kode/komentar/pesan server/skrip),
+  UI locale & docs tetap. Konflik dengan refactor diselesaikan manual.
+- [x] Refactor komponen CMS: UserManagementSection 498->245, Room 253->210,
+  Signin 299->272, UserProfile 285->223 (modul columns/dialog/hook).
+- [x] Refactor kiosk: App.tsx 1254->76 baris, UI/API/hook/i18n/theme ke `src/`.
+- [x] Konstanta waktu & rate limit bernama; deviceStatus(); SQL multi-baris;
+  onClick jadi handler bernama.
+- [ ] Sisa: KioskDisplay.tsx masih ~800 baris (ekstrak overlay), lint/format
+  belum ada tooling, komponen lain <300 baris sudah wajar.
+
 ## Cek end-to-end 2026-10-24
 
 - [x] Suite non-destruktif: `npm run verify` lulus (build client+server,
