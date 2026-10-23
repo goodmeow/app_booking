@@ -4,7 +4,7 @@
   "version": "3.5.0",
   "type": "module",
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": ">=20.19 <23"
   },
   "scripts": {
     "demo": "node scripts/demo.js",
@@ -24,7 +24,8 @@
     "test:server:unit": "node --test server/tests/unit/*.test.js",
     "test:server:parity:prepare": "node --test --test-concurrency=1 server/tests/parity/prepare.test.js",
     "test:server:parity": "node --test --test-concurrency=1 server/tests/parity/*.test.js",
-    "test:server:regression": "node --test --test-concurrency=1 server/tests/regression/*.test.js"
+    "test:server:regression": "node --test --test-concurrency=1 server/tests/regression/*.test.js",
+    "verify": "npm run build:client && npm run build:server:check && npm run test:client && npm run test:server:unit"
   },
   "dependencies": {
     "@emotion/react": "^11.10.6",
