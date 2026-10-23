@@ -19,8 +19,9 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 - CMS + API: **Ver 3 Rev 5**, `package.json` `3.5.0`, ditampilkan di
   drawer CMS (dari package.json).
-- APK kiosk: `versionName 1.1 / versionCode 2`, menampilkan ver + UUID
-  perangkat di layar (identik dengan baris Perangkat Tablet di CMS).
+- APK kiosk: `versionName 1.2 / versionCode 3`, menampilkan ver + UUID
+  perangkat di layar (identik dengan baris Perangkat Tablet di CMS);
+  string pindah ke res/values + values-en (pilihan bahasa ID/EN).
 
 ## Riwayat
 

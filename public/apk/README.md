@@ -21,3 +21,8 @@ Riwayat isi paket:
 
 - 2026-10-23: naik ke 1.1 (versionCode 2), tablet menampilkan versi + UUID
   perangkat di layar; CMS drawer menampilkan versi CMS dari package.json.
+
+- 2026-10-23: naik 1.2 (versionCode 3)—pilihan bahasa ID/EN lewat sistem
+  Android (res/values + values-en, modul native getKioskStrings), teks
+  disimpan sebagai resource; footer versi memakai konstanta yang sama
+  dengan build.gradle.
