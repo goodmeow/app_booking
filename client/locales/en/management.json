@@ -21,6 +21,9 @@
   "devices": {
     "title": "Tablet Devices",
     "description": "Paired room tablets with online status, indicator light, and optional meeting titles.",
+    "downloadApk": "Download Tablet APK",
+    "downloadApkHint": "To install on a tablet: copy the file, enable unknown sources, then open it.",
+    "downloadApkAria": "Download the kiosk tablet app (APK)",
     "device": "Device",
     "room": "Room",
     "unknownRoom": "Unknown room",

@@ -21,6 +21,9 @@
   "devices": {
     "title": "Perangkat Tablet",
     "description": "Tablet ruangan yang sudah dipasangkan beserta status online, lampu, dan judul meeting yang bisa disembunyikan.",
+    "downloadApk": "Unduh APK Tablet",
+    "downloadApkHint": "Pasang di tablet lewat urutan: salin berkas, aktifkan sumber tak dikenal, lalu buka berkasnya.",
+    "downloadApkAria": "Unduh aplikasi tablet kiosk (APK)",
     "device": "Perangkat",
     "room": "Ruangan",
     "unknownRoom": "Ruangan tidak diketahui",

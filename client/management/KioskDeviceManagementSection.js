@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Alert, Box, Button, Chip, Stack, Switch, Typography } from "@mui/material";
+import DownloadIcon from "@mui/icons-material/Download";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
@@ -140,6 +141,18 @@ const KioskDeviceManagementSection = () => {
           <Typography variant="h5">{t("devices.title")}</Typography>
           <Typography color="text.secondary">{t("devices.description")}</Typography>
         </Box>
+        {/* Unduh saja unduh: berkas statis /apk/kiosk-release.apk yang terbawa Vite. */}
+        <Button
+          component="a"
+          href="/apk/kiosk-release.apk"
+          download="kiosk-release.apk"
+          variant="outlined"
+          startIcon={<DownloadIcon />}
+          aria-label={t("devices.downloadApkAria")}
+          title={t("devices.downloadApkHint")}
+        >
+          {t("devices.downloadApk")}
+        </Button>
       </Stack>
 
       {isFetching && !isLoading ? <Alert severity="info" sx={{ mb: 1 }}>{t("common:states.refreshing")}</Alert> : null}
