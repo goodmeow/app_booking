@@ -76,10 +76,17 @@ const Signin = () => {
           gap: 32,
         }}
       >
+        {/* Kunci identitas yang sama dengan header: lambang di atas,
+            wordmark di bawahnya — bukan logo dua-baris utuh. */}
         <img
-          src="/the-prasada-logo.png"
+          src="/the-prasada-mark.png"
           alt="The Prasada"
-          style={{ display: "block", maxWidth: "100%", height: 220, width: "auto" }}
+          style={{ display: "block", height: 150, width: "auto" }}
+        />
+        <img
+          src="/the-prasada-wordmark.png"
+          alt=""
+          style={{ display: "block", height: 46, width: "auto" }}
         />
         <div style={{ fontSize: 20, fontWeight: 600, color: "#A9B3BF" }}>{t("common:brand.adminPanel")}</div>
       </section>

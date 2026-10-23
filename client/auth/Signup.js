@@ -47,7 +47,8 @@ const Signup = () => {
   return (
     <Box sx={{ minHeight: "calc(100vh - 64px)", display: "grid", placeItems: "center", p: 2 }}>
       <Paper component="form" onSubmit={submit} sx={{ width: "100%", maxWidth: 420, p: 4 }}>
-        <Box component="img" src="/the-prasada-logo.png" alt={t("common:brand.name")} sx={{ display: "block", height: 80, width: "auto", mx: "auto", mb: 2 }} />
+        <Box component="img" src="/the-prasada-mark.png" alt={t("common:brand.name")} sx={{ display: "block", height: 64, width: "auto", mx: "auto", mb: 1 }} />
+        <Box component="img" src="/the-prasada-wordmark.png" alt="" sx={{ display: "block", height: 22, width: "auto", mx: "auto", mb: 2 }} />
         <Typography variant="h4" color="primary" align="center" gutterBottom>{t("common:brand.name")}</Typography>
         <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>{t("common:brand.descriptor")}</Typography>
         <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
