@@ -253,7 +253,8 @@ di modul `server/features/*/routes.js`.
 
 - `POST /api/kiosk/auth`, `POST /api/kiosk/refresh` - Login kartu ruangan
 - `GET /api/kiosk/context`, `GET /api/kiosk/schedule` - Data tablet (incl. `serverTime`)
-- `PUT /api/kiosk/events/check-in`, `POST /api/kiosk/events/extend|complete|instant|early-finish`
+- `PUT /api/kiosk/events/check-in`, `POST /api/kiosk/events/extend|complete|instant|early-finish|book`
+  (`book` = pilih jam mulai & selesai hari ini dari tablet)
 - `POST /api/kiosk/door-open` - Pemicu relay di tablet
 - `GET /api/kiosk/devices` (admin), `DELETE /api/kiosk/devices/:deviceId` (revulkanisasi)
 
@@ -282,7 +283,8 @@ Catatan:
 - Setelah regression, jalankan `npm run demo:accounts` untuk memulihkan akun
   demo (role_id terjamin), lalu pasangkan ulang tablet bila sesi kiosk ikut
   hilang.
-- Regresi terakhir yang terekam: unit 32/32, regressi 52/52, client 59/59.
+- Regresi terakhir yang terekam (2026-10-23): unit 42/42, regression 52/52,
+  client 62/62.
 
 ## 🐛 Troubleshooting
 

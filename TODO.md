@@ -233,6 +233,17 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 - [ ] `GET /api/users` masih bisa dibaca semua user login (paritas produksi);
   perlu keputusan produk untuk membatasi.
 
+## Fitur 2026-10-23 — pemesanan terjadwal dari kiosk
+
+- [x] Server `POST /api/kiosk/events/book` { card_number, start, end }: hanya
+  hari ini (APP_TIMEZONE), mulai tidak lewat, durasi 5-240 menit, kartu+lantai
+  sama dengan instant, konflik 409, rate limit 30/15mnt; mulai <=2 menit →
+  langsung check-in, selain itu `scheduled: true` (check-in menunggu jam).
+  Unit test `kiosk-book-slot.test.js`; uji fungsional curl OK, event uji
+  dibatalkan lagi.
+- [ ] UI tablet: tombol "Pilih waktu" + input jam mulai/selesai (subagent,
+  APK 1.3 code 7) — menyusul commit kioskapp.
+
 ## Keputusan produk 2026-10-23
 
 - [x] **Selesaikan meeting lebih awal** di kiosk tetap memakai tombol
@@ -285,7 +296,7 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
   dan profil `chokidar<4` yang dilintasinya belum punya perbaikan;
   `--force` hanya akan menurunkan nodemon ke 1.14.10 (regresi) sehingga
   sisa ini diterima. Verifikasi pasca-fix: boot server ok (login 200),
-  client 59/59, unit 32/32.
+  client 62/62 (23 Okt), unit 42/42 (23 Okt).
 - [x] Patch review #5: README ditulis ulang ke state terbaru (URL clone,
   Vite 8, port 8081/9091, output `build/`, HTTPS, `TRUST_PROXY`, jalur
   LAN tablet). Lihat commit `63ff397`.
