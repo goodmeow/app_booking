@@ -17,12 +17,12 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 ## Posisi saat ini (penutupan Ver 3 Rev 5)
 
-- CMS + API: **Ver 3 Rev 5**, `package.json` `3.5.0`, ditampilkan di
-  drawer CMS (dari package.json).
+- CMS + API: **Ver 3 Rev 6**, `package.json` `3.6.0`, ditampilkan di footer
+  semua halaman CMS (dari package.json).
 - APK kiosk: `versionName 1.3 / versionCode 7`, menampilkan ver + UUID
-  perangkat di layar (identik dengan baris Perangkat Tablet di CMS);
-  string pindah ke res/values + values-en (pilihan bahasa ID/EN), dan panel
-  AVAILABLE tidak lagi meluber (spacing pill/ruangan dan UP NEXT).
+  perangkat di layar; string di res/values + values-en (bahasa ID/EN),
+  panel AVAILABLE tidak meluber, dan ada tombol "Pilih waktu" untuk
+  memesan ruangan hari ini dengan jam mulai/selesai sendiri.
 
 ## Riwayat
 
@@ -43,6 +43,18 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
 - Rev 4: `npm audit fix` non-breaking (temuan 22 menjadi 3, dev-only).
 - Rev 5: README baru, skrip deploy Ubuntu 22.04, tombol unduh APK di CMS,
   APK masuk distribusi `/apk/kiosk-release.apk`.
+
+### Ver 3 Rev 6 - 2026-10-23 (selesai)
+- FormDialog CMS diperbaiki: DialogContent tidak mendukung prop component
+  sehingga tidak pernah ada <form> (tombol Kirim mati di semua dialog).
+- CORS origin LAN (192.168.18.1:8081) masuk allowlist; endpoint
+  /api/health tanpa kredensial untuk probe deploy.
+- Kartu/password/role hardening review: daftar user non-admin tanpa kartu,
+  master-card dicabut saat ganti/hapus, roleId non-UUID -> 400.
+- Fitur kiosk: POST /api/kiosk/events/book (pilih jam mulai & selesai hari
+  ini) + tombol "Pilih waktu" di tablet (APK 1.3 code 7).
+- Gate kualitas: npm run verify, CI GitHub Actions, pin Node 20
+  (.nvmrc), docs/handover/START-HERE.md.
 
 ## Cara naikkan
 
