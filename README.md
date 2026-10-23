@@ -227,6 +227,10 @@ app_booking/
 Semua berada di bawah `/api`, autentikasi JWT bearer. Referensi lengkap ada
 di modul `server/features/*/routes.js`.
 
+### Health
+
+- `GET /api/health` - Probe hidup tanpa kredensial (untuk systemd/nginx)
+
 ### Auth
 
 - `POST /api/auth/signin` - Login (akun dibuat lewat CMS, bukan signup)

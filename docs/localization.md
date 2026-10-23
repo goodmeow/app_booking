@@ -55,6 +55,10 @@ changes follow the same Crowdin workflow.
 
 ## Crowdin CLI workflow
 
+CLI versi 5.5.0 sudah tersedia sebagai binary tunggal di
+`~/toolchain/crowdin-cli/crowdin` (symlink `~/bin/crowdin`). Setelah
+menambah/mengubah string, sinkronkan `en` (sumber) dan `id`, lalu:
+
 Install the [official Crowdin CLI](https://crowdin.github.io/crowdin-cli/) and set
 the project credentials in the shell or CI secret store:
 

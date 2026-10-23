@@ -8,6 +8,10 @@ import userRoutes from "../features/users/user.routes.js";
 
 const router = express.Router();
 
+// Probe hidup untuk systemd/nginx tanpa kredensial. Sengaja tidak membuka
+// informasi apa pun: cukup tanda bahwa listener menyala dan responsnya JSON.
+router.get("/health", (req, res) => res.json({ ok: true }));
+
 router.use("/auth", authRoutes);
 router.use("/events", eventRoutes);
 router.use("/kiosk", kioskRoutes);

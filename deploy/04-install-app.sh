@@ -40,8 +40,8 @@ systemctl reload nginx
 
 systemctl status 360booking-server.service --no-pager | head -6
 sync
-# Tidak ada endpoint health khusus; cukup pastikan listener memberi respons HTTP.
-http_code="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:${SERVER_PORT:-9091}/ || true)"
+# Endpoint health khusus probe: /api/health tanpa token.
+http_code="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:${SERVER_PORT:-9091}/api/health || true)"
 if [[ "$http_code" != "000" ]]; then
   echo "API hidup (respons $http_code)."
 else
