@@ -39,3 +39,8 @@ Riwayat isi paket:
 - 2026-10-23: 1.3 (versionCode 8)—sanitasi: alamat server bawaan (IP vendor)
   dihapus dari kioskapp; field Server kini kosong dengan placeholder
   http://<ip-server>:5100, alamat diisi operator saat provisioning.
+
+- 2026-10-23: 1.3 (versionCode 11)—kartu tak terdaftar menampilkan nomornya
+  di layar agar bisa langsung didaftarkan; UID hex di logcat hanya aktif bila
+  `/sdcard/kiosk-debug-uid` ada (provisioning). Diuji 3 kartu karyawan
+  (semua UID 4 byte) untuk check-in/pesan ruangan.

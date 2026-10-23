@@ -248,6 +248,20 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 - [x] Terverifikasi: tablet pulih Online sendiri (poll `/context 200` tiap 20 dtk)
   dan tetap terhubung setelah adb dimatikan.
 
+## Uji NFC 2026-10-23
+
+- [x] Tiga kartu karyawan diuji di tablet (APK 1.3 code 11). Semua **UID 4 byte**:
+  - kartu 1 -> nomor `<card-1>` (akun Harun) : booking 30 menit **200**
+  - kartu 2 -> UID hex (dibalik) -> nomor `<card-2>` (Karyawan Uji) : **200**
+  - kartu 3 -> UID hex `<uid-hex>` -> nomor `<card-3>` (Karyawan Prasada) : **200**
+- [x] Kartu tak terdaftar kini menampilkan nomornya di layar
+  ("Kartu belum terdaftar: <nomor>") agar bisa langsung didaftarkan admin.
+- [x] UID hex hanya ditulis ke logcat bila flag debug ada
+  (`touch /sdcard/kiosk-debug-uid`); build normal tidak mencatat kredensial.
+- [ ] Kartu **UID 7 byte** (DESFire/Ultralight) belum tersedia untuk diuji;
+  kode saat ini memakai 4 byte pertama (paritas APK vendor). Perlu keputusan
+  produk bila nanti muncul kartu 7 byte.
+
 ## Uji perangkat 2026-10-23 (LAN)
 
 - [x] Tablet online via LAN tanpa USB; check-in dan selesai (finish) berhasil
