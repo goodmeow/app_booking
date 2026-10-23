@@ -96,14 +96,17 @@ Credential demo:
 ### Restore akun demo setelah regression suite
 
 Regression suite (`test:server:regression`) me-reset database dengan
-`dropdb --force`. Setelah itu kembalikan akun demo:
+`dropdb --force`, dan `npm run demo` juga membangun ulang database setiap
+kali dijalankan. Karena itu urutan yang benar:
 
-```bash
-npm run demo:accounts
-```
+1. `npm run demo` - bangun ulang database + nyalakan server.
+2. `npm run demo:accounts` - kembalikan akun demo (termasuk `role_id`,
+   syarat login server).
+3. Pasangkan ulang tablet bila sesi kiosk hilang (`pm clear` + provisioning).
 
-Langkah ini juga menjamin `role_id` terisi (syarat login server) dan
-upsert akun di tabel di atas.
+Langkah `demo:accounts` diletakkan setelah demo karena seed build tidak
+memasukkan akun uji; menjalankannya sebelum demo akan terhapus lagi oleh
+rebuild.
 
 ### Custom development
 
