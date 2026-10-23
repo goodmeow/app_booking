@@ -1,7 +1,7 @@
 # APK kios untuk tablet
 
-File `kiosk-release.apk` di folder ini ikut dibundel ke `build/client/`
-oleh Vite (publicDir) dan dilayani CMS/nginx di:
+File `kiosk-release.apk` berasal dari folder publik bawaan Vite di
+repo root dan terdistribusi bersama build client:
 
 ```
 /apk/kiosk-release.apk
