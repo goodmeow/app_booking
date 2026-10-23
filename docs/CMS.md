@@ -124,7 +124,7 @@ Empat tab (`AppManagement.js`):
 |---|---|---|
 | Pengguna (`UserManagementSection.js`, `user-form.js`) | CRUD user **beserta akses kartunya**: kolom nomor kartu, tombol **kartu master**, dan **kolom grup lantai** (pilih **Semua lantai**, lantai tertentu, atau belum diatur) yang bisa diubah langsung dari tabel atau lewat form; ganti sandi, hapus. | `/api/users` |
 | Ruangan (`RoomManagementSection.js`) | CRUD ruangan: nama, gedung, lantai, **kapasitas**, fitur, email, sandi. **Kolom Tablet: Online/Offline/Belum ada/Dicabut**, auto-refresh 15 s | `/api/rooms`, `/api/kiosk/devices` |
-| Perangkat Tablet (`KioskDeviceManagementSection.js`) | Daftar tablet: nama, ruangan, **Online/Offline/Dicabut/Kedaluwarsa**, switch **LED**, switch **Judul** (tampilkan/sembunyikan judul meeting — admin per perangkat), last seen, waktu pairing, cabut perangkat. Auto-refresh 15 s | `/api/kiosk/devices`, `PATCH …/capabilities`, `DELETE …/:id` |
+| Perangkat Tablet (`KioskDeviceManagementSection.js`) | Daftar tablet: nama, ruangan, **Online/Offline/Dicabut/Kedaluwarsa**, switch **LED**, switch **Judul** (tampilkan/sembunyikan judul meeting — admin per perangkat), last seen, waktu pairing, cabut perangkat, tombol **Unduh APK Tablet** (tautan statik `/apk/kiosk-release.apk`, unduh saja). Auto-refresh 15 s | `/api/kiosk/devices`, `PATCH …/capabilities`, `DELETE …/:id` |
 
 **Toggle "Judul" per perangkat** (migrasi `011_kiosk_show_subject.sql`,
 kolom `tbl_kiosk_devices.show_subject`, default **tampil**): ketika aktif,
