@@ -345,8 +345,7 @@ export const completeKioskEvent = async ({ event_id: eventId }, room) => {
 
 // Jendela pemakaian langsung: selalu berakhir di hari yang sama (zona server),
 // maksimal 4 jam atau sampai meeting berikutnya bila masih hari itu.
-export const instantBookingWindow = ({ now, nextStart, minutes, timezone }) => {
-  const requestedMs = clampMinutes(minutes, 30, 5, 240) * 60_000;
+export const instantBookingWindow = ({ now, nextStart, minutes, untilNext = false, timezone }) => {
   const nowParts = zonedParts(now, timezone);
   const endOfDay = zonedPartsToDate(
     { ...nowParts, hour: 23, minute: 59, second: 59, millisecond: 0 },
@@ -356,18 +355,21 @@ export const instantBookingWindow = ({ now, nextStart, minutes, timezone }) => {
   const nextToday = nextStart && new Date(nextStart).getTime() <= endOfDay.getTime()
     ? new Date(nextStart).getTime()
     : null;
-  const endMs = nextToday
-    ? Math.min(nextToday, maxEnd)
-    : Math.min(now.getTime() + requestedMs, maxEnd);
+  // Durasi yang diminta selalu dihormati. Meeting berikutnya hanya menjadi
+  // batas atas, atau tujuan akhir bila pemanggil meminta "sampai berikutnya".
+  const requestedEnd = untilNext
+    ? maxEnd
+    : now.getTime() + clampMinutes(minutes, 30, 5, 240) * 60_000;
+  const endMs = Math.min(requestedEnd, maxEnd, nextToday ?? Infinity);
   return {
     start: now,
     end: new Date(endMs),
-    untilNext: Boolean(nextToday),
+    untilNext: nextToday !== null && endMs === nextToday,
     endOfDay,
   };
 };
 
-export const instantKioskBooking = async ({ card_number: cardNumber, minutes, until_next: untilNext }, room) => {
+export const instantKioskBooking = async ({ card_number: cardNumber, minutes, until_next: untilNextRequested }, room) => {
   await maybeReleaseAbandonedBookings();
   const card = String(cardNumber || "").trim();
   if (!card) throw badRequest("INVALID_CARD", "Card number is required");
@@ -389,6 +391,7 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
     now,
     nextStart: next?.start_at,
     minutes,
+    untilNext: untilNextRequested === true || untilNextRequested === "true",
     timezone: config.appTimezone,
   });
   if (window.end.getTime() - now.getTime() < 60_000) {

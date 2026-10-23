@@ -135,7 +135,7 @@ const normalizedFloor = (value) => String(value ?? "").trim();
 
 // Non-admin hanya boleh memesan ruangan di lantai kerjanya sendiri.
 const assertRoomFloorAccess = async (roomIds, principal) => {
-  if (!roomIds.length || FLOOR_EXEMPT_ROLES.has(String(principal.role || "").toUpperCase())) return;
+  if (!config.floorRestriction || !roomIds.length || FLOOR_EXEMPT_ROLES.has(String(principal.role || "").toUpperCase())) return;
   const floor = normalizedFloor(principal.floor);
   if (!floor) {
     throw new HttpError(403, "FLOOR_REQUIRED", "Akun Anda belum memiliki lantai kerja. Minta admin mengisinya di Manajemen > Pengguna.");

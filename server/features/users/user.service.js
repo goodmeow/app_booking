@@ -29,7 +29,14 @@ const mapIdentityError = (error) => {
   throw error;
 };
 
-export const getUsers = () => listEmployees();
+// Nomor kartu adalah kredensial (check-in, selesai, pakai langsung, pintu).
+// Hanya admin yang boleh melihatnya; pengguna lain hanya perlu daftar nama.
+export const publicEmployee = ({ card_number, is_master_card, floor, ...rest }) => rest;
+
+export const getUsers = async (principal) => {
+  const employees = await listEmployees();
+  return principal?.role === "ADMIN" ? employees : employees.map(publicEmployee);
+};
 
 export const getUser = async (id) => {
   const user = await findAccountById(id, "employee");
@@ -60,6 +67,7 @@ export const createUser = async (body, principal) => {
 export const editUser = async (id, body, principal) => {
   const values = cleanIdentity(body);
   const isAdmin = principal.role === "ADMIN";
+  const before = isAdmin ? await findAccountById(id, "employee") : null;
   if (!isAdmin) {
     // Hanya admin yang boleh mengubah role, nomor kartu, dan flag kartu master.
     delete values.roleId;
@@ -70,6 +78,18 @@ export const editUser = async (id, body, principal) => {
     const user = await updateAccount(id, values, "employee");
     if (!user || user.type !== "employee") throw notFound("User not found");
     let isMasterCard = null;
+    // Ganti nomor kartu: kartu lama dicabut dari daftar master supaya kartu
+    // yang hilang tidak tetap berlaku, dan statusnya pindah ke kartu baru
+    // kecuali admin menetapkan master_card secara eksplisit.
+    const oldCard = String(before?.card_number || "").trim();
+    const newCard = String(user.card_number || "").trim();
+    if (before && oldCard && oldCard.toLowerCase() !== newCard.toLowerCase()) {
+      await setMasterCard(oldCard, false, principal._id);
+      if (before.is_master_card && body.master_card === undefined && newCard) {
+        await setMasterCard(newCard, true, principal._id);
+        isMasterCard = true;
+      }
+    }
     if (isAdmin && body.master_card !== undefined) {
       if (user.card_number) {
         await setMasterCard(user.card_number, body.master_card === true, principal._id);
@@ -103,8 +123,11 @@ export const changeUserPassword = async (body, principal) => {
   });
 };
 
-export const deleteUser = async (id) => {
+export const deleteUser = async (id, principal) => {
+  const existing = await findAccountById(id, "employee");
   const user = await softDeleteAccount(id, "employee");
   if (!user) throw notFound("User not found");
+  // Akun yang dihapus tidak boleh meninggalkan kartu master yang masih berlaku.
+  if (existing?.card_number) await setMasterCard(existing.card_number, false, principal?._id);
   return user;
 };

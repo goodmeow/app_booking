@@ -45,6 +45,8 @@ const config = {
   appTimezone: env.APP_TIMEZONE || "Asia/Jakarta",
   maxBookingDurationHours: Number(env.MAX_BOOKING_DURATION_HOURS || 168),
   maxCalendarRangeDays: Number(env.MAX_CALENDAR_RANGE_DAYS || 366),
+  // Matikan sementara bila lantai karyawan belum diisi (FLOOR_RESTRICTION=false).
+  floorRestriction: String(env.FLOOR_RESTRICTION ?? "true").toLowerCase() !== "false",
   maxPreviewConflicts: Number(env.MAX_PREVIEW_CONFLICTS || 50),
   recurrenceMaxDays: Number(env.RECURRENCE_MAX_DAYS || 366),
   recurrenceMaxOccurrences: Number(env.RECURRENCE_MAX_OCCURRENCES || 200),
