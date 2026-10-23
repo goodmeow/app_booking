@@ -248,6 +248,22 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 - [x] Terverifikasi: tablet pulih Online sendiri (poll `/context 200` tiap 20 dtk)
   dan tetap terhubung setelah adb dimatikan.
 
+## Cek end-to-end 2026-10-24
+
+- [x] Suite non-destruktif: `npm run verify` lulus (build client+server,
+  client 62/62, unit server 42/42).
+- [x] Smoke API: `GET /api/health` 200, `GET /api/users` 200,
+  `POST /api/events` 200 (meeting "E2E smoke" 10:00-11:00 besok).
+- [x] Tablet pairing ulang setelah DB ter-reset (device baru `b82d910e`),
+  `online: true`; layar menampilkan AVAILABLE + jadwal "E2E smoke" 10:00
+  (bukti tarikan `/context` + `/schedule` dari server).
+- Catatan: DB demo sempat ter-reset oleh `npm run demo` pukul 23:24 sehingga
+  akun uji + kartu + pairing hilang; dipulihkan dengan `demo:resume`,
+  `demo:accounts`, dan pemetaan ulang kartu (<card-1>, <card-2>,
+  <card-3>).
+- [ ] Regression suite penuh (destruktif: reset DB + pairing) belum dijalankan
+  hari ini; perlu persetujuan sebelum dijadwalkan.
+
 ## Uji NFC 2026-10-23
 
 - [x] Tiga kartu karyawan diuji di tablet (APK 1.3 code 11). Semua **UID 4 byte**:
