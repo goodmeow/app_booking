@@ -30,3 +30,8 @@ Riwayat isi paket:
 - 2026-10-23: naik 1.2 (versionCode 6)—perbaikan jarak panel state
   AVAILABLE (pill vs nama ruangan, baris menit vs UP NEXT yang sebelumnya
   meluber), angka jam diperkecil agar isi panel muat tanpa overflow.
+
+- 2026-10-23: naik 1.3 (versionCode 7)—tombol "Pilih waktu" di tablet:
+  pesan ruangan hari ini dengan jam mulai & selesai sendiri (validasi
+  client+server, konflik 409, kartu karyawan, langsung check-in bila mulai
+  <=2 menit). String baru ID/EN di res/values + values-en.
