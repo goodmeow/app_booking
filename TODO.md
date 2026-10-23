@@ -233,7 +233,16 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 - [ ] `GET /api/users` masih bisa dibaca semua user login (paritas produksi);
   perlu keputusan produk untuk membatasi.
 
+## Sanitasi rahasia 2026-10-23
+
+- [x] Kartu NFC nyata dan email pribadi karyawan dihapus dari tree dan RIWAYAT:
+  git history ditulis ulang (filter-branch) lalu force push; `bjb.sql`
+  dikeluarkan dari semua commit (salinan evidence tetap di
+  `nauchara/360Booking/`). Semua author/committer dinormalisasi ke
+  `goodmeow <aarunalr@pm.me>`.
+
 ## Sisa pending 2026-10-22 (lanjutan review)
+
 
 - [x] Patch review #4: `npm audit fix` non-breaking dijalankan. Temuan
   22 → 3 (semua high, dev-only): `nodemon@3.1.14` adalah versi terbaru
