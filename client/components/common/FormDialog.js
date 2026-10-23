@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 const FormDialog = ({ open, title, children, formId = "entity-form", loading = false, submitDisabled = false, submitLabel, onClose, onSubmit, maxWidth = "sm" }) => {
@@ -8,8 +8,12 @@ const FormDialog = ({ open, title, children, formId = "entity-form", loading = f
   return (
     <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth={maxWidth} fullWidth>
       <DialogTitle>{title}</DialogTitle>
-      <DialogContent component="form" id={formId} onSubmit={onSubmit} sx={{ pt: 1 }}>
-        {children}
+      <DialogContent sx={{ pt: 1 }}>
+        {/* DialogContent selalu berupa div, jadi elemen form dibuat eksplisit
+            agar tombol submit dengan atribut form={formId} benar-benar terhubung. */}
+        <Box component="form" id={formId} onSubmit={onSubmit} noValidate>
+          {children}
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>{t("actions.cancel")}</Button>

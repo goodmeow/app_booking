@@ -14,6 +14,10 @@ import {
 import { normalizedEmail, normalizedUsername, validatedPassword } from "../accounts/identity.validation.js";
 import { revokeRoomKioskDevices } from "../kiosk/kiosk.repository.js";
 
+// Format UUID; cukup untuk menolak nilai sembarang sebelum menyentuh DB,
+// karena kolom uuid PostgreSQL melempar 22P02 (HTTP 500) bila nilainya lolos.
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const cleanIdentity = (body) => {
   const values = {
     ...body,
@@ -47,6 +51,7 @@ export const getUser = async (id) => {
 export const createUser = async (body, principal) => {
   const values = cleanIdentity(body);
   if (!values.name || !values.email || !body.password || !body.roleId) throw badRequest("INVALID_USER", "Name, email, password, and role are required");
+  if (!UUID_PATTERN.test(String(body.roleId))) throw badRequest("INVALID_USER", "Role must be a valid role identifier");
   try {
     const user = await insertAccount({
       ...values,
@@ -73,6 +78,8 @@ export const editUser = async (id, body, principal) => {
     delete values.roleId;
     delete values.card_number;
     delete values.floor;
+  } else if (values.roleId !== undefined && !UUID_PATTERN.test(String(values.roleId))) {
+    throw badRequest("INVALID_USER", "Role must be a valid role identifier");
   }
   try {
     const user = await updateAccount(id, values, "employee");
