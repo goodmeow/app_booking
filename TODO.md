@@ -222,9 +222,13 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 - [x] Kapasitas ruangan bisa diubah dari tab Ruangan; kiosk menampilkannya (diuji: 10 orang).
 - [x] Web kiosk `/kiosk` memakai font tablet (Public Sans + Source Serif 4, self-host).
 - [x] Batas pairing: 1 tablet aktif per ruangan; pairing ulang wajib mencabut perangkat lama di CMS.
-- [ ] Untuk uji jangka panjang, ganti forwarder dev (`tools/dev-http-forward.py`
-  + `adb reverse`) dengan bind server IPv4 atau portproxy Windows, karena
-  `adb reverse` langsung ke server Node (IPv6 wildcard) tidak stabil.
+- [x] Ganti jalur tablet dev dari `adb reverse` ke LAN satu segment:
+  portproxy Windows `192.168.18.1:5100 -> 127.0.0.1:5100` (WSL forwarder
+  ke API 9091), firewall rule TCP 5100, IP statis tablet di Settings
+  Ethernet (tahan reboot), dan APK memakai `network_security_config.xml`
+  tanpa daftar IP (URL diketik saat provisioning). HTTPS server siap;
+  CA self-signed dipercaya lewat anchor user (commit kioskapp
+  `4e93105`..`954bb4a`).
 - [ ] Autostart saat boot + kiosk lock (device owner) untuk tablet.
 - [ ] `GET /api/users` masih bisa dibaca semua user login (paritas produksi);
   perlu keputusan produk untuk membatasi.
