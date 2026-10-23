@@ -24,7 +24,8 @@
     "submit": "Submit",
     "retry": "Retry",
     "refresh": "Refresh",
-    "changePassword": "Change Password"
+    "changePassword": "Change Password",
+    "reload": "Reload"
   },
   "states": {
     "loading": "Loading...",
@@ -34,7 +35,9 @@
     "notFoundTitle": "Page not found",
     "notFoundMessage": "This page does not exist or is no longer available.",
     "never": "Never",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "crashTitle": "This page could not be displayed.",
+    "crashMessage": "Try reloading. If it keeps happening, contact the administrator."
   },
   "fields": {
     "name": "Name",

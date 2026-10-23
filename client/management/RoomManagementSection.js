@@ -1,11 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, Box, Button, Chip, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Chip, IconButton, Stack, TextField, Tooltip, Typography } from "@mui/material";
+import DeleteIconModule from "@mui/icons-material/Delete";
+import EditIconModule from "@mui/icons-material/Edit";
+import PasswordIconModule from "@mui/icons-material/Password";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import FormDialog from "../components/common/FormDialog.js";
 import PasswordDialog from "../components/common/PasswordDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import LocalizedDataGrid from "../components/common/LocalizedDataGrid.js";
+import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { getApiError } from "../domain/api-error.js";
 import {
   useDeleteRoomByIdMutation,
@@ -16,6 +20,10 @@ import {
 } from "../redux/services/rooms.js";
 import { useChangePasswordMutation } from "../redux/services/users.js";
 import { useGetKioskDevicesQuery } from "../redux/services/kiosk-devices.js";
+
+const DeleteIcon = resolveMuiIcon(DeleteIconModule);
+const EditIcon = resolveMuiIcon(EditIconModule);
+const PasswordIcon = resolveMuiIcon(PasswordIconModule);
 
 const emptyForm = {
   name: "",
@@ -131,12 +139,25 @@ const RoomManagementSection = () => {
       headerName: t("common:fields.action"),
       sortable: false,
       filterable: false,
-      minWidth: 220,
+      // Tiga tombol ikon seperti di tab Pengguna: tombol teks terpotong di layar 1440 px.
+      width: 150,
       renderCell: ({ row }) => (
-        <Stack direction="row" spacing={0.5}>
-          <Button size="small" onClick={() => openEdit(row)}>{t("common:actions.edit")}</Button>
-          <Button size="small" onClick={() => { setSelected(row); setError(""); setDialog("password"); }}>{t("common:actions.changePassword")}</Button>
-          <Button size="small" color="error" onClick={() => { setSelected(row); setDeleteError(""); setDialog("delete"); }}>{t("common:actions.delete")}</Button>
+        <Stack direction="row" spacing={0.25}>
+          <Tooltip title={t("common:actions.edit")}>
+            <IconButton size="small" aria-label={`${t("common:actions.edit")} ${row.name}`} onClick={() => openEdit(row)}>
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t("common:actions.changePassword")}>
+            <IconButton size="small" aria-label={`${t("common:actions.changePassword")} ${row.name}`} onClick={() => { setSelected(row); setError(""); setDialog("password"); }}>
+              <PasswordIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t("common:actions.delete")}>
+            <IconButton size="small" color="error" aria-label={`${t("common:actions.delete")} ${row.name}`} onClick={() => { setSelected(row); setDeleteError(""); setDialog("delete"); }}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Stack>
       ),
     },

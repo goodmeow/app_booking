@@ -115,6 +115,10 @@
     "floorAll": "Semua lantai",
     "floorValue": "Lantai {{floor}}",
     "floorHelp": "Menentukan ruangan mana yang boleh dipesan.",
-    "floorUpdated": "Grup lantai diperbarui."
+    "floorUpdated": "Grup lantai diperbarui.",
+    "floorAria": "Grup lantai untuk {{name}}",
+    "floorShowMissing": "Tampilkan saja",
+    "floorShowAll": "Tampilkan semua",
+    "floorMissingNotice": "{{count}} pengguna belum punya grup lantai dan belum bisa memesan ruangan sampai diisi."
   }
 }

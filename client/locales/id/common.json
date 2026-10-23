@@ -24,7 +24,8 @@
     "submit": "Kirim",
     "retry": "Coba Lagi",
     "refresh": "Muat Ulang",
-    "changePassword": "Ubah Kata Sandi"
+    "changePassword": "Ubah Kata Sandi",
+    "reload": "Muat ulang"
   },
   "states": {
     "loading": "Memuat...",
@@ -34,7 +35,9 @@
     "notFoundTitle": "Halaman tidak ditemukan",
     "notFoundMessage": "Halaman ini tidak ada atau sudah tidak tersedia.",
     "never": "Belum pernah",
-    "unknown": "Tidak diketahui"
+    "unknown": "Tidak diketahui",
+    "crashTitle": "Halaman ini tidak dapat ditampilkan.",
+    "crashMessage": "Coba muat ulang. Bila berulang, hubungi administrator."
   },
   "fields": {
     "name": "Nama",

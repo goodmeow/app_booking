@@ -8,6 +8,7 @@ import NotFound from "./core/NotFound.js";
 import ProtectedShell from "./core/ProtectedShell.js";
 import VersionFooter from "./core/VersionFooter.js";
 import { LoadingState } from "./components/common/AsyncState.js";
+import ErrorBoundary from "./components/common/ErrorBoundary.js";
 import KioskApp from "./kiosk/KioskApp.js";
 
 const AppManagement = React.lazy(() => import("./management/AppManagement.js"));
@@ -24,9 +25,11 @@ const ProtectedRoute = ({ component: Component, adminOnly = false, ...rest }) =>
       if (adminOnly && session.user.role !== "ADMIN") return <Redirect to="/" />;
       return (
         <ProtectedShell>
-          <React.Suspense fallback={<LoadingState />}>
-            <Component {...props} />
-          </React.Suspense>
+          <ErrorBoundary resetKey={`${props.location.pathname}${props.location.search}`}>
+            <React.Suspense fallback={<LoadingState />}>
+              <Component {...props} />
+            </React.Suspense>
+          </ErrorBoundary>
         </ProtectedShell>
       );
     }}

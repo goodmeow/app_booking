@@ -115,6 +115,10 @@
     "floorAll": "All floors",
     "floorValue": "Floor {{floor}}",
     "floorHelp": "Controls which rooms this user may book.",
-    "floorUpdated": "Floor group updated."
+    "floorUpdated": "Floor group updated.",
+    "floorAria": "Floor group for {{name}}",
+    "floorShowMissing": "Show only these",
+    "floorShowAll": "Show all",
+    "floorMissingNotice": "{{count}} user(s) have no floor group and cannot book rooms until one is set."
   }
 }

@@ -28,7 +28,7 @@ import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { isAuthenticated } from "../auth/auth-helper.js";
 import { getApiError } from "../domain/api-error.js";
 import { ROLE_IDS, ROLE_OPTIONS } from "../domain/roles.js";
-import { createEmptyUserForm } from "./user-form.js";
+import { createEmptyUserForm, hasFloor } from "./user-form.js";
 import {
   useChangePasswordMutation,
   useCreateUserMutation,
@@ -237,6 +237,10 @@ const UserManagementSection = () => {
     return t("users.floorValue", { floor: value });
   };
 
+  const [onlyMissingFloor, setOnlyMissingFloor] = useState(false);
+  const missingFloorCount = useMemo(() => users.filter((user) => !hasFloor(user)).length, [users]);
+  const visibleUsers = onlyMissingFloor ? users.filter((user) => !hasFloor(user)) : users;
+
   const columns = useMemo(() => [
     { field: "name", headerName: t("common:fields.name"), flex: 1, minWidth: 140 },
     { field: "email", headerName: t("common:fields.email"), flex: 1.25, minWidth: 190 },
@@ -253,6 +257,11 @@ const UserManagementSection = () => {
           size="small"
           value={row.floor || ""}
           onChange={(event) => void changeFloor(row, event.target.value)}
+          // Lantai kosong membuat non-admin tidak bisa memesan: tandai jelas.
+          color={hasFloor(row) ? undefined : "warning"}
+          focused={hasFloor(row) ? undefined : true}
+          inputProps={{ "aria-label": t("users.floorAria", { name: row.name }) }}
+          SelectProps={{ displayEmpty: true }}
           sx={{ minWidth: 140 }}
         >
           <MenuItem value="">{t("users.floorUnset")}</MenuItem>
@@ -356,10 +365,23 @@ const UserManagementSection = () => {
       {isLoading ? <LoadingState label={t("users.loading")} /> : null}
       {isError ? <ErrorState message={getApiError(error, t("users.loadError"))} busy={isFetching} onAction={refetch} /> : null}
       {!isLoading && (!isError || users.length > 0) && users.length === 0 ? <EmptyState message={t("users.empty")} /> : null}
+      {missingFloorCount > 0 ? (
+        <Alert
+          severity="warning"
+          sx={{ mb: 1.5 }}
+          action={(
+            <Button color="inherit" size="small" onClick={() => setOnlyMissingFloor((value) => !value)}>
+              {onlyMissingFloor ? t("users.floorShowAll") : t("users.floorShowMissing")}
+            </Button>
+          )}
+        >
+          {t("users.floorMissingNotice", { count: missingFloorCount })}
+        </Alert>
+      ) : null}
       {!isLoading && (!isError || users.length > 0) && users.length > 0 ? (
         <LocalizedDataGrid
           autoHeight
-          rows={users}
+          rows={visibleUsers}
           columns={columns}
           getRowId={(row) => row._id}
           initialState={{ pagination: { paginationModel: { page: 0, pageSize: 5 } } }}

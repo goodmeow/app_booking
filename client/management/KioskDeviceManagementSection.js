@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Alert, Box, Button, Chip, Stack, Switch, Typography } from "@mui/material";
-import DownloadIcon from "@mui/icons-material/Download";
+import DownloadIconModule from "@mui/icons-material/Download";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import LocalizedDataGrid from "../components/common/LocalizedDataGrid.js";
+import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { getApiError } from "../domain/api-error.js";
 import { localeForLanguage } from "../i18n/languages.js";
 import {
@@ -12,6 +13,8 @@ import {
   useRevokeKioskDeviceMutation,
   useUpdateKioskDeviceCapabilitiesMutation,
 } from "../redux/services/kiosk-devices.js";
+
+const DownloadIcon = resolveMuiIcon(DownloadIconModule);
 
 const formatDateTime = (value, language, neverLabel) => value
   ? new Intl.DateTimeFormat(localeForLanguage(language), { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
