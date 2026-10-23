@@ -11,5 +11,5 @@ export const createEmptyUserForm = () => ({
   roleId: ROLE_IDS.USER,
 });
 
-// Lantai kosong atau hanya spasi dihitung belum diisi.
+// An empty or whitespace-only floor counts as not filled in.
 export const hasFloor = (user) => String(user?.floor ?? "").trim() !== "";

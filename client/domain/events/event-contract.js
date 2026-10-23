@@ -22,8 +22,8 @@ export const validateEventDraft = (
   }
   if (start >= end) return "validation.endBeforeStart";
   if (!attendees.some(isRoomAttendee)) return "validation.roomRequired";
-  // Tamu tanpa akun harus berformat email; server menolak dengan
-  // INVALID_VISITOR bila pengguna salah mengetik nama tanpa domain.
+  // A guest without an account must use an email format; the server rejects with
+  // INVALID_VISITOR when the user types a name without a domain.
   const guestEmailInvalid = attendees.some((attendee) => !isRoomAttendee(attendee)
     && !(attendee.attendee_user_id || attendee.userId)
     && !isValidGuestEmail(attendeeEmail(attendee)));

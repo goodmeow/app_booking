@@ -42,11 +42,11 @@ const MeetingCalendar = () => {
   const userQuery = useListUserQuery();
   const isAdmin = session?.user?.role === "ADMIN";
   const userFloor = String(session?.user?.floor ?? "").trim();
-  // Grup lantai "all" (atau admin) boleh melihat dan memesan semua lantai.
+  // The floor group "all" (or an admin) may view and book every floor.
   const showAllFloors = isAdmin || userFloor.toLowerCase() === "all";
   const allRooms = Array.isArray(roomQuery.data) ? roomQuery.data : [];
-  // Selain itu hanya ruangan di lantai kerjanya (server tetap menolak booking
-  // lintas lantai walau UI diakali).
+  // Everyone else sees only rooms on their own floor (the server still rejects
+  // cross-floor bookings even if the UI is bypassed).
   const bookableRooms = useMemo(
     () => (showAllFloors ? allRooms : allRooms.filter((room) => String(room.floor ?? "").trim() === userFloor)),
     [allRooms, showAllFloors, userFloor]

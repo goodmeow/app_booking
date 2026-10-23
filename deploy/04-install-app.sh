@@ -1,30 +1,30 @@
 #!/usr/bin/env bash
-# Pasang artefak build ke /opt/360booking, pasang systemd dan nginx, lalu
-# mulai layanan. Asumsinya: build/ + package.json + package-lock.json ada di
-# repo root host ini (hasil 03-build.sh), dan 02-provision-database.sh sudah
-# dijalankan. Jalankan sebagai root: sudo ./deploy/04-install-app.sh
+# Install the build artifacts to /opt/360booking, install systemd and nginx, then
+# start the service. Assumes build/ + package.json + package-lock.json are in the
+# repo root of this host (the result of 03-build.sh), and 02-provision-database.sh has
+# already been run. Run as root: sudo ./deploy/04-install-app.sh
 set -euo pipefail
 
 ENV_FILE="/etc/360booking/app.env"
-[[ -f "$ENV_FILE" ]] || { echo "$ENV_FILE tidak ada." >&2; exit 1; }
+[[ -f "$ENV_FILE" ]] || { echo "$ENV_FILE does not exist." >&2; exit 1; }
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_ROOT="/opt/360booking"
 
-[[ -d "$REPO_ROOT/build/client" ]] || { echo "build/client belum ada; jalankan 03-build.sh." >&2; exit 1; }
-[[ -f "$REPO_ROOT/build/server/server.bundle.cjs" ]] || { echo "build/server belum ada; jalankan 03-build.sh." >&2; exit 1; }
+[[ -d "$REPO_ROOT/build/client" ]] || { echo "build/client does not exist; run 03-build.sh." >&2; exit 1; }
+[[ -f "$REPO_ROOT/build/server/server.bundle.cjs" ]] || { echo "build/server does not exist; run 03-build.sh." >&2; exit 1; }
 
 mkdir -p "$APP_ROOT"
 
-# Client statis dipakai nginx langsung; server bundle dimulai dari
-# /opt/360booking/server dan mencari node_modules di induknya.
+# The static client is served by nginx directly; the server bundle starts from
+# /opt/360booking/server and looks for node_modules in its parent.
 rsync -a --delete "$REPO_ROOT/build/client/" "$APP_ROOT/client/"
 rsync -a --delete "$REPO_ROOT/build/server/" "$APP_ROOT/server/"
 cp "$REPO_ROOT/package.json" "$REPO_ROOT/package-lock.json" "$APP_ROOT/"
 
 chown -R 360booking:360booking "$APP_ROOT"
 
-# Runtime-only dependencies (bundle Webpack mengecualikan node_modules).
+# Runtime-only dependencies (the Webpack bundle excludes node_modules).
 npm ci --omit=dev --prefix "$APP_ROOT" 2>/dev/null
 chown -R 360booking:360booking "$APP_ROOT/node_modules"
 
@@ -40,11 +40,11 @@ systemctl reload nginx
 
 systemctl status 360booking-server.service --no-pager | head -6
 sync
-# Endpoint health khusus probe: /api/health tanpa token.
+# Health endpoint for probes: /api/health without a token.
 http_code="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:${SERVER_PORT:-9091}/api/health || true)"
 if [[ "$http_code" != "000" ]]; then
   echo "API hidup (respons $http_code)."
 else
-  echo "API belum merespons; periksa: journalctl -u 360booking-server -n 30"
+  echo "The API is not responding yet; check: journalctl -u 360booking-server -n 30"
   exit 1
 fi

@@ -19,9 +19,9 @@ test("admin keeps the employee card in the user list and can flag it as master",
     method: "POST",
     headers: bearer("admin"),
     body: JSON.stringify({
-      name: "Petugas Kartu",
-      email: "petugas.kartu@example.test",
-      username: "petugas-kartu",
+      name: "Card Officer",
+      email: "card.officer@example.test",
+      username: "card-officer",
       password: "Petugas123!",
       card_number: "555000111",
       master_card: true,
@@ -38,7 +38,7 @@ test("admin keeps the employee card in the user list and can flag it as master",
 
   const listed = await apiRequest(targets.reconstructed, "/api/users/", { headers: bearer("admin") });
   assert.equal(listed.status, 200);
-  const row = listed.body.find((user) => user.email === "petugas.kartu@example.test");
+  const row = listed.body.find((user) => user.email === "card.officer@example.test");
   assert.equal(row.card_number, "555000111");
   assert.equal(row.is_master_card, true);
 

@@ -203,7 +203,7 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
     const canApply = () => mounted.current && requestSequence === loadSequence.current;
     if (!quiet && mounted.current) setLoading(true);
     try {
-      // Hari jadwal ditentukan zona waktu server, jadi konteks dibaca dulu.
+      // The schedule day is decided by the server time zone, so read the context first.
       const nextContext = await withRefresh((token) => fetchKioskContext(token));
       const nextEvents = await withRefresh((token) => fetchKioskSchedule(token, kioskDayRange(new Date(), nextContext.timezone)));
       if (!canApply()) return;

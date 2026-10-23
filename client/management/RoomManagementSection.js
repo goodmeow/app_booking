@@ -139,7 +139,7 @@ const RoomManagementSection = () => {
       headerName: t("common:fields.action"),
       sortable: false,
       filterable: false,
-      // Tiga tombol ikon seperti di tab Pengguna: tombol teks terpotong di layar 1440 px.
+      // Three icon buttons like the Users tab: text buttons get clipped at 1440 px wide.
       width: 150,
       renderCell: ({ row }) => (
         <Stack direction="row" spacing={0.25}>

@@ -165,7 +165,7 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", onViewC
       weekends
       dayMaxEvents
       selectOverlap={false}
-      // Jam kerja + slot 30 menit supaya tinggi baris cukup untuk 2 baris teks.
+      // Working hours in 30-minute slots, so each row is tall enough for two lines of text.
       slotMinTime="07:00:00"
       slotMaxTime="20:00:00"
       slotDuration="00:30:00"

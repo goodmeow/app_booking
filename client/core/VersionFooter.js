@@ -3,8 +3,8 @@ import { Box } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { CMS_VERSION } from "./version.js";
 
-// Footer versi di semua halaman web (termasuk halaman masuk). Teks diteruskan
-// i18n; angka Ver.Rev tetap ikut package.json lewat version.js.
+// Version footer on every web page (including the sign-in page). The text goes
+// through i18n; the Ver.Rev numbers still come from package.json via version.js.
 const VersionFooter = () => {
   const { t } = useTranslation("common");
   return (

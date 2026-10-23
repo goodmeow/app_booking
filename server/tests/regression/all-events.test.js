@@ -44,7 +44,7 @@ const listEvents = (query, token) => apiRequest(
   { headers: bearer(token) }
 );
 
-test("admin melihat jadwal semua karyawan lewat all=true", async () => {
+test("an admin sees every employee's schedule through all=true", async () => {
   const all = await listEvents("&all=true", "admin");
   assert.equal(all.status, 200);
   const titles = all.body.map((event) => event.title);
@@ -52,7 +52,7 @@ test("admin melihat jadwal semua karyawan lewat all=true", async () => {
   assert.ok(titles.includes("Rapat admin"));
 });
 
-test("admin tanpa all=true tetap hanya melihat jadwalnya sendiri", async () => {
+test("an admin without all=true still sees only their own schedule", async () => {
   const own = await listEvents("", "admin");
   assert.equal(own.status, 200);
   const titles = own.body.map((event) => event.title);
@@ -60,7 +60,7 @@ test("admin tanpa all=true tetap hanya melihat jadwalnya sendiri", async () => {
   assert.equal(titles.includes("Rapat karyawan"), false);
 });
 
-test("user biasa tidak bisa memakai all=true untuk melihat jadwal orang lain", async () => {
+test("a regular user cannot use all=true to see other people's schedules", async () => {
   const attempted = await listEvents("&all=true", "user");
   assert.equal(attempted.status, 200);
   const titles = attempted.body.map((event) => event.title);

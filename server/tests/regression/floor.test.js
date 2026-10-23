@@ -14,15 +14,15 @@ after(() => stopServer(server));
 
 const meetingBody = (roomEmail, start = "2031-06-02T09:00:00.000Z", end = "2031-06-02T10:00:00.000Z") => JSON.stringify([{
   organizer: identities.user.email,
-  subject: "Uji batas lantai",
+  subject: "Floor limit test",
   description: "uji",
   start_date: start,
   end_date: end,
   attendee_email: roomEmail,
 }]);
 
-test("karyawan hanya boleh memesan ruangan di lantai kerjanya", async () => {
-  // room-one ada di lantai 1, room-two di lantai 2; karyawan uji di lantai 1.
+test("an employee may only book rooms on their own work floor", async () => {
+  // room-one is on floor 1, room-two on floor 2; the test employee is on floor 1.
   const outside = await apiRequest(targets.reconstructed, "/api/events", {
     method: "POST",
     headers: bearer("user"),
@@ -39,7 +39,7 @@ test("karyawan hanya boleh memesan ruangan di lantai kerjanya", async () => {
   assert.equal(ownFloor.status, 200);
 });
 
-test("admin tetap boleh memesan ruangan lintas lantai", async () => {
+test("an admin may still book rooms across floors", async () => {
   const response = await apiRequest(targets.reconstructed, "/api/events", {
     method: "POST",
     headers: bearer("admin"),
@@ -48,7 +48,7 @@ test("admin tetap boleh memesan ruangan lintas lantai", async () => {
   assert.equal(response.status, 200);
 });
 
-test("grup lantai all boleh lintas lantai dan hanya admin yang bisa mengubahnya", async () => {
+test("the floor group all may cross floors and only an admin can change it", async () => {
   const ownChange = await apiRequest(targets.reconstructed, `/api/users/${identities.user._id}`, {
     method: "PUT",
     headers: bearer("user"),
@@ -81,11 +81,11 @@ test("grup lantai all boleh lintas lantai dan hanya admin yang bisa mengubahnya"
   }
 });
 
-test("kiosk menolak pemesanan cepat bila kartu bukan dari lantai ruangan", async () => {
+test("the kiosk rejects an instant booking when the card is not from the room's floor", async () => {
   const kiosk = await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "room-two@room.com", password: "RoomTablet123!", deviceName: "Tablet Lantai 2" }),
+    body: JSON.stringify({ email: "room-two@room.com", password: "RoomTablet123!", deviceName: "Floor 2 Tablet" }),
   });
   assert.equal(kiosk.status, 200);
 

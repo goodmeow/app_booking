@@ -49,7 +49,7 @@ const UserManagementSection = () => {
   const { data, isLoading, isFetching, isError, error, refetch } = useListUserQuery();
   const users = Array.isArray(data) ? data : [];
   const roomsQuery = useGetRoomsQuery();
-  // Pilihan grup lantai diambil dari lantai ruangan yang ada.
+  // Floor group options come from the floors of existing rooms.
   const floorOptions = useMemo(() => {
     const seen = new Set();
     for (const room of roomsQuery.data || []) {
@@ -261,7 +261,7 @@ const UserManagementSection = () => {
           size="small"
           value={row.floor || ""}
           onChange={(event) => void changeFloor(row, event.target.value)}
-          // Lantai kosong membuat non-admin tidak bisa memesan: tandai jelas.
+          // An empty floor stops non-admins from booking: mark it clearly.
           color={hasFloor(row) ? undefined : "warning"}
           focused={hasFloor(row) ? undefined : true}
           inputProps={{ "aria-label": t("users.floorAria", { name: row.name }) }}

@@ -8,8 +8,8 @@ import userRoutes from "../features/users/user.routes.js";
 
 const router = express.Router();
 
-// Probe hidup untuk systemd/nginx tanpa kredensial. Sengaja tidak membuka
-// informasi apa pun: cukup tanda bahwa listener menyala dan responsnya JSON.
+// Liveness probe for systemd/nginx without credentials. It deliberately exposes
+// no information: only a sign that the listener is up and the response is JSON.
 router.get("/health", (req, res) => res.json({ ok: true }));
 
 router.use("/auth", authRoutes);

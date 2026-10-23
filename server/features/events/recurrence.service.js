@@ -36,8 +36,8 @@ const weeksOfMonth = (day) => Math.floor((day - 1) / 7) + 1;
 
 const isLastWeekOfMonth = (parts) => parts.day + 7 > daysInLocalMonth(parts);
 
-// Pola "bulanan pada tanggal" melompati bulan yang tidak punya tanggal yang sama
-// (misal 31 Januari tidak berulang pada Februari).
+// The "monthly on date" pattern skips months that do not have the same date
+// (for example 31 January does not repeat in February).
 const monthsFromBase = (base, localStart) => (localStart.year - base.year) * 12 + (localStart.month - base.month);
 
 const monthlyDue = (base, localStart, rule) => {

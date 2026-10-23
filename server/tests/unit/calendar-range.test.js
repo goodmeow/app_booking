@@ -5,7 +5,7 @@ import { calendarRange } from "../../features/events/event.service.js";
 
 const timezone = "Asia/Jakarta";
 
-test("rentang satu bulan dan satu tahun penuh diterima", () => {
+test("a one-month and a full-year range are accepted", () => {
   assert.doesNotThrow(() => calendarRange("20300101", "20300131", timezone));
   assert.doesNotThrow(() => calendarRange("20300101", "20301231", timezone));
 });
@@ -30,7 +30,7 @@ test("batas maksimum menghitung kedua tanggal ujung", () => {
   );
 });
 
-test("tanggal salah format atau tidak ada tetap INVALID_RANGE", () => {
+test("badly formatted or non-existent dates are still INVALID_RANGE", () => {
   assert.throws(() => calendarRange("2030-01-01", "20300131", timezone), (error) => error.code === "INVALID_RANGE");
   assert.throws(() => calendarRange("20300230", "20300301", timezone), (error) => error.code === "INVALID_RANGE");
 });

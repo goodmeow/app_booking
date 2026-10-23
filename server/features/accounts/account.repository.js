@@ -195,7 +195,7 @@ export const roomUsageReport = async ({ start, end, timezone }) => (await query(
   [start, end, timezone]
 )).rows;
 
-// Status ruangan saat ini: dipakai siapa, sampai kapan, dan tablet-nya online.
+// Current room status: who is using it, until when, and whether its tablet is online.
 export const listRoomStatus = async () => (await query(
   `SELECT
      u._id,

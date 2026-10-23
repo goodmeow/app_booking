@@ -23,7 +23,7 @@ router.put("/events/check-in", checkIn);
 router.post("/events/extend", kioskLimit(60), extendEvent);
 router.post("/events/complete", kioskLimit(60), completeEvent);
 router.post("/events/instant", kioskLimit(30), instantBooking);
-// Pemesanan terjadwal hari ini dari kiosk (pilih jam mulai & selesai).
+// Scheduled booking for today from the kiosk (pick start and end times).
 router.post("/events/book", kioskLimit(30), bookSlot);
 router.put("/events/early-finish", earlyFinish);
 

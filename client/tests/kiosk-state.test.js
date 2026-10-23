@@ -67,8 +67,8 @@ test("LED codes match the verified tablet traffic light", () => {
   assert.equal(kioskLedCodeFor("unknown"), null);
 });
 
-test("hari dan jam kiosk mengikuti zona waktu server, bukan zona tablet", () => {
-  // 18:30 UTC 9 Mei sudah 01:30 tanggal 10 Mei di Jakarta (UTC+7).
+test("the kiosk day and time follow the server time zone, not the tablet zone", () => {
+  // 18:30 UTC on 9 May is already 01:30 on 10 May in Jakarta (UTC+7).
   const instant = new Date("2031-05-09T18:30:00.000Z");
   assert.deepEqual(kioskDayRange(instant, "Asia/Jakarta"), { start: "20310510", end: "20310510" });
   assert.deepEqual(kioskDayRange(instant, "UTC"), { start: "20310509", end: "20310509" });
@@ -77,6 +77,6 @@ test("hari dan jam kiosk mengikuti zona waktu server, bukan zona tablet", () => 
   assert.match(formatKioskDate(instant, "en", "Asia/Jakarta"), /10/);
 });
 
-test("tengah malam kiosk tampil 00:00 bukan 24:00", () => {
+test("the kiosk shows midnight as 00:00, not 24:00", () => {
   assert.equal(formatKioskTime(new Date("2031-05-09T17:00:00.000Z"), "Asia/Jakarta"), "00:00");
 });

@@ -149,7 +149,7 @@ const KioskDeviceManagementSection = () => {
           <Typography variant="h5">{t("devices.title")}</Typography>
           <Typography color="text.secondary">{t("devices.description")}</Typography>
         </Box>
-        {/* Unduh saja unduh: berkas statis /apk/kiosk-release.apk yang terbawa Vite. */}
+        {/* Plain download: the static file /apk/kiosk-release.apk shipped by Vite. */}
         <Button
           component="a"
           href="/apk/kiosk-release.apk"

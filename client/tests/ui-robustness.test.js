@@ -12,8 +12,8 @@ const sources = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e
   return entry.name.endsWith(".js") ? [full] : [];
 });
 
-// Impor ikon MUI mentah menghasilkan objek (bukan komponen) di build Vite dan
-// membuat seluruh halaman kosong. Semua ikon harus lewat resolveMuiIcon.
+// A raw MUI icon import yields an object (not a component) in the Vite build and
+// blanks the whole page. Every icon must go through resolveMuiIcon.
 test("every MUI icon import is wrapped in resolveMuiIcon", () => {
   const offenders = [];
   for (const file of sources(clientDir)) {

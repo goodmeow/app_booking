@@ -1,5 +1,5 @@
-# Nama project ditetapkan supaya skrip perawatan menemukan kontainer demo
-# yang sudah berjalan (tidak perlu COMPOSE_PROJECT_NAME eksternal).
+# The project name is fixed so maintenance scripts can find the running demo
+# container (no external COMPOSE_PROJECT_NAME needed).
 name: 360booking
 
 services:

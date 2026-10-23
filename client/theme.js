@@ -1,10 +1,10 @@
 import { createTheme } from "@mui/material/styles";
 
-// Tema CMS menyamai identitas tablet kios (App.tsx di kioskapp): latar
-// #11151B, aksen #3DDC84, brand #0B6B3A, kuning SEGERA #FFB800, dan huruf
-// Public Sans yang sudah self-host di fonts.css. Halaman masuk memakai
-// warna yang sama sehingga dua layarnya jadi satu keluarga. Material tetap
-// dipakai; hanya token warna dan bentuk yang diganti.
+// The CMS theme matches the kiosk tablet identity (App.tsx in kioskapp): background
+// #11151B, accent #3DDC84, brand #0B6B3A, SOON yellow #FFB800, and the Public Sans
+// font self-hosted in fonts.css. The sign-in page uses the same colours so the two
+// screens form one family. Material is still used; only colour tokens and shapes
+// are replaced.
 const theme = createTheme({
   palette: {
     mode: "dark",
@@ -29,7 +29,7 @@ const theme = createTheme({
       '"Public Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
   },
   components: {
-    // AppBar mengikuti palet tablet, bukan putih; ikon brand tetap kontras.
+    // The AppBar follows the tablet palette, not white; the brand icon keeps its contrast.
     MuiAppBar: {
       defaultProps: { elevation: 0 },
       styleOverrides: { root: { backgroundColor: "#0C1014", color: "#EDF2F6" } },

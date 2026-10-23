@@ -4,18 +4,18 @@ import { instantBookingWindow } from "../../features/kiosk/kiosk.service.js";
 
 const timezone = "Asia/Jakarta";
 
-test("instant 30 menit berakhir di hari yang sama", () => {
+test("a 30-minute instant booking ends on the same day", () => {
   const now = new Date("2031-05-09T16:50:00.000Z"); // 23:50 Jakarta
   const window = instantBookingWindow({ now, minutes: 30, timezone });
   assert.equal(window.end.toISOString(), "2031-05-09T16:59:59.000Z"); // 23:59:59 Jakarta
   assert.equal(window.untilNext, false);
 });
 
-test("meeting berikutnya besok tidak memperpanjang instant melewati tengah malam", () => {
+test("a next meeting tomorrow does not extend the instant booking past midnight", () => {
   const now = new Date("2031-05-09T16:50:00.000Z");
   const window = instantBookingWindow({
     now,
-    nextStart: "2031-05-09T17:30:00.000Z", // 00:30 Jakarta, hari berikutnya
+    nextStart: "2031-05-09T17:30:00.000Z", // 00:30 Jakarta, the next day
     minutes: 30,
     timezone,
   });
@@ -23,7 +23,7 @@ test("meeting berikutnya besok tidak memperpanjang instant melewati tengah malam
   assert.equal(window.end.toISOString(), "2031-05-09T16:59:59.000Z");
 });
 
-test("meeting berikutnya di hari yang sama tetap dipakai sebagai batas", () => {
+test("a next meeting on the same day is still used as the limit", () => {
   const now = new Date("2031-05-09T10:00:00.000Z"); // 17:00 Jakarta
   const next = "2031-05-09T11:00:00.000Z"; // 18:00 Jakarta
   const window = instantBookingWindow({ now, nextStart: next, minutes: 240, timezone });
@@ -31,7 +31,7 @@ test("meeting berikutnya di hari yang sama tetap dipakai sebagai batas", () => {
   assert.equal(window.end.toISOString(), next);
 });
 
-test("durasi dibatasi minimal 5 menit dan maksimal 240 menit", () => {
+test("duration is clamped to a minimum of 5 and a maximum of 240 minutes", () => {
   const now = new Date("2031-05-09T03:00:00.000Z"); // 10:00 Jakarta
   assert.equal(
     instantBookingWindow({ now, minutes: 1, timezone }).end.toISOString(),
@@ -43,20 +43,20 @@ test("durasi dibatasi minimal 5 menit dan maksimal 240 menit", () => {
   );
 });
 
-test("sisa waktu kurang dari satu menit terdeteksi oleh pemanggil", () => {
+test("a remaining time under one minute is detectable by the caller", () => {
   const now = new Date("2031-05-09T16:59:30.000Z"); // 23:59:30 Jakarta
   const window = instantBookingWindow({ now, minutes: 30, timezone });
   assert.ok(window.end.getTime() - now.getTime() < 60_000);
 });
 
-test("durasi yang diminta dihormati meski meeting berikutnya masih jauh", () => {
+test("the requested duration is respected even when the next meeting is far away", () => {
   const now = new Date("2031-05-09T03:00:00.000Z"); // 10:00 Jakarta
   const window = instantBookingWindow({ now, nextStart: "2031-05-09T10:00:00.000Z", minutes: 30, timezone });
   assert.equal(window.end.toISOString(), "2031-05-09T03:30:00.000Z");
   assert.equal(window.untilNext, false);
 });
 
-test("meeting berikutnya memotong durasi yang melewatinya", () => {
+test("the next meeting cuts off a duration that runs past it", () => {
   const now = new Date("2031-05-09T03:00:00.000Z");
   const next = "2031-05-09T03:20:00.000Z";
   const window = instantBookingWindow({ now, nextStart: next, minutes: 60, timezone });
@@ -64,7 +64,7 @@ test("meeting berikutnya memotong durasi yang melewatinya", () => {
   assert.equal(window.untilNext, true);
 });
 
-test("until_next memakai meeting berikutnya sebagai akhir", () => {
+test("until_next uses the next meeting as the end", () => {
   const now = new Date("2031-05-09T03:00:00.000Z");
   const next = "2031-05-09T06:00:00.000Z";
   const window = instantBookingWindow({ now, nextStart: next, minutes: 30, untilNext: true, timezone });

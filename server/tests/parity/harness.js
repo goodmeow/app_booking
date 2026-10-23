@@ -62,8 +62,8 @@ export async function queryParityDatabase(sql) {
   return (await runProcess("sg", ["docker", "-c", command], sql)).trim();
 }
 
-// Docker 29 memindahkan compose ke binary terpisah. Deteksi sekali per
-// proses: "docker compose" bila tersedia, selain itu "docker-compose".
+// Docker 29 moved compose to a separate binary. Detect once per
+// process: "docker compose" when available, otherwise "docker-compose".
 let cachedComposeInvocation = null;
 export const composeInvocation = async () => {
   if (cachedComposeInvocation) return cachedComposeInvocation;

@@ -9,8 +9,8 @@ import dotenv from "dotenv";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const demoEnvPath = path.join(root, ".env.demo");
 const demoEnv = dotenv.parse(fs.readFileSync(demoEnvPath));
-// .env.local (di-ignore) untuk override pribadi, mis. origin LAN CMS; sengaja
-// menimpa .env.demo agar nilai spesifik mesin tidak perlu masuk repo.
+// .env.local (git-ignored) for personal overrides, e.g. the CMS LAN origin; it
+// deliberately overrides .env.demo so machine-specific values do not enter the repo.
 const localEnvPath = path.join(root, ".env.local");
 const localEnv = fs.existsSync(localEnvPath) ? dotenv.parse(fs.readFileSync(localEnvPath)) : {};
 const env = { ...process.env, ...demoEnv, ...localEnv };
@@ -192,8 +192,8 @@ async function main() {
   addDemoOrigins();
   await Promise.all([assertPortFree(env.PORT), assertPortFree(env.SERVER_PORT)]);
 
-  // Docker 29 memindahkan compose ke binary terpisah; pilih command yang
-  // memang tersedia sebelum menyalakan database demo.
+  // Docker 29 moved compose to a separate binary; pick the command that
+  // is actually available before starting the demo database.
   let composeCommand = null;
   try {
     run("docker", ["compose", "version"], "Docker Compose preflight");

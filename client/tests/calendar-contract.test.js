@@ -77,8 +77,8 @@ test("builds a thirty-minute default event range", () => {
 
 test("repairs the legacy room filter by avoiding the conflicting user predicate", () => {
   const range = { start: "20300113", end: "20300119" };
-  // Node membandingkan properti dengan nilai undefined secara berbeda
-  // antar versi; bandingkan hanya properti yang benar-benar terisi.
+  // Node compares properties with undefined values differently across
+  // versions; compare only the properties that are actually set.
   const defined = (filters) => Object.fromEntries(
     Object.entries(filters).filter(([, value]) => value !== undefined)
   );

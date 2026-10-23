@@ -13,7 +13,7 @@ ExecStart=/usr/bin/node server.bundle.cjs
 Restart=on-failure
 RestartSec=3
 
-# Minimal privileges: bundle hanya butuh membaca kode dan menulis sementara.
+# Minimal privileges: the bundle only needs to read the code and write temporary files.
 NoNewPrivileges=true
 ProtectSystem=strict
 ReadWritePaths=/opt/360booking

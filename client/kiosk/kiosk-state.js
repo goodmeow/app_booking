@@ -2,8 +2,8 @@ import { localeForLanguage } from "../i18n/languages.js";
 
 const pad = (value) => String(value).padStart(2, "0");
 
-// Server membaca tanggal kiosk memakai APP_TIMEZONE-nya. Tablet yang zonanya
-// berbeda harus memakai zona yang sama, kalau tidak akan menanyakan hari lain.
+// The server reads the kiosk date using its own APP_TIMEZONE. A tablet in a
+// different zone must use the same zone, otherwise it asks for another day.
 const zonedFields = (date, timeZone) => {
   if (!timeZone) {
     return {

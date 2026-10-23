@@ -17,12 +17,12 @@ test("new users default to User role", () => {
 
 test("normalizes RTK Query and Error messages", () => {
   const translate = (key) => ({
-    "common:apiErrors.forbidden": "Tidak diizinkan",
+    "common:apiErrors.forbidden": "Not allowed",
     "common:states.error": "Kesalahan",
   }[key]);
   assert.equal(
     getApiError({ data: { code: "FORBIDDEN", error: "Forbidden" } }, undefined, translate),
-    "Tidak diizinkan"
+    "Not allowed"
   );
   assert.equal(getApiError({ data: { error: "Database rejected request" } }), "Database rejected request");
   assert.equal(getApiError(new Error("Network failed")), "Network failed");
@@ -34,12 +34,12 @@ test("tablet management keeps the LED toggle and lets admin hide meeting titles"
   const section = fs.readFileSync(new URL("../management/KioskDeviceManagementSection.js", import.meta.url), "utf8");
   assert.match(service, /\/capabilities/);
   assert.match(service, /method: "PATCH"/);
-  // NFC sudah ditangani aplikasi kiosk, jadi tidak lagi diatur dari CMS.
+  // NFC is handled by the kiosk app, so it is no longer configured from the CMS.
   assert.doesNotMatch(section, /"nfcEnabled"/);
   assert.match(section, /"ledEnabled"/);
-  // Toggle judul meeting (migrasi 011) bersebelahan dengan LED.
+  // The meeting title toggle (migration 011) sits next to the LED.
   assert.match(section, /"showSubject"/);
-  // Service hanya meneruskan capability apa pun (passthrough PATCH).
+  // The service just forwards any capability (PATCH passthrough).
   assert.match(service, /capabilities/);
   assert.match(section, /row\.online/);
 });
@@ -52,7 +52,7 @@ test("admin shell uses tabs, hides technical ID columns, and merges cards into u
   assert.match(appManagement, /value: "users"/);
   assert.match(appManagement, /value: "rooms"/);
   assert.match(appManagement, /value: "devices"/);
-  // Akses kartu digabung ke tab Pengguna (ada flag master card), bukan tab sendiri.
+  // Card access is merged into the Users tab (it has the master card flag), not a tab of its own.
   assert.doesNotMatch(appManagement, /value: "cards"/);
   assert.match(users, /field: "card_number"/);
   assert.match(users, /field: "is_master_card"/);

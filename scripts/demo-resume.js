@@ -4,10 +4,10 @@ import path from "node:path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 
-// Melanjutkan demo TANPA membangun ulang database: container PostgreSQL
-// dinyalakan kembali bila mati, lalu CMS (:8081) dan API (:9091) dijalankan.
-// Dipakai setelah restart mesin agar pairing tablet dan isi DB demo tetap ada
-// (berbeda dengan `npm run demo` yang selalu reset database).
+// Continues the demo WITHOUT rebuilding the database: the PostgreSQL container
+// is restarted if it is down, then the CMS (:8081) and API (:9091) are started.
+// Use it after a machine restart so tablet pairing and the demo DB contents are kept
+// (unlike `npm run demo`, which always resets the database).
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const readEnv = (file) => {
@@ -17,8 +17,8 @@ const readEnv = (file) => {
 
 const env = { ...process.env, ...readEnv(".env.demo"), ...readEnv(".env.local") };
 
-// Docker 29 memindahkan `compose` ke plugin; sebagian mesin hanya punya
-// binary docker-compose lama, jadi dicoba keduanya.
+// Docker 29 moved `compose` to a plugin; some machines only have the old
+// docker-compose binary, so both are tried.
 const composeArgs = [
   "--project-name", env.COMPOSE_PROJECT_NAME || "360booking",
   "--file", "compose.yaml",
@@ -28,18 +28,18 @@ const composeModern = spawnSync("docker", ["compose", "version"], { env, stdio: 
 const composeBin = composeModern ? "docker" : "docker-compose";
 const composePrefix = composeModern ? ["compose", ...composeArgs] : composeArgs;
 
-console.log(`Menyalakan container database (tanpa reset) lewat ${composeBin}...`);
+console.log(`Starting the database container (no reset) with ${composeBin}...`);
 const started = spawnSync(composeBin, [...composePrefix, "up", "-d", "postgres-test"], {
   cwd: root,
   env,
   stdio: "inherit",
 });
 if (started.status !== 0) {
-  console.error("Gagal menyalakan container database. Periksa Docker Desktop.");
+  console.error("Failed to start the database container. Check Docker Desktop.");
   process.exit(started.status ?? 1);
 }
 
-console.log(`Menjalankan CMS :${env.PORT || 8081} dan API :${env.SERVER_PORT || 9091}...`);
+console.log(`Starting the CMS :${env.PORT || 8081} and API :${env.SERVER_PORT || 9091}...`);
 const dev = spawn(process.execPath, ["scripts/dev-combined.js"], {
   cwd: root,
   env,

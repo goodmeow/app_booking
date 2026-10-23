@@ -89,7 +89,7 @@ UPDATE tbl_users SET
   feature = 'Display,NFC'
 WHERE type = 'room';
 
--- Lantai kerja tiap karyawan (dipakai untuk aturan booking per lantai).
+-- Working floor of each employee (used by the per-floor booking rule).
 UPDATE tbl_users SET floor = '1'
 WHERE type = 'employee';
 

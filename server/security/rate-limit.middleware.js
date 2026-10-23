@@ -5,8 +5,8 @@ export const SHORT_WINDOW_MS = 15 * 60_000;
 
 const clientAddress = (req) => req.ip || req.socket?.remoteAddress || "unknown";
 
-// Kunci untuk membatasi percobaan terhadap satu akun dari satu alamat, supaya
-// kantor yang berbagi IP atau proxy tidak ikut terkunci oleh percobaan orang lain.
+// Key for limiting attempts against one account from one address, so an office
+// that shares an IP or proxy is not locked out by other people's attempts.
 export const ipAndLoginKey = (req) => {
   const body = req.body && typeof req.body === "object" ? req.body : {};
   const login = String(body.email || body.username || "").trim().toLowerCase().slice(0, 254);
@@ -42,8 +42,8 @@ export const fixedWindowRateLimit = ({
     entry.count += 1;
     clients.set(key, entry);
 
-    // Hanya percobaan gagal yang dihitung: login yang berhasil mengembalikan
-    // jatahnya saat respons selesai.
+    // Only failed attempts are counted: a successful login gives its quota back
+    // when the response finishes.
     if (skipSuccessfulRequests) {
       res.once("finish", () => {
         if (res.statusCode < 400 && clients.get(key) === entry) {
@@ -61,8 +61,8 @@ export const fixedWindowRateLimit = ({
   };
 };
 
-// Hanya percobaan gagal yang dihitung. Satu limiter menjaga satu akun per
-// alamat, satu lagi menjaga alamat yang mencoba banyak akun sekaligus.
+// Only failed attempts are counted. One limiter guards a single account per
+// address, another guards an address that tries many accounts at once.
 export const failedLoginRateLimits = ({ windowMs = SHORT_WINDOW_MS, perAccount = 10, perAddress = 100 } = {}) => [
   fixedWindowRateLimit({ windowMs, max: perAddress, skipSuccessfulRequests: true }),
   fixedWindowRateLimit({ windowMs, max: perAccount, keyGenerator: ipAndLoginKey, skipSuccessfulRequests: true }),

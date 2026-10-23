@@ -44,7 +44,7 @@ before(async () => {
 
 after(() => stopServer(server));
 
-test("meeting yang sudah check-in tidak dilepas", async () => {
+test("a meeting that is already checked in is not released", async () => {
   const created = await createMeeting("room-two@room.com", "Meeting hadir");
   assert.equal(created.status, 200);
   await queryParityDatabase(`UPDATE tbl_events SET checked_in = now() WHERE _id = '${created.body[0].id}';`);
@@ -58,7 +58,7 @@ test("meeting yang sudah check-in tidak dilepas", async () => {
   assert.equal(active, "t");
 });
 
-test("meeting no-show dilepas dan ruangan bisa dipakai lagi", async () => {
+test("a no-show meeting is released and the room can be used again", async () => {
   const created = await createMeeting("room-one@room.com", "Meeting no show");
   assert.equal(created.status, 200);
 

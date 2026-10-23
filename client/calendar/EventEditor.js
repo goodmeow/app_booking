@@ -142,12 +142,12 @@ const EventEditor = ({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [feedback, setFeedback] = useState({ open: false, message: "", severity: "error" });
 
-  // Input "24:00" tidak dikenal, jadi batas akhir hari memakai 23:59
-  // (satu menit sebelum tengah malam). Timezone tidak lagi dipilih: server
-  // memakai zona waktu aplikasi.
+  // The input "24:00" is not recognised, so the end of the day uses 23:59
+  // (one minute before midnight). The time zone is no longer chosen by the user:
+  // the server uses the application time zone.
   const startValue = draft.startDate ? `${draft.startDate}T${draft.startTime}` : "";
-  // Pada Recurring, rentang tanggal dikuasai "Ulangi sampai"; durasi tiap
-  // occurrence ikut jam mulai-jam selesai hari pertama.
+  // For Recurring, the date range is controlled by "Repeat until"; the duration of each
+  // occurrence follows the start and end time of the first day.
   const endDay = !editing && draft.bookingKind === "recurring" ? draft.startDate : draft.endDate;
   const endValue = endDay ? `${endDay}T${draft.endTime}` : "";
 
@@ -174,8 +174,8 @@ const EventEditor = ({
     const initialAttendees = initialRoom?.email
       ? [{ attendee_email: initialRoom.email, type: "room", room_id: initialRoom._id }]
       : [];
-    // Form kosong (bukan dari klik slot kalender atau meeting lama) memakai
-    // seharian penuh 00:00-23:59 agar pengguna tidak berhadapan dengan jam.
+    // A blank form (not opened from a calendar slot or an old meeting) defaults to
+    // the whole day, 00:00-23:59, so users do not have to deal with hours.
     const freshForm = !initialStart && !eventField(event, "start");
     const startDay = storedStart.slice(0, 10);
     setDraft({
@@ -185,9 +185,9 @@ const EventEditor = ({
       endDate: freshForm ? startDay : storedEnd.slice(0, 10),
       endTime: freshForm ? "23:59" : (storedEnd.slice(11, 16) || "23:59"),
       description: safeDecode(eventField(event, "description")),
-      // Timezone rumpun dipilih sendiri oleh pengguna: server memakai zona
-      // waktu aplikasi. Saat mengedit, timezone tersimpan ikut dikirim agar
-      // occurrence lama tidak bergeser.
+      // The user does not choose a time zone: the server uses the application time zone.
+      // When editing, the stored time zone is sent along so existing occurrences
+      // do not shift.
       ...(eventField(event, "timezone") ? { timezone: eventField(event, "timezone") } : {}),
       bookingKind: "single",
       recurrence: { cadence: "daily", interval: 1, endDate: "", weekdays: [], monthlyPattern: "date", monthWeekIndex: 1, monthWeekday: 1 },
@@ -210,7 +210,7 @@ const EventEditor = ({
     setGuidance("");
   };
 
-  // Setter untuk nilai langsung (mis. hasil TimePicker berupa string "HH:mm").
+  // Setter for direct values (for example a TimePicker result such as the string "HH:mm").
   const changeValue = (name) => (value) => {
     setDraft((current) => ({ ...current, [name]: value }));
     setError("");
@@ -241,7 +241,7 @@ const EventEditor = ({
     setGuidance("");
   };
 
-  // Cek konflik saat waktu/ruangan berubah, lalu tawarkan ruangan lain yang kosong.
+  // Check conflicts when the time or room changes, then offer other free rooms.
   useEffect(() => {
     if (!open || editing || readOnly || !location || !startValue || !endValue) {
       setConflictCount(0);
@@ -322,8 +322,8 @@ const EventEditor = ({
   const submit = async (submitEvent) => {
     submitEvent.preventDefault();
     const attendees = uniqueAttendees(draft.attendees);
-    // Tunjukkan chip yang mandul supaya pengguna tahu peserta mana yang
-    // salah ketik, bukan pesan generik dari server.
+    // Highlight the invalid chip so users can see which attendee was mistyped,
+    // instead of showing a generic server message.
     const invalidGuest = attendees.find((attendee) => !isRoomAttendee(attendee)
       && !(attendee.attendee_user_id || attendee.userId)
       && !isValidGuestEmail(emailOf(attendee)));

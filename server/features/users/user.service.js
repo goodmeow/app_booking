@@ -14,8 +14,8 @@ import {
 import { normalizedEmail, normalizedUsername, validatedPassword } from "../accounts/identity.validation.js";
 import { revokeRoomKioskDevices } from "../kiosk/kiosk.repository.js";
 
-// Format UUID; cukup untuk menolak nilai sembarang sebelum menyentuh DB,
-// karena kolom uuid PostgreSQL melempar 22P02 (HTTP 500) bila nilainya lolos.
+// UUID format; enough to reject arbitrary values before touching the DB,
+// because a PostgreSQL uuid column throws 22P02 (HTTP 500) when the value gets through.
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const cleanIdentity = (body) => {
@@ -33,8 +33,8 @@ const mapIdentityError = (error) => {
   throw error;
 };
 
-// Nomor kartu adalah kredensial (check-in, selesai, pakai langsung, pintu).
-// Hanya admin yang boleh melihatnya; pengguna lain hanya perlu daftar nama.
+// The card number is a credential (check-in, finish, instant booking, door).
+// Only admins may see it; other users only need the name list.
 export const publicEmployee = ({ card_number, is_master_card, floor, ...rest }) => rest;
 
 export const getUsers = async (principal) => {
@@ -74,7 +74,7 @@ export const editUser = async (id, body, principal) => {
   const isAdmin = principal.role === "ADMIN";
   const before = isAdmin ? await findAccountById(id, "employee") : null;
   if (!isAdmin) {
-    // Hanya admin yang boleh mengubah role, nomor kartu, dan flag kartu master.
+    // Only admins may change the role, card number, and master-card flag.
     delete values.roleId;
     delete values.card_number;
     delete values.floor;
@@ -85,9 +85,9 @@ export const editUser = async (id, body, principal) => {
     const user = await updateAccount(id, values, "employee");
     if (!user || user.type !== "employee") throw notFound("User not found");
     let isMasterCard = null;
-    // Ganti nomor kartu: kartu lama dicabut dari daftar master supaya kartu
-    // yang hilang tidak tetap berlaku, dan statusnya pindah ke kartu baru
-    // kecuali admin menetapkan master_card secara eksplisit.
+    // Changing the card number: the old card is removed from the master list so a
+    // lost card does not stay valid, and the status moves to the new card unless
+    // the admin sets master_card explicitly.
     const oldCard = String(before?.card_number || "").trim();
     const newCard = String(user.card_number || "").trim();
     if (before && oldCard && oldCard.toLowerCase() !== newCard.toLowerCase()) {
@@ -134,7 +134,7 @@ export const deleteUser = async (id, principal) => {
   const existing = await findAccountById(id, "employee");
   const user = await softDeleteAccount(id, "employee");
   if (!user) throw notFound("User not found");
-  // Akun yang dihapus tidak boleh meninggalkan kartu master yang masih berlaku.
+  // A deleted account must not leave a master card that is still valid.
   if (existing?.card_number) await setMasterCard(existing.card_number, false, principal?._id);
   return user;
 };

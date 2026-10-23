@@ -133,20 +133,20 @@ const roomIdsFor = (participants) => participants.filter((item) => item.roomId).
 const FLOOR_EXEMPT_ROLES = new Set(["ADMIN"]);
 const normalizedFloor = (value) => String(value ?? "").trim();
 
-// Non-admin hanya boleh memesan ruangan di lantai kerjanya sendiri.
+// Non-admins may only book rooms on their own work floor.
 const assertRoomFloorAccess = async (roomIds, principal) => {
   if (!config.floorRestriction || !roomIds.length || FLOOR_EXEMPT_ROLES.has(String(principal.role || "").toUpperCase())) return;
   const floor = normalizedFloor(principal.floor);
   if (!floor) {
-    throw new HttpError(403, "FLOOR_REQUIRED", "Akun Anda belum memiliki lantai kerja. Minta admin mengisinya di Manajemen > Pengguna.");
+    throw new HttpError(403, "FLOOR_REQUIRED", "Your account has no work floor yet. Ask an admin to set it in Management > Users.");
   }
-  // Grup lantai "all" boleh memesan ruangan di lantai mana pun.
+  // The floor group "all" may book rooms on any floor.
   if (floor.toLowerCase() === "all") return;
   const rooms = await findRoomFloors(roomIds);
   const outside = rooms.filter((room) => normalizedFloor(room.floor) !== floor);
   if (outside.length) {
     const names = outside.map((room) => room.name).join(", ");
-    throw new HttpError(403, "FLOOR_RESTRICTED", `Anda hanya dapat memesan ruangan di lantai ${floor}. Ruangan di luar lantai Anda: ${names}.`);
+    throw new HttpError(403, "FLOOR_RESTRICTED", `You can only book rooms on floor ${floor}. Rooms outside your floor: ${names}.`);
   }
 };
 
@@ -236,7 +236,7 @@ export const calendarRange = (start, end, timezone) => {
   const startParts = parts(start);
   const rawEndParts = parts(end);
   if (!isValidLocalDate(startParts) || !isValidLocalDate(rawEndParts)) throw badRequest("INVALID_RANGE", "Calendar dates are invalid");
-  // Batasi rentang supaya satu permintaan tidak menarik puluhan tahun jadwal.
+  // Limit the range so a single request cannot pull decades of schedule.
   if (daysBetweenLocalDates(startParts, rawEndParts) + 1 > config.maxCalendarRangeDays) {
     throw badRequest("RANGE_TOO_LARGE", `Calendar range cannot exceed ${config.maxCalendarRangeDays} days`);
   }

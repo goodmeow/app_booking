@@ -1,4 +1,4 @@
-// Logika murni ErrorBoundary, dipisah supaya bisa diuji tanpa JSX.
+// Pure ErrorBoundary logic, kept separate so it can be tested without JSX.
 export const stateFromError = (error) => ({ error });
 
 // Berpindah rute (resetKey berubah) membersihkan error sebelumnya.

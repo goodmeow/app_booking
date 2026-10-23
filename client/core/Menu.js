@@ -39,8 +39,8 @@ const BrandLockup = () => {
         sx={{ height: 38, width: "auto", display: "block" }}
       />
       <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
-        {/* Wordmark resmi "The Prasada" sebagai gambar, agar tipografi sama
-            persis dengan tablet; Room Booking di bawahnya pakai aksen. */}
+        {/* The official "The Prasada" wordmark as an image, so the typography matches
+            the tablet exactly; Room Booking below it uses the accent colour. */}
         <Box
           component="img"
           src="/the-prasada-wordmark.png"

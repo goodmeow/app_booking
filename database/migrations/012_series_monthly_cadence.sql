@@ -1,8 +1,8 @@
 \set ON_ERROR_STOP on
 
--- Monthly cadence masuk ke booking type Recurring (One Time / Recurring
--- dengan pola harian/mingguan/bulanan). Constraint lama hanya menerima
--- daily/weekly sehingga pembuatan series monthly gagal 500 (23514).
+-- The monthly cadence joins the Recurring booking type (One Time / Recurring
+-- with daily/weekly/monthly patterns). The old constraint only accepted
+-- daily/weekly, so creating a monthly series failed with a 500 (23514).
 BEGIN;
 
 ALTER TABLE tbl_event_series

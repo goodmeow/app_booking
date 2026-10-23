@@ -150,9 +150,9 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
   const current = listed.body.find((device) => device.id === kioskDevice.id);
   assert.equal(current.status, "active");
   assert.equal(current.nfcEnabled, false);
-  // Migrasi 010 mengaktifkan LED secara default untuk perangkat aktif.
+  // Migration 010 enables the LED by default for active devices.
   assert.equal(current.ledEnabled, true);
-  // Migrasi 011: judul meeting default tampil, admin bisa menyembunyikannya.
+  // Migration 011: the meeting title is shown by default; an admin can hide it.
   assert.equal(current.showSubject, true);
   assert.equal(Object.hasOwn(current, "refreshTokenHash"), false);
 
@@ -208,7 +208,7 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
   assert.equal(hideTitle.body.showSubject, false);
   const hiddenContext = await apiRequest(targets.reconstructed, "/api/kiosk/context", { headers: kioskHeaders() });
   assert.equal(hiddenContext.body.device.showSubject, false);
-  // Kembalikan default agar test berikutnya selalu mendapat judul tampil.
+  // Restore the default so later tests always get the title shown.
   const restoreTitle = await apiRequest(
     targets.reconstructed,
     `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
@@ -221,8 +221,8 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
   assert.equal(restoreTitle.status, 200);
   assert.equal(restoreTitle.body.showSubject, true);
 
-  // Ruangan kedua dipakai untuk menguji pencabutan perangkat tanpa mengganggu
-  // perangkat room-one yang masih dipakai test berikutnya.
+  // The second room is used to test device revocation without disturbing the
+  // room-one device that later tests still use.
   const replacement = await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -288,7 +288,7 @@ test("kiosk context and schedule are bound to one room with a safe projection", 
   const seededRoomOneEvent = schedule.body.find(
     (event) => event.id === "60000000-0000-4000-8000-000000000001"
   );
-  // Default perangkat: judul tampil sesuai seed database.
+  // Device default: the title is shown, as set by the database seed.
   assert.equal(seededRoomOneEvent.subject, "Test Meeting");
   assert.ok(seededRoomOneEvent.organizerName);
 
@@ -308,11 +308,11 @@ test("kiosk context and schedule are bound to one room with a safe projection", 
   for (const event of hiddenSchedule.body) {
     assert.equal(event.subject, null);
     assert.equal(event.organizerName, null);
-    // organizerFirstName tetap dikirim agar tampilan lama tetap berfungsi.
+    // organizerFirstName is still sent so the old display keeps working.
     assert.ok(event.organizerFirstName);
   }
 
-  // Buka lagi supaya pengaturan perangkat kembali ke default tampil.
+  // Show it again so the device setting returns to the default (shown).
   const showTitles = await apiRequest(
     targets.reconstructed,
     `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
@@ -398,7 +398,7 @@ test("kiosk instant booking starts for an employee card and refuses a second ove
   assert.equal(created.status, 200);
   assert.ok(created.body.id);
   assert.ok(new Date(created.body.end).getTime() > new Date(created.body.start).getTime());
-  // Pemakaian langsung di kiosk harus langsung dianggap check-in.
+  // An instant booking at the kiosk must count as checked in right away.
   assert.equal(created.body.checkedIn, true);
   assert.equal(
     await queryParityDatabase(`SELECT checked_in IS NOT NULL FROM tbl_events WHERE _id = '${created.body.id}';`),

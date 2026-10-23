@@ -45,7 +45,7 @@ server.listen(port, () => {
   log("info", "server_started", { operation: config.ssrMode ? "client_server" : "server" });
 });
 
-// Lepas ruangan dari meeting yang tidak check-in sampai batas telat.
+// Release rooms of meetings that were not checked in by the late limit.
 const releaseAbandonedTimer = setInterval(async () => {
   try {
     const releasedEventIds = await releaseAbandonedBookings();

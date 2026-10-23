@@ -369,8 +369,8 @@ export const findRoomFloors = async (roomIds, client = { query }) => {
   )).rows;
 };
 
-// Lepas booking ruangan untuk meeting yang tidak check-in sampai batas telat.
-// Meeting tetap ada di kalender peserta; hanya ruangannya yang dibebaskan.
+// Release the room booking of meetings that were not checked in by the late limit.
+// The meeting stays in the attendees' calendars; only the room is freed.
 export const releaseAbandonedRoomBookings = async (execute = query) => {
   const released = (await execute(
     `WITH settings AS (

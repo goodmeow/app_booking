@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Build artefak produksi: client statis + server bundle.
-# Boleh dijalankan di mesin deploy atau mesin lokal; hasilnya dipasang oleh
-# 04-install-app.sh di host Ubuntu.
+# Build the production artifacts: static client + server bundle.
+# May run on the deploy machine or a local machine; the result is installed by
+# 04-install-app.sh on the Ubuntu host.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

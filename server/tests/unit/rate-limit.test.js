@@ -10,8 +10,8 @@ const response = () => Object.assign(new EventEmitter(), {
   set(name, value) { this.headers[name] = value; },
 });
 
-// Menjalankan semua limiter seperti middleware Express, lalu menutup respons
-// dengan status tertentu supaya efek skipSuccessfulRequests ikut teruji.
+// Runs all limiters like Express middleware, then ends the response with a
+// given status so the effect of skipSuccessfulRequests is tested too.
 const attempt = (limiters, req, statusCode) => {
   const res = response();
   let blocked = null;
@@ -25,14 +25,14 @@ const attempt = (limiters, req, statusCode) => {
   return blocked;
 };
 
-test("login berhasil dari alamat bersama tidak pernah kena limit", () => {
+test("successful logins from a shared address are never limited", () => {
   const limiters = failedLoginRateLimits({ perAccount: 3, perAddress: 5 });
   for (let user = 0; user < 40; user += 1) {
     assert.equal(attempt(limiters, request("10.0.0.1", { email: `user${user}@example.test` }), 200), null);
   }
 });
 
-test("percobaan gagal berulang ke satu akun dibatasi", () => {
+test("repeated failed attempts against one account are limited", () => {
   const limiters = failedLoginRateLimits({ perAccount: 3, perAddress: 100 });
   for (let index = 0; index < 3; index += 1) {
     assert.equal(attempt(limiters, request("10.0.0.2", { email: "Victim@Example.test" }), 401), null);
@@ -42,7 +42,7 @@ test("percobaan gagal berulang ke satu akun dibatasi", () => {
   assert.equal(attempt(limiters, request("10.0.0.2", { email: "someone-else@example.test" }), 200), null);
 });
 
-test("satu alamat yang mencoba banyak akun dibatasi limiter alamat", () => {
+test("one address trying many accounts is limited by the address limiter", () => {
   const limiters = failedLoginRateLimits({ perAccount: 10, perAddress: 5 });
   let blocked = null;
   for (let user = 0; user < 6; user += 1) {
@@ -51,7 +51,7 @@ test("satu alamat yang mencoba banyak akun dibatasi limiter alamat", () => {
   assert.equal(blocked?.status, 429);
 });
 
-test("percobaan berhasil mengembalikan jatahnya di dalam jendela", () => {
+test("a successful attempt gives its quota back within the window", () => {
   const limiter = fixedWindowRateLimit({ windowMs: 60_000, max: 2, skipSuccessfulRequests: true });
   assert.equal(attempt([limiter], request("10.0.0.4"), 200), null);
   assert.equal(attempt([limiter], request("10.0.0.4"), 200), null);
@@ -60,17 +60,17 @@ test("percobaan berhasil mengembalikan jatahnya di dalam jendela", () => {
   assert.equal(attempt([limiter], request("10.0.0.4"), 401)?.status, 429);
 });
 
-test("menghitung semua request tetap jalan kalau sukses tidak dilewati", () => {
+test("counting every request still works when successes are not skipped", () => {
   const limiter = fixedWindowRateLimit({ windowMs: 60_000, max: 1 });
   assert.equal(attempt([limiter], request("10.0.0.5"), 200), null);
   assert.equal(attempt([limiter], request("10.0.0.5"), 200)?.status, 429);
 });
 
-test("kunci akun tetap aman saat body bukan objek", () => {
+test("the account key stays safe when the body is not an object", () => {
   assert.equal(ipAndLoginKey({ ip: "10.0.0.6", body: "text" }), "10.0.0.6|");
   assert.equal(ipAndLoginKey({ ip: "10.0.0.6", body: null }), "10.0.0.6|");
 });
 
-test("email pada kunci akun dinormalisasi", () => {
+test("the email in the account key is normalised", () => {
   assert.equal(ipAndLoginKey({ ip: "10.0.0.7", body: { email: " User@Example.test " } }), "10.0.0.7|user@example.test");
 });

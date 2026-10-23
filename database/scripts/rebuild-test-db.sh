@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Docker 29 memindahkan compose ke binary terpisah; coba "docker compose"
-# dulu, jatuh ke "docker-compose" kalau tidak tersedia.
+# Docker 29 moved compose to a separate binary; try "docker compose"
+# first, and fall back to "docker-compose" when it is not available.
 run_compose() {
   if docker compose version >/dev/null 2>&1; then
     docker compose "$@"

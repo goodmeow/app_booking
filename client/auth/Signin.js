@@ -76,8 +76,8 @@ const Signin = () => {
           gap: 32,
         }}
       >
-        {/* Kunci identitas yang sama dengan header: lambang di atas,
-            wordmark di bawahnya — bukan logo dua-baris utuh. */}
+        {/* The same identity lockup as the header: the mark on top,
+            the wordmark below it, not the full two-line logo. */}
         <img
           src="/the-prasada-mark.png"
           alt="The Prasada"

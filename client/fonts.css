@@ -1,4 +1,4 @@
-/* Inter (latin, variable 500-800) di-self-host agar CMS tetap benar saat offline. */
+/* Inter (latin, variable 500-800) is self-hosted so the CMS still renders correctly offline. */
 @font-face {
   font-family: "Inter";
   font-style: normal;
@@ -7,7 +7,7 @@
   src: url("/fonts/Inter-latin.woff2") format("woff2");
 }
 
-/* Font tablet untuk halaman kiosk web (referensi desktop). */
+/* Tablet fonts for the web kiosk page (desktop reference). */
 @font-face {
   font-family: "Public Sans";
   font-style: normal;

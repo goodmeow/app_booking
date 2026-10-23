@@ -79,8 +79,8 @@ const LocalizedDataGrid = ({ localeText: localeTextOverrides, ...props }) => {
     <DataGrid
       {...props}
       localeText={localeText}
-      // DataGrid mengikuti tema; hanya strip DoubleBuffer bg yang perlu
-      // diganggu jadi tembus pandang agar kartu gelap terlihat rapi.
+      // The DataGrid follows the theme; only the DoubleBuffer background strip needs
+      // to be made transparent so the dark card looks clean.
       sx={{
         backgroundColor: "transparent",
         "--DataGrid-background": "transparent",

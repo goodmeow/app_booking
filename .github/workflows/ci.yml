@@ -15,7 +15,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      # Build client + server (ke /tmp) dan jalankan seluruh test yang tidak
-      # membutuhkan PostgreSQL. Suite paritas/regresi sengaja di luar CI karena
-      # membangun ulang database disposable lewat docker compose.
+      # Build the client + server (to /tmp) and run every test that does not
+      # need PostgreSQL. The parity/regression suites are deliberately outside CI because
+      # they rebuild a disposable database through docker compose.
       - run: npm run verify

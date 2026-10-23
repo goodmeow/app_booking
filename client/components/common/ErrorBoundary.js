@@ -3,9 +3,9 @@ import { Alert, Box, Button } from "@mui/material";
 import i18n from "../../i18n/index.js";
 import { stateFromError, stateFromProps } from "./error-boundary-state.js";
 
-// Satu komponen yang gagal render tidak boleh mengosongkan seluruh halaman.
-// Boundary ini dipasang per rute dan di-reset lewat prop `resetKey` saat
-// pengguna berpindah halaman.
+// A component that fails to render must not blank the whole page.
+// This boundary is mounted per route and is reset through the `resetKey` prop
+// when the user navigates to another page.
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);

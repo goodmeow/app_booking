@@ -48,10 +48,10 @@ const roomFromDevice = (device) => ({
   feature: device.feature,
 });
 
-// Satuan waktu dan batas booking diberi nama sekali agar aturannya tidak
-// berbeda-beda antar tempat.
+// Time units and booking limits are named once so the rules cannot drift apart.
 const MILLISECONDS_PER_MINUTE = 60_000;
 const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
+// A device counts as online while it keeps sending requests within this window.
 const KIOSK_ONLINE_WINDOW_MS = 60 * 1000;
 const MIN_BOOKING_MINUTES = 5;
 const MAX_BOOKING_MINUTES = 240;
@@ -122,13 +122,13 @@ const kioskSession = (device, refreshToken) => ({
 
 export const provisionKioskDevice = async ({ login, password, deviceName }) => {
   const room = await authenticateKioskCredentials(login, password);
-  // Satu ruangan hanya boleh punya satu tablet aktif. Pairing ulang harus
-  // lewat pencabutan perangkat lama di CMS supaya tidak bisa diambil alih.
+  // A room may only have one active tablet. Re-pairing must go through revoking the
+  // old device in the CMS so it cannot be taken over.
   const existing = await findActiveKioskDeviceForRoom(room._id);
   if (existing) {
     throw conflict(
       "ROOM_ALREADY_PAIRED",
-      "Ruangan ini sudah punya tablet aktif. Cabut perangkat lama di CMS (Perangkat Tablet) sebelum pairing ulang."
+      "This room already has an active tablet. Revoke the old device in the CMS (Tablet Devices) before pairing again."
     );
   }
   const refreshToken = newRefreshToken();
@@ -175,7 +175,7 @@ export const verifyKioskToken = async (token) => {
     await touchKioskDevice(device.device_id);
     device.last_seen_at = new Date();
   } catch {
-    // Kegagalan mencatat last-seen tidak boleh memblokir kiosk.
+    // A failure to record last-seen must not block the kiosk.
   }
   const room = publicKioskRoom(roomFromDevice(device));
   return { ...room, kind: "kiosk", roomId: room._id, deviceId: device.device_id, device: publicKioskDevice(device) };
@@ -185,8 +185,8 @@ export const getKioskContext = async (room) => ({
   room: publicKioskRoom(room),
   device: room.device,
   timezone: config.appTimezone,
-  // Jam internal tablet sering melenceng; tablet memakai waktu ini untuk
-  // mengkalibrasi jam yang ditampilkan setiap kali berhasil konek.
+  // The tablet's internal clock often drifts; the tablet uses this time to calibrate
+  // the clock it displays every time it connects successfully.
   serverTime: new Date().toISOString(),
   settings: (await getSettings()) || {},
 });
@@ -250,8 +250,8 @@ export const getKioskSchedule = async (query, room) => {
   await maybeReleaseAbandonedBookings();
   const range = calendarRange(query.start, query.end, config.appTimezone);
   const rows = await listKioskScheduleRows({ roomId: room._id, ...range });
-  // Toggle admin di Perangkat Tablet: kalau off, jangan kirim judul maupun
-  // organizer lengkap supaya privasi jam/organizer saja yang tersisa.
+  // Admin toggle in Tablet Devices: when off, send neither the title nor the full
+  // organizer name, so only the time and first name remain visible.
   const revealTitle = Boolean(room.device?.showSubject);
   const cleanSubject = (value) => {
     const text = String(value || "").trim();
@@ -307,7 +307,7 @@ export const finishKioskEvent = async ({ event_id: eventId, card_number: cardNum
   });
 };
 
-// Lepas booking no-show sebelum membaca jadwal / membuat pemakaian langsung.
+// Release no-show bookings before reading the schedule or creating an instant booking.
 const maybeReleaseAbandonedBookings = async () => {
   await releaseAbandonedRoomBookings().catch(() => {});
 };
@@ -318,8 +318,8 @@ const clampMinutes = (value, fallback, min, max) => {
   return Math.min(max, Math.max(min, Math.round(minutes)));
 };
 
-// Kartu kios harus milik karyawan aktif dan lantainya cocok dengan ruangan.
-// Dipakai oleh pemakaian langsung maupun pemesanan terjadwal hari ini.
+// The kiosk card must belong to an active employee whose floor matches the room.
+// Used by instant booking and by scheduled booking for today.
 const resolveKioskEmployeeByCard = async (cardNumber, room) => {
   const card = String(cardNumber || "").trim();
   if (!card) throw badRequest("INVALID_CARD", "Card number is required");
@@ -328,10 +328,10 @@ const resolveKioskEmployeeByCard = async (cardNumber, room) => {
   const employeeFloor = String(employee.floor || "").trim();
   const roomFloor = String(room.floor || "").trim();
   if (!employeeFloor) {
-    throw new HttpError(403, "FLOOR_REQUIRED", "Kartu ini belum terhubung ke lantai kerja. Minta admin mengisinya di Manajemen > Pengguna.");
+    throw new HttpError(403, "FLOOR_REQUIRED", "This card is not linked to a work floor. Ask an admin to set it in Management > Users.");
   }
   if (employeeFloor.toLowerCase() !== "all" && employeeFloor !== roomFloor) {
-    throw new HttpError(403, "FLOOR_RESTRICTED", `Kartu ini terdaftar di lantai ${employeeFloor}, sedangkan ruangan ini di lantai ${roomFloor}.`);
+    throw new HttpError(403, "FLOOR_RESTRICTED", `This card is registered on floor ${employeeFloor}, but this room is on floor ${roomFloor}.`);
   }
   return employee;
 };
@@ -341,24 +341,24 @@ const localDayKey = (date, timezone) => {
   return `${parts.year}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}`;
 };
 
-// Aturan pemesanan terjadwal dari kiosk: hanya hari ini (zona server),
-// mulai tidak boleh lewat, durasi 5-240 menit, selesai di hari yang sama.
+// Rules for scheduled booking from the kiosk: today only (server time zone),
+// the start must not be in the past, duration 5-240 minutes, ending on the same day.
 export const validateKioskBookedSlot = ({ now, start, end, timezone }) => {
   const startDate = new Date(start);
   const endDate = new Date(end);
   if (!Number.isFinite(startDate.getTime()) || !Number.isFinite(endDate.getTime())) {
-    throw badRequest("INVALID_TIME", "Waktu mulai dan selesai wajib diisi");
+    throw badRequest("INVALID_TIME", "Start and end times are required");
   }
   if (startDate.getTime() < now.getTime() - MILLISECONDS_PER_MINUTE) {
-    throw badRequest("INVALID_TIME", "Waktu mulai sudah lewat");
+    throw badRequest("INVALID_TIME", "The start time is already in the past");
   }
   const today = localDayKey(now, timezone);
   if (localDayKey(startDate, timezone) !== today || localDayKey(endDate, timezone) !== today) {
-    throw badRequest("INVALID_TIME", "Pemesanan dari kiosk hanya untuk hari ini");
+    throw badRequest("INVALID_TIME", "Kiosk bookings are for today only");
   }
   const minutes = (endDate.getTime() - startDate.getTime()) / MILLISECONDS_PER_MINUTE;
   if (minutes < MIN_BOOKING_MINUTES || minutes > MAX_BOOKING_MINUTES) {
-    throw badRequest("INVALID_TIME", "Durasi pemesanan 5-240 menit");
+    throw badRequest("INVALID_TIME", "Booking duration must be 5-240 minutes");
   }
   return { startDate, endDate, startsNow: startDate.getTime() - now.getTime() <= 2 * MILLISECONDS_PER_MINUTE };
 };
@@ -402,8 +402,8 @@ export const completeKioskEvent = async ({ event_id: eventId }, room) => {
 };
 
 
-// Jendela pemakaian langsung: selalu berakhir di hari yang sama (zona server),
-// maksimal 4 jam atau sampai meeting berikutnya bila masih hari itu.
+// Instant booking window: always ends on the same day (server time zone),
+// at most 4 hours, or until the next meeting if that is still today.
 export const instantBookingWindow = ({ now, nextStart, minutes, untilNext = false, timezone }) => {
   const nowParts = zonedParts(now, timezone);
   const endOfDay = zonedPartsToDate(
@@ -414,8 +414,8 @@ export const instantBookingWindow = ({ now, nextStart, minutes, untilNext = fals
   const nextToday = nextStart && new Date(nextStart).getTime() <= endOfDay.getTime()
     ? new Date(nextStart).getTime()
     : null;
-  // Durasi yang diminta selalu dihormati. Meeting berikutnya hanya menjadi
-  // batas atas, atau tujuan akhir bila pemanggil meminta "sampai berikutnya".
+  // The requested duration is always respected. The next meeting is only an upper
+  // bound, or the end point when the caller asks for "until next".
   const requestedEnd = untilNext
     ? maxEnd
     : now.getTime() + clampMinutes(minutes, DEFAULT_INSTANT_MINUTES, MIN_BOOKING_MINUTES, MAX_BOOKING_MINUTES) * MILLISECONDS_PER_MINUTE;
@@ -443,13 +443,13 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
     timezone: config.appTimezone,
   });
   if (window.end.getTime() - now.getTime() < MILLISECONDS_PER_MINUTE) {
-    throw conflict("NO_FREE_WINDOW", "Tidak ada sisa waktu di hari ini untuk pemakaian langsung");
+    throw conflict("NO_FREE_WINDOW", "No time is left today for an instant booking");
   }
   const created = await createEvents(
     [{
       organizer: employee.email,
-      subject: `Pemakaian ruangan - ${employee.name}`,
-      description: "Pemesanan langsung dari kiosk",
+      subject: `Room usage - ${employee.name}`,
+      description: "Instant booking from the kiosk",
       start_date: now.toISOString(),
       end_date: window.end.toISOString(),
       attendee_email: room.email,
@@ -457,12 +457,12 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
     { _id: employee._id, email: employee.email, name: employee.name, role: "USER", floor: employee.floor }
   );
   const first = Array.isArray(created) ? created[0] : null;
-  // Pemakaian langsung di kiosk berarti orangnya sudah ada di ruangan, jadi
-  // booking ini sekaligus ditandai check-in.
+  // An instant booking at the kiosk means the person is already in the room, so
+  // the booking is also marked as checked in.
   if (first?.id) await markCheckedIn(first.id);
   return {
     id: first?.id || null,
-    title: first?.title || `Pemakaian ruangan - ${employee.name}`,
+    title: first?.title || `Room usage - ${employee.name}`,
     organizer: employee.name,
     start: first?.start || now.toISOString(),
     end: first?.end || window.end.toISOString(),
@@ -471,9 +471,9 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
   };
 };
 
-// Pemesanan terjadwal dari kiosk: pengguna memilih jam mulai dan selesai di
-// hari yang sama. Bila mulai <= 2 menit dari sekarang, booking langsung
-// ditandai check-in seperti pemakaian langsung.
+// Scheduled booking from the kiosk: the user picks start and end times on the same day.
+// When the start is within 2 minutes of now, the booking is checked in right away,
+// like an instant booking.
 export const bookKioskSlot = async ({ card_number: cardNumber, start, end }, room) => {
   await maybeReleaseAbandonedBookings();
   const employee = await resolveKioskEmployeeByCard(cardNumber, room);
@@ -482,8 +482,8 @@ export const bookKioskSlot = async ({ card_number: cardNumber, start, end }, roo
   const created = await createEvents(
     [{
       organizer: employee.email,
-      subject: `Pemakaian ruangan - ${employee.name}`,
-      description: "Pemesanan terjadwal dari kiosk",
+      subject: `Room usage - ${employee.name}`,
+      description: "Scheduled booking from the kiosk",
       start_date: slot.startDate.toISOString(),
       end_date: slot.endDate.toISOString(),
       attendee_email: room.email,
@@ -494,7 +494,7 @@ export const bookKioskSlot = async ({ card_number: cardNumber, start, end }, roo
   if (first?.id && slot.startsNow) await markCheckedIn(first.id);
   return {
     id: first?.id || null,
-    title: first?.title || `Pemakaian ruangan - ${employee.name}`,
+    title: first?.title || `Room usage - ${employee.name}`,
     organizer: employee.name,
     start: first?.start || slot.startDate.toISOString(),
     end: first?.end || slot.endDate.toISOString(),

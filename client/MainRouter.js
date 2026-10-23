@@ -53,7 +53,7 @@ const WebRouter = () => (
       <ProtectedRoute exact path="/" component={MeetingCalendar} />
       <Route component={NotFound} />
     </Switch>
-    {/* Nomor versi CMS dilaporkan di semua halaman web: Ver.Rev dari package.json. */}
+    {/* The CMS version number is shown on every web page: Ver.Rev from package.json. */}
     <VersionFooter />
   </>
 );

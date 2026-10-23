@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
-# Buat role + database produksi dan terapkan seluruh migrasi SQL secara urut.
-# Idempotent: role/DB dibuat bila belum ada; ALTER ROLE menyamakan sandi dengan
-# env agar /etc/360booking/app.env tetap sumber kebenaran. Migrasi memakai pola
-# IF NOT EXISTS sehingga aman dijalankan ulang.
-# Jalankan sebagai root: sudo ./deploy/02-provision-database.sh
+# Create the production role + database and apply all SQL migrations in order.
+# Idempotent: the role/DB are created if missing; ALTER ROLE syncs the password with
+# the env so /etc/360booking/app.env stays the source of truth. Migrations use the
+# IF NOT EXISTS pattern, so they are safe to run again.
+# Run as root: sudo ./deploy/02-provision-database.sh
 set -euo pipefail
 
 ENV_FILE="/etc/360booking/app.env"
-[[ -f "$ENV_FILE" ]] || { echo "$ENV_FILE tidak ada. Salin dulu dari deploy/app.env.example." >&2; exit 1; }
+[[ -f "$ENV_FILE" ]] || { echo "$ENV_FILE does not exist. Copy it from deploy/app.env.example first." >&2; exit 1; }
 # shellcheck disable=SC1090
 source "$ENV_FILE"
 
 for var in PG_SUPERUSER_PASSWORD PGDATABASE PGUSER PGPASSWORD; do
   if [[ -z "${!var:-}" || "${!var}" == "change-me" ]]; then
-    echo "Variabel $var belum diisi di $ENV_FILE." >&2
+    echo "Variable $var is not set in $ENV_FILE." >&2
     exit 1
   fi
 done
 
 if [[ "$PGDATABASE" == "360booking_reconstruction_test" ]]; then
-  echo "Nama database demo tidak boleh dipakai di produksi." >&2
+  echo "The demo database name must not be used in production." >&2
   exit 1
 fi
 
@@ -48,4 +48,4 @@ for migration in "$REPO_ROOT"/database/migrations/*.sql; do
   psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PG_SUPERUSER" -d "$PGDATABASE" -f "$migration" >/dev/null
 done
 
-echo "Database $PGDATABASE siap untuk role $PGUSER."
+echo "Database $PGDATABASE is ready for role $PGUSER."

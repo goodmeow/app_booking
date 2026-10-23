@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { publicEmployee } from "../../features/users/user.service.js";
 
-test("daftar pengguna untuk non-admin tidak memuat kredensial kartu", () => {
+test("the user list for non-admins does not include card credentials", () => {
   const row = { _id: "1", name: "A", email: "a@x.test", username: "a", type: "employee", card_number: "04AABBCC", floor: "3", is_master_card: true };
   const result = publicEmployee(row);
   assert.deepEqual(Object.keys(result).sort(), ["_id", "email", "name", "type", "username"]);

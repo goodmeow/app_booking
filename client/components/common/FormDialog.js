@@ -9,8 +9,8 @@ const FormDialog = ({ open, title, children, formId = "entity-form", loading = f
     <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth={maxWidth} fullWidth>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent sx={{ pt: 1 }}>
-        {/* DialogContent selalu berupa div, jadi elemen form dibuat eksplisit
-            agar tombol submit dengan atribut form={formId} benar-benar terhubung. */}
+        {/* DialogContent is always a div, so the form element is created explicitly
+            so a submit button with the form={formId} attribute is really connected. */}
         <Box component="form" id={formId} onSubmit={onSubmit} noValidate>
           {children}
         </Box>
