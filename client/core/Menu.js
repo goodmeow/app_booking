@@ -20,6 +20,7 @@ import { Link, useHistory, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { isAuthenticated, signout } from "../auth/auth-helper.js";
 import LanguageSwitcher from "../components/common/LanguageSwitcher.js";
+import { CMS_VERSION } from "./version.js";
 import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { useDetailUserQuery } from "../redux/services/users.js";
 
@@ -123,6 +124,10 @@ const Menu = () => {
             {session ? (
               <Button fullWidth sx={{ mt: 2 }} onClick={() => { closeDrawer(); handleSignout(); }}>{t("nav.signOut")}</Button>
             ) : null}
+            {/* Versi CMS mengikuti package.json (docs/VERSIONING.md): Ver.Rev. */}
+            <Typography variant="caption" color="text.disabled" sx={{ display: "block", mt: 1 }}>
+              {`CMS v${CMS_VERSION}`}
+            </Typography>
           </Box>
         </Box>
       </Drawer>

@@ -15,13 +15,12 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
-## Posisi saat ini
+## Posisi saat ini (penutupan Ver 3 Rev 5)
 
-- CMS + API: **Ver 3 Rev 5** (`package.json` masih `0.0.0`, harus diangkat
-  ke `3.5` pada penutupan gelombang ini).
-- APK kiosk: `versionName 1.0 / versionCode 1` (label gradle belum
-  dinaikkan); `1.1 / 2` disiapkan untuk gelombang distribusi berikutnya
-  (NFC/relay), atau diangkat saat git dengan penutupan Ver 3 Rev 5.
+- CMS + API: **Ver 3 Rev 5**, `package.json` `3.5.0`, ditampilkan di
+  drawer CMS (dari package.json).
+- APK kiosk: `versionName 1.1 / versionCode 2`, menampilkan ver + UUID
+  perangkat di layar (identik dengan baris Perangkat Tablet di CMS).
 
 ## Riwayat
 
