@@ -235,10 +235,15 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 
 ## Sisa pending 2026-10-22 (lanjutan review)
 
-- [ ] Patch review #4: jalankan `npm audit fix` non-breaking. Audit terakhir:
-  22 temuan (6 moderate, 15 high, 1 critical); `npm audit fix` tersedia.
-- [ ] Patch review #5: rapikan README (URL clone, Vite 8, port 8081/9091,
-  output `build/`, catatan `TRUST_PROXY` untuk reverse proxy).
+- [x] Patch review #4: `npm audit fix` non-breaking dijalankan. Temuan
+  22 → 3 (semua high, dev-only): `nodemon@3.1.14` adalah versi terbaru
+  dan profil `chokidar<4` yang dilintasinya belum punya perbaikan;
+  `--force` hanya akan menurunkan nodemon ke 1.14.10 (regresi) sehingga
+  sisa ini diterima. Verifikasi pasca-fix: boot server ok (login 200),
+  client 59/59, unit 32/32.
+- [x] Patch review #5: README ditulis ulang ke state terbaru (URL clone,
+  Vite 8, port 8081/9091, output `build/`, HTTPS, `TRUST_PROXY`, jalur
+  LAN tablet). Lihat commit `63ff397`.
 
 ## Aturan lantai (2026-10-22)
 
