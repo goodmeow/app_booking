@@ -120,18 +120,21 @@ Serves terpisah juga tersedia: `npm run dev:client` dan `npm run dev:server`.
 
 ### Tablet kiosk: satu segment LAN (tanpa USB reverse)
 
-Tablet dan laptop dijadikan satu subnet `192.168.18.0/24`:
+Tablet dan laptop dijadikan satu subnet (contoh `192.168.1.0/24`):
 
 | Sisi | Konfigurasi |
 |---|---|
-| Tablet (`eth0`) | statis `192.168.18.10/24` via Settings → Ethernet (persisten) |
-| Windows host | statis `192.168.18.1/24` via `netsh` |
-| Portproxy | `192.168.18.1:5100 → 127.0.0.1:5100` (`netsh interface portproxy`) |
+| Tablet (`eth0`) | statis `<ip-tablet>/24` via Settings → Ethernet (persisten) |
+| Windows host | statis `<ip-server>/24` via `netsh` |
+| Portproxy | `<ip-server>:5100 → 127.0.0.1:5100` (`netsh interface portproxy`) |
 | Forwarder | `python3 ~/bin/forward9091.py` (WSL) meneruskan `0.0.0.0:5100 → 127.0.0.1:9091` |
 | Firewall | rule inbound TCP 5100 (`360booking-kiosk-5100`) |
 | APK | URL server diketik saat provisioning; HTTP polos diizinkan lewat `network_security_config.xml` |
 
-Jalur USB `adb reverse` tidak lagi dibutuhkan untuk kerja tablet. Yang perlu
+Origin LAN untuk CMS (mis. `http://<ip-server>:8081`) jangan di-commit: salin
+ke `.env.local` (di-ignore) yang ditimpa di atas `.env.demo` saat `npm run demo`.
+
+Jalur USB `adb reverse` tidak lagi dibutuhkan untuk kerja tablet, Yang perlu
 diproses ulang hanya bila laptop restart: jalankan forwarder lagi
 (`python3 ~/bin/forward9091.py`). Detail perubahan tablet ada di repo
 `kioskapp` dan `TODO.md` (item LAN).

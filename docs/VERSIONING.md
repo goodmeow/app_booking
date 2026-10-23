@@ -47,7 +47,7 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
 ### Ver 3 Rev 6 - 2026-10-23 (selesai)
 - FormDialog CMS diperbaiki: DialogContent tidak mendukung prop component
   sehingga tidak pernah ada <form> (tombol Kirim mati di semua dialog).
-- CORS origin LAN (192.168.18.1:8081) masuk allowlist; endpoint
+- CORS origin LAN (lewat .env.local) masuk allowlist; endpoint
   /api/health tanpa kredensial untuk probe deploy.
 - Kartu/password/role hardening review: daftar user non-admin tanpa kartu,
   master-card dicabut saat ganti/hapus, roleId non-UUID -> 400.

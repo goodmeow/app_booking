@@ -9,7 +9,11 @@ import dotenv from "dotenv";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const demoEnvPath = path.join(root, ".env.demo");
 const demoEnv = dotenv.parse(fs.readFileSync(demoEnvPath));
-const env = { ...process.env, ...demoEnv };
+// .env.local (di-ignore) untuk override pribadi, mis. origin LAN CMS; sengaja
+// menimpa .env.demo agar nilai spesifik mesin tidak perlu masuk repo.
+const localEnvPath = path.join(root, ".env.local");
+const localEnv = fs.existsSync(localEnvPath) ? dotenv.parse(fs.readFileSync(localEnvPath)) : {};
+const env = { ...process.env, ...demoEnv, ...localEnv };
 const children = new Set();
 const childRoots = new Set();
 let stopping = false;
