@@ -156,6 +156,11 @@ Bila baris pertama menampilkan IP tablet dan baris kedua terus bertambah,
 koneksi tablet ↔ server murni LAN; `adb` hanya diperlukan untuk instalasi APK
 dan pengambilan screenshot.
 
+Tablet tahan putus sambung: saat kabel LAN dicabut layar menampilkan state
+`OFFLINE` (bukan "tersedia"), dan begitu kabel kembali tablet pulih otomatis
+ke Online tanpa perlu dibuka ulang — log akan menunjukkan celah polling lalu
+lanjut `/context 200`.
+
 Jalur USB `adb reverse` tidak lagi dibutuhkan untuk kerja tablet, Yang perlu
 diproses ulang hanya bila laptop restart: jalankan forwarder lagi
 (`python3 ~/bin/forward9091.py`). Detail perubahan tablet ada di repo
