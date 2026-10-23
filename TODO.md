@@ -246,6 +246,10 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
   menunjukkan koneksi dari IP tablet, dan log server terus menerima
   `/context` + `/schedule` tiap ~20 detik. Cara cek didokumentasikan di
   README (bagian tablet kiosk LAN).
+- [x] Cabut/colok kabel LAN: tablet menampilkan state OFFLINE lalu pulih
+  otomatis ke Online tanpa interaksi. Log menunjukkan celah polling
+  (mis. 12:20:28 -> 12:22:22 = 113 detik) yang langsung berlanjut
+  `/context 200` setelah kabel kembali.
 
 ## Fitur 2026-10-23 — pemesanan terjadwal dari kiosk
 
