@@ -26,3 +26,7 @@ Riwayat isi paket:
   Android (res/values + values-en, modul native getKioskStrings), teks
   disimpan sebagai resource; footer versi memakai konstanta yang sama
   dengan build.gradle.
+
+- 2026-10-23: naik 1.2 (versionCode 6)—perbaikan jarak panel state
+  AVAILABLE (pill vs nama ruangan, baris menit vs UP NEXT yang sebelumnya
+  meluber), angka jam diperkecil agar isi panel muat tanpa overflow.
