@@ -236,6 +236,13 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 - [ ] `GET /api/users` masih bisa dibaca semua user login (paritas produksi);
   perlu keputusan produk untuk membatasi.
 
+## Uji perangkat 2026-10-23 (LAN)
+
+- [x] Tablet online via LAN tanpa USB; check-in dan selesai (finish) berhasil
+  dari tablet.
+- [x] "Pilih waktu" (pemesanan terjadwal hari ini) berhasil di perangkat:
+  slot bentrok -> pesan konflik, slot bebas -> booking terbentuk; APK 1.3 (8).
+
 ## Fitur 2026-10-23 — pemesanan terjadwal dari kiosk
 
 - [x] Server `POST /api/kiosk/events/book` { card_number, start, end }: hanya
