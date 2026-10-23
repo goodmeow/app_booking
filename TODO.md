@@ -174,9 +174,12 @@ Phase 10A software complete: a provisioned tablet is cryptographically bound to 
 - [ ] Clean client/server builds.
 - [ ] Unit, contract, integration, and smoke tests.
 - [ ] Cover cross-midnight, cross-week, containing-overlap, adjacent-slot, report-boundary, timezone, and concurrent multi-day booking cases.
-- [ ] Add `npm run verify` covering required build, test, lint, and smoke gates.
-- [ ] Add CI, lint/format enforcement, and pinned Node/package-manager runtime versions.
-- [ ] Add `docs/handover/START-HERE.md` and rewrite README/quickstart against current commands and layout.
+- [x] Add `npm run verify` (build client + build server /tmp + test client +
+  unit server). Lint belum ada tooling; smoke manual via demo.
+- [x] Add CI (`.github/workflows/ci.yml`) + pin Node via `.nvmrc` (20).
+  Lint/format enforcement BELUM (belum ada eslint/prettier config).
+- [x] Add `docs/handover/START-HERE.md` + README/quickstart sudah sesuai
+  perintah dan layout sekarang.
 - [ ] Document current architecture and UI-to-API-to-DB-to-Socket.io sequence diagrams.
 - [ ] Document business processes: auth/roles, user/room lifecycle, meeting create/edit/cancel, collision, check-in/early-finish, and reports.
 - [ ] Publish current API reference plus ERD and stored-function contracts.
