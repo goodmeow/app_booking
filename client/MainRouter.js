@@ -6,6 +6,7 @@ import { isAuthenticated } from "./auth/auth-helper.js";
 import Menu from "./core/Menu.js";
 import NotFound from "./core/NotFound.js";
 import ProtectedShell from "./core/ProtectedShell.js";
+import VersionFooter from "./core/VersionFooter.js";
 import { LoadingState } from "./components/common/AsyncState.js";
 import KioskApp from "./kiosk/KioskApp.js";
 
@@ -49,6 +50,8 @@ const WebRouter = () => (
       <ProtectedRoute exact path="/" component={MeetingCalendar} />
       <Route component={NotFound} />
     </Switch>
+    {/* Nomor versi CMS dilaporkan di semua halaman web: Ver.Rev dari package.json. */}
+    <VersionFooter />
   </>
 );
 
