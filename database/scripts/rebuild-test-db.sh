@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Docker 29 memindahkan compose ke binary terpisah; coba "docker compose"
 # dulu, jatuh ke "docker-compose" kalau tidak tersedia.
 run_compose() {
