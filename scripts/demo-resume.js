@@ -17,16 +17,19 @@ const readEnv = (file) => {
 
 const env = { ...process.env, ...readEnv(".env.demo"), ...readEnv(".env.local") };
 
+// Docker 29 memindahkan `compose` ke plugin; sebagian mesin hanya punya
+// binary docker-compose lama, jadi dicoba keduanya.
 const composeArgs = [
-  "--context", env.DOCKER_CONTEXT || "default",
-  "compose",
   "--project-name", env.COMPOSE_PROJECT_NAME || "360booking",
   "--file", "compose.yaml",
   "--env-file", ".env.demo",
 ];
+const composeModern = spawnSync("docker", ["compose", "version"], { env, stdio: "ignore" }).status === 0;
+const composeBin = composeModern ? "docker" : "docker-compose";
+const composePrefix = composeModern ? ["compose", ...composeArgs] : composeArgs;
 
-console.log("Menyalakan container database (tanpa reset)...");
-const started = spawnSync("docker", [...composeArgs, "up", "-d", "postgres-test"], {
+console.log(`Menyalakan container database (tanpa reset) lewat ${composeBin}...`);
+const started = spawnSync(composeBin, [...composePrefix, "up", "-d", "postgres-test"], {
   cwd: root,
   env,
   stdio: "inherit",

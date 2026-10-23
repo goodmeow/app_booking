@@ -329,6 +329,23 @@ atau override sebelum menjalankan script.
   (`docker ps`, lalu `npm run demo` untuk menghidupkannya lagi).
 - Host DB non-default: isi `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`.
 
+### Setelah restart mesin (Windows/WSL)
+
+Urutan pemulihan yang terbukti:
+
+1. `npm run demo:resume` — menyalakan container PostgreSQL yang sudah ada lalu
+   CMS + API **tanpa reset database**, sehingga pairing tablet tidak hilang.
+2. Jalankan forwarder LAN: `python3 ~/bin/forward9091.py` (port 5100).
+3. Bila CMS tidak bisa diakses dari perangkat LAN setelah reboot:
+   - pastikan portproxy ter-*bind*: `netsh interface portproxy show all` lalu
+     delete+add ulang entri 5100/port CMS (butuh admin),
+   - pastikan profil jaringan Ethernet bukan **Public**:
+     `Set-NetConnectionProfile -InterfaceAlias Ethernet -NetworkCategory Private`
+     atau tambahkan rule inbound TCP untuk subnet LAN.
+4. Bila port 8081 dipakai proses lain (mis. layanan indeks kode), set
+   `PORT=8082` di `.env.local`, tambahkan portproxy 8082, dan buka
+   `http://<ip-server>:8082`. `.env.local` tidak ikut ter-commit.
+
 ### Tablet gagal `Network request failed`
 
 Alamat LAN server yang baru diketik perlu diizinkan HTTP polos: konfigurasi

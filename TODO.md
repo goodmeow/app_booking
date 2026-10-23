@@ -236,6 +236,18 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 - [ ] `GET /api/users` masih bisa dibaca semua user login (paritas produksi);
   perlu keputusan produk untuk membatasi.
 
+## Pemulihan setelah restart PC 2026-10-23
+
+- [x] `npm run demo:resume` (baru): lanjutkan demo tanpa reset DB agar tablet
+  tidak perlu pairing ulang; fallback `docker-compose` untuk mesin lama.
+- [x] CMS dipindah ke **8082** via `.env.local` karena 8081 diambil proses lain
+  (xerj); portproxy + firewall 8082 ditambahkan.
+- [x] Setelah reboot portproxy tidak ter-bind dan profil Ethernet kembali
+  **Public** (inbound diblokir). Diperbaiki: delete+add portproxy, set profile
+  Private + rule subnet. Cara lengkap dicatat di README.
+- [x] Terverifikasi: tablet pulih Online sendiri (poll `/context 200` tiap 20 dtk)
+  dan tetap terhubung setelah adb dimatikan.
+
 ## Uji perangkat 2026-10-23 (LAN)
 
 - [x] Tablet online via LAN tanpa USB; check-in dan selesai (finish) berhasil
