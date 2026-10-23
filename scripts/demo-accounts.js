@@ -24,6 +24,8 @@ const accounts = [
   // diatur langsung di DB demo lokal memakai SQL pribadi bila diperlukan.
   { name: "Karyawan Prasada", email: "karyawan@uji.prasada.test", password: "1234", floor: "1", card: "DEMO-PRASADA-CARD" },
   { name: "Karyawan Uji", email: "emp@uji.local", password: "1234", floor: "1", card: "DEMO-UJI-CARD" },
+  // Akun karyawan kantor (sandi pendek diharapkan, dibuat lewat skrip: CMS menolak sandi <8).
+  { name: "Karyawan Demo", email: "karyawan3@uji.local", password: "1234", floor: "1" },
 ];
 
 const client = new Client({
