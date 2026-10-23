@@ -264,6 +264,11 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 
 ## Sisa pending 2026-10-22 (lanjutan review)
 
+- [ ] (stash) Upload string Crowdin (`crowdin upload sources`): string siap en=
+  id identik + key baru brand.footer; skip sementara karena butuh kredensial
+  project (CROWDIN_PROJECT_ID/TOKEN di shell, bukan repo). CLI sudah terpasang
+  (~/bin/crowdin 5.5.0).
+
 
 - [x] Patch review #4: `npm audit fix` non-breaking dijalankan. Temuan
   22 → 3 (semua high, dev-only): `nodemon@3.1.14` adalah versi terbaru
