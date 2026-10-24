@@ -1,11 +1,11 @@
 {
   "brand": {
-    "name": "Room Booking",
+    "name": "RoomBooking",
     "descriptor": "Penjadwal rapat The Prasada",
-    "documentTitle": "Room Booking — The Prasada",
-    "kiosk": "Room Booking · Kiosk Ruangan",
+    "documentTitle": "RoomBooking — The Prasada",
+    "kiosk": "RoomBooking · Kiosk Ruangan",
     "adminPanel": "Panel admin ruang meeting",
-    "footer": "Room Booking CMS v{{version}}"
+    "footer": "RoomBooking CMS v{{version}}"
   },
   "language": {
     "label": "Bahasa",

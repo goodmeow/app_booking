@@ -17,9 +17,9 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 ## Posisi saat ini (Ver 3 Rev 9)
 
-- CMS + API: **Ver 3 Rev 9**, `package.json` `3.9.0`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 9**, `package.json` `3.9.1`, ditampilkan di footer
   semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.3 / versionCode 11`, menampilkan ver + UUID
+- APK kiosk: `versionName 1.3.1 / versionCode 12`, menampilkan ver + UUID
   perangkat di layar; string di res/values + values-en (bahasa ID/EN),
   panel AVAILABLE tidak meluber, dan ada tombol "Pilih waktu" untuk
   memesan ruangan hari ini dengan jam mulai/selesai sendiri.
@@ -114,6 +114,9 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
 - Kit fresh install 3.9.0: plan clean slate 238 create + 198 kartu,
   `import-fresh-assets.mjs` untuk 11 ruangan, 5 akun admin/resepsionis, dan
   24 master card. Event historis tidak dimigrasikan.
+- Patch `3.9.1`: branding user-facing menjadi **RoomBooking** (tanpa spasi);
+  judul dokumen, footer CMS, layar kiosk, dan label APK memakai nama baru.
+  Nama teknis (database/service/repo) tidak diubah.
 
 ## Cara naikkan
 

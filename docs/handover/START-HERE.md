@@ -1,4 +1,4 @@
-# START HERE — 360 Scheduler (Room Booking)
+# START HERE — RoomBooking
 
 Panduan orientasi singkat untuk orang baru (developer/operator). Detail
 lengkap ada di `README.md`, `TODO.md`, `docs/CMS.md`, dan `docs/VERSIONING.md`.

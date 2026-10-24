@@ -1,4 +1,4 @@
-# Arsitektur 360 Scheduler
+# Arsitektur RoomBooking
 
 Dokumen ini menjelaskan komponen, alur request, dan batas kepercayaan aplikasi
 **seperti kode saat ini** (diperiksa 2026-10-24). Versi acuan: CMS/API

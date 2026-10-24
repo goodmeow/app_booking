@@ -40,7 +40,7 @@ test("English is the default and Indonesian is the second supported language", (
   assert.equal(localeForLanguage("en-US"), "en-GB");
   assert.equal(localeForLanguage("id_ID"), "id-ID");
   assert.equal(calendarLocaleForLanguage("en"), "en-gb");
-  assert.equal(i18n.getFixedT("en", "common")("brand.name"), "Room Booking");
+  assert.equal(i18n.getFixedT("en", "common")("brand.name"), "RoomBooking");
   assert.equal(i18n.getFixedT("id", "common")("language.indonesian"), "Bahasa Indonesia");
 });
 

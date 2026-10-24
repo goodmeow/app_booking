@@ -1,4 +1,4 @@
-# 360 Scheduler
+# RoomBooking
 
 Meeting & Room Scheduler dengan pembaruan real-time untuk CMS (web admin)
 dan kiosk tablet (aplikasi khusus, repo [`kioskapp`](../kioskapp)) menggunakan

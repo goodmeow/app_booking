@@ -1,11 +1,11 @@
 {
   "brand": {
-    "name": "Room Booking",
+    "name": "RoomBooking",
     "descriptor": "The Prasada meeting scheduler",
-    "documentTitle": "Room Booking — The Prasada",
-    "kiosk": "Room Booking · Room Kiosk",
+    "documentTitle": "RoomBooking — The Prasada",
+    "kiosk": "RoomBooking · Room Kiosk",
     "adminPanel": "Room meeting admin panel",
-    "footer": "Room Booking CMS v{{version}}"
+    "footer": "RoomBooking CMS v{{version}}"
   },
   "language": {
     "label": "Language",
