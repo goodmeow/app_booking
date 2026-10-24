@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
 import { createHash, createHmac, randomBytes } from "node:crypto";
 import jwt from "jsonwebtoken";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import config from "../../../config/config.js";
 import { withTransaction } from "../../db/pool.js";
 import { badRequest, conflict, forbidden, HttpError, notFound } from "../../lib/http-error.js";
@@ -49,6 +51,25 @@ const roomFromDevice = (device) => ({
 });
 
 // Time units and booking limits are named once so the rules cannot drift apart.
+
+const readCmsVersion = () => {
+  for (const candidate of [
+    path.resolve(process.cwd(), "package.json"),
+    path.resolve(process.cwd(), "../package.json"),
+    path.resolve(process.cwd(), "../../package.json"),
+  ]) {
+    try {
+      const parsed = JSON.parse(readFileSync(candidate, "utf8"));
+      if (parsed?.version) return String(parsed.version);
+    } catch {
+      // Try the next location (dev runs from build/server, Docker from /app).
+    }
+  }
+  return "unknown";
+};
+
+const CMS_VERSION = readCmsVersion();
+
 const MILLISECONDS_PER_MINUTE = 60_000;
 const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
 // A device counts as online while it keeps sending requests within this window.
@@ -188,6 +209,7 @@ export const getKioskContext = async (room) => ({
   // The tablet's internal clock often drifts; the tablet uses this time to calibrate
   // the clock it displays every time it connects successfully.
   serverTime: new Date().toISOString(),
+  cmsVersion: CMS_VERSION,
   settings: (await getSettings()) || {},
 });
 
@@ -364,13 +386,15 @@ export const validateKioskBookedSlot = ({ now, start, end, timezone }) => {
   return { startDate, endDate, startsNow: startDate.getTime() - now.getTime() <= 2 * MILLISECONDS_PER_MINUTE };
 };
 
-export const extendKioskEvent = async ({ event_id: eventId, minutes }, room) => {
+export const extendKioskEvent = async ({ event_id: eventId, minutes, card_number: cardNumber }, room) => {
   if (!eventId) throw badRequest("INVALID_KIOSK_ACTION", "Event is required");
+  // Extending is a room action, not a free tap: the card must belong to the
+  // organizer or an attendee (or be a master card), same rule as check-in.
+  if (!String(cardNumber ?? "").trim()) throw badRequest("INVALID_CARD", "Card number is required");
   const extra = clampMinutes(minutes, 15, 5, 60);
   return withTransaction(async (client) => {
     const execute = (text, values) => client.query(text, values);
-    const context = await findKioskRoomEvent({ eventId, roomId: room._id }, execute);
-    if (!context) throw notFound("Event not found for this room");
+    const context = await kioskActionContext({ eventId, cardNumber, room }, execute);
     const now = Date.now();
     if (!context.checked_in) throw conflict("NOT_CHECKED_IN", "Only a checked-in meeting can be extended");
     if (now < new Date(context.start_at).getTime() || now >= new Date(context.end_at).getTime()) {

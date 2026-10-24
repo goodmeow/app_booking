@@ -54,3 +54,8 @@ Riwayat isi paket:
 
 - 2026-10-24: naik 1.3.3 (versionCode 14)—status *Started early* memakai
   jam check-in aktual dari server (`checkedInAt`), bukan jam mulai meeting.
+
+- 2026-10-24: naik 1.3.4 (versionCode 15)—Finish meeting jadi easter egg
+  (5 tap pill IN USE), +15 menit wajib verifikasi kartu, tombol until-next
+  disembunyikan bila tidak ada jadwal, retry schedule 3x, footer menampilkan
+  versi CMS.

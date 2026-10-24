@@ -449,7 +449,7 @@ test("kiosk extends a running meeting, refuses an overlap, then completes it", a
   const blocked = await apiRequest(targets.reconstructed, "/api/kiosk/events/extend", {
     method: "POST",
     headers: kioskHeaders(),
-    body: JSON.stringify({ event_id: eventId, minutes: 15 }),
+    body: JSON.stringify({ event_id: eventId, minutes: 15, card_number: "TEST-MASTER-CARD" }),
   });
   assert.equal(blocked.status, 409);
   assert.equal(blocked.body.code, "ROOM_CONFLICT");

@@ -7,6 +7,7 @@ import CreditCardIconModule from "@mui/icons-material/CreditCard";
 import { resolveMuiIcon } from "../../components/common/resolve-mui-icon.js";
 import { hasFloor } from "../user-form.js";
 import { primaryCardNumber } from "./user-cards.js";
+import { roleLabel } from "./user-filters.js";
 
 const EditIcon = resolveMuiIcon(EditIconModule);
 const PasswordIcon = resolveMuiIcon(PasswordIconModule);
@@ -35,6 +36,16 @@ export const buildUserColumns = ({
     minWidth: 130,
     flex: 0.6,
     renderCell: ({ row }) => row.employee_id || "",
+  },
+  {
+    field: "role_id",
+    headerName: t("common:fields.role"),
+    width: 140,
+    valueGetter: ({ row }) => roleLabel(t, row.role_id) || "-",
+    renderCell: ({ row }) => {
+      const label = roleLabel(t, row.role_id);
+      return label ? <Chip size="small" label={label} /> : "-";
+    },
   },
   {
     field: "floor",

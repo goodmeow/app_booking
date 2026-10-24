@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Alert, Box, Button, Stack, Typography } from "@mui/material";
+import { Alert, Box, Button, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import AddIconModule from "@mui/icons-material/Add";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
@@ -10,8 +10,10 @@ import LocalizedDataGrid from "../components/common/LocalizedDataGrid.js";
 import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { isAuthenticated } from "../auth/auth-helper.js";
 import { getApiError } from "../domain/api-error.js";
+import { ROLE_OPTIONS } from "../domain/roles.js";
 import { hasFloor } from "./user-form.js";
 import { primaryCardNumber } from "./users/user-cards.js";
+import { filterUsers, ROLE_FILTER_ALL } from "./users/user-filters.js";
 import UserFormDialog from "./users/UserFormDialog.js";
 import UserCardsDialog from "./users/UserCardsDialog.js";
 import { buildUserColumns } from "./users/user-columns.js";
@@ -48,6 +50,8 @@ const UserManagementSection = () => {
   const [deleteError, setDeleteError] = useState("");
   const [feedback, setFeedback] = useState({ open: false, message: "", severity: "success" });
   const [onlyMissingFloor, setOnlyMissingFloor] = useState(false);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState(ROLE_FILTER_ALL);
 
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
   const [changePassword, { isLoading: isChangingPassword, reset: resetPassword }] = useChangePasswordMutation();
@@ -154,7 +158,10 @@ const UserManagementSection = () => {
   };
 
   const missingFloorCount = useMemo(() => users.filter((user) => !hasFloor(user)).length, [users]);
-  const visibleUsers = onlyMissingFloor ? users.filter((user) => !hasFloor(user)) : users;
+  const visibleUsers = useMemo(
+    () => filterUsers(users, { search, roleId: roleFilter, onlyMissingFloor }),
+    [users, search, roleFilter, onlyMissingFloor]
+  );
 
   const columns = useMemo(() => buildUserColumns({
     t,
@@ -196,15 +203,47 @@ const UserManagementSection = () => {
         </Alert>
       ) : null}
       {hasLoadedUsers && users.length > 0 ? (
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1.5}
+          sx={{ mb: 1.5 }}
+        >
+          <TextField
+            size="small"
+            fullWidth
+            value={search}
+            placeholder={t("users.searchPlaceholder")}
+            inputProps={{ "aria-label": t("users.searchLabel") }}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+          <TextField
+            select
+            size="small"
+            label={t("users.roleFilter")}
+            value={roleFilter}
+            onChange={(event) => setRoleFilter(event.target.value)}
+            sx={{ minWidth: { xs: "100%", sm: 190 } }}
+          >
+            <MenuItem value={ROLE_FILTER_ALL}>{t("users.roleAll")}</MenuItem>
+            {ROLE_OPTIONS.map((role) => (
+              <MenuItem key={role.value} value={role.value}>
+                {t(`common:${role.labelKey}`)}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Stack>
+      ) : null}
+      {hasLoadedUsers && users.length > 0 ? (
         <LocalizedDataGrid
-          autoHeight
           rows={visibleUsers}
           columns={columns}
           getRowId={(row) => row._id}
-          initialState={{ pagination: { paginationModel: { page: 0, pageSize: 5 } } }}
-          pageSizeOptions={[5]}
+          initialState={{ pagination: { paginationModel: { page: 0, pageSize: 25 } } }}
+          pageSizeOptions={[25, 50, 100]}
           density="compact"
           disableRowSelectionOnClick
+          // Fill the tablet screen instead of hugging the row count.
+          sx={{ height: "calc(100vh - 280px)", minHeight: 420 }}
         />
       ) : null}
 

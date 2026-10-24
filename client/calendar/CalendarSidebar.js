@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import {
   Autocomplete,
@@ -46,12 +46,6 @@ const CalendarSidebar = ({
 }) => {
   const { i18n, t } = useTranslation("calendar");
   const dateLocale = calendarLocaleForLanguage(i18n.resolvedLanguage || i18n.language);
-  const [building, setBuilding] = useState(null);
-  const buildings = useMemo(
-    () => [...new Set(rooms.map((room) => room?.building).filter(Boolean))].sort(),
-    [rooms]
-  );
-  const visibleRooms = building ? rooms.filter((room) => room?.building === building) : rooms;
 
   return (
   <Box
@@ -111,17 +105,7 @@ const CalendarSidebar = ({
               : t("calendar.floorMissing")}
         </Typography>
         <Autocomplete
-          options={buildings}
-          value={building}
-          onChange={(_event, value) => {
-            setBuilding(value);
-            if (selectedRoom && value && selectedRoom.building !== value) onRoomChange?.(null);
-          }}
-          renderInput={(params) => <TextField {...params} label={t("sidebar.building")} size="small" />}
-          sx={{ mb: 1.5 }}
-        />
-        <Autocomplete
-          options={visibleRooms}
+          options={rooms}
           value={selectedRoom || null}
           onChange={(_event, value) => onRoomChange?.(value)}
           getOptionLabel={roomLabel}

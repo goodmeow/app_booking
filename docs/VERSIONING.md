@@ -17,9 +17,9 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 ## Posisi saat ini (Ver 3 Rev 10)
 
-- CMS + API: **Ver 3 Rev 10**, `package.json` `3.10.2`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 10**, `package.json` `3.10.3`, ditampilkan di footer
   semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.3.3 / versionCode 14`, menampilkan ver + UUID
+- APK kiosk: `versionName 1.3.4 / versionCode 15`, menampilkan ver + UUID
   perangkat di layar; string di res/values + values-en (bahasa ID/EN),
   panel AVAILABLE tidak meluber, dan ada tombol "Pilih waktu" untuk
   memesan ruangan hari ini dengan jam mulai/selesai sendiri.
@@ -138,6 +138,11 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
 - Patch `3.10.2`: `/api/kiosk/schedule` mengirim `checkedInAt`; tablet
   menampilkan **Started early · <jam check-in aktual>**, bukan jam mulai
   meeting. APK kiosk 1.3.3 (14).
+- Patch `3.10.3`: CMS Pengguna (pencarian, filter/kolom role, tabel setinggi
+  viewport), Pengaturan global (menggantikan panel Floor groups), filter
+  Building di kalender dihapus. Kiosk 1.3.4: Finish jadi easter egg 5 tap pill
+  IN USE, +15 menit wajib kartu, tombol until-next disembunyikan bila tidak ada
+  jadwal, retry schedule 3x, label CMS version di footer.
 
 ## Cara naikkan
 

@@ -40,7 +40,7 @@ const masterCardFlag = `EXISTS (
 ) AS is_master_card`;
 
 export const listEmployees = async () => (await query(
-  `SELECT u._id, u.name, u.email, u.username, u.employee_id, u.type, u.floor,
+  `SELECT u._id, u.name, u.email, u.username, u.employee_id, u.role_id, u.type, u.floor,
           u.must_change_password,
           ${masterCardFlag},
           ${userCardColumns}
