@@ -316,6 +316,23 @@ Catatan:
 - Regresi terakhir yang terekam (2026-10-23): unit 42/42, regression 52/52,
   client 62/62.
 
+### Lint & format
+
+```bash
+npm run lint          # ESLint 9 flat config (client, server, scripts, config)
+npm run format:check  # Prettier --check sesuai .prettierrc
+```
+
+Belum jadi gate: `npm run verify` dan CI sengaja **tidak** menjalankan lint
+sampai baseline bersih. Angka baseline tercatat di laporan code review;
+pembersihannya dilakukan bertahap per folder dengan `npm run lint -- <folder>`
+dan `npx prettier --write <folder>`, bukan sekali tulis massal untuk seluruh
+repo (supaya diff review tetap kecil dan `git blame` tidak hilang).
+
+Aturan yang aktif hanya yang disepakati: `no-unused-vars` (warning),
+`react/jsx-uses-vars`, `react-hooks/rules-of-hooks`, plus rekomendasi inti
+`@eslint/js`. `no-undef` dimatikan karena global tiap folder berbeda.
+
 ## 🐛 Troubleshooting
 
 ### Port dipakai

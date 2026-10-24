@@ -1,0 +1,14 @@
+# Generated or vendored content: never part of the formatting baseline.
+node_modules/
+build/
+dist/
+public/
+coverage/
+client/locales/
+docs/reference/
+
+# Markdown is reviewed as prose, not reformatted by tooling.
+*.md
+
+# Lockfile is owned by npm.
+package-lock.json
