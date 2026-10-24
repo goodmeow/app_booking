@@ -25,6 +25,40 @@ export const listEmployees = async () => (await query(
    ORDER BY u.name`
 )).rows;
 
+// Employee directory columns for non-admins: identity only, so a card number or
+// a work floor can never be selected into a response by accident.
+const directoryColumns = `
+  u._id, u.name, u.email, u.type
+`;
+
+// Without a floor the whole directory is listed; that is only used for the
+// "all" floor group, which is company-wide.
+export const listEmployeeDirectory = async (floor) => (await query(
+  `SELECT ${directoryColumns}
+   FROM tbl_users u
+   WHERE u.type = 'employee'
+     AND u.is_deleted IS NOT TRUE
+     AND ($1::text IS NULL OR u.floor = $1)
+   ORDER BY u.name`,
+  [floor || null]
+)).rows;
+
+// Case-insensitive "contains" search over name or email; strpos keeps the user
+// input literal, so % and _ are not treated as wildcards.
+export const searchEmployeeDirectory = async ({ term, limit }) => (await query(
+  `SELECT ${directoryColumns}
+   FROM tbl_users u
+   WHERE u.type = 'employee'
+     AND u.is_deleted IS NOT TRUE
+     AND (
+       strpos(lower(u.name), lower($1)) > 0
+       OR strpos(lower(u.email), lower($1)) > 0
+     )
+   ORDER BY u.name
+   LIMIT $2`,
+  [term, limit]
+)).rows;
+
 export const listRooms = async ({ building, capacity, floor } = {}, privileged = false) => (await query(
   `SELECT ${privileged ? managedRoomColumns : publicRoomColumns}
    FROM tbl_users u

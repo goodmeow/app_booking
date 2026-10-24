@@ -4,7 +4,7 @@ const run = (handler) => async (req, res, next) => {
   try { await handler(req, res); } catch (error) { next(error); }
 };
 
-export const list = run(async (req, res) => res.json(await getUsers(req.auth)));
+export const list = run(async (req, res) => res.json(await getUsers(req.auth, req.query)));
 export const read = run(async (req, res) => res.json(await getUser(req.params.userId)));
 export const create = run(async (req, res) => res.status(201).json(await createUser(req.body, req.auth)));
 export const update = run(async (req, res) => res.json(await editUser(req.params.userId, req.body, req.auth)));

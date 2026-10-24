@@ -5,7 +5,9 @@ import {
   findAccountById,
   findAccountWithPassword,
   insertAccount,
+  listEmployeeDirectory,
   listEmployees,
+  searchEmployeeDirectory,
   setMasterCard,
   softDeleteAccount,
   updateAccount,
@@ -37,9 +39,53 @@ const mapIdentityError = (error) => {
 // Only admins may see it; other users only need the name list.
 export const publicEmployee = ({ card_number, is_master_card, floor, ...rest }) => rest;
 
-export const getUsers = async (principal) => {
-  const employees = await listEmployees();
-  return principal?.role === "ADMIN" ? employees : employees.map(publicEmployee);
+// A one-character query would match most of the company, so the directory
+// search starts at two characters. Shorter input is an error instead of an
+// empty list, otherwise a client cannot tell "no match" from "type more".
+const DIRECTORY_QUERY_MIN_LENGTH = 2;
+const DIRECTORY_SEARCH_LIMIT = 20;
+
+const normalizedFloor = (value) => String(value ?? "").trim();
+
+// The directory projection is a whitelist instead of the publicEmployee
+// blacklist: a column added to the table later stays private by default.
+export const directoryEmployee = ({ _id, name, email, type }) => ({ _id, name, email, type });
+
+const normalizedDirectorySearch = (value) => {
+  const term = String(value ?? "").trim();
+  if (!term) return "";
+  if (term.length < DIRECTORY_QUERY_MIN_LENGTH) {
+    throw badRequest("INVALID_QUERY", `Search needs at least ${DIRECTORY_QUERY_MIN_LENGTH} characters`);
+  }
+  return term;
+};
+
+// Which part of the employee directory a non-admin may read. Admins never reach
+// this planner, they keep the full management list.
+export const directoryScope = (principal, query = {}) => {
+  const term = normalizedDirectorySearch(query.q);
+  if (term) return { scope: "search", term, limit: DIRECTORY_SEARCH_LIMIT };
+
+  const floor = normalizedFloor(principal?.floor);
+  if (!floor) return { scope: "none" };
+
+  // The "all" floor group is company-wide, so it lists the whole directory.
+  return { scope: "floor", floor: floor.toLowerCase() === "all" ? null : floor };
+};
+
+export const getUsers = async (principal, query = {}) => {
+  // Admins keep the complete list, including card number, floor, and the
+  // master-card flag; the search parameter does not apply to them.
+  if (principal?.role === "ADMIN") return listEmployees();
+
+  const { scope, term, floor, limit } = directoryScope(principal, query);
+  if (scope === "none") return [];
+  if (scope === "search") {
+    const matches = await searchEmployeeDirectory({ term, limit });
+    return matches.map(directoryEmployee);
+  }
+  const colleagues = await listEmployeeDirectory(floor);
+  return colleagues.map(directoryEmployee);
 };
 
 export const getUser = async (id) => {

@@ -42,7 +42,7 @@ Catatan:
 
 | Method & path | Akses | Body / query | Sukses | Error penting |
 |---|---|---|---|---|
-| `GET /api/users` | JWT user | – | `200` daftar karyawan aktif | `401` |
+| `GET /api/users` | JWT user | `q` (khusus non-admin, minimal 2 karakter) | `200` array karyawan aktif (lihat catatan privasi) | `400 INVALID_QUERY` (q terlalu pendek), `401` |
 | `POST /api/users` | JWT admin | `{name, email, password, roleId(UUID), username?, card_number?, master_card?, floor?}` | `201` user | `400 INVALID_USER/INVALID_EMAIL/INVALID_USERNAME/INVALID_PASSWORD`, `403 FORBIDDEN`, `409 IDENTITY_EXISTS` |
 | `PUT /api/users/change-password` | JWT user/admin | `{userId?, oldPassword?, newPassword, newPasswordConfirmation}` | `200 {message}` | `400 INVALID_PASSWORD`, `403`, `404 NOT_FOUND` |
 | `GET /api/users/:userId` | JWT self/admin | – | `200` user | `401`, `403`, `404` |
@@ -50,8 +50,22 @@ Catatan:
 | `DELETE /api/users/:userId` | JWT self/admin | – | `200` user dengan `is_deleted=true` | `401`, `403`, `404` |
 
 Catatan:
-- User non-admin hanya menerima `name,email,username,type`; `card_number`,
-  `is_master_card`, dan `floor` dibuang (`publicEmployee`).
+- Respons tetap berupa array objek (tidak dibungkus `{data: ...}`).
+- Admin melihat semua karyawan dengan field lengkap (`card_number`, `floor`,
+  `is_master_card`); parameter `q` diabaikan untuk admin.
+- Non-admin hanya melihat rekan **satu lantai** (`principal.floor`) dengan field
+  minimal `{_id, name, email, type}`; `card_number`, `is_master_card`, dan
+  `floor` tidak pernah dikirim (`publicEmployee`).
+- Non-admin tanpa `floor` menerima `[]` (direktori tidak dibuka), kecuali memakai
+  pencarian. Floor `"all"` berarti seluruh direktori, tetap dengan field minimal.
+- Non-admin dengan `?q=` minimal 2 karakter: pencarian `contains`
+  case-insensitive pada nama atau email, **lintas lantai**, maksimal 20 baris,
+  field minimal. `q` kosong (`?q=`) diperlakukan seperti tanpa `q`; `q` satu
+  karakter ditolak `400 INVALID_QUERY`.
+- `GET /api/users/:userId` tetap `selfOrAdmin` dan tidak berubah.
+- Repository direktori hanya memilih `_id,name,email,type`; `publicEmployee`
+  tetap dipakai sebagai lapisan kedua supaya `card_number`, `is_master_card`,
+  dan `floor` tidak pernah lolos.
 - `roleId` wajib UUID; nilai non-UUID ditolak `400` sebelum menyentuh DB.
 - Admin mengganti nomor kartu: kartu lama otomatis dicabut dari
   `tbl_card_masters`, status master dipindah bila sebelumnya master.
