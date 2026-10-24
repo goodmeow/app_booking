@@ -415,6 +415,12 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
   (`tbl_users.floor`), admin bebas. Ditegakkan di server (403
   `FLOOR_RESTRICTED` / `FLOOR_REQUIRED`), UI kalender, dan "Pesan sekarang"
   di kiosk.
-- [ ] Pastikan semua akun karyawan sudah diisi grup lantainya di produksi
+- [x] Audit `floor` produksi dari snapshot vault (2026-10-21): kolom `floor`
+  hanya terisi untuk ruangan; karyawan belum punya lantai, kartu ada di
+  `tbl_user_cards` (265) bukan `tbl_users.card_number` (legacy). Laporan:
+  `docs/reconstruction/floor-audit-2026-10-24.md`. Rekomendasi: deploy dengan
+  `FLOOR_RESTRICTION=false` sampai pemetaan HR selesai.
+- [ ] Isi grup lantai semua akun karyawan produksi (prasyarat
+  `FLOOR_RESTRICTION=true`); lama: pastikan semua akun karyawan sudah diisi grup lantainya di produksi
   (kalau kosong, booking akan ditolak). Gunakan **Semua lantai** hanya untuk
   orang yang memang perlu lintas lantai (mis. resepsionis).
