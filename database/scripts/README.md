@@ -10,10 +10,21 @@ sg docker -c 'docker compose ...'
 
 Never adapt reset commands to production or shared databases.
 
-Full disposable rebuild:
+Full disposable rebuild (demo database only):
 
 ```bash
 database/scripts/rebuild-test-db.sh
 ```
 
-Script refuses any database name except `360booking_reconstruction_test`, applies all migrations, loads sanitized seed, then runs every SQL test.
+Script refuses any database name except `360booking_reconstruction_test`,
+applies all migrations, loads sanitized seed, then runs every SQL test.
+
+Parity/regression reset (separate database):
+
+```bash
+database/scripts/reset-parity-db.sh
+```
+
+Script only touches `360booking_parity_test`; it creates the database when
+missing, applies migrations + `development.sql` + `parity.sql`, and refuses
+the demo database name. The parity/regression harness calls it automatically.

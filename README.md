@@ -93,20 +93,33 @@ Credential demo:
 | Karyawan uji | `karyawan@uji.prasada.test` | `1234` | kartu uji NFC dummy |
 | Karyawan uji 2 | `emp@uji.local` | `1234` | kartu `DEMO-UJI-CARD` |
 
-### Restore akun demo setelah regression suite
+### Database demo vs database parity
 
-Regression suite (`test:server:regression`) me-reset database dengan
-`dropdb --force`, dan `npm run demo` juga membangun ulang database setiap
-kali dijalankan. Karena itu urutan yang benar:
+Dua database hidup di container `360booking-postgres-test`:
 
-1. `npm run demo` - bangun ulang database + nyalakan server.
+| Database | Dipakai oleh | Di-reset oleh |
+|---|---|---|
+| `360booking_reconstruction_test` | `npm run demo`, CMS, tablet kiosk | `npm run demo` (`rebuild-test-db.sh`) |
+| `360booking_parity_test` | `test:server:parity`, `test:server:regression` | `database/scripts/reset-parity-db.sh` |
+
+Suite parity/regression hanya me-reset `360booking_parity_test`, jadi akun
+demo, kartu NFC, dan pairing tablet **tidak** ikut terhapus saat test
+dijalankan. Reset DB demo hanya terjadi lewat `npm run demo`, sedangkan
+`npm run demo:resume` menyalakan ulang aplikasi tanpa reset.
+
+### Restore akun demo setelah `npm run demo`
+
+`npm run demo` membangun ulang DB demo (migrasi + seed sanitized), jadi akun
+uji tambahan hilang dan pairing tablet perlu diulang:
+
+1. `npm run demo` - bangun ulang database demo + nyalakan server.
 2. `npm run demo:accounts` - kembalikan akun demo (termasuk `role_id`,
    syarat login server).
 3. Pasangkan ulang tablet bila sesi kiosk hilang (`pm clear` + provisioning).
 
 Langkah `demo:accounts` diletakkan setelah demo karena seed build tidak
 memasukkan akun uji; menjalankannya sebelum demo akan terhapus lagi oleh
-rebuild.
+rebuild. Suite parity/regression tidak lagi memerlukan langkah ini.
 
 ### Custom development
 

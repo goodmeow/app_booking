@@ -1,5 +1,9 @@
 # The project name is fixed so maintenance scripts can find the running demo
 # container (no external COMPOSE_PROJECT_NAME needed).
+#
+# POSTGRES_DB initialises the demo database only. Parity/regression suites use
+# 360booking_parity_test, which database/scripts/reset-parity-db.sh creates
+# inside this same container with createdb (Compose cannot create two DBs).
 name: 360booking
 
 services:

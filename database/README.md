@@ -6,11 +6,15 @@ This directory will replace the monolithic `bjb.sql` dump with reproducible migr
 
 Use a dedicated disposable PostgreSQL database. Never run reconstruction imports or destructive tests against production, staging, or a shared database.
 
-Expected test database:
+Expected test databases inside the shared container:
 
 ```text
-360booking_reconstruction_test
+360booking_parity_test         # parity + regression suites (disposable)
+360booking_reconstruction_test # demo (accounts, cards, tablet pairing)
 ```
+
+Parity/regression tests reset only `360booking_parity_test`; the demo database
+is rebuilt only by `npm run demo`.
 
 Copy `.env.test.example` to `.env.test` and set local credentials. `.env.test` is ignored by Git.
 

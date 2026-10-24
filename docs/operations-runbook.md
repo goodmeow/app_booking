@@ -94,11 +94,17 @@ Sertifikat self-signed/CA internal: CA harus dipasang di tablet (anchor
 | Situasi | Perintah | Efek |
 |---|---|---|
 | Demo, ingin data & pairing tetap | `npm run demo:resume` | Container DB dijalankan ulang tanpa reset, lalu CMS `:8081` + API `:9091` |
-| Demo, ingin database bersih | `npm run demo` | **Menghapus** DB demo, migrasi + seed ulang; akun uji dan pairing hilang |
+| Demo, ingin database bersih | `npm run demo` | **Menghapus** DB demo `360booking_reconstruction_test`, migrasi + seed ulang; akun uji dan pairing hilang |
+| Test parity/regression | `npm run test:server:parity` / `test:server:regression` | Hanya me-reset `360booking_parity_test`; DB demo tidak disentuh |
 | Demo, mematikan DB | `npm run demo:stop` | Container `360booking-postgres-test` berhenti |
 | Produksi, hanya API | `sudo systemctl restart 360booking-server` | Koneksi socket terputus, klien reconnect |
 | Produksi, ubah nginx | `sudo nginx -t && sudo systemctl reload nginx` | Tanpa memutus API |
 | Produksi, ubah env | edit `/etc/360booking/app.env` lalu restart service | Semua sesi JWT lama bisa tetap valid bila `JWT_SECRET` tidak berubah |
+
+Dua database berbagi satu container: `360booking_reconstruction_test` untuk
+demo dan `360booking_parity_test` untuk suite parity/regression. Reset parity
+dijalankan oleh `database/scripts/reset-parity-db.sh` (membuat DB bila belum
+ada), dan skrip itu menolak nama database demo.
 
 Urutan aman saat menutup demo: `Ctrl+C` pada `npm run demo` (server menutup
 socket dan pool DB), lalu `npm run demo:stop` bila container ingin dimatikan.
@@ -136,8 +142,9 @@ Urutan yang sudah terbukti (README “Setelah restart mesin”):
 ### 5.1 Kondisi saat ini
 
 **Belum ada backup otomatis, retensi, atau uji restore di repo.** Yang ada
-hanya skrip demo yang menghapus database. Anggap belum ada jaminan backup
-sampai langkah berikut dipasang.
+hanya skrip demo yang menghapus database demo dan skrip parity yang menghapus
+`360booking_parity_test`. Anggap belum ada jaminan backup sampai langkah
+berikut dipasang.
 
 ### 5.2 Rekomendasi backup harian
 
@@ -189,8 +196,9 @@ Jangan pernah menguji restore di database produksi.
 
 ## 7. Prosedur re-pair tablet
 
-Dipakai setelah database demo direset, ruangan dihapus, sandi ruangan
-diganti, atau perangkat dicabut.
+Dipakai setelah database demo direset (`npm run demo`), ruangan dihapus,
+sandi ruangan diganti, atau perangkat dicabut. Suite parity/regression tidak
+lagi memicu langkah ini karena memakai database `360booking_parity_test`.
 
 1. **Cabut perangkat lama** — CMS → Manajemen → Perangkat Tablet → pilih
    ruangan → Cabut. Alternatif API:

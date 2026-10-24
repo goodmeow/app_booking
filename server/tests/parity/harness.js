@@ -11,6 +11,27 @@ const legacyExpressJwtShim = path.join(root, "server/tests/parity/legacy-express
 export const parityPassword = "ParityTest123!";
 export const testSecret = "parity-test-secret-at-least-32-characters";
 
+// The demo database (demo accounts, NFC cards, paired tablet) must never be
+// reset by tests. Parity and regression suites share this disposable database;
+// keep the name in one place and let reset-parity-db.sh read the same variable.
+export const demoDatabaseName = "360booking_reconstruction_test";
+export const parityDatabaseName = process.env.BOOKING_PARITY_DB || "360booking_parity_test";
+
+if (!/^[a-z0-9_]+$/.test(parityDatabaseName)) {
+  throw new Error(`Invalid parity database name: ${parityDatabaseName}`);
+}
+if (parityDatabaseName === demoDatabaseName) {
+  throw new Error(`BOOKING_PARITY_DB must not point at the demo database: ${demoDatabaseName}`);
+}
+
+export const parityDatabase = {
+  host: "127.0.0.1",
+  port: "54320",
+  user: "booking_test",
+  password: "booking_test_local_only",
+  name: parityDatabaseName,
+};
+
 export const targets = {
   legacy: {
     name: "legacy",
@@ -57,8 +78,8 @@ export async function queryParityDatabase(sql) {
   const compose = await composeInvocation();
   const command =
     `${compose} exec -T postgres-test psql ` +
-    "-v ON_ERROR_STOP=1 -At -U booking_test " +
-    "-d 360booking_reconstruction_test";
+    `-v ON_ERROR_STOP=1 -At -U ${parityDatabase.user} ` +
+    `-d ${parityDatabase.name}`;
   return (await runProcess("sg", ["docker", "-c", command], sql)).trim();
 }
 
@@ -117,11 +138,11 @@ export async function startServer(target) {
       SERVER_PORT: String(target.port),
       HTTPS: "false",
       SSR: "false",
-      PGHOST: "127.0.0.1",
-      PGPORT: "54320",
-      PGUSER: "booking_test",
-      PGPASSWORD: "booking_test_local_only",
-      PGDATABASE: "360booking_reconstruction_test",
+      PGHOST: parityDatabase.host,
+      PGPORT: parityDatabase.port,
+      PGUSER: parityDatabase.user,
+      PGPASSWORD: parityDatabase.password,
+      PGDATABASE: parityDatabase.name,
       JWT_SECRET: testSecret,
       JWT_ISSUER: "360-scheduler",
       JWT_AUDIENCE: "360-scheduler-web",

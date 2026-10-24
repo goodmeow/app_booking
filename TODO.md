@@ -287,10 +287,14 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
   event/device sisa uji ternyata sudah hilang oleh reset parity DB. Kondisi
   akhir: 9 akun inti, 3 kartu, 1 device aktif (online), event seed 2030 utuh,
   tablet AVAILABLE/Online v1.3 (11).
-- [ ] **Risiko:** `database/scripts/reset-parity-db.sh` me-reset database yang
-  SAMA dengan demo (`360booking_reconstruction_test`) — satu kali parity/
-  regression run menghapus akun demo, kartu, dan pairing tablet. Pisahkan nama
-  DB parity vs demo (atau guard eksplisit) sebelum presentasi/demo.
+- [x] **Risiko (selesai 2026-10-24):** `database/scripts/reset-parity-db.sh`
+  dulu me-reset database yang SAMA dengan demo
+  (`360booking_reconstruction_test`) — satu kali parity/regression run
+  menghapus akun demo, kartu, dan pairing tablet. Sekarang suite parity/
+  regression memakai database terpisah `360booking_parity_test` (dibuat dan
+  di-reset `reset-parity-db.sh` lewat `createdb` di container yang sama), dan
+  kedua skrip reset punya guard yang menolak nama DB demo. Bukti: 9 akun, 1
+  kartu, 1 device aktif tetap utuh setelah `test:server:parity` dijalankan.
 
 ## Regresi pasca-refactor 2026-10-24
 

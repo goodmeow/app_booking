@@ -1,4 +1,28 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT_DIR"
+
+# The demo database is the only thing this script may rebuild. Parity and
+# regression suites reset 360booking_parity_test through reset-parity-db.sh.
+readonly DEMO_DATABASE_NAME="360booking_reconstruction_test"
+readonly PARITY_DATABASE_NAME="360booking_parity_test"
+
+DATABASE_NAME="${BOOKING_TEST_DB:-$DEMO_DATABASE_NAME}"
+DATABASE_USER="${BOOKING_TEST_USER:-booking_test}"
+
+if [[ "$DATABASE_NAME" != "$DEMO_DATABASE_NAME" ]]; then
+  echo "Refusing to reset unexpected database: $DATABASE_NAME" >&2
+  echo "The demo rebuild only touches $DEMO_DATABASE_NAME." >&2
+  exit 1
+fi
+
+if [[ "${BOOKING_PARITY_DB:-$PARITY_DATABASE_NAME}" == "$DEMO_DATABASE_NAME" ]]; then
+  echo "Refusing to run: BOOKING_PARITY_DB must not point at the demo database." >&2
+  exit 1
+fi
+
 # Docker 29 moved compose to a separate binary; try "docker compose"
 # first, and fall back to "docker-compose" when it is not available.
 run_compose() {
@@ -8,20 +32,6 @@ run_compose() {
     docker-compose "$@"
   fi
 }
-
-#!/usr/bin/env bash
-set -euo pipefail
-
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-cd "$ROOT_DIR"
-
-DATABASE_NAME="${BOOKING_TEST_DB:-360booking_reconstruction_test}"
-DATABASE_USER="${BOOKING_TEST_USER:-booking_test}"
-
-if [[ "$DATABASE_NAME" != "360booking_reconstruction_test" ]]; then
-  echo "Refusing to reset unexpected database: $DATABASE_NAME" >&2
-  exit 1
-fi
 
 run_compose up -d postgres-test
 

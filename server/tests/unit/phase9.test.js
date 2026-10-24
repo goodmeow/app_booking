@@ -135,6 +135,31 @@ test("demo launcher is pinned to the disposable reconstruction database", () => 
   assert.match(packageJson.scripts["demo:stop"], /--file compose\.yaml/);
 });
 
+test("parity reset is separated from the demo database", () => {
+  const resetScript = fs.readFileSync(path.join(root, "database/scripts/reset-parity-db.sh"), "utf8");
+  const rebuildScript = fs.readFileSync(path.join(root, "database/scripts/rebuild-test-db.sh"), "utf8");
+  const harness = fs.readFileSync(path.join(root, "server/tests/parity/harness.js"), "utf8");
+  const testEnv = fs.readFileSync(path.join(root, ".env.test.example"), "utf8");
+
+  assert.match(resetScript, /PARITY_DATABASE_NAME="360booking_parity_test"/);
+  assert.match(resetScript, /DEMO_DATABASE_NAME="360booking_reconstruction_test"/);
+  assert.match(resetScript, /BOOKING_PARITY_DB/);
+  assert.match(resetScript, /createdb/);
+
+  assert.match(rebuildScript, /DEMO_DATABASE_NAME="360booking_reconstruction_test"/);
+  assert.match(rebuildScript, /BOOKING_PARITY_DB/);
+
+  assert.match(harness, /BOOKING_PARITY_DB/);
+  assert.match(harness, /360booking_parity_test/);
+  assert.doesNotMatch(harness, /PGDATABASE: "360booking_reconstruction_test"/);
+
+  assert.match(testEnv, /^PGDATABASE=360booking_parity_test$/m);
+  assert.match(testEnv, /^BOOKING_TEST_DB=360booking_parity_test$/m);
+
+  const demoEnv = fs.readFileSync(path.join(root, ".env.demo"), "utf8");
+  assert.match(demoEnv, /^PGDATABASE=360booking_reconstruction_test$/m);
+});
+
 test("reconstruction helper refuses implicit or live-server output", () => {
   const script = path.join(root, "scripts/reconstruct-server.mjs");
   const implicit = spawnSync(process.execPath, [script], { cwd: root, encoding: "utf8" });
