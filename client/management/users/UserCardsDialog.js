@@ -14,9 +14,11 @@ const UserCardsDialog = ({
   formError,
   isAdding,
   isMarkingLost,
+  isReactivating,
   onClose,
   onAddCard,
   onMarkLost,
+  onReactivate,
   t,
 }) => (
   <FormDialog
@@ -60,13 +62,23 @@ const UserCardsDialog = ({
                 <Button
                   size="small"
                   color="warning"
-                  disabled={isMarkingLost}
+                  disabled={isMarkingLost || isReactivating}
                   aria-label={t("users.cardMarkLostAria", { number: card.card_number })}
                   onClick={() => onMarkLost(card)}
                 >
                   {t("users.cardMarkLost")}
                 </Button>
-              ) : null}
+              ) : (
+                <Button
+                  size="small"
+                  color="success"
+                  disabled={isReactivating || isMarkingLost || limitReached}
+                  aria-label={t("users.cardReactivateAria", { number: card.card_number })}
+                  onClick={() => onReactivate(card)}
+                >
+                  {t("users.cardReactivate")}
+                </Button>
+              )}
             </Stack>
           ))}
         </Stack>

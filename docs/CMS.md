@@ -152,7 +152,9 @@ NFC tidak diatur dari CMS karena ditangani aplikasi kiosk.
 nomor kartu tampil dan bisa dikoreksi di baris user, dan kartu bisa ditandai
 **kartu master** dengan satu tombol. Di server, flag ini menulis/menghapus baris
 `tbl_card_masters`; kartu master otomatis boleh membuka semua pintu. Endpoint
-lama `/api/settings/card-master` tetap ada untuk kompatibilitas API.
+lama `/api/settings/card-master` tetap ada untuk kompatibilitas API. Kartu yang
+ditandai **hilang** tetap tampil sebagai riwayat dan bisa **diaktifkan kembali**
+bila ditemukan (selama kartu aktif user masih kurang dari 2).
 
 Status online dihitung server: `last_seen_at` diperbarui setiap request kiosk
 (throttle 10 s), dan `online = last_seen_at <= 60 s`

@@ -12,6 +12,7 @@ import {
   listUserCards,
   searchEmployeeDirectory,
   setMasterCard,
+  setUserCardActive,
   setUserCardLost,
   softDeleteAccount,
   updateAccount,
@@ -120,6 +121,28 @@ export const markUserCardLost = async (userId, cardId, principal) => {
   if (!lost) throw conflict("CARD_ALREADY_LOST", "The card is already marked as lost");
   await setMasterCard(lost.card_number, false, principal?._id);
   return lost;
+};
+
+// A found card can be switched back on, but only while the user still has a
+// free slot. This is deliberately a separate transition from adding a card so
+// the audit trail (lost_at) stays on the same row.
+export const reactivateUserCard = async (userId, cardId, principal) => {
+  if (!UUID_PATTERN.test(String(userId)) || !UUID_PATTERN.test(String(cardId))) {
+    throw notFound("Card not found");
+  }
+  const existing = await findUserCard(userId, cardId);
+  if (!existing) throw notFound("Card not found");
+  if (existing.status === "active") {
+    throw conflict("CARD_ALREADY_ACTIVE", "The card is already active");
+  }
+  const cards = await listUserCards(userId);
+  if (activeCardLimitReached(cards)) {
+    throw conflict("CARD_LIMIT", `A user can hold at most ${ACTIVE_CARD_LIMIT} active cards`);
+  }
+  const active = await setUserCardActive(cardId);
+  if (!active) throw conflict("CARD_ALREADY_ACTIVE", "The card is already active");
+  await setMasterCard(active.card_number, true, principal?._id);
+  return active;
 };
 
 // The card number is a credential (check-in, finish, instant booking, door).

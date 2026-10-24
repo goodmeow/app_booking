@@ -21,6 +21,10 @@ export const usersApi = api.injectEndpoints({
       query: ({ userId, cardId }) => ({ url: `users/${userId}/cards/${cardId}`, method: "PATCH", body: { status: "lost" } }),
       invalidatesTags: ["users"],
     }),
+    reactivateUserCard: builder.mutation({
+      query: ({ userId, cardId }) => ({ url: `users/${userId}/cards/${cardId}`, method: "PATCH", body: { status: "active" } }),
+      invalidatesTags: ["users"],
+    }),
   }),
 });
 
@@ -33,4 +37,5 @@ export const {
   useDeleteUserMutation,
   useAddUserCardMutation,
   useMarkUserCardLostMutation,
+  useReactivateUserCardMutation,
 } = usersApi;

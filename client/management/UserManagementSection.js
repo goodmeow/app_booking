@@ -234,9 +234,11 @@ const UserManagementSection = () => {
         formError={cardsDialog.formError}
         isAdding={cardsDialog.isAdding}
         isMarkingLost={cardsDialog.isMarkingLost}
+        isReactivating={cardsDialog.isReactivating}
         onClose={cardsDialog.close}
         onAddCard={cardsDialog.submitCard}
         onMarkLost={cardsDialog.markLost}
+        onReactivate={cardsDialog.reactivate}
         t={t}
       />
 

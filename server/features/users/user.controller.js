@@ -8,6 +8,7 @@ import {
   getUser,
   getUsers,
   markUserCardLost,
+  reactivateUserCard,
 } from "./user.service.js";
 
 const run = (handler) => async (req, res, next) => {
@@ -27,13 +28,18 @@ export const addCard = run(async (req, res) => {
   res.status(201).json(card);
 });
 
-// PATCH /api/users/:userId/cards/:cardId — only the lost transition exists.
-// Deleting a card would lose the history of a card that is still in the wild.
-export const markCardLost = run(async (req, res) => {
-  if (req.body?.status !== "lost") {
-    throw badRequest("INVALID_CARD_STATUS", 'Only status "lost" is supported');
+// PATCH /api/users/:userId/cards/:cardId — lost and active transitions share
+// one endpoint. Deleting a card would lose the history of a card that is still
+// in the wild, so the row is always kept.
+export const updateCardStatus = run(async (req, res) => {
+  const status = req.body?.status;
+  if (status === "lost") {
+    return res.json(await markUserCardLost(req.params.userId, req.params.cardId, req.auth));
   }
-  res.json(await markUserCardLost(req.params.userId, req.params.cardId, req.auth));
+  if (status === "active") {
+    return res.json(await reactivateUserCard(req.params.userId, req.params.cardId, req.auth));
+  }
+  throw badRequest("INVALID_CARD_STATUS", 'Only status "lost" or "active" is supported');
 });
 
 export const changePassword = run(async (req, res) => {

@@ -59,6 +59,16 @@ const markLost = (userId, cardId, token = "admin") => apiRequest(
   }
 );
 
+const reactivate = (userId, cardId, token = "admin") => apiRequest(
+  targets.reconstructed,
+  `/api/users/${userId}/cards/${cardId}`,
+  {
+    method: "PATCH",
+    headers: bearer(token),
+    body: JSON.stringify({ status: "active" }),
+  }
+);
+
 const doorOpen = (cardNumber) => apiRequest(targets.reconstructed, "/api/kiosk/door-open", {
   method: "POST",
   headers: { Authorization: `Bearer ${kioskToken}`, "Content-Type": "application/json" },
@@ -137,12 +147,36 @@ test("a lost card keeps its record and stops opening the door", async () => {
   const twice = await markLost(holder._id, holderCards[0].id);
   assert.equal(twice.status, 409);
   assert.equal(twice.body.code, "CARD_ALREADY_LOST");
+
+  // A found card can be switched back on: the same row becomes active again and
+  // the door master list is restored.
+  const restored = await reactivate(holder._id, holderCards[0].id);
+  assert.equal(restored.status, 200);
+  assert.equal(restored.body.status, "active");
+  assert.equal(restored.body.lost_at, null);
+  assert.equal((await doorOpen("DEMO-CARD-ALPHA")).status, 200);
+
+  const restoredTwice = await reactivate(holder._id, holderCards[0].id);
+  assert.equal(restoredTwice.status, 409);
+  assert.equal(restoredTwice.body.code, "CARD_ALREADY_ACTIVE");
+
+  // Return to the lost state so the replacement test starts from one free slot.
+  const lostAgain = await markLost(holder._id, holderCards[0].id);
+  assert.equal(lostAgain.status, 200);
+  assert.equal((await doorOpen("DEMO-CARD-ALPHA")).status, 400);
 });
 
 test("a lost card frees a slot for the replacement card", async () => {
   const replacement = await addCard(holder._id, "DEMO-CARD-DELTA");
   assert.equal(replacement.status, 201);
   assert.equal(replacement.body.status, "active");
+});
+
+test("reactivation is refused while both active slots are full", async () => {
+  // BETA + DELTA are active here, so the lost ALPHA cannot be restored yet.
+  const blocked = await reactivate(holder._id, holderCards[0].id);
+  assert.equal(blocked.status, 409);
+  assert.equal(blocked.body.code, "CARD_LIMIT");
 });
 
 test("the user detail keeps lost cards and hides the employee ID from non-admins", async () => {
@@ -169,13 +203,16 @@ test("only admins may change cards", async () => {
   const forbiddenLost = await markLost(holder._id, holderCards[0].id, "user");
   assert.equal(forbiddenLost.status, 403);
 
+  const forbiddenActive = await reactivate(holder._id, holderCards[0].id, "user");
+  assert.equal(forbiddenActive.status, 403);
+
   const wrongStatus = await apiRequest(
     targets.reconstructed,
     `/api/users/${holder._id}/cards/${holderCards[0].id}`,
     {
       method: "PATCH",
       headers: bearer("admin"),
-      body: JSON.stringify({ status: "active" }),
+      body: JSON.stringify({ status: "stolen" }),
     }
   );
   assert.equal(wrongStatus.status, 400);

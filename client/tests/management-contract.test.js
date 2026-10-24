@@ -92,6 +92,10 @@ test("employee ID and card failures map to their management messages", () => {
   );
   assert.equal(userMutationError({ data: { code: "CARD_LIMIT" } }, translate, "fallback"), "t:users.cardLimit");
   assert.equal(userMutationError({ data: { code: "CARD_EXISTS" } }, translate, "fallback"), "t:users.cardExists");
+  assert.equal(
+    userMutationError({ data: { code: "CARD_ALREADY_ACTIVE" } }, translate, "fallback"),
+    "t:users.cardAlreadyActive"
+  );
   // Everything else keeps the shared API error translation or the fallback.
   assert.equal(
     userMutationError({ data: { code: "NOT_FOUND" } }, translate, "fallback"),
@@ -117,11 +121,15 @@ test("user grid and service expose employee ID and card management", () => {
   assert.match(service, /users\/\$\{userId\}\/cards/);
   assert.match(service, /method: "PATCH"/);
   assert.match(service, /status: "lost"/);
+  assert.match(service, /status: "active"/);
+  assert.match(service, /reactivateUserCard/);
   assert.match(service, /invalidatesTags: \["users"\]/);
 
   assert.match(section, /<UserCardsDialog/);
+  assert.match(section, /onReactivate/);
   assert.match(dialog, /users\.cardLimit/);
   assert.match(dialog, /users\.cardMarkLost/);
+  assert.match(dialog, /users\.cardReactivate/);
 });
 
 test("normalizes RTK Query and Error messages", () => {

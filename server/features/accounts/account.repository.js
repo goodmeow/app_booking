@@ -207,6 +207,19 @@ export const setUserCardLost = async (cardId, execute = query) => (await execute
   [cardId]
 )).rows[0] || null;
 
+// Reactivation only applies to a card that is still on the same user. The card
+// number stays globally unique, so a card moved to another person cannot be
+// pulled back silently.
+export const setUserCardActive = async (cardId, execute = query) => (await execute(
+  `UPDATE tbl_user_cards
+   SET status = 'active',
+       lost_at = NULL,
+       updated_at = now()
+   WHERE _id = $1 AND status = 'lost'
+   RETURNING _id AS id, card_number, status, lost_at`,
+  [cardId]
+)).rows[0] || null;
+
 export const updatePassword = async (id, password, execute = query) => (await execute(
   `UPDATE tbl_users SET password = $2, updated_at = now()
    WHERE _id = $1 AND is_deleted IS NOT TRUE

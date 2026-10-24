@@ -53,7 +53,7 @@ Catatan:
 | `PUT /api/users/:userId` | JWT self/admin | `{name?, email?, username?, employee_id?, ...}`; `roleId`/`employee_id`/`card_number`/`floor` hanya admin | `200` user + `cards[]` | `400`, `403`, `404`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS` |
 | `DELETE /api/users/:userId` | JWT self/admin | – | `200` user dengan `is_deleted=true` | `401`, `403`, `404` |
 | `POST /api/users/:userId/cards` | JWT admin | `{card_number}` | `201 {id, card_number, status, lost_at}` | `400 INVALID_CARD`, `403`, `404`, `409 CARD_EXISTS/CARD_LIMIT` |
-| `PATCH /api/users/:userId/cards/:cardId` | JWT admin | `{status: "lost"}` | `200 {id, card_number, status, lost_at}` | `400 INVALID_CARD_STATUS`, `403`, `404`, `409 CARD_ALREADY_LOST` |
+| `PATCH /api/users/:userId/cards/:cardId` | JWT admin | `{status: "lost" \| "active"}` | `200 {id, card_number, status, lost_at}` | `400 INVALID_CARD_STATUS`, `403`, `404`, `409 CARD_ALREADY_LOST/CARD_ALREADY_ACTIVE/CARD_LIMIT` |
 
 Catatan:
 - Respons tetap berupa array objek (tidak dibungkus `{data: ...}`).
@@ -89,10 +89,14 @@ Catatan:
 - Kartu karyawan disimpan di `tbl_user_cards`; satu user maksimal **2 kartu
   aktif**. Kartu ke-3 ditolak `409 CARD_LIMIT`, nomor yang sudah dipakai user
   lain ditolak `409 CARD_EXISTS`.
-- `PATCH .../cards/:cardId` hanya menerima `status: "lost"`; kartu tidak dihapus,
-  `lost_at` diisi, dan nomornya otomatis dicabut dari `tbl_card_masters` supaya
-  tidak lagi membuka pintu. Mengulang permintaan yang sama menghasilkan
-  `409 CARD_ALREADY_LOST`.
+- `PATCH .../cards/:cardId` menerima `status: "lost"` atau `"active"`. Kartu
+  tidak pernah dihapus:
+  - `lost`: `lost_at` diisi dan nomornya dicabut dari `tbl_card_masters`
+    supaya tidak lagi membuka pintu. Mengulang permintaan yang sama
+    menghasilkan `409 CARD_ALREADY_LOST`.
+  - `active` (kartu ditemukan lagi): `lost_at` dikosongkan dan nomor
+    dikembalikan ke `tbl_card_masters`. Ditolak `409 CARD_ALREADY_ACTIVE` bila
+    kartu sudah aktif, dan `409 CARD_LIMIT` bila user sudah punya 2 kartu aktif.
 - Kartu `lost` tidak dihitung terhadap batas 2, jadi kartu pengganti bisa
   langsung ditambahkan; kartu `lost` juga tidak berlaku untuk check-in, instant
   booking, maupun buka pintu (`400 INVALID_CARD`).

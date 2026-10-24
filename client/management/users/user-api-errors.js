@@ -7,6 +7,7 @@ const USER_ERROR_KEYS = {
   INVALID_EMPLOYEE_ID: "users.employeeIdInvalid",
   CARD_LIMIT: "users.cardLimit",
   CARD_EXISTS: "users.cardExists",
+  CARD_ALREADY_ACTIVE: "users.cardAlreadyActive",
 };
 
 export const userMutationError = (error, translate, fallback) => {

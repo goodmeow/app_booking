@@ -17,7 +17,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 ## Posisi saat ini (Ver 3 Rev 8)
 
-- CMS + API: **Ver 3 Rev 8**, `package.json` `3.8.1`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 8**, `package.json` `3.8.2`, ditampilkan di footer
   semua halaman CMS (dari package.json).
 - APK kiosk: `versionName 1.3 / versionCode 11`, menampilkan ver + UUID
   perangkat di layar; string di res/values + values-en (bahasa ID/EN),
@@ -86,6 +86,12 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
   berhasil, lt.3 ditolak) dan pairing tablet utuh.
 - Patch `3.8.1`: `employee_id` mengizinkan titik agar kode HR BioTime
   (contoh `001-01.25`) bisa dipakai langsung.
+- Patch `3.8.2`: kartu yang ditandai `lost` bisa **diaktifkan kembali** bila
+  ditemukan (status `active`, `lost_at` dikosongkan, nomor kembali ke master
+  pintu), dengan syarat slot aktif masih < 2. Endpoint `PATCH .../cards/:id`
+  menerima `lost`/`active`; CMS menampilkan tombol **Aktifkan kembali**.
+  Bukti: unit 74/74, client 80/80, regresi 78/78, parity 8/8, uji demo
+  lost → active berhasil.
 
 ## Cara naikkan
 

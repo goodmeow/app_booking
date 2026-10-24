@@ -363,6 +363,9 @@ Aturan aplikasi (bukan constraint DB):
   hanya menerima `status='active'` dan user `type='employee'` yang tidak
   dihapus.
 - Menandai kartu hilang juga mencabut nomornya dari `tbl_card_masters`.
+- Mengaktifkan kembali kartu `lost` (mis. kartu ditemukan) hanya boleh bila
+  user masih punya slot aktif; `lost_at` dikosongkan dan kartu dikembalikan ke
+  `tbl_card_masters`.
 
 ## 3. Trigger dan sinkronisasi
 

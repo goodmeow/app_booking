@@ -4,6 +4,7 @@ import { userMutationError } from "./user-api-errors.js";
 import {
   useAddUserCardMutation,
   useMarkUserCardLostMutation,
+  useReactivateUserCardMutation,
 } from "../../redux/services/users.js";
 
 // Owns the card dialog: the cards of the selected user, the new card number, and
@@ -18,6 +19,7 @@ export const useUserCardsDialog = ({ t }) => {
 
   const [addUserCard, { isLoading: isAdding, reset: resetAdd }] = useAddUserCardMutation();
   const [markUserCardLost, { isLoading: isMarkingLost, reset: resetLost }] = useMarkUserCardLostMutation();
+  const [reactivateUserCard, { isLoading: isReactivating, reset: resetReactivate }] = useReactivateUserCardMutation();
 
   const activeCount = activeCardCount({ cards });
   const limitReached = cardLimitReached({ cards });
@@ -25,6 +27,7 @@ export const useUserCardsDialog = ({ t }) => {
   const openCards = (user) => {
     resetAdd();
     resetLost();
+    resetReactivate();
     setTargetUser(user);
     setCards(userCards(user));
     setCardNumber("");
@@ -32,13 +35,14 @@ export const useUserCardsDialog = ({ t }) => {
   };
 
   const close = () => {
-    if (isAdding) return;
+    if (isAdding || isMarkingLost || isReactivating) return;
     setTargetUser(null);
     setCards([]);
     setCardNumber("");
     setFormError("");
     resetAdd();
     resetLost();
+    resetReactivate();
   };
 
   const submitCard = async (event) => {
@@ -59,7 +63,7 @@ export const useUserCardsDialog = ({ t }) => {
   };
 
   const markLost = async (card) => {
-    if (!targetUser || isMarkingLost || card.status !== "active") return;
+    if (!targetUser || isMarkingLost || isReactivating || card.status !== "active") return;
 
     setFormError("");
     try {
@@ -68,6 +72,19 @@ export const useUserCardsDialog = ({ t }) => {
       resetLost();
     } catch (mutationError) {
       setFormError(userMutationError(mutationError, t, t("users.cardLostError")));
+    }
+  };
+
+  const reactivate = async (card) => {
+    if (!targetUser || isReactivating || isMarkingLost || card.status !== "lost" || limitReached) return;
+
+    setFormError("");
+    try {
+      const updated = await reactivateUserCard({ userId: targetUser._id, cardId: card.id }).unwrap();
+      setCards((current) => current.map((entry) => (entry.id === card.id ? { ...entry, ...updated } : entry)));
+      resetReactivate();
+    } catch (mutationError) {
+      setFormError(userMutationError(mutationError, t, t("users.cardReactivateError")));
     }
   };
 
@@ -81,9 +98,11 @@ export const useUserCardsDialog = ({ t }) => {
     formError,
     isAdding,
     isMarkingLost,
+    isReactivating,
     openCards,
     close,
     submitCard,
     markLost,
+    reactivate,
   };
 };
