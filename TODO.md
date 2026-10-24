@@ -281,6 +281,17 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 - [ ] Sisa: KioskDisplay.tsx masih ~800 baris (ekstrak overlay), lint/format
   belum ada tooling, komponen lain <300 baris sudah wajar.
 
+## Pembersihan demo 2026-10-24
+
+- [x] Data demo dirapikan: user sisa test `card.officer@example.test` dihapus;
+  event/device sisa uji ternyata sudah hilang oleh reset parity DB. Kondisi
+  akhir: 9 akun inti, 3 kartu, 1 device aktif (online), event seed 2030 utuh,
+  tablet AVAILABLE/Online v1.3 (11).
+- [ ] **Risiko:** `database/scripts/reset-parity-db.sh` me-reset database yang
+  SAMA dengan demo (`360booking_reconstruction_test`) — satu kali parity/
+  regression run menghapus akun demo, kartu, dan pairing tablet. Pisahkan nama
+  DB parity vs demo (atau guard eksplisit) sebelum presentasi/demo.
+
 ## Regresi pasca-refactor 2026-10-24
 
 - [x] `npm run test:server:regression` **59/59 lulus** (136 dtk), termasuk 7
