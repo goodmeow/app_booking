@@ -48,3 +48,6 @@ Riwayat isi paket:
 - 2026-10-24: naik 1.3.1 (versionCode 12)—branding user-facing menjadi
   **RoomBooking**: label APK dan layar setup kiosk memakai nama baru. Tidak ada
   perubahan alur pairing/check-in.
+
+- 2026-10-24: naik 1.3.2 (versionCode 13)—hapus jam pada label
+  **UP NEXT** karena sudah tampil di baris judul/waktu meeting.

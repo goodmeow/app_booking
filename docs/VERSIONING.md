@@ -19,7 +19,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 - CMS + API: **Ver 3 Rev 10**, `package.json` `3.10.1`, ditampilkan di footer
   semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.3.1 / versionCode 12`, menampilkan ver + UUID
+- APK kiosk: `versionName 1.3.2 / versionCode 13`, menampilkan ver + UUID
   perangkat di layar; string di res/values + values-en (bahasa ID/EN),
   panel AVAILABLE tidak meluber, dan ada tombol "Pilih waktu" untuk
   memesan ruangan hari ini dengan jam mulai/selesai sendiri.
@@ -133,6 +133,8 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
 - Patch `3.10.1`: setelah setup sukses CMS **auto-login** dan melakukan hard
   redirect ke kalender; menghilangkan layar putih/race cache gate dan tidak
   perlu mengetik ulang kredensial.
+- Patch APK `1.3.2` (13): label **UP NEXT** tidak lagi menampilkan jam;
+  jam tetap ada di bawah judul meeting.
 
 ## Cara naikkan
 
