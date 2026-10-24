@@ -281,6 +281,17 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 - [ ] Sisa: KioskDisplay.tsx masih ~800 baris (ekstrak overlay), lint/format
   belum ada tooling, komponen lain <300 baris sudah wajar.
 
+## Regresi pasca-refactor 2026-10-24
+
+- [x] `npm run test:server:regression` **59/59 lulus** (136 dtk), termasuk 7
+  test baru `/api/kiosk/events/book`.
+- [x] Dua bug test ditemukan QA dan diperbaiki: range kiosk memakai `YYYYMMDD`
+  (bukan bertanda hubung) dan respons schedule memakai field `start`/`end`;
+  skenario "mulai <=2 menit" dipisah dari slot utama (+70 menit).
+- [x] Pemulihan setelah reset: `demo:accounts`, pemetaan 3 kartu, re-pair
+  tablet (device baru `96e69b4d`, online) — layar AVAILABLE/Online v1.3 (11).
+- [x] Gate non-destruktif: verify lulus (client 62/62, unit 42/42).
+
 ## Cek end-to-end 2026-10-24
 
 - [x] Suite non-destruktif: `npm run verify` lulus (build client+server,
