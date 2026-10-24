@@ -4,6 +4,7 @@ BEGIN;
 
 TRUNCATE TABLE
   tbl_kiosk_devices,
+  tbl_user_cards,
   tbl_event_rooms,
   tbl_event_details,
   tbl_events,
@@ -19,7 +20,7 @@ INSERT INTO tbl_role (_id, role_name, is_deleted) VALUES
   ('67e9500b-908a-497d-9d3b-54bc020700cb', 'user', false);
 
 INSERT INTO tbl_users
-  (_id, name, email, password, role_id, is_deleted, type, card_number)
+  (_id, name, email, password, role_id, employee_id, is_deleted, type)
 VALUES
   (
     '20000000-0000-4000-8000-000000000001',
@@ -27,9 +28,9 @@ VALUES
     'admin@example.test',
     '$2b$10$uwn2Il15fmNVJ7nhgiz6ceQWgPJC9EsDWNH7SsxtbwOLxBlpxd/S.',
     '471ba030-c950-41f9-90da-4e0fe10426a6',
+    'EMP-ADMIN',
     false,
-    'employee',
-    'TEST-ADMIN-CARD'
+    'employee'
   ),
   (
     '20000000-0000-4000-8000-000000000002',
@@ -37,9 +38,9 @@ VALUES
     'user@example.test',
     '$2b$10$uwn2Il15fmNVJ7nhgiz6ceQWgPJC9EsDWNH7SsxtbwOLxBlpxd/S.',
     '67e9500b-908a-497d-9d3b-54bc020700cb',
+    'EMP-USER',
     false,
-    'employee',
-    'TEST-USER-CARD'
+    'employee'
   ),
   (
     '20000000-0000-4000-8000-000000000003',
@@ -47,9 +48,9 @@ VALUES
     'viewer@example.test',
     '$2b$10$uwn2Il15fmNVJ7nhgiz6ceQWgPJC9EsDWNH7SsxtbwOLxBlpxd/S.',
     '67e9500b-908a-497d-9d3b-54bc020700cb',
+    'EMP-VIEWER',
     false,
-    'employee',
-    'TEST-VIEWER-CARD'
+    'employee'
   ),
   (
     '30000000-0000-4000-8000-000000000001',
@@ -57,9 +58,9 @@ VALUES
     'room-one@room.com',
     '$2b$12$8BJv0ozFONflhmYT7NGXbuNHtzoWx.BfGd8kg2SyGg9b.WgHk2T26',
     NULL,
+    NULL,
     false,
-    'room',
-    NULL
+    'room'
   ),
   (
     '30000000-0000-4000-8000-000000000002',
@@ -67,9 +68,9 @@ VALUES
     'room-two@room.com',
     '$2b$12$8BJv0ozFONflhmYT7NGXbuNHtzoWx.BfGd8kg2SyGg9b.WgHk2T26',
     NULL,
+    NULL,
     false,
-    'room',
-    NULL
+    'room'
   ),
   (
     '30000000-0000-4000-8000-000000000003',
@@ -77,10 +78,34 @@ VALUES
     'room-three@room.com',
     '$2b$12$8BJv0ozFONflhmYT7NGXbuNHtzoWx.BfGd8kg2SyGg9b.WgHk2T26',
     NULL,
+    NULL,
     false,
-    'room',
-    NULL
+    'room'
   );
+
+-- Employee cards live in tbl_user_cards now; the legacy tbl_users.card_number
+-- column is no longer written by the seed. The UIDs are demo values.
+INSERT INTO tbl_user_cards (_id, user_id, card_number, status)
+VALUES
+  (
+    '51000000-0000-4000-8000-000000000001',
+    '20000000-0000-4000-8000-000000000001',
+    'TEST-ADMIN-CARD',
+    'active'
+  ),
+  (
+    '51000000-0000-4000-8000-000000000002',
+    '20000000-0000-4000-8000-000000000002',
+    'TEST-USER-CARD',
+    'active'
+  ),
+  (
+    '51000000-0000-4000-8000-000000000003',
+    '20000000-0000-4000-8000-000000000003',
+    'TEST-VIEWER-CARD',
+    'active'
+  )
+ON CONFLICT DO NOTHING;
 
 UPDATE tbl_users SET
   floor = '1',

@@ -1,6 +1,6 @@
 # ERD dan Kamus Data
 
-Sumber: `database/migrations/001_prerequisites.sql` … `012_series_monthly_cadence.sql`.
+Sumber: `database/migrations/001_prerequisites.sql` … `013_employee_id_and_user_cards.sql`.
 Diperiksa 2026-10-24. Tidak ada ORM: server memakai SQL langsung, jadi nama
 kolom di dokumen ini adalah nama fisik di PostgreSQL.
 
@@ -9,6 +9,7 @@ kolom di dokumen ini adalah nama fisik di PostgreSQL.
 ```mermaid
 erDiagram
   tbl_role ||--o{ tbl_users : "role_id"
+  tbl_users ||--o{ tbl_user_cards : "user_id"
   tbl_users ||--o{ tbl_events : "organizer_id"
   tbl_event_series ||--o{ tbl_events : "series_id"
   tbl_events ||--o{ tbl_event_details : "event_id"
@@ -29,12 +30,20 @@ erDiagram
     varchar name
     varchar email UK
     varchar username UK
+    varchar employee_id UK
     varchar password
     uuid role_id FK
     varchar type
     varchar floor
     varchar card_number
     boolean is_deleted
+  }
+  tbl_user_cards {
+    uuid _id PK
+    uuid user_id FK
+    varchar card_number UK
+    varchar status
+    timestamptz lost_at
   }
   tbl_events {
     uuid _id PK
@@ -117,6 +126,7 @@ satu tabel; ruangan dibedakan `type='room'`.
 | `name` | varchar | nullable | Nama tampilan |
 | `email` | varchar | unique (case-insensitive) | Login CMS / email ruangan |
 | `username` | varchar | nullable, unique parsial | Alternatif login |
+| `employee_id` | varchar | nullable di DB, wajib di API (migrasi 013) | ID karyawan yang diketik admin; unik case-insensitive |
 | `password` | varchar | nullable | Hash bcrypt (cost 12 untuk akun baru) |
 | `hashed_password` | varchar | nullable | Kolom legacy, tidak dipakai server |
 | `role_id` | uuid | FK `tbl_role`, nullable | Dipakai karyawan; aplikasi mensyaratkan role; **harus NULL untuk ruangan** |
@@ -124,15 +134,19 @@ satu tabel; ruangan dibedakan `type='room'`.
 | `floor` | varchar | nullable | Grup lantai; `all` = lintas lantai |
 | `capacity` | varchar | nullable | Kapasitas ruangan (disimpan sebagai string) |
 | `building`, `feature` | varchar | nullable | Metadata ruangan |
-| `card_number` | varchar | nullable | Kartu karyawan (kredensial) |
+| `card_number` | varchar | nullable | **Legacy** (migrasi 013): nilai lama sudah disalin ke `tbl_user_cards` dan kolom ini tidak lagi dibaca lookup kartu |
 | `is_deleted` | boolean | default false | Soft delete |
 | `created_at`, `updated_at` | timestamp | default now | Audit |
 
-Constraint/index penting (`005_phase9_identity.sql`, `009_room_role_separation.sql`):
+Constraint/index penting (`005_phase9_identity.sql`, `009_room_role_separation.sql`,
+`013_employee_id_and_user_cards.sql`):
 
 - `tbl_users_email_lower_key` — unik pada `lower(email)`.
 - `tbl_users_username_lower_key` — unik parsial pada `lower(username)` bila
   tidak NULL.
+- `tbl_users_employee_id_lower_key` — unik parsial pada
+  `lower(btrim(employee_id))` bila tidak kosong. Nullable supaya baris lama
+  tanpa ID tetap bisa hidup; kewajiban diisi ditegakkan API.
 - `tbl_users_email_present` — email wajib, tidak kosong, mengandung `@`.
 - `tbl_users_username_present` — username tidak boleh mengandung `@`.
 - `tbl_users_type_check` — `type IN ('employee','room')`.
@@ -285,7 +299,8 @@ bukti uji balapan.
 | `created_at`, `updated_at` | timestamp | Audit |
 
 Kartu master berlaku untuk check-in/selesai/buka pintu lintas peserta. Kartu
-karyawan disimpan di `tbl_users.card_number`.
+karyawan berada di `tbl_user_cards` (maksimal 2 aktif per user, migrasi 013);
+kedua tabel tidak boleh dicampur.
 
 ### 2.9 `tbl_app_settings`
 
@@ -306,6 +321,38 @@ Satu baris konfigurasi operasional; server selalu mengambil baris pertama
 Tabel `tbl_rooms` masih dibuat oleh `002_tables.sql` tetapi **tidak dipakai
 server maupun CMS saat ini**. Ruangan hidup di `tbl_users` dengan
 `type='room'`. Jangan menambah logika baru di tabel ini.
+
+### 2.11 `tbl_user_cards`
+
+Kartu karyawan (migrasi 013). Satu user boleh punya banyak baris, tetapi
+**maksimal 2 berstatus `active`**; kartu hilang tidak dihapus, hanya diubah
+menjadi `lost` supaya riwayat penggantian kartu tetap ada.
+
+| Kolom | Tipe | Null/Default | Keterangan |
+|---|---|---|---|
+| `_id` | uuid | PK, `gen_random_uuid()` | ID kartu |
+| `user_id` | uuid | FK `tbl_users` ON DELETE CASCADE | Pemilik kartu |
+| `card_number` | varchar | NOT NULL | UID kartu (kredensial) |
+| `status` | varchar | default `active`, `CHECK (active, lost)` | Hanya `active` yang berlaku |
+| `lost_at` | timestamptz | nullable | Diisi saat kartu dilaporkan hilang |
+| `created_at`, `updated_at` | timestamptz | default now | Audit |
+
+Constraint/index:
+
+- `tbl_user_cards_card_number_key` — unik **global** pada
+  `lower(btrim(card_number))`; satu kartu fisik hanya milik satu user.
+- `tbl_user_cards_user_id_idx` — index `user_id` untuk daftar kartu per user.
+- `tbl_user_cards_user_fk` — hapus user (hard delete) ikut menghapus kartunya;
+  server melakukan soft delete, jadi baris kartu biasanya tetap ada.
+
+Aturan aplikasi (bukan constraint DB):
+
+- Batas 2 kartu aktif ditegakkan `addUserCard` (409 `CARD_LIMIT`); tidak ada
+  index yang bisa menyatakan "maksimal dua baris active per user".
+- Lookup kartu (`findEmployeeByCard`, buka pintu, check-in, instant booking)
+  hanya menerima `status='active'` dan user `type='employee'` yang tidak
+  dihapus.
+- Menandai kartu hilang juga mencabut nomornya dari `tbl_card_masters`.
 
 ## 3. Trigger dan sinkronisasi
 
@@ -330,6 +377,8 @@ membebaskan slot, tanpa menghapus riwayat event.
 | Recurrence maksimal 366 hari / 200 occurrence | `recurrence.service` |
 | Lantai karyawan = lantai ruangan | `assertRoomFloorAccess`, `resolveKioskEmployeeByCard` |
 | Satu perangkat aktif per ruangan | `provisionKioskDevice` (aplikasi) |
+| Maksimal 2 kartu aktif per user | `user.service.addUserCard` (409 `CARD_LIMIT`) |
+| Employee ID wajib + unik (case-insensitive) | `user.service` (index unik parsial di DB) |
 | Check-in hanya dalam jendela settings | `event.service` / `kiosk.service` |
 | Soft delete akun/ruangan | repository (`is_deleted`) |
 

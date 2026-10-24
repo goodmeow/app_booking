@@ -11,9 +11,12 @@ import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { isAuthenticated } from "../auth/auth-helper.js";
 import { getApiError } from "../domain/api-error.js";
 import { hasFloor } from "./user-form.js";
+import { primaryCardNumber } from "./users/user-cards.js";
 import UserFormDialog from "./users/UserFormDialog.js";
+import UserCardsDialog from "./users/UserCardsDialog.js";
 import { buildUserColumns } from "./users/user-columns.js";
 import { useUserFormDialog } from "./users/use-user-form-dialog.js";
+import { useUserCardsDialog } from "./users/use-user-cards-dialog.js";
 import {
   useChangePasswordMutation,
   useDeleteUserMutation,
@@ -56,6 +59,7 @@ const UserManagementSection = () => {
   };
 
   const formDialog = useUserFormDialog({ t, onSaved: showFeedback });
+  const cardsDialog = useUserCardsDialog({ t });
 
   const openPasswordDialog = (user) => {
     resetPassword();
@@ -119,7 +123,11 @@ const UserManagementSection = () => {
 
   const toggleMasterCard = async (row, enabled) => {
     try {
-      await updateUser({ userId: row._id, card_number: row.card_number || "", master_card: enabled }).unwrap();
+      await updateUser({
+        userId: row._id,
+        card_number: primaryCardNumber(row),
+        master_card: enabled,
+      }).unwrap();
       showFeedback(enabled ? t("users.masterCardEnabled") : t("users.masterCardDisabled"));
     } catch (mutationError) {
       showFeedback(getApiError(mutationError, t("users.updateError")), "error");
@@ -156,6 +164,7 @@ const UserManagementSection = () => {
     changeFloor,
     toggleMasterCard,
     openEdit: formDialog.openEdit,
+    openCards: cardsDialog.openCards,
     openPasswordDialog,
     openDeleteDialog,
   }), [t, floorOptions, isUpdating, resetDelete, resetPassword]);
@@ -211,6 +220,23 @@ const UserManagementSection = () => {
         floorOptions={floorOptions}
         onClose={formDialog.closeForm}
         onSubmit={formDialog.submitForm}
+        t={t}
+      />
+
+      <UserCardsDialog
+        open={Boolean(cardsDialog.targetUser)}
+        userName={cardsDialog.targetUser?.name || ""}
+        cards={cardsDialog.cards}
+        activeCount={cardsDialog.activeCount}
+        limitReached={cardsDialog.limitReached}
+        cardNumber={cardsDialog.cardNumber}
+        setCardNumber={cardsDialog.setCardNumber}
+        formError={cardsDialog.formError}
+        isAdding={cardsDialog.isAdding}
+        isMarkingLost={cardsDialog.isMarkingLost}
+        onClose={cardsDialog.close}
+        onAddCard={cardsDialog.submitCard}
+        onMarkLost={cardsDialog.markLost}
         t={t}
       />
 

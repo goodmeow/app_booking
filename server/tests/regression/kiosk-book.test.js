@@ -125,7 +125,7 @@ test("cards from other floors are restricted", async () => {
   const created = await apiRequest(targets.reconstructed, "/api/users", {
     method: "POST",
     headers: bearer("admin"),
-    body: JSON.stringify({ name: "Floor Two Employee", email: "floor.two@example.test", password: "Password123!", floor: "2", roleId: "67e9500b-908a-497d-9d3b-54bc020700cb" }),
+    body: JSON.stringify({ name: "Floor Two Employee", employee_id: "EMP-FLOOR-TWO", email: "floor.two@example.test", password: "Password123!", floor: "2", roleId: "67e9500b-908a-497d-9d3b-54bc020700cb" }),
   });
   assert.equal(created.status, 201);
 
@@ -139,12 +139,12 @@ test("cards from other floors are restricted", async () => {
   const targetId = Array.isArray(lookup.body) ? lookup.body[0]?._id : lookup.body?._id;
   assert.ok(targetId);
 
-  const withCard = await apiRequest(targets.reconstructed, `/api/users/${targetId}`, {
-    method: "PUT",
+  const withCard = await apiRequest(targets.reconstructed, `/api/users/${targetId}/cards`, {
+    method: "POST",
     headers: bearer("admin"),
     body: JSON.stringify({ card_number: "FLOOR-TWO-CARD" }),
   });
-  assert.ok([200, 201].includes(withCard.status));
+  assert.equal(withCard.status, 201);
 
   const restricted = await book({ card_number: "FLOOR-TWO-CARD", start: slotStart, end: slotEnd });
   assert.equal(restricted.status, 403);

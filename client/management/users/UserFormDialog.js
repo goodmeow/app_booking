@@ -11,6 +11,7 @@ import FormDialog from "../../components/common/FormDialog.js";
 import { LoadingState } from "../../components/common/AsyncState.js";
 import { getApiError } from "../../domain/api-error.js";
 import { ROLE_OPTIONS } from "../../domain/roles.js";
+import { EMPLOYEE_ID_MAX_LENGTH, employeeIdErrorKey } from "../user-form.js";
 
 const UserFormDialog = ({
   open,
@@ -28,6 +29,8 @@ const UserFormDialog = ({
 }) => {
   const isCreating = mode === "create";
   const isEditing = mode === "edit";
+  // Empty input is only reported on submit; a wrong format is flagged while typing.
+  const employeeIdError = form.employee_id ? employeeIdErrorKey(form.employee_id) : null;
 
   const formField = (name) => ({
     value: form[name],
@@ -50,7 +53,16 @@ const UserFormDialog = ({
           {isEditing && detailError ? (
             <Alert severity="error">{getApiError(detailError, t("users.loadOneError"))}</Alert>
           ) : null}
-          <TextField required label={t("common:fields.name")} autoFocus {...formField("name")} />
+          <TextField
+            required
+            autoFocus
+            label={t("users.employeeId")}
+            helperText={employeeIdError ? t(employeeIdError) : t("users.employeeIdHelp")}
+            error={Boolean(employeeIdError)}
+            inputProps={{ maxLength: EMPLOYEE_ID_MAX_LENGTH }}
+            {...formField("employee_id")}
+          />
+          <TextField required label={t("common:fields.name")} {...formField("name")} />
           <TextField required type="email" label={t("common:fields.email")} {...formField("email")} />
           <TextField label={t("common:fields.usernameOptional")} {...formField("username")} />
           <TextField

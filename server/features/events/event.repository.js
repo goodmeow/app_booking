@@ -334,7 +334,13 @@ export const eventCheckInContext = async (eventId, principalId, cardNumber) => (
      ) AS is_related,
      (
        EXISTS (SELECT 1 FROM tbl_card_masters c WHERE lower(c.card_number) = lower($3))
-       OR EXISTS (SELECT 1 FROM tbl_users u WHERE u._id = $2 AND lower(u.card_number) = lower($3))
+       OR EXISTS (
+         SELECT 1
+         FROM tbl_user_cards card
+         WHERE card.user_id = $2
+           AND card.status = 'active'
+           AND lower(btrim(card.card_number)) = lower(btrim($3))
+       )
      ) AS card_allowed
    FROM tbl_events e
    CROSS JOIN LATERAL (SELECT * FROM tbl_app_settings ORDER BY created_at LIMIT 1) s

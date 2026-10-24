@@ -52,7 +52,9 @@ test("directory rows keep identity fields only, whatever the query returned", ()
     email: "a@x.test",
     type: "employee",
     username: "a",
+    employee_id: "EMP-1",
     card_number: "DEMO-CARD",
+    cards: [{ id: "card-1", card_number: "DEMO-CARD", status: "active" }],
     floor: "3",
     is_master_card: true,
   };

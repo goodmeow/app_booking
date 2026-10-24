@@ -43,33 +43,57 @@ Catatan:
 | Method & path | Akses | Body / query | Sukses | Error penting |
 |---|---|---|---|---|
 | `GET /api/users` | JWT user | `q` (khusus non-admin, minimal 2 karakter) | `200` array karyawan aktif (lihat catatan privasi) | `400 INVALID_QUERY` (q terlalu pendek), `401` |
-| `POST /api/users` | JWT admin | `{name, email, password, roleId(UUID), username?, card_number?, master_card?, floor?}` | `201` user | `400 INVALID_USER/INVALID_EMAIL/INVALID_USERNAME/INVALID_PASSWORD`, `403 FORBIDDEN`, `409 IDENTITY_EXISTS` |
+| `POST /api/users` | JWT admin | `{name, email, employee_id, password, roleId(UUID), username?, floor?, card_number?, master_card?}` | `201` user + `cards[]` | `400 INVALID_USER/INVALID_EMAIL/INVALID_USERNAME/INVALID_PASSWORD/INVALID_EMPLOYEE_ID`, `403 FORBIDDEN`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS` |
 | `PUT /api/users/change-password` | JWT user/admin | `{userId?, oldPassword?, newPassword, newPasswordConfirmation}` | `200 {message}` | `400 INVALID_PASSWORD`, `403`, `404 NOT_FOUND` |
-| `GET /api/users/:userId` | JWT self/admin | – | `200` user | `401`, `403`, `404` |
-| `PUT /api/users/:userId` | JWT self/admin | `{name?, email?, username?, ...}`; `roleId`/`card_number`/`floor` hanya admin | `200` user | `400`, `403`, `404`, `409 IDENTITY_EXISTS` |
+| `GET /api/users/:userId` | JWT self/admin | – | `200` user + `cards[]` | `401`, `403`, `404` |
+| `PUT /api/users/:userId` | JWT self/admin | `{name?, email?, username?, employee_id?, ...}`; `roleId`/`employee_id`/`card_number`/`floor` hanya admin | `200` user + `cards[]` | `400`, `403`, `404`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS` |
 | `DELETE /api/users/:userId` | JWT self/admin | – | `200` user dengan `is_deleted=true` | `401`, `403`, `404` |
+| `POST /api/users/:userId/cards` | JWT admin | `{card_number}` | `201 {id, card_number, status, lost_at}` | `400 INVALID_CARD`, `403`, `404`, `409 CARD_EXISTS/CARD_LIMIT` |
+| `PATCH /api/users/:userId/cards/:cardId` | JWT admin | `{status: "lost"}` | `200 {id, card_number, status, lost_at}` | `400 INVALID_CARD_STATUS`, `403`, `404`, `409 CARD_ALREADY_LOST` |
 
 Catatan:
 - Respons tetap berupa array objek (tidak dibungkus `{data: ...}`).
-- Admin melihat semua karyawan dengan field lengkap (`card_number`, `floor`,
-  `is_master_card`); parameter `q` diabaikan untuk admin.
+- Admin melihat semua karyawan dengan field lengkap (`employee_id`, `floor`,
+  `is_master_card`, `cards[]`); parameter `q` diabaikan untuk admin.
 - Non-admin hanya melihat rekan **satu lantai** (`principal.floor`) dengan field
-  minimal `{_id, name, email, type}`; `card_number`, `is_master_card`, dan
-  `floor` tidak pernah dikirim (`publicEmployee`).
+  minimal `{_id, name, email, type}`; `employee_id`, `card_number`, `cards`,
+  `is_master_card`, dan `floor` tidak pernah dikirim (`publicEmployee`).
 - Non-admin tanpa `floor` menerima `[]` (direktori tidak dibuka), kecuali memakai
   pencarian. Floor `"all"` berarti seluruh direktori, tetap dengan field minimal.
 - Non-admin dengan `?q=` minimal 2 karakter: pencarian `contains`
   case-insensitive pada nama atau email, **lintas lantai**, maksimal 20 baris,
   field minimal. `q` kosong (`?q=`) diperlakukan seperti tanpa `q`; `q` satu
   karakter ditolak `400 INVALID_QUERY`.
-- `GET /api/users/:userId` tetap `selfOrAdmin` dan tidak berubah.
+- `GET /api/users/:userId` tetap `selfOrAdmin`. Pemilik akun menerima `cards[]`
+  miliknya sendiri (kredensial pintu/kiosk-nya), tetapi **bukan** `employee_id`;
+  field itu hanya untuk admin.
+- `employee_id` wajib saat membuat user. Format 1–40 karakter huruf, angka,
+  tanda hubung, atau garis bawah; spasi di awal/akhir dibuang. Unik tanpa
+  memandang huruf besar/kecil: `emp-001` dan `EMP-001` dianggap sama →
+  `409 EMPLOYEE_ID_EXISTS`.
+  Saat edit, field ini opsional; bila dikirim tidak boleh kosong (ID tidak bisa
+  dihapus) dan tetap tunduk pada aturan unik yang sama.
 - Repository direktori hanya memilih `_id,name,email,type`; `publicEmployee`
-  tetap dipakai sebagai lapisan kedua supaya `card_number`, `is_master_card`,
-  dan `floor` tidak pernah lolos.
+  tetap dipakai sebagai lapisan kedua supaya `employee_id`, `card_number`,
+  `cards`, `is_master_card`, dan `floor` tidak pernah lolos.
 - `roleId` wajib UUID; nilai non-UUID ditolak `400` sebelum menyentuh DB.
-- Admin mengganti nomor kartu: kartu lama otomatis dicabut dari
-  `tbl_card_masters`, status master dipindah bila sebelumnya master.
-- Menghapus user otomatis mencabut kartu masternya.
+- Kartu karyawan disimpan di `tbl_user_cards`; satu user maksimal **2 kartu
+  aktif**. Kartu ke-3 ditolak `409 CARD_LIMIT`, nomor yang sudah dipakai user
+  lain ditolak `409 CARD_EXISTS`.
+- `PATCH .../cards/:cardId` hanya menerima `status: "lost"`; kartu tidak dihapus,
+  `lost_at` diisi, dan nomornya otomatis dicabut dari `tbl_card_masters` supaya
+  tidak lagi membuka pintu. Mengulang permintaan yang sama menghasilkan
+  `409 CARD_ALREADY_LOST`.
+- Kartu `lost` tidak dihitung terhadap batas 2, jadi kartu pengganti bisa
+  langsung ditambahkan; kartu `lost` juga tidak berlaku untuk check-in, instant
+  booking, maupun buka pintu (`400 INVALID_CARD`).
+- `card_number` pada `POST`/`PUT /api/users` adalah **jalur legacy** untuk CMS
+  lama: nilainya didaftarkan sebagai kartu user (batas 2 tetap berlaku) dan
+  tidak lagi menulis kolom `tbl_users.card_number`. Klien baru sebaiknya memakai
+  endpoint `cards`.
+- Admin mengganti/menandai kartu: status master mengikuti kartu aktif yang
+  masih ada di `tbl_card_masters`.
+- Menghapus user otomatis mencabut semua nomor kartunya dari `tbl_card_masters`.
 
 ## 4. Rooms
 

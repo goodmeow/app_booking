@@ -136,6 +136,7 @@ test("identity validation prevents ambiguous email and username namespaces", asy
       name: "Invalid Namespace",
       email: "valid@example.test",
       username: "other@example.test",
+      employee_id: "EMP-INVALID-NAMESPACE",
       password: "SecurePass123!",
       roleId: "471ba030-c950-41f9-90da-4e0fe10426a6",
     }),

@@ -70,10 +70,13 @@ export const hasDoorCard = async (cardNumber) => {
        WHERE lower(card_number) = lower($1)
      )
      OR EXISTS (
-       SELECT 1 FROM tbl_users
-       WHERE type = 'employee'
-         AND is_deleted IS NOT TRUE
-         AND lower(card_number) = lower($1)
+       SELECT 1
+       FROM tbl_user_cards card
+       JOIN tbl_users owner ON owner._id = card.user_id
+       WHERE card.status = 'active'
+         AND lower(btrim(card.card_number)) = lower(btrim($1))
+         AND owner.type = 'employee'
+         AND owner.is_deleted IS NOT TRUE
      )
      LIMIT 1`,
     [cardNumber]

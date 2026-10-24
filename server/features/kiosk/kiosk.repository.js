@@ -184,8 +184,10 @@ export const findKioskEventActionContext = async ({ eventId, roomId, cardNumber 
        EXISTS (SELECT 1 FROM tbl_card_masters c WHERE lower(c.card_number) = lower($3))
        OR EXISTS (
          SELECT 1
-         FROM tbl_users card_owner
-         WHERE lower(card_owner.card_number) = lower($3)
+         FROM tbl_user_cards card
+         JOIN tbl_users card_owner ON card_owner._id = card.user_id
+         WHERE lower(btrim(card.card_number)) = lower(btrim($3))
+           AND card.status = 'active'
            AND card_owner.type = 'employee'
            AND card_owner.is_deleted IS NOT TRUE
            AND (
@@ -211,13 +213,18 @@ export const findKioskEventActionContext = async ({ eventId, roomId, cardNumber 
   [eventId, roomId, String(cardNumber || "")]
 )).rows[0] || null;
 
+// Only an active card of an active employee resolves to a person. A card that
+// was reported lost keeps its row (status 'lost') and is ignored here, which is
+// what stops it from checking in or booking.
 export const findEmployeeByCard = async (cardNumber) => (await query(
-  `SELECT _id, name, email, card_number, floor
-   FROM tbl_users
-   WHERE type = 'employee'
-     AND is_deleted IS NOT TRUE
-     AND lower(card_number) = lower($1)
-   ORDER BY created_at
+  `SELECT u._id, u.name, u.email, u.employee_id, u.floor, card.card_number
+   FROM tbl_user_cards card
+   JOIN tbl_users u ON u._id = card.user_id
+   WHERE u.type = 'employee'
+     AND u.is_deleted IS NOT TRUE
+     AND card.status = 'active'
+     AND lower(btrim(card.card_number)) = lower(btrim($1))
+   ORDER BY card.created_at
    LIMIT 1`,
   [String(cardNumber || "")]
 )).rows[0] || null;

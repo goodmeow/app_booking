@@ -11,7 +11,26 @@ export const usersApi = api.injectEndpoints({
     updateUser: builder.mutation({ query: ({ userId, ...body }) => ({ url: `users/${userId}`, method: "PUT", body }), invalidatesTags: ["users"] }),
     changePassword: builder.mutation({ query: (body) => ({ url: "users/change-password", method: "PUT", body }) }),
     deleteUser: builder.mutation({ query: (id) => ({ url: `users/${id}`, method: "DELETE" }), invalidatesTags: ["users"] }),
+    // Cards are never deleted: a lost card keeps its record so the history
+    // survives and a replacement can be issued with a new number.
+    addUserCard: builder.mutation({
+      query: ({ userId, card_number }) => ({ url: `users/${userId}/cards`, method: "POST", body: { card_number } }),
+      invalidatesTags: ["users"],
+    }),
+    markUserCardLost: builder.mutation({
+      query: ({ userId, cardId }) => ({ url: `users/${userId}/cards/${cardId}`, method: "PATCH", body: { status: "lost" } }),
+      invalidatesTags: ["users"],
+    }),
   }),
 });
 
-export const { useListUserQuery, useDetailUserQuery, useCreateUserMutation, useUpdateUserMutation, useChangePasswordMutation, useDeleteUserMutation } = usersApi;
+export const {
+  useListUserQuery,
+  useDetailUserQuery,
+  useCreateUserMutation,
+  useUpdateUserMutation,
+  useChangePasswordMutation,
+  useDeleteUserMutation,
+  useAddUserCardMutation,
+  useMarkUserCardLostMutation,
+} = usersApi;

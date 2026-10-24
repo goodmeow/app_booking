@@ -3,7 +3,14 @@ import fs from "node:fs";
 import test from "node:test";
 import { getApiError } from "../domain/api-error.js";
 import { ROLE_IDS, ROLE_OPTIONS } from "../domain/roles.js";
-import { createEmptyUserForm } from "../management/user-form.js";
+import { createEmptyUserForm, EMPLOYEE_ID_MAX_LENGTH, employeeIdErrorKey } from "../management/user-form.js";
+import {
+  CARD_ACTIVE_LIMIT,
+  activeCardCount,
+  cardLimitReached,
+  primaryCardNumber,
+} from "../management/users/user-cards.js";
+import { userMutationError } from "../management/users/user-api-errors.js";
 
 test("uses recovered role UUIDs", () => {
   assert.equal(ROLE_IDS.ADMIN, "471ba030-c950-41f9-90da-4e0fe10426a6");
@@ -13,6 +20,81 @@ test("uses recovered role UUIDs", () => {
 
 test("new users default to User role", () => {
   assert.equal(createEmptyUserForm().roleId, ROLE_IDS.USER);
+});
+
+test("employee ID stays empty on a new form and is validated before submit", () => {
+  assert.equal(createEmptyUserForm().employee_id, "");
+  assert.equal(employeeIdErrorKey(""), "users.employeeIdRequired");
+  assert.equal(employeeIdErrorKey("   "), "users.employeeIdRequired");
+  assert.equal(employeeIdErrorKey(undefined), "users.employeeIdRequired");
+  assert.equal(employeeIdErrorKey("EMP-001"), null);
+  assert.equal(employeeIdErrorKey(" emp_001 "), null);
+  assert.equal(employeeIdErrorKey("EMP 001"), "users.employeeIdInvalid");
+  assert.equal(employeeIdErrorKey("EMP/001"), "users.employeeIdInvalid");
+  assert.equal(employeeIdErrorKey("A".repeat(EMPLOYEE_ID_MAX_LENGTH)), null);
+  assert.equal(employeeIdErrorKey("A".repeat(EMPLOYEE_ID_MAX_LENGTH + 1)), "users.employeeIdInvalid");
+});
+
+test("card helpers count active cards only and know the two-card limit", () => {
+  const cards = [
+    { id: "c1", card_number: "AAA", status: "active" },
+    { id: "c2", card_number: "BBB", status: "lost" },
+  ];
+  assert.equal(CARD_ACTIVE_LIMIT, 2);
+  assert.equal(activeCardCount({ cards }), 1);
+  assert.equal(cardLimitReached({ cards }), false);
+  assert.equal(primaryCardNumber({ cards }), "AAA");
+  const twoActive = { cards: [...cards, { id: "c3", card_number: "CCC", status: "active" }] };
+  assert.equal(activeCardCount(twoActive), 2);
+  assert.equal(cardLimitReached(twoActive), true);
+  // Older payloads still carry the flat card_number field.
+  assert.equal(primaryCardNumber({ card_number: "LEGACY" }), "LEGACY");
+  assert.equal(primaryCardNumber({}), "");
+  assert.equal(activeCardCount({}), 0);
+});
+
+test("employee ID and card failures map to their management messages", () => {
+  const translate = (key) => `t:${key}`;
+  assert.equal(
+    userMutationError({ data: { code: "EMPLOYEE_ID_EXISTS" } }, translate, "fallback"),
+    "t:users.employeeIdExists"
+  );
+  assert.equal(
+    userMutationError({ data: { code: "INVALID_EMPLOYEE_ID" } }, translate, "fallback"),
+    "t:users.employeeIdInvalid"
+  );
+  assert.equal(userMutationError({ data: { code: "CARD_LIMIT" } }, translate, "fallback"), "t:users.cardLimit");
+  assert.equal(userMutationError({ data: { code: "CARD_EXISTS" } }, translate, "fallback"), "t:users.cardExists");
+  // Everything else keeps the shared API error translation or the fallback.
+  assert.equal(
+    userMutationError({ data: { code: "NOT_FOUND" } }, translate, "fallback"),
+    "t:common:apiErrors.notFound"
+  );
+  assert.equal(userMutationError({ data: { error: "Database rejected request" } }, translate, "fallback"), "Database rejected request");
+  assert.equal(userMutationError(null, translate, "fallback"), "fallback");
+});
+
+test("user grid and service expose employee ID and card management", () => {
+  const userColumns = fs.readFileSync(new URL("../management/users/user-columns.js", import.meta.url), "utf8");
+  const service = fs.readFileSync(new URL("../redux/services/users.js", import.meta.url), "utf8");
+  const section = fs.readFileSync(new URL("../management/UserManagementSection.js", import.meta.url), "utf8");
+  const dialog = fs.readFileSync(new URL("../management/users/UserCardsDialog.js", import.meta.url), "utf8");
+
+  assert.match(userColumns, /field: "employee_id"/);
+  assert.ok(
+    userColumns.indexOf('field: "email"') < userColumns.indexOf('field: "employee_id"'),
+    "employee ID column follows email"
+  );
+  assert.match(userColumns, /field: "employee_id",[\s\S]{0,120}minWidth: 130/);
+
+  assert.match(service, /users\/\$\{userId\}\/cards/);
+  assert.match(service, /method: "PATCH"/);
+  assert.match(service, /status: "lost"/);
+  assert.match(service, /invalidatesTags: \["users"\]/);
+
+  assert.match(section, /<UserCardsDialog/);
+  assert.match(dialog, /users\.cardLimit/);
+  assert.match(dialog, /users\.cardMarkLost/);
 });
 
 test("normalizes RTK Query and Error messages", () => {

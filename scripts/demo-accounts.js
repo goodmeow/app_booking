@@ -22,10 +22,10 @@ const ROLE_USER = "67e9500b-908a-497d-9d3b-54bc020700cb";
 const accounts = [
   // Cards here are dummies; real card UIDs are never stored in the repo and are
   // set directly in the local demo DB with private SQL when needed.
-  { name: "Karyawan Prasada", email: "karyawan@uji.prasada.test", password: "1234", floor: "1", card: "DEMO-PRASADA-CARD" },
-  { name: "Karyawan Uji", email: "emp@uji.local", password: "1234", floor: "1", card: "DEMO-UJI-CARD" },
+  { employeeId: "EMP-PRASADA", name: "Karyawan Prasada", email: "karyawan@uji.prasada.test", password: "1234", floor: "1", card: "DEMO-PRASADA-CARD" },
+  { employeeId: "EMP-UJI", name: "Karyawan Uji", email: "emp@uji.local", password: "1234", floor: "1", card: "DEMO-UJI-CARD" },
   // Office employee account (a short password is expected, created via script: the CMS rejects passwords under 8 characters).
-  { name: "Karyawan Demo", email: "karyawan3@uji.local", password: "1234", floor: "1" },
+  { employeeId: "EMP-HARUN", name: "Harun", email: "karyawan3@uji.local", password: "1234", floor: "1" },
 ];
 
 const client = new Client({
@@ -52,17 +52,33 @@ try {
   const bcrypt = (await import("bcrypt")).default;
   for (const account of accounts) {
     const hash = bcrypt.hashSync(account.password, 12);
-    await client.query(
-      `INSERT INTO tbl_users (name, email, password, type, floor, card_number, role_id, is_deleted)
+    // Cards live in tbl_user_cards; the legacy card_number column is cleared so
+    // a rebuilt demo never reintroduces a second source of truth.
+    const { rows: [user] } = await client.query(
+      `INSERT INTO tbl_users (name, email, password, type, floor, employee_id, role_id, is_deleted)
        VALUES ($1, $2, $3, 'employee', $4, $5, $6, false)
        ON CONFLICT (email) DO UPDATE
          SET password = EXCLUDED.password,
              role_id = EXCLUDED.role_id,
              floor = EXCLUDED.floor,
-             card_number = EXCLUDED.card_number,
-             is_deleted = false`,
-      [account.name, account.email, hash, account.floor, account.card, roleId]
+             employee_id = EXCLUDED.employee_id,
+             card_number = NULL,
+             is_deleted = false
+       RETURNING _id`,
+      [account.name, account.email, hash, account.floor, account.employeeId, roleId]
     );
+    if (account.card) {
+      await client.query(
+        `INSERT INTO tbl_user_cards (user_id, card_number, status)
+         VALUES ($1, $2, 'active')
+         ON CONFLICT (lower(btrim(card_number))) DO UPDATE
+           SET status = 'active',
+               lost_at = NULL,
+               updated_at = now()
+           WHERE tbl_user_cards.user_id = EXCLUDED.user_id`,
+        [user._id, account.card]
+      );
+    }
     console.log(`account ready: ${account.email}`);
   }
 } finally {

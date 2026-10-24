@@ -28,6 +28,7 @@ test("admin keeps the employee card in the user list and can flag it as master",
       name: "Card Officer",
       email: "card.officer@example.test",
       username: "card-officer",
+      employee_id: "EMP-OFFICER",
       password: "Petugas123!",
       card_number: "555000111",
       master_card: true,
@@ -35,7 +36,10 @@ test("admin keeps the employee card in the user list and can flag it as master",
     }),
   });
   assert.equal(created.status, 201);
-  assert.equal(created.body.card_number, "555000111");
+  assert.equal(created.body.employee_id, "EMP-OFFICER");
+  assert.equal(created.body.cards.length, 1);
+  assert.equal(created.body.cards[0].card_number, "555000111");
+  assert.equal(created.body.cards[0].status, "active");
   assert.equal(created.body.is_master_card, true);
   assert.equal(
     await queryParityDatabase("SELECT count(*) FROM tbl_card_masters WHERE card_number = '555000111';"),
@@ -45,7 +49,7 @@ test("admin keeps the employee card in the user list and can flag it as master",
   const listed = await apiRequest(targets.reconstructed, "/api/users/", { headers: bearer("admin") });
   assert.equal(listed.status, 200);
   const row = listed.body.find((user) => user.email === "card.officer@example.test");
-  assert.equal(row.card_number, "555000111");
+  assert.equal(row.cards[0].card_number, "555000111");
   assert.equal(row.is_master_card, true);
 
   const unflagged = await apiRequest(targets.reconstructed, `/api/users/${created.body._id}`, {
@@ -140,7 +144,8 @@ test("an admin keeps the full list and ignores the search term", async () => {
   assert.deepEqual(searched.body, plain.body);
 
   const officer = plain.body.find((row) => row.email === "card.officer@example.test");
-  assert.equal(officer.card_number, "555000111");
+  assert.equal(officer.cards[0].card_number, "555000111");
+  assert.equal(officer.employee_id, "EMP-OFFICER");
   assert.ok(Object.hasOwn(officer, "floor"));
   assert.ok(Object.hasOwn(officer, "is_master_card"));
 });

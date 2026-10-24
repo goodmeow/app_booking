@@ -1,14 +1,18 @@
 import bcrypt from "bcrypt";
 import { withTransaction } from "../../db/pool.js";
-import { badRequest, forbidden, HttpError, notFound } from "../../lib/http-error.js";
+import { badRequest, conflict, forbidden, HttpError, notFound } from "../../lib/http-error.js";
 import {
   findAccountById,
   findAccountWithPassword,
+  findUserCard,
   insertAccount,
+  insertUserCard,
   listEmployeeDirectory,
   listEmployees,
+  listUserCards,
   searchEmployeeDirectory,
   setMasterCard,
+  setUserCardLost,
   softDeleteAccount,
   updateAccount,
   updatePassword,
@@ -20,6 +24,16 @@ import { revokeRoomKioskDevices } from "../kiosk/kiosk.repository.js";
 // because a PostgreSQL uuid column throws 22P02 (HTTP 500) when the value gets through.
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// Employee IDs are typed by admins, so the format stays plain: letters, digits,
+// dashes, and underscores (the CMS accepts the same set). The database index
+// compares lower(btrim(employee_id)), which makes the uniqueness check
+// case-insensitive without changing the stored text.
+const EMPLOYEE_ID_PATTERN = /^[A-Za-z0-9_-]{1,40}$/;
+
+// A user keeps a current badge and one spare. Lost cards stay in the table as
+// history but no longer count towards this limit.
+export const ACTIVE_CARD_LIMIT = 2;
+
 const cleanIdentity = (body) => {
   const values = {
     ...body,
@@ -30,14 +44,94 @@ const cleanIdentity = (body) => {
   return values;
 };
 
+export const normalizedEmployeeId = (value, { required = false } = {}) => {
+  const employeeId = String(value ?? "").trim();
+  if (!employeeId) {
+    if (required) throw badRequest("INVALID_EMPLOYEE_ID", "Employee ID is required");
+    return null;
+  }
+  if (!EMPLOYEE_ID_PATTERN.test(employeeId)) {
+    throw badRequest("INVALID_EMPLOYEE_ID", "Employee ID must be 1-40 letters, numbers, dashes, or underscores");
+  }
+  return employeeId;
+};
+
+// A 23505 on the employee_id index is a different field error than a duplicate
+// email or username, so the CMS can highlight the right input.
+export const identityConflictCode = (error) => {
+  if (error?.code !== "23505") return null;
+  const constraint = String(error.constraint || "").toLowerCase();
+  return constraint.includes("employee_id") ? "EMPLOYEE_ID_EXISTS" : "IDENTITY_EXISTS";
+};
+
 const mapIdentityError = (error) => {
-  if (error.code === "23505") throw new HttpError(409, "IDENTITY_EXISTS", "Email or username already exists");
+  const code = identityConflictCode(error);
+  if (!code) throw error;
+  const message = code === "EMPLOYEE_ID_EXISTS"
+    ? "Employee ID already exists"
+    : "Email or username already exists";
+  throw new HttpError(409, code, message);
+};
+
+const normalizedCardNumber = (value) => {
+  const cardNumber = String(value ?? "").trim();
+  if (!cardNumber) throw badRequest("INVALID_CARD", "Card number is required");
+  return cardNumber;
+};
+
+const mapCardError = (error) => {
+  if (error?.code === "23505") throw conflict("CARD_EXISTS", "Card number is already registered");
   throw error;
 };
 
+export const activeCardCount = (cards) => cards.filter((card) => card.status === "active").length;
+
+export const activeCardLimitReached = (cards) => activeCardCount(cards) >= ACTIVE_CARD_LIMIT;
+
+// Cards are global: one physical card cannot belong to two employees. The limit
+// only counts active cards, so replacing a reported-lost card always fits.
+export const addUserCard = async (userId, cardNumber, { execute } = {}) => {
+  if (!UUID_PATTERN.test(String(userId))) throw notFound("User not found");
+  const normalized = normalizedCardNumber(cardNumber);
+  const user = await findAccountById(userId, "employee", execute);
+  if (!user) throw notFound("User not found");
+  const cards = await listUserCards(userId, execute);
+  if (activeCardLimitReached(cards)) {
+    throw conflict("CARD_LIMIT", `A user can hold at most ${ACTIVE_CARD_LIMIT} active cards`);
+  }
+  try {
+    return await insertUserCard({ userId, cardNumber: normalized }, execute);
+  } catch (error) {
+    mapCardError(error);
+  }
+};
+
+// A lost card is kept as a record, never deleted. The door master list is
+// revoked at the same time so the physical card stops working immediately.
+export const markUserCardLost = async (userId, cardId, principal) => {
+  if (!UUID_PATTERN.test(String(userId)) || !UUID_PATTERN.test(String(cardId))) {
+    throw notFound("Card not found");
+  }
+  const existing = await findUserCard(userId, cardId);
+  if (!existing) throw notFound("Card not found");
+  if (existing.status !== "active") throw conflict("CARD_ALREADY_LOST", "The card is already marked as lost");
+  const lost = await setUserCardLost(cardId);
+  if (!lost) throw conflict("CARD_ALREADY_LOST", "The card is already marked as lost");
+  await setMasterCard(lost.card_number, false, principal?._id);
+  return lost;
+};
+
 // The card number is a credential (check-in, finish, instant booking, door).
-// Only admins may see it; other users only need the name list.
-export const publicEmployee = ({ card_number, is_master_card, floor, ...rest }) => rest;
+// Only admins may see the whole profile; other users only need the name list.
+export const publicEmployee = ({ card_number, is_master_card, floor, employee_id, cards, ...rest }) => rest;
+
+// employee_id is HR data for the admin list. The account owner still sees their
+// own cards, because those are their door and kiosk credentials.
+export const visibleAccount = (user, principal) => {
+  if (principal?.role === "ADMIN") return user;
+  const { employee_id, ...rest } = user;
+  return rest;
+};
 
 // A one-character query would match most of the company, so the directory
 // search starts at two characters. Shorter input is an error instead of an
@@ -74,7 +168,7 @@ export const directoryScope = (principal, query = {}) => {
 };
 
 export const getUsers = async (principal, query = {}) => {
-  // Admins keep the complete list, including card number, floor, and the
+  // Admins keep the complete list, including employee ID, cards, floor, and the
   // master-card flag; the search parameter does not apply to them.
   if (principal?.role === "ADMIN") return listEmployees();
 
@@ -88,28 +182,45 @@ export const getUsers = async (principal, query = {}) => {
   return colleagues.map(directoryEmployee);
 };
 
-export const getUser = async (id) => {
+export const getUser = async (id, principal) => {
   const user = await findAccountById(id, "employee");
   if (!user) throw notFound("User not found");
-  return user;
+  return visibleAccount(user, principal);
 };
+
+// The legacy single card field is still accepted from older CMS builds and is
+// registered as a card of the user, so a form that was not updated yet cannot
+// create an account without door access.
+const legacyCardNumber = (body) => String(body.card_number ?? "").trim();
+
+const hasCardNumber = (cards, cardNumber) => cards.some(
+  (card) => card.card_number.trim().toLowerCase() === cardNumber.toLowerCase()
+);
 
 export const createUser = async (body, principal) => {
   const values = cleanIdentity(body);
   if (!values.name || !values.email || !body.password || !body.roleId) throw badRequest("INVALID_USER", "Name, email, password, and role are required");
   if (!UUID_PATTERN.test(String(body.roleId))) throw badRequest("INVALID_USER", "Role must be a valid role identifier");
+  const employeeId = normalizedEmployeeId(body.employee_id, { required: true });
+  const cardNumber = legacyCardNumber(body);
+  const passwordHash = await bcrypt.hash(validatedPassword(body.password), 12);
   try {
-    const user = await insertAccount({
-      ...values,
-      roleId: body.roleId,
-      cardNumber: body.card_number,
-      type: "employee",
-      password: await bcrypt.hash(validatedPassword(body.password), 12),
+    const created = await withTransaction(async (client) => {
+      const execute = (text, params) => client.query(text, params);
+      const user = await insertAccount({
+        ...values,
+        employeeId,
+        roleId: body.roleId,
+        type: "employee",
+        password: passwordHash,
+      }, execute);
+      if (cardNumber) {
+        await addUserCard(user._id, cardNumber, { execute });
+        if (body.master_card === true) await setMasterCard(cardNumber, true, principal?._id, execute);
+      }
+      return user;
     });
-    if (body.master_card === true && user.card_number) {
-      await setMasterCard(user.card_number, true, principal?._id);
-    }
-    return { ...user, is_master_card: body.master_card === true && Boolean(user.card_number) };
+    return findAccountById(created._id, "employee");
   } catch (error) {
     mapIdentityError(error);
   }
@@ -118,40 +229,37 @@ export const createUser = async (body, principal) => {
 export const editUser = async (id, body, principal) => {
   const values = cleanIdentity(body);
   const isAdmin = principal.role === "ADMIN";
-  const before = isAdmin ? await findAccountById(id, "employee") : null;
   if (!isAdmin) {
-    // Only admins may change the role, card number, and master-card flag.
+    // Only admins may change the role, employee ID, floor, and cards.
     delete values.roleId;
+    delete values.employee_id;
     delete values.card_number;
     delete values.floor;
-  } else if (values.roleId !== undefined && !UUID_PATTERN.test(String(values.roleId))) {
-    throw badRequest("INVALID_USER", "Role must be a valid role identifier");
+  } else {
+    if (values.roleId !== undefined && !UUID_PATTERN.test(String(values.roleId))) {
+      throw badRequest("INVALID_USER", "Role must be a valid role identifier");
+    }
+    // Supplying the field means the admin wants to change it; clearing an
+    // employee ID is not offered because new accounts always have one.
+    if (Object.hasOwn(body, "employee_id")) {
+      values.employeeId = normalizedEmployeeId(body.employee_id, { required: true });
+    }
   }
+  const cardNumber = isAdmin ? legacyCardNumber(body) : "";
   try {
     const user = await updateAccount(id, values, "employee");
     if (!user || user.type !== "employee") throw notFound("User not found");
-    let isMasterCard = null;
-    // Changing the card number: the old card is removed from the master list so a
-    // lost card does not stay valid, and the status moves to the new card unless
-    // the admin sets master_card explicitly.
-    const oldCard = String(before?.card_number || "").trim();
-    const newCard = String(user.card_number || "").trim();
-    if (before && oldCard && oldCard.toLowerCase() !== newCard.toLowerCase()) {
-      await setMasterCard(oldCard, false, principal._id);
-      if (before.is_master_card && body.master_card === undefined && newCard) {
-        await setMasterCard(newCard, true, principal._id);
-        isMasterCard = true;
+    // Existing cards are never removed by a profile update. A new number is
+    // registered as another card; a number the user already holds is a no-op so
+    // resubmitting the old form does not fail.
+    if (cardNumber) {
+      const cards = await listUserCards(id);
+      if (!hasCardNumber(cards, cardNumber)) await addUserCard(id, cardNumber);
+      if (body.master_card !== undefined) {
+        await setMasterCard(cardNumber, body.master_card === true, principal._id);
       }
     }
-    if (isAdmin && body.master_card !== undefined) {
-      if (user.card_number) {
-        await setMasterCard(user.card_number, body.master_card === true, principal._id);
-        isMasterCard = body.master_card === true;
-      } else {
-        isMasterCard = false;
-      }
-    }
-    return { ...user, ...(isMasterCard === null ? {} : { is_master_card: isMasterCard }) };
+    return visibleAccount(await findAccountById(id, "employee"), principal);
   } catch (error) {
     mapIdentityError(error);
   }
@@ -177,10 +285,13 @@ export const changeUserPassword = async (body, principal) => {
 };
 
 export const deleteUser = async (id, principal) => {
-  const existing = await findAccountById(id, "employee");
+  if (!UUID_PATTERN.test(String(id))) throw notFound("User not found");
+  const cards = await listUserCards(id);
   const user = await softDeleteAccount(id, "employee");
   if (!user) throw notFound("User not found");
-  // A deleted account must not leave a master card that is still valid.
-  if (existing?.card_number) await setMasterCard(existing.card_number, false, principal?._id);
+  // A deleted account must not leave a card that still opens the door.
+  for (const card of cards) {
+    await setMasterCard(card.card_number, false, principal?._id);
+  }
   return user;
 };

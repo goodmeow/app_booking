@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { getApiError } from "../../domain/api-error.js";
 import { ROLE_IDS } from "../../domain/roles.js";
-import { createEmptyUserForm } from "../user-form.js";
+import { createEmptyUserForm, employeeIdErrorKey } from "../user-form.js";
+import { primaryCardNumber } from "./user-cards.js";
+import { userMutationError } from "./user-api-errors.js";
 import {
   useCreateUserMutation,
   useDetailUserQuery,
@@ -34,7 +35,8 @@ export const useUserFormDialog = ({ t, onSaved }) => {
       email: editUser.email || "",
       username: editUser.username || "",
       password: "",
-      card_number: editUser.card_number || "",
+      employee_id: editUser.employee_id || "",
+      card_number: primaryCardNumber(editUser),
       master_card: Boolean(editUser.is_master_card),
       floor: editUser.floor || "",
       roleId: editUser.role_id || ROLE_IDS.USER,
@@ -74,7 +76,7 @@ export const useUserFormDialog = ({ t, onSaved }) => {
     setFormError("");
 
     if (formMode === "edit" && isDetailError) {
-      setFormError(getApiError(detailError, t("users.loadOneError")));
+      setFormError(userMutationError(detailError, t, t("users.loadOneError")));
       return;
     }
 
@@ -82,6 +84,11 @@ export const useUserFormDialog = ({ t, onSaved }) => {
     const email = form.email.trim();
     if (!name || !email || !form.roleId || (formMode === "create" && !form.password)) {
       setFormError(t("users.required"));
+      return;
+    }
+    const employeeIdError = employeeIdErrorKey(form.employee_id);
+    if (employeeIdError) {
+      setFormError(t(employeeIdError));
       return;
     }
     if (formMode === "create" && form.password.length < 8) {
@@ -96,6 +103,7 @@ export const useUserFormDialog = ({ t, onSaved }) => {
     }
 
     const body = {
+      employee_id: form.employee_id.trim(),
       name,
       email,
       username: form.username.trim(),
@@ -120,7 +128,11 @@ export const useUserFormDialog = ({ t, onSaved }) => {
       resetCreate();
       resetUpdate();
     } catch (mutationError) {
-      setFormError(getApiError(mutationError, t(formMode === "create" ? "users.createError" : "users.updateError")));
+      setFormError(userMutationError(
+        mutationError,
+        t,
+        t(formMode === "create" ? "users.createError" : "users.updateError"),
+      ));
     }
   };
 
