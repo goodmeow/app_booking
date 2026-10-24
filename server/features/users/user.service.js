@@ -24,11 +24,12 @@ import { revokeRoomKioskDevices } from "../kiosk/kiosk.repository.js";
 // because a PostgreSQL uuid column throws 22P02 (HTTP 500) when the value gets through.
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Employee IDs are typed by admins, so the format stays plain: letters, digits,
-// dashes, and underscores (the CMS accepts the same set). The database index
+// Employee IDs follow the HR code, which may contain dots (BioTime emp_code
+// examples: "001-01.25"). Letters, digits, dot, dash, and underscore are
+// allowed; whitespace and other punctuation are rejected. The database index
 // compares lower(btrim(employee_id)), which makes the uniqueness check
 // case-insensitive without changing the stored text.
-const EMPLOYEE_ID_PATTERN = /^[A-Za-z0-9_-]{1,40}$/;
+const EMPLOYEE_ID_PATTERN = /^[A-Za-z0-9._-]{1,40}$/;
 
 // A user keeps a current badge and one spare. Lost cards stay in the table as
 // history but no longer count towards this limit.
@@ -51,7 +52,7 @@ export const normalizedEmployeeId = (value, { required = false } = {}) => {
     return null;
   }
   if (!EMPLOYEE_ID_PATTERN.test(employeeId)) {
-    throw badRequest("INVALID_EMPLOYEE_ID", "Employee ID must be 1-40 letters, numbers, dashes, or underscores");
+    throw badRequest("INVALID_EMPLOYEE_ID", "Employee ID must be 1-40 letters, numbers, dots, dashes, or underscores");
   }
   return employeeId;
 };

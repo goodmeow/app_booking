@@ -98,7 +98,7 @@
     "employeeId": "ID Karyawan",
     "employeeIdHelp": "Contoh: EMP-001",
     "employeeIdRequired": "ID karyawan wajib diisi.",
-    "employeeIdInvalid": "ID karyawan hanya boleh berisi huruf, angka, tanda hubung, dan garis bawah (maksimal 40 karakter).",
+    "employeeIdInvalid": "ID karyawan hanya boleh berisi huruf, angka, titik, tanda hubung, dan garis bawah (maksimal 40 karakter).",
     "employeeIdExists": "ID karyawan ini sudah dipakai.",
     "cardsTitle": "Kartu akses {{name}}",
     "cardsActiveCount": "{{count}} dari {{max}} kartu aktif",

@@ -72,7 +72,7 @@ Catatan:
   miliknya sendiri (kredensial pintu/kiosk-nya), tetapi **bukan** `employee_id`;
   field itu hanya untuk admin.
 - `employee_id` wajib saat membuat user. Format 1–40 karakter huruf, angka,
-  tanda hubung, atau garis bawah; spasi di awal/akhir dibuang. Unik tanpa
+  titik, tanda hubung, atau garis bawah; spasi di awal/akhir dibuang. Unik tanpa
   memandang huruf besar/kecil: `emp-001` dan `EMP-001` dianggap sama →
   `409 EMPLOYEE_ID_EXISTS`.
   Saat edit, field ini opsional; bila dikirim tidak boleh kosong (ID tidak bisa

@@ -17,7 +17,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 ## Posisi saat ini (Ver 3 Rev 8)
 
-- CMS + API: **Ver 3 Rev 8**, `package.json` `3.8.0`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 8**, `package.json` `3.8.1`, ditampilkan di footer
   semua halaman CMS (dari package.json).
 - APK kiosk: `versionName 1.3 / versionCode 11`, menampilkan ver + UUID
   perangkat di layar; string di res/values + values-en (bahasa ID/EN),
@@ -84,6 +84,8 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
 - Migrasi `015_receptionist_on_behalf.sql`. Bukti: unit 74/74, client 80/80,
   regresi 77/77, parity 8/8; alur demo (booking lt.2 untuk karyawan lt.1
   berhasil, lt.3 ditolak) dan pairing tablet utuh.
+- Patch `3.8.1`: `employee_id` mengizinkan titik agar kode HR BioTime
+  (contoh `001-01.25`) bisa dipakai langsung.
 
 ## Cara naikkan
 

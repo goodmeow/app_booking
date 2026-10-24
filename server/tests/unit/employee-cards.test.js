@@ -28,14 +28,16 @@ test("employee_id is required when the caller asks for it", () => {
   assert.equal(normalizedEmployeeId(undefined), null);
 });
 
-test("employee_id only accepts 1-40 letters, digits, dashes, and underscores", () => {
-  for (const value of ["EMP 001", "EMP.001", "x".repeat(41), "EMP/001", "EMP@001"]) {
+test("employee_id accepts letters, digits, dots, dashes, and underscores", () => {
+  for (const value of ["EMP 001", "x".repeat(41), "EMP/001", "EMP@001"]) {
     assert.throws(
       () => normalizedEmployeeId(value, { required: true }),
       (error) => error.status === 400 && error.code === "INVALID_EMPLOYEE_ID"
     );
   }
   assert.equal(normalizedEmployeeId("A".repeat(40)).length, 40);
+  // BioTime employee codes use dots, for example "001-01.25".
+  assert.equal(normalizedEmployeeId("001-01.25"), "001-01.25");
 });
 
 test("a duplicate employee_id reports its own conflict code", () => {
