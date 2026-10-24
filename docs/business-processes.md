@@ -1,4 +1,4 @@
-# Proses Bisnis 360 Scheduler
+# Proses Bisnis RoomBooking
 
 Ringkasan aturan yang dijalankan kode saat ini (diperiksa 2026-10-24).
 Referensi teknis: [`architecture.md`](architecture.md),
@@ -173,8 +173,11 @@ Nilai settings berasal dari `tbl_app_settings` baris pertama. Seed demo: buka
 
 ### 7.4 Selesai lebih awal
 
-- Tombol **Selesai** di tablet memakai `POST /api/kiosk/events/complete`
-  (tanpa kartu, sesuai keputusan produk 2026-10-23).
+- Tombol **Finish/Selesai** di tablet memakai
+  `POST /api/kiosk/events/complete` (tanpa kartu, sesuai keputusan produk
+  2026-10-23). Sejak APK 1.3.4 tombol ini **disembunyikan** dan baru muncul
+  setelah **5 tap** pada pill **IN USE** (easter egg operator) agar tidak
+  tersentuh tanpa sengaja.
 - Endpoint alternatif `PUT /api/kiosk/events/early-finish` masih ada dan
   mensyaratkan kartu; keduanya hanya berlaku untuk meeting yang sudah
   check-in dan sedang berjalan (`start <= now < end`).
@@ -184,8 +187,9 @@ Nilai settings berasal dari `tbl_app_settings` baris pertama. Seed demo: buka
 ### 7.5 Perpanjangan
 
 `POST /api/kiosk/events/extend` menambah 5–60 menit (default 15) hanya untuk
-meeting checked-in yang sedang berjalan. Bila slot berikutnya sudah dipakai →
-`409 ROOM_CONFLICT`.
+meeting checked-in yang sedang berjalan. Body wajib membawa `card_number`;
+server menerima kartu organizer, kartu peserta, atau kartu master dan menolak
+kartu lain (`403`). Bila slot berikutnya sudah dipakai → `409 ROOM_CONFLICT`.
 
 ### 7.6 Auto-release no-show
 

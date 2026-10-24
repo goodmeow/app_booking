@@ -1,6 +1,6 @@
 # ERD dan Kamus Data
 
-Sumber: `database/migrations/001_prerequisites.sql` … `015_receptionist_on_behalf.sql`.
+Sumber: `database/migrations/001_prerequisites.sql` … `017_initial_setup.sql`.
 Diperiksa 2026-10-24. Tidak ada ORM: server memakai SQL langsung, jadi nama
 kolom di dokumen ini adalah nama fisik di PostgreSQL.
 
@@ -133,7 +133,7 @@ satu tabel; ruangan dibedakan `type='room'`.
 | `password` | varchar | nullable | Hash bcrypt (cost 12 untuk akun baru) |
 | `hashed_password` | varchar | nullable | Kolom legacy, tidak dipakai server |
 | `must_change_password` | boolean NOT NULL DEFAULT false | Flag wajib ganti password (impor admin reset; migrasi 016) |
-| `role_id` | uuid | FK `tbl_role`, nullable | Dipakai karyawan; aplikasi mensyaratkan role; **harus NULL untuk ruangan** |
+| `role_id` | uuid | FK `tbl_role`, nullable | Dipakai karyawan; aplikasi mensyaratkan role; **harus NULL untuk ruangan**. Dikirim di `GET /api/users` untuk admin (chip/filter role CMS, 3.10.3) |
 | `type` | varchar | `CHECK (employee, room)` | Pemisah akun |
 | `floor` | varchar | nullable | Grup lantai; `all` = lintas lantai |
 | `capacity` | varchar | nullable | Kapasitas ruangan (disimpan sebagai string) |
@@ -189,7 +189,7 @@ ruangan di lantai itu, sama seperti aturan lantai karyawan biasa.
 | `original_start` | timestamp without time zone | nullable | Diisi trigger; dipakai jalur update |
 | `is_exception` | boolean | default false | Occurrence yang diedit terpisah |
 | `is_cancel`, `is_draft`, `is_allday` | boolean | default false | Status |
-| `checked_in` | timestamp | nullable | Waktu check-in |
+| `checked_in` | timestamp | nullable | Waktu check-in aktual; dikirim ke kiosk sebagai `checkedInAt` (ISO) atau `null` |
 | `late_threshold` | integer | nullable | Legacy; aturan aktif memakai settings |
 | `created_at`, `updated_at` | timestamp | default now | Audit |
 
@@ -329,6 +329,11 @@ Satu baris konfigurasi operasional; server selalu mengambil baris pertama
 | `available_color`, `will_start_color`, `on_meeting_color` | varchar NOT NULL | Kode warna/LED |
 | `setup_completed` | boolean NOT NULL DEFAULT false | Migrasi 017: `false`/tidak ada baris = instalasi baru; `true` = admin pertama sudah dibuat (atau database lama sudah punya admin) dan halaman setup dikunci |
 | `self_signup_enabled` | boolean NOT NULL DEFAULT false | Migrasi 014: toggle halaman Daftar publik |
+
+`PUT /api/settings` mengirim seluruh baris (bukan patch); CMS memuat baris lalu
+mengganti field yang diedit. Panel **Floor groups** tidak lagi ada di UI, tetapi
+tidak ada kolom khusus untuknya di tabel ini—panel lama hanya membaca
+`tbl_users.floor` dan `tbl_rooms` untuk tampilan.
 
 ### 2.10 `tbl_rooms` (legacy)
 

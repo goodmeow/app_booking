@@ -2,7 +2,7 @@
 
 Dokumen ini menjelaskan komponen, alur request, dan batas kepercayaan aplikasi
 **seperti kode saat ini** (diperiksa 2026-10-24). Versi acuan: CMS/API
-`3.6.0` (Ver 3 Rev 6), APK kiosk `1.3` (code 11) — lihat
+`3.10.3` (Ver 3 Rev 10), APK kiosk `1.3.5` (code 16) — lihat
 [`VERSIONING.md`](VERSIONING.md).
 
 ## 1. Komponen
@@ -29,7 +29,7 @@ kartu yang sudah dinormalisasi tablet.
 flowchart LR
   subgraph Klien
     CMS["Browser CMS<br/>React 17 + MUI 5"]
-    KIOSK["Tablet kiosk<br/>APK React Native 1.3"]
+    KIOSK["Tablet kiosk<br/>APK React Native 1.3.5"]
   end
 
   subgraph Host["Host aplikasi"]
@@ -48,8 +48,11 @@ flowchart LR
 ```
 
 Catatan: APK kiosk **tidak** memakai Socket.io; tablet memuat ulang konteks dan
-jadwal setiap 20 detik (`kioskapp/src/components/KioskDisplay.tsx:51`). CMS
-memakai Socket.io untuk invalidasi (`client/redux/websocket.js`).
+jadwal setiap 20 detik (`kioskapp/src/components/KioskDisplay.tsx`). Satu siklus
+poll dicoba hingga **3 kali** dengan backoff (0,7 dtk lalu 1,4 dtk) sebelum
+layar berubah ke `OFFLINE`, jadi restart singkat server tidak langsung
+menampilkan offline. CMS memakai Socket.io untuk invalidasi
+(`client/redux/websocket.js`).
 
 ## 3. Alur request
 
@@ -152,7 +155,13 @@ sequenceDiagram
   (`findKioskEventActionContext` memfilter `booking.room_id`).
 - Bila kartu bukan milik organizer/peserta dan bukan master card → `403`;
   di luar jendela → `409 CHECK_IN_WINDOW`; sudah check-in →
-  `409 ALREADY_CHECKED_IN` (`server/features/kiosk/kiosk.service.js:284-295`).
+  `409 ALREADY_CHECKED_IN` (`server/features/kiosk/kiosk.service.js`).
+- Aksi **+15 menit** (`POST /api/kiosk/events/extend`) memakai verifikasi kartu
+  yang sama: body wajib `card_number`, dan server menolak kartu yang bukan
+  organizer/peserta/master (`403`). Guard ini tidak bisa dilewati dari UI.
+- `GET /api/kiosk/context` mengirim `cmsVersion` dari `package.json` server;
+  tablet menampilkannya di footer bersama versi APK
+  (`v1.3.5 (16) · CMS 3.10.3`).
 
 ### 3.4 Invalidasi realtime
 

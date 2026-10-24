@@ -1,7 +1,8 @@
 # CMS / Web Admin `app_booking` — breakdown halaman
 
 Dokumen ini memetakan halaman-halaman web admin (CMS) beserta isi, API, dan
-lokasi kodenya. Terakhir diperbarui: 2026-10-22.
+lokasi kodenya. Versi yang didokumentasikan: CMS/API **3.10.3** (Ver 3 Rev 10).
+Terakhir diperbarui: 2026-10-24.
 
 ## 1. Ringkasan teknis
 
@@ -30,6 +31,7 @@ Login demo: `admin@example.test` (password di `.env.demo`).
 /user/:userId          Profil Pengguna           (login)
 /signin                Masuk                    (publik, tanpa header)
 /signup                Daftar                   (publik; hanya bila toggle self signup aktif)
+/setup                 Setup awal               (publik; hanya saat instalasi baru)
 /app-management        Manajemen Aplikasi        (ADMIN)
 /report                Laporan Pemakaian Ruangan (ADMIN)
 /kiosk  /kiosk/setup   Kiosk web (referensi)     (tanpa header CMS)
@@ -80,7 +82,7 @@ sehingga tidak memakai header CMS.
     mulai–Jam selesai hari pertama.
   - **Undang peserta** — pengguna yang sudah terdaftar cukup dipilih dari
     saran (kirim lewat akun). Tamu tanpa akun wajib ditulis **email lengkap**
-    (mis. `harun@prasada.id`); sebelum kirim, editor memvalidasi dan
+    (mis. `harun@contoh.id`); sebelum kirim, editor memvalidasi dan
     menampilkan chip yang salah ketik (`editor.guestInvalid`), bukan lagi
     pesan generik `INVALID_VISITOR`.
   - **Pesan untuk karyawan** — hanya muncul saat membuat meeting untuk role
@@ -108,6 +110,11 @@ sehingga tidak memakai header CMS.
 - Di layar sempit (<900 px) tampilan default otomatis **Agenda**.
 - Papan jadwal dengan **ruangan sebagai resource** (FullCalendar
   resource-timeline, tampilan minggu).
+- **Filter Building di sidebar sudah dihapus** (3.10.3). Sidebar kembali
+  menampilkan seluruh ruangan yang boleh dipakai pengguna, tanpa pemilih
+  gedung; pemfilteran tersisa adalah lantai (otomatis untuk non-admin) dan
+  mode jadwal. Field `building` tetap ada di master ruangan dan tetap dipakai
+  sebagai metadata, bukan filter kalender.
 - `MeetingCalendar.js`: orkestrasi data + socket; `MeetingWeek.js`: render
   kalender; `CalendarSidebar.js`: panel samping; `EventEditor.js`: form
   event (preview konflik, create/update/delete, attendee, tamu, berulang).
@@ -134,14 +141,38 @@ sehingga tidak memakai header CMS.
 - API: `GET /api/rooms/usage-report`.
 
 ### 3.6 Manajemen Aplikasi (`/app-management`, admin) — `client/management/`
-Lima tab (`AppManagement.js`):
+Empat tab (`AppManagement.js`):
 
 | Tab | Isi | API |
 |---|---|---|
-| Pengguna (`UserManagementSection.js`, `user-form.js`) | CRUD user **beserta akses kartunya**: kolom nomor kartu, tombol **kartu master**, **kolom grup lantai** (pilih **Semua lantai**, lantai tertentu, atau belum diatur), dan **role Admin/Resepsionis/Pengguna**; ganti sandi, hapus. | `/api/users` |
+| Pengguna (`UserManagementSection.js`, `users/`) | CRUD user **beserta akses kartunya**: pencarian **nama/email/employee ID**, kolom **Role** (chip) + filter role yang bisa digabung dengan filter lantai, kolom nomor kartu, tombol **kartu master**, **kolom grup lantai** (pilih **Semua lantai**, lantai tertentu, atau belum diatur), dan **role Admin/Resepsionis/Pengguna**; ganti sandi, hapus. Tabel setinggi viewport dengan pagination **25/50/100**. | `/api/users` |
 | Ruangan (`RoomManagementSection.js`) | CRUD ruangan: nama, gedung, lantai, **kapasitas**, fitur, email, sandi. **Kolom Tablet: Online/Offline/Belum ada/Dicabut**, auto-refresh 15 s | `/api/rooms`, `/api/kiosk/devices` |
 | Perangkat Tablet (`KioskDeviceManagementSection.js`) | Daftar tablet: nama, ruangan, **Online/Offline/Dicabut/Kedaluwarsa**, switch **LED**, switch **Judul** (tampilkan/sembunyikan judul meeting — admin per perangkat), last seen, waktu pairing, cabut perangkat, tombol **Unduh APK Tablet** (tautan statik `/apk/kiosk-release.apk`, unduh saja). Auto-refresh 15 s | `/api/kiosk/devices`, `PATCH …/capabilities`, `DELETE …/:id` |
-| Pengaturan (`SettingsSection.js`) | Switch **Izinkan pendaftaran mandiri** + panel **Floor groups** (read-only): lantai, jumlah ruangan, jumlah karyawan, nama resepsionis per lantai, dan peringatan karyawan tanpa lantai. | `/api/settings`, `/api/settings/public`, `/api/rooms`, `/api/users` |
+| Pengaturan (`SettingsSection.js`, `settings-form.js`) | **Global settings**: timer check-in, jendela check-in, timer kunci kiosk, timer LED, input meja, dan toggle pendaftaran mandiri. Panel **Floor groups sudah dihapus**. | `/api/settings` |
+
+**Tab Pengguna (3.10.3).** Pencarian mencocokkan nama, email, dan employee ID
+(minimal satu karakter, case-insensitive). Filter role memakai chip role yang
+sama seperti kolom tabel dan digabung dengan filter "hanya yang belum punya
+lantai" secara AND. `GET /api/users` untuk admin kini menyertakan `role_id`
+sehingga kolom/filter role tidak perlu memanggil endpoint lain. Tabel memakai
+`height: calc(100vh - 280px)` (min. 420 px) dan pilihan pagination 25/50/100.
+
+**Tab Pengaturan (3.10.3).** Semua field berlaku global untuk seluruh
+ruangan dan tablet kios:
+
+| Field | Arti |
+|---|---|
+| `not_checked_in_time_limit` | Menit setelah meeting mulai sebelum booking tanpa check-in dilepas (auto-release no-show). |
+| `time_of_event_start_soon` | Menit sebelum meeting mulai saat check-in sudah dibuka (termasuk tombol check-in kiosk). |
+| `lock_timer` | Menit sebelum kiosk kembali ke layar idle. |
+| `led_timer` | Menit lampu indikator ruangan tetap menyala. |
+| `table_input` | Boolean; menampilkan layar input meja di kiosk. |
+| `self_signup_enabled` | Boolean; mengaktifkan halaman `/signup` dan `POST /api/auth/signup`. |
+
+`PUT /api/settings` menolak update parsial: CMS mengirim **seluruh baris**
+settings (nilai yang dimuat + field yang diubah + `id`), sehingga field warna
+(`available_color`, `will_start_color`, `on_meeting_color`) dan
+`setup_completed` ikut terkirim apa adanya. Timer wajib bilangan bulat > 0.
 
 Form **Pengguna** juga memiliki switch **Wajib ganti kata sandi** (bisa
 dicentang atau dimatikan). Bila aktif, pengguna harus mengganti password saat
@@ -213,6 +244,13 @@ modal email + sandi ruangan.
 
 ## 6. Catatan perubahan terbaru
 
+- **3.10.3 (Ver 3 Rev 10)**: tabel Pengguna dapat dicari (nama/email/employee
+  ID), punya kolom role (chip) + filter role yang bisa digabung dengan filter
+  lantai, serta tinggi mengikuti viewport dengan pagination 25/50/100. API
+  admin `GET /api/users` menyertakan `role_id`. Panel **Floor groups** di
+  Pengaturan dihapus dan diganti form **Global settings**; filter **Building**
+  di sidebar kalender dihapus sehingga daftar ruangan kembali semua (field
+  `building` tetap ada di master ruangan).
 - Halaman masuk dibuat ulang sesuai desain (logo The Prasada, alert gagal,
   tetap-masuk) + font Inter di-self-host.
 - Status **Online/Offline** tablet dihitung live dan tampil di tab Perangkat

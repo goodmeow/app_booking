@@ -45,17 +45,27 @@ tablet bila sesi kios ikut hilang.
 | Database | `database/migrations/` (urut), seed disposable di `database/seeds/` |
 | Test | `server/tests/unit|parity|regression`, `client/tests` |
 | Deploy Ubuntu 22.04 | `deploy/` (lihat `deploy/README.md`) |
-| Versi & riwayat | `docs/VERSIONING.md`, `package.json` (`3.6.0` = Ver 3 Rev 6) |
+| Versi & riwayat | `docs/VERSIONING.md`, `package.json` (`3.10.3` = Ver 3 Rev 10), APK kiosk `1.3.5` (code 16) |
 
 ## 4. Alur kiosk singkat
 
 1. Settings tablet → Ethernet IP statis (produksi) atau `adb reverse` (dev USB).
 2. Buka app kiosk → isi URL server, email ruangan, sandi → "Hubungkan kiosk".
 3. Layar kios menampilkan state ruangan dan jadwal hari ini; tombol tersedia
-   sesuai state (Check-in, +15 menit, Selesai, 30 menit, Sampai HH:MM,
-   Pilih waktu untuk hari ini).
-4. Admin mengelola perangkat di CMS → Manajemen → Perangkat Tablet (LED,
-   tampilkan judul, cabut perangkat, unduh APK).
+   sesuai state:
+   - **Check-in** saat jendela check-in dibuka;
+   - **+15 menit** saat meeting berjalan — wajib tap kartu organizer,
+     peserta, atau master (server memverifikasi, bukan sekadar UI);
+   - **30 menit** dan **Pilih waktu** saat ruangan kosong;
+   - **Sampai HH:MM** hanya muncul bila masih ada meeting berikutnya hari itu;
+   - **Finish/Selesai** disembunyikan; muncul setelah **5 tap** pada pill
+     **IN USE** (easter egg operator).
+4. Footer kios menampilkan versi APK + versi CMS (`v1.3.5 (16) · CMS 3.10.3`),
+   berguna untuk memastikan tablet dan server memakai rilis yang sama.
+5. Admin mengelola perangkat di CMS → Manajemen → Perangkat Tablet (LED,
+   tampilkan judul, cabut perangkat, unduh APK). Pengaturan global (timer
+   check-in, timer kunci, LED, input meja, pendaftaran mandiri) ada di tab
+   **Pengaturan**; panel Floor groups sudah tidak ada.
 
 ## 5. Gate kualitas
 
@@ -71,8 +81,14 @@ butuh PostgreSQL disposable sehingga dijalankan manual/ops.
 
 Ikuti `deploy/README.md` urut: `01-install-prerequisites.sh` →
 `02-provision-database.sh` → `03-build.sh` → `04-install-app.sh` →
-`05-create-admin.sh`. HTTPS didukung lewat env `HTTPS=true` +
-`TLS_CERT_PATH`/`TLS_KEY_PATH` atau reverse proxy (`TRUST_PROXY=true`).
+`05-create-admin.sh` (atau buat admin pertama lewat `/setup`). HTTPS didukung
+lewat env `HTTPS=true` + `TLS_CERT_PATH`/`TLS_KEY_PATH` atau reverse proxy
+(`TRUST_PROXY=true`).
+
+Alternatif Docker: `deploy/docker/compose.alpine.yaml`
+(`node:20-alpine` + `postgres:16-alpine` + `nginx:alpine`), entrypoint
+menerapkan migrasi + seed role otomatis; detail di `deploy/docker/README.md`
+dan `docs/operations-runbook.md` §2.5.
 
 ## 7. Sebelum go-live (jangan dilewat)
 

@@ -1,6 +1,6 @@
 # Localization
 
-360 Scheduler uses English (`en`) as its source and default language. Indonesian
+RoomBooking uses English (`en`) as its source and default language. Indonesian
 (`id`) is the second supported language. All other translations are derived from
 the English catalogs through Crowdin.
 

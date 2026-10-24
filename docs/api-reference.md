@@ -1,4 +1,4 @@
-# Referensi API 360 Scheduler
+# Referensi API RoomBooking
 
 Diverifikasi langsung dari route/controller/service per 2026-10-24. Semua
 endpoint berada di bawah prefiks **`/api`** (`server/routes/index.js:15-21`).
@@ -82,7 +82,7 @@ Catatan:
 
 | Method & path | Akses | Body / query | Sukses | Error penting |
 |---|---|---|---|---|
-| `GET /api/users` | JWT user | `q` (khusus non-admin, minimal 2 karakter) | `200` array karyawan aktif (lihat catatan privasi) | `400 INVALID_QUERY` (q terlalu pendek), `401` |
+| `GET /api/users` | JWT user | `q` (khusus non-admin, minimal 2 karakter) | `200` array karyawan aktif (lihat catatan privasi); admin menerima `role_id` di setiap baris | `400 INVALID_QUERY` (q terlalu pendek), `401` |
 | `POST /api/users` | JWT admin | `{name, email, employee_id, password, roleId(UUID), username?, floor?, card_number?, master_card?, must_change_password?}` | `201` user + `cards[]` | `400 INVALID_USER/INVALID_EMAIL/INVALID_USERNAME/INVALID_PASSWORD/INVALID_EMPLOYEE_ID`, `403 FORBIDDEN`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS` |
 | `PUT /api/users/change-password` | JWT user/admin | `{userId?, oldPassword?, newPassword, newPasswordConfirmation}` | `200 {message}`; ganti sendiri menghapus flag, reset admin menyalakannya | `400 INVALID_PASSWORD`, `403`, `404 NOT_FOUND` |
 | `GET /api/users/:userId` | JWT self/admin | – | `200` user + `cards[]` | `401`, `403`, `404` |
@@ -94,7 +94,9 @@ Catatan:
 Catatan:
 - Respons tetap berupa array objek (tidak dibungkus `{data: ...}`).
 - Admin melihat semua karyawan dengan field lengkap (`employee_id`, `floor`,
-  `is_master_card`, `cards[]`); parameter `q` diabaikan untuk admin.
+  `role_id`, `is_master_card`, `cards[]`); parameter `q` diabaikan untuk admin.
+  `role_id` ditambahkan agar kolom dan filter role di CMS tidak perlu memanggil
+  endpoint lain (3.10.3).
 - Non-admin hanya melihat rekan **satu lantai** (`principal.floor`) dengan field
   minimal `{_id, name, email, type}`; `employee_id`, `card_number`, `cards`,
   `is_master_card`, dan `floor` tidak pernah dikirim (`publicEmployee`).
@@ -240,12 +242,12 @@ Catatan penting:
 | `GET /api/kiosk/devices` | JWT admin | `roomId` (opsional) | `200` daftar perangkat | `401`, `403` |
 | `PATCH /api/kiosk/devices/:deviceId/capabilities` | JWT admin | `{nfcEnabled?, ledEnabled?, showSubject?}` minimal satu boolean | `200` perangkat | `400 INVALID_KIOSK_CAPABILITIES`, `404` |
 | `DELETE /api/kiosk/devices/:deviceId` | JWT admin | – | `200 {id,status:"revoked"}` | `401`, `403`, `404` |
-| `GET /api/kiosk/context` | Token kiosk | – | `200 {room, device, timezone, serverTime, settings}` | `401 KIOSK_AUTH_REQUIRED/INVALID_KIOSK_TOKEN/INACTIVE_KIOSK_DEVICE` |
-| `GET /api/kiosk/schedule` | Token kiosk | `start`,`end` (`YYYYMMDD`) | `200` jadwal terproyeksi | `400 INVALID_RANGE/INVALID_TIME`, `401` |
+| `GET /api/kiosk/context` | Token kiosk | – | `200 {room, device, timezone, serverTime, cmsVersion, settings}` | `401 KIOSK_AUTH_REQUIRED/INVALID_KIOSK_TOKEN/INACTIVE_KIOSK_DEVICE` |
+| `GET /api/kiosk/schedule` | Token kiosk | `start`,`end` (`YYYYMMDD`) | `200` jadwal terproyeksi, termasuk `checkedInAt` (ISO atau `null`) | `400 INVALID_RANGE/INVALID_TIME`, `401` |
 | `DELETE /api/kiosk/device` | Token kiosk | – | `200 {id,status:"revoked"}` | `401`, `404` |
 | `POST /api/kiosk/door-open` | Token kiosk | `{card_number}` | `200 {message}` | `400 INVALID_CARD`, `401`, `429` |
 | `PUT /api/kiosk/events/check-in` | Token kiosk | `{event_id, card_number}` | `200` event | `400 INVALID_KIOSK_ACTION`, `403`, `404`, `409 CHECK_IN_WINDOW/ALREADY_CHECKED_IN` |
-| `POST /api/kiosk/events/extend` | Token kiosk | `{event_id, minutes?}` (5–60, default 15) | `200 {id,start,end,extendedMinutes}` | `400`, `404`, `409 NOT_CHECKED_IN/EXTEND_WINDOW/ROOM_CONFLICT`, `429` |
+| `POST /api/kiosk/events/extend` | Token kiosk | `{event_id, card_number, minutes?}` (5–60, default 15) | `200 {id,start,end,extendedMinutes}` | `400 INVALID_CARD/INVALID_KIOSK_ACTION`, `403` (kartu bukan organizer/peserta/master), `404`, `409 NOT_CHECKED_IN/EXTEND_WINDOW/ROOM_CONFLICT`, `429` |
 | `POST /api/kiosk/events/complete` | Token kiosk | `{event_id}` | `200 {id,finishedAt}` | `400`, `404`, `409 EARLY_FINISH_WINDOW` |
 | `POST /api/kiosk/events/instant` | Token kiosk | `{card_number, minutes?, until_next?}` | `200 {id,start,end,checkedIn,untilNext}` | `400 INVALID_CARD`, `403 FLOOR_REQUIRED/FLOOR_RESTRICTED`, `409 NO_FREE_WINDOW/ROOM_CONFLICT`, `429` |
 | `POST /api/kiosk/events/book` | Token kiosk | `{card_number, start, end}` (hari ini, ISO) | `200 {id,start,end,checkedIn,scheduled}` | `400 INVALID_TIME/INVALID_CARD`, `403 FLOOR_*`, `409 ROOM_CONFLICT`, `429` |
@@ -255,6 +257,14 @@ Batas rate kiosk per 15 menit: `door-open` 60, `extend`/`complete` 60,
 `instant`/`book` 30, `refresh` 60 (hanya permintaan gagal yang dihitung).
 
 Aturan tambahan:
+- `extend` wajib membawa `card_number`. Server memverifikasi kartu milik
+  organizer, peserta meeting, atau kartu master (aturan yang sama dengan
+  check-in); kartu lain ditolak `403`. Ini bukan pembatasan UI saja.
+- `context.cmsVersion` diisi versi `package.json` server (mis. `3.10.3`) agar
+  footer kiosk bisa menampilkan versi APK dan versi CMS sekaligus.
+- `schedule[*].checkedInAt` berisi waktu check-in aktual (ISO) atau `null`;
+  tablet memakainya untuk status **Started early** dan jatuh ke label tanpa jam
+  bila nilainya `null`.
 - Satu ruangan hanya boleh punya satu perangkat aktif; pairing kedua →
   `409 ROOM_ALREADY_PAIRED`. Perangkat dianggap aktif bila `revoked_at IS NULL`
   dan refresh belum kedaluwarsa.

@@ -1,8 +1,9 @@
 # Runbook Operasional
 
-Panduan menjalankan, merawat, dan memulihkan 360 Scheduler. Sumber utama
+Panduan menjalankan, merawat, dan memulihkan RoomBooking. Sumber utama
 deploy tetap [`../deploy/README.md`](../deploy/README.md); dokumen ini
-melengkapi bagian operasional yang belum tercakup di sana.
+melengkapi bagian operasional yang belum tercakup di sana. Versi acuan:
+CMS/API `3.10.3`, APK kiosk `1.3.5` (code 16).
 
 Semua contoh memakai placeholder `<ip-server>` / `<domain>`; jangan menulis
 IP atau kredensial nyata ke repo.
@@ -18,6 +19,10 @@ IP atau kredensial nyata ke repo.
 
 Hanya port 22/80/443 yang perlu dibuka untuk CMS dan tablet. API tidak
 diekspos langsung.
+
+Alternatif yang juga didukung: stack **Docker Alpine** (§2.5) dengan
+`postgres:16-alpine`; nama database/service teknis tetap `360booking`,
+branding UI tetap RoomBooking.
 
 ## 2. Deploy pertama
 
@@ -116,6 +121,36 @@ Dua pilihan, jangan dicampur:
 
 Sertifikat self-signed/CA internal: CA harus dipasang di tablet (anchor
 `user`) sebelum pairing.
+
+### 2.5 Docker Alpine (alternatif deploy)
+
+Stack uji/produksi kecil: `deploy/docker/compose.alpine.yaml` menjalankan
+`postgres:16-alpine` (db), `node:20-alpine` (app API), dan `nginx:alpine`
+(web SPA + proxy `/api` + `/socket.io`). Build context harus root repo.
+
+```bash
+docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
+  up -d --build
+docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
+```
+
+| Service | Host | Container |
+|---|---|---|
+| web | `http://localhost:8182` | `80` |
+| app (API) | `http://127.0.0.1:9191` | `9091` |
+| db | tidak dipublikasikan | `5432` |
+
+- `entrypoint.sh` menunggu `pg_isready`, membuat `schema_migrations`, lalu
+  menerapkan migrasi yang belum tercatat (urut nama file) dan men-seed role
+  `admin`/`user`/`receptionist`. Restart container aman (idempoten).
+- Instalasi baru: `GET /api/setup/status` → `{"required":true}`, buka
+  `http://localhost:8182/setup`, buat admin pertama; panggilan berikutnya
+  `409 SETUP_COMPLETED` (§2.1).
+- Backup volume DB: lihat `deploy/docker/README.md` (arsip volume
+  `roombooking-alpine_alpine-db-data`). Jangan pakai default password/secret
+  contoh di produksi.
+- Setelah go-live, impor fresh install tetap memakai §5.3 (event historis
+  tidak dimigrasikan).
 
 ## 3. Restart
 
@@ -339,7 +374,7 @@ node database/scripts/preflight-import.mjs --fresh   --plan="$PLAN" --passwords=
 ```
 
 Harus `Summary: errors=0`. Warning yang wajar: 18 email placeholder
-`@prasada.id`, 40 akun tanpa kartu, dan (bila ruangan belum diimpor)
+`@<company-domain>`, 40 akun tanpa kartu, dan (bila ruangan belum diimpor)
 `missing-floor` yang akan hilang setelah fase `rooms`.
 
 #### 5.3.3 Dry-run kedua skrip
@@ -472,6 +507,15 @@ lagi memicu langkah ini karena memakai database `360booking_parity_test`.
 6. Bila pairing ditolak `409 ROOM_ALREADY_PAIRED`, ulangi langkah 1 — masih
    ada perangkat aktif (termasuk yang refresh-nya belum kedaluwarsa).
 
+Verifikasi versi setelah pairing: footer kiosk menampilkan
+`v<versi APK> (<versionCode>) · CMS <versi server>` (contoh
+`v1.3.5 (16) · CMS 3.10.3`), bukan lagi “perangkat …”. Bila bagian `CMS`
+kosong/`unknown`, tablet belum berhasil memuat `/api/kiosk/context` versi
+terbaru — cek koneksi dan pastikan server sudah di-restart dengan build baru.
+Tombol **Finish** sengaja tersembunyi; muncul setelah **5 tap** pada pill
+**IN USE** (easter egg operator), dan **+15 menit** meminta kartu
+organizer/peserta/master yang diverifikasi server.
+
 Catatan: `npm run demo:accounts` **tidak** memulihkan perangkat kiosk; pairing
 harus dilakukan ulang setelah reset DB.
 
@@ -507,7 +551,9 @@ konfigurasi kiosk; token lama akan ditolak.
 | Booking 403 `FLOOR_REQUIRED` | `tbl_users.floor` akun | isi lantai di Manajemen → Users |
 | Booking 403 `FLOOR_RESTRICTED` | lantai akun vs ruangan | pilih ruangan yang benar atau ubah lantai (admin) |
 | Kiosk `409 ROOM_ALREADY_PAIRED` | daftar perangkat | cabut perangkat lama, pairing ulang |
-| Kiosk offline | `last_seen_at`, jaringan, URL server | cek portproxy/forwarder, DNS/TLS |
+| Kiosk offline | `last_seen_at`, jaringan, URL server | cek portproxy/forwarder, DNS/TLS; tablet mencoba 3× sebelum `OFFLINE` |
+| Kiosk menolak +15 menit | kartu yang di-tap | gunakan kartu organizer/peserta/master; server menolak kartu lain (`403`) |
+| Tombol Selesai tidak ada | desain 1.3.5 | tap pill **IN USE** 5× untuk membuka **Finish** |
 | “No time left today” | jam server dan `APP_TIMEZONE` | periksa zona waktu dan meeting berikutnya |
 | Laporan kosong | rentang tanggal dan `checked_in` | laporan hanya menghitung booking aktif |
 

@@ -1,6 +1,6 @@
 # Runbook deploy — Ubuntu Server 22.04
 
-Target: satu host Ubuntu, PostgreSQL + nginx di situ, aplikasi 360 Scheduler
+Target: satu host Ubuntu, PostgreSQL + nginx di situ, aplikasi RoomBooking
 dijalankan lewat systemd. Tablet kiosk dan CMS mengakses host ini lewat satu
 origin nginx (HTTP :80 atau HTTPS :443).
 

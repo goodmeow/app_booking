@@ -59,3 +59,6 @@ Riwayat isi paket:
   (5 tap pill IN USE), +15 menit wajib verifikasi kartu, tombol until-next
   disembunyikan bila tidak ada jadwal, retry schedule 3x, footer menampilkan
   versi CMS.
+
+- 2026-10-24: naik 1.3.5 (versionCode 16)—LED opsional: tablet tanpa
+  path LED tetap berjalan; status hardware melaporkan dukungan LED/NFC.

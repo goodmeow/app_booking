@@ -1,4 +1,4 @@
-# Versioning 360 Scheduler
+# Versioning RoomBooking
 
 Format versi: **`Ver.Rev`** (diucapkan "Ver tiga Rev lima").
 
@@ -11,7 +11,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 | Artefak | Tempat versi |
 |---|---|
-| CMS/API (`app_booking`) | `package.json` `version` + tabel riwayat di bawah |
+| CMS/API (`app_booking`) | `package.json` `version` + `package-lock.json` (dua baris teratas) + tabel riwayat di bawah |
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
@@ -19,10 +19,18 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 - CMS + API: **Ver 3 Rev 10**, `package.json` `3.10.3`, ditampilkan di footer
   semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.3.4 / versionCode 15`, menampilkan ver + UUID
-  perangkat di layar; string di res/values + values-en (bahasa ID/EN),
-  panel AVAILABLE tidak meluber, dan ada tombol "Pilih waktu" untuk
-  memesan ruangan hari ini dengan jam mulai/selesai sendiri.
+- APK kiosk: `versionName 1.3.5 / versionCode 16`. Footer kios menampilkan
+  versi APK + **versi CMS** (`v1.3.5 (16) · CMS 3.10.3`), bukan “perangkat …”.
+  Tombol **Finish** tersembunyi di balik 5 tap pill **IN USE**, **+15 menit**
+  wajib kartu organizer/peserta/master (diverifikasi server), tombol
+  until-next hanya muncul bila ada jadwal berikutnya, dan siklus
+  `/context` + `/schedule` dicoba 3× sebelum status `OFFLINE`.
+  Bahasa ID/EN tetap memakai `res/values` + `values-en`; panel AVAILABLE
+  tidak meluber dan tombol **Pilih waktu** tetap ada.
+- Rev 10 sudah tertutup (patch 3.10.3 lulus unit 79/79, client 92/92,
+  regresi 83/83, parity 8/8). Gelombang perbaikan berikutnya mulai dari
+  **Rev 11**; Ver baru hanya bila kemampuan baru benar-benar dipakai di
+  produksi/tablet lantai.
 
 ## Riwayat
 
@@ -140,9 +148,22 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
   meeting. APK kiosk 1.3.3 (14).
 - Patch `3.10.3`: CMS Pengguna (pencarian, filter/kolom role, tabel setinggi
   viewport), Pengaturan global (menggantikan panel Floor groups), filter
-  Building di kalender dihapus. Kiosk 1.3.4: Finish jadi easter egg 5 tap pill
+  Building di kalender dihapus. Kiosk 1.3.5: Finish jadi easter egg 5 tap pill
   IN USE, +15 menit wajib kartu, tombol until-next disembunyikan bila tidak ada
   jadwal, retry schedule 3x, label CMS version di footer.
+  - Pengaturan global: `not_checked_in_time_limit`, `time_of_event_start_soon`,
+    `lock_timer`, `led_timer`, `table_input`, `self_signup_enabled`;
+    `PUT /api/settings` mengirim seluruh baris. Berkas/komponen Floor groups
+    (`FloorGroupsSection.js`, `floor-groups.js`) dihapus.
+  - API: `GET /api/users` (admin) menyertakan `role_id`;
+    `POST /api/kiosk/events/extend` wajib `card_number`;
+    `/api/kiosk/schedule` mengirim `checkedInAt`;
+    `/api/kiosk/context` mengirim `cmsVersion`.
+  - Bukti: unit 79/79, client 92/92, regresi 83/83, parity 8/8 (commit
+    `00e39ed`, 2026-10-24); uji tablet +15 prompt kartu dan Finish easter egg.
+- Patch APK `1.3.5` (16): LED menjadi opsional. `getStatus()` melaporkan
+  `led`, `nfcHardware`, dan `nfcEnabled`; `setLed` tidak menulis bila path LED
+  tidak ada, sehingga tablet tanpa LED tetap berjalan.
 
 ## Cara naikkan
 
