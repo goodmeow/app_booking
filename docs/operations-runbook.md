@@ -590,7 +590,119 @@ konfigurasi kiosk; token lama akan ditolak.
 Perubahan lintas area dikoordinasikan oleh `team-lead`; jangan mengubah
 kontrak API tanpa memperbarui `docs/api-reference.md` dan test terkait.
 
-## 11. Belum dapat diverifikasi
+## 11. Pengembangan lokal, demo, dan LAN tablet
+
+### 11.1 Demo deterministic
+
+```bash
+npm install
+npm run demo
+```
+
+Perintah ini menyalakan container PostgreSQL compose (`127.0.0.1:54320`,
+project `360booking`, container `360booking-postgres-test`), mereset database
+`360booking_reconstruction_test`, menerapkan migrasi + seed sanitized, lalu
+menjalankan CMS/Vite `:8081` dan API/Socket.io `:9091`. Status `Demo ready`
+baru tampil setelah login database dan proxy client terverifikasi.
+`Ctrl+C` menghentikan aplikasi (database tetap hidup); `npm run demo:stop`
+menghentikan container.
+
+Akun demo (khusus database disposable):
+
+| Akun | Email | Sandi | Keterangan |
+|---|---|---|---|
+| Admin | `admin@example.test` | `ParityTest123!` | akses penuh CMS |
+| Ruangan (kiosk) | `room-one@room.com` | `RoomTablet123!` | pairing tablet |
+| Karyawan uji | `karyawan@uji.prasada.test` | `1234` | kartu uji NFC dummy |
+| Karyawan uji 2 | `emp@uji.local` | `1234` | kartu `DEMO-UJI-CARD` |
+
+### 11.2 Dua database di satu container
+
+| Database | Dipakai oleh | Di-reset oleh |
+|---|---|---|
+| `360booking_reconstruction_test` | `npm run demo`, CMS, tablet kiosk | `npm run demo` (`rebuild-test-db.sh`) |
+| `360booking_parity_test` | `test:server:parity`, `test:server:regression` | `database/scripts/reset-parity-db.sh` |
+
+Suite parity/regression hanya me-reset `360booking_parity_test`, sehingga akun
+demo, kartu NFC, dan pairing tablet tidak ikut terhapus. `npm run demo:resume`
+menyalakan ulang aplikasi tanpa reset.
+
+### 11.3 Memulihkan akun demo
+
+`npm run demo` membangun ulang DB demo, jadi akun uji tambahan hilang dan
+pairing tablet perlu diulang:
+
+1. `npm run demo` — bangun ulang database + nyalakan server.
+2. `npm run demo:accounts` — kembalikan akun demo (termasuk `role_id`, syarat
+   login server).
+3. Pasangkan ulang tablet bila sesi kiosk hilang (`pm clear` + provisioning).
+
+`demo:accounts` harus dijalankan **setelah** demo; bila dijalankan lebih dulu,
+rebuild akan menghapusnya lagi.
+
+### 11.4 Pengembangan kustom
+
+```bash
+cp .env.example .env      # isi koneksi PostgreSQL lokal yang aman
+npm run development       # atau: npm run dev:client / npm run dev:server
+```
+
+Build produksi memakai `npm run build` dan menghasilkan folder **`build/`**
+(bukan `dist/`): `build/client/` hasil Vite dan `build/server/` hasil webpack.
+Bagian terpisah tersedia lewat `npm run build:client`, `npm run build:server`,
+dan `npm run create:server:package`.
+
+### 11.5 Tablet kiosk satu segment LAN (tanpa USB reverse)
+
+Tablet dan laptop dijadikan satu subnet (contoh `192.168.1.0/24`):
+
+| Sisi | Konfigurasi |
+|---|---|
+| Tablet (`eth0`) | statis `<ip-tablet>/24` via Settings → Ethernet (persisten) |
+| Windows host | statis `<ip-server>/24` via `netsh` |
+| Portproxy | `<ip-server>:5100 → 127.0.0.1:5100` (`netsh interface portproxy`) |
+| Forwarder | `python3 ~/bin/forward9091.py` (WSL) meneruskan `0.0.0.0:5100 → 127.0.0.1:9091` |
+| Firewall | rule inbound TCP 5100 (`360booking-kiosk-5100`) |
+| APK | URL server diketik saat provisioning; HTTP polos diizinkan lewat `network_security_config.xml` |
+
+Origin LAN untuk CMS (mis. `http://<ip-server>:8081`) jangan di-commit; salin
+ke `.env.local` (di-ignore) yang ditimpa di atas `.env.demo` saat
+`npm run demo`. `adb` hanya diperlukan untuk instalasi APK dan screenshot.
+
+Tablet tahan putus sambung: saat kabel dicabut layar menampilkan `OFFLINE`, dan
+begitu kabel kembali tablet pulih otomatis tanpa dibuka ulang.
+
+### 11.6 Struktur proyek
+
+```text
+app_booking/
+├── client/            # CMS: auth/, core/, calendar/, domain/, locales/,
+│                      # redux/, user/, reports/, tests/
+├── server/            # features/, routes/, runtime/, socket/, db/,
+│                      # observability/, tests/{unit,parity,regression}
+├── config/config.js   # baca env + validasi runtime
+├── scripts/           # demo.js, demo-accounts.js, dev-*, start-*
+├── database/          # migrations/, seeds/, scripts/, tests/
+├── deploy/            # 01..05 (Ubuntu), docker/, nginx/, systemd/
+├── public/apk/        # kiosk-release.apk + riwayat
+├── docs/              # dokumentasi (lihat docs/README.md)
+├── build/             # hasil build (generated)
+└── TODO.md            # peta pengerjaan & sisa item
+```
+
+### 11.7 Lint dan format
+
+```bash
+npm run lint          # ESLint 9 flat config (client, server, scripts, config)
+npm run format:check  # Prettier --check sesuai .prettierrc
+```
+
+Lint belum menjadi gate: `npm run verify` dan CI sengaja tidak menjalankannya
+sampai baseline bersih. Pembersihan dilakukan bertahap per folder
+(`npm run lint -- <folder>`, `npx prettier --write <folder>`), bukan sekali
+tulis massal, supaya diff review tetap kecil dan `git blame` tidak hilang.
+
+## 12. Belum dapat diverifikasi
 
 - Seluruh langkah deploy/HTTPS/backup di atas belum dijalankan pada sesi ini;
   dokumen disusun dari skrip dan konfigurasi yang ada.

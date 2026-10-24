@@ -10,8 +10,9 @@ Referensi teknis: [`architecture.md`](architecture.md),
 |---|---|---|
 | Login | Email **atau** username + password; hanya `type='employee'` dengan `role` yang boleh masuk | `auth.service.authenticateCredentials` |
 | Token | JWT HS256, `sub` = user id, `iss`/`aud` diperiksa, umur `JWT_EXPIRY_TOKEN` (default 1 hari) | `auth.service.signPrincipalToken` |
-| Peran | `role_name` di `tbl_role` diubah ke huruf besar (`ADMIN`/`USER`) | `auth.repository.principalSelect` |
+| Peran | `role_name` di `tbl_role` diubah ke huruf besar (`ADMIN`/`USER`/`RECEPTIONIST`) | `auth.repository.principalSelect` |
 | Admin | Boleh melihat semua event, memesan lintas lantai, mengelola user/ruangan/kartu/settings/perangkat | `adminOnly`, `canView`, `FLOOR_EXEMPT_ROLES` |
+| Resepsionis | Non-admin; boleh membuat booking **atas nama karyawan lain** (`organizer_email`) hanya untuk ruangan di lantainya; melihat/mengubah booking yang ia buat | `POST /api/events`, `tbl_events.booked_by` |
 | User | Hanya event miliknya/event tempat ia peserta; hanya ruangan lantainya | `listEventsForPrincipal`, `assertRoomFloorAccess` |
 | Akun nonaktif | Dihapus (`is_deleted=true`), role dihapus, atau role kosong → request berikutnya `401` | `verifyPrincipalToken` |
 | Signup publik | Membuat akun `type='employee'` dengan role `user`; role harus ada di `tbl_role`, jika tidak → error server | `auth.repository.createEmployeeAccount` |
@@ -112,6 +113,20 @@ pesan lantai baru muncul saat menyimpan.
 Perbandingan lantai untuk kiosk bersifat **persis** (string, case-sensitive
 setelah trim), sedangkan booking CMS juga membandingkan string yang sudah
 di-trim. Gunakan nilai yang konsisten (`1`, `2`, `all`).
+
+### 5.1 Booking atas nama (resepsionis)
+
+| Hal | Aturan |
+|---|---|
+| Siapa | Role `receptionist` (non-admin) dan `admin` |
+| Organizer | Tetap **karyawan** yang namanya diisi di field "Pesan untuk karyawan" (`organizer_email`) |
+| Audit | Kolom `tbl_events.booked_by` mencatat user yang membuat booking |
+| Ruangan | Hanya ruangan di lantai resepsionis; pilihan ruangan lantai lain tidak tersedia di CMS dan ditolak server |
+| Lintas lantai | Tidak diizinkan untuk resepsionis. Karyawan yang butuh ruangan lantai lain meminta resepsionis **lantai tujuan** membuatkannya |
+| Ubah/batal | Resepsionis boleh mengubah booking yang ia buat; admin penuh; user biasa tetap hanya lantainya sendiri |
+
+Field ini hanya dipakai saat membuat booking (`create-only`); nilai yang
+dikirim pada update diabaikan.
 
 ## 6. Rekurensi
 

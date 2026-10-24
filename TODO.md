@@ -469,3 +469,20 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
   `docs/erd.md`, `docs/architecture.md`, `docs/operations-runbook.md`,
   `docs/handover/START-HERE.md`, `docs/VERSIONING.md`, catatan rilis
   `docs/release-v3.10.3.md`; `package-lock.json` disamakan ke `3.10.3`.
+
+## Dokumentasi 2026-10-24 — README ringkas + index
+
+- [x] `README.md` root diringkas (415 → ±190 baris): apa ini, quick install
+  Docker Alpine, langkah setelah setup, peran & aturan produk, operasional
+  singkat, tabel troubleshooting, dan peta dokumentasi. Detail dev/demo/LAN
+  dipindah ke `docs/operations-runbook.md` §11 (tanpa duplikasi).
+- [x] `docs/README.md` dibuat sebagai index dokumentasi (product champion,
+  developer, rilis/riwayat, database & deploy, catatan proyek) + konvensi
+  penulisan (placeholder `<ip-server>`, angka uji harus bersumber).
+- [x] `docs/product-champion.md` dibuat: alur harian, skenario kiosk, batas
+  wewenang, checklist operasi berisiko, dan jalur eskalasi.
+- [x] `docs/business-processes.md` dilengkapi aturan role `receptionist` dan
+  §5.1 booking atas nama (organizer tetap karyawan, `booked_by` untuk audit,
+  tanpa lintas lantai).
+- [x] Tidak ada perubahan kode/fitur; versi tetap CMS/API `3.10.3`, APK
+  `1.3.5` (code 16).

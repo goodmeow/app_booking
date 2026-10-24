@@ -1,7 +1,8 @@
 # START HERE — RoomBooking
 
 Panduan orientasi singkat untuk orang baru (developer/operator). Detail
-lengkap ada di `README.md`, `TODO.md`, `docs/CMS.md`, dan `docs/VERSIONING.md`.
+lengkap ada di `README.md`, `TODO.md`, `docs/README.md` (index dokumentasi),
+`docs/CMS.md`, dan `docs/VERSIONING.md`.
 
 ## 1. Apa ini
 

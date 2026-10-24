@@ -21,7 +21,7 @@ applies all migrations, loads sanitized seed, then runs every SQL test.
 
 ## Operational scripts (production)
 
-The three scripts below are for the production host, not for the disposable
+The scripts below are for the production host, not for the disposable
 Compose service. Read `docs/operations-runbook.md` section 5 before running
 them.
 
@@ -41,10 +41,15 @@ scripts refuse `bjb`, `bjb_compare`, `360booking_reconstruction_test`, and
 ### Fresh install (clean slate)
 
 Historical events are **not** migrated. A new server imports 238 employees as
-creates (not updates), with cards in the same plan:
+creates (not updates), with cards in the same plan. Run the phases in this
+order: roles -> backup -> preflight -> rooms -> special -> master-cards ->
+users+cards. `import-fresh-assets.mjs --phase` accepts `rooms`, `special`,
+`master-cards`, or `all`.
+
+Pass all three asset plans to `preflight-import.mjs --fresh` so room floors,
+special-account roles, and master-card counts are validated together:
 
 ```bash
-# order: roles -> backup -> preflight -> rooms -> special -> master-cards -> users+cards
 node database/scripts/preflight-import.mjs --fresh \
   --plan=integration/plan-import-fresh.local.csv \
   --passwords=integration/plan-password-reset.local.csv \
