@@ -51,3 +51,6 @@ Riwayat isi paket:
 
 - 2026-10-24: naik 1.3.2 (versionCode 13)—hapus jam pada label
   **UP NEXT** karena sudah tampil di baris judul/waktu meeting.
+
+- 2026-10-24: naik 1.3.3 (versionCode 14)—status *Started early* memakai
+  jam check-in aktual dari server (`checkedInAt`), bukan jam mulai meeting.

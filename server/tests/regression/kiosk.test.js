@@ -281,7 +281,7 @@ test("kiosk context and schedule are bound to one room with a safe projection", 
   assert.equal(schedule.body.some((event) => event.id === roomTwoEvent.body[0].id), false);
   for (const event of schedule.body) {
     assert.deepEqual(Object.keys(event).sort(), [
-      "canCheckIn", "canFinish", "checkedIn", "end", "id", "organizerFirstName", "organizerName", "start", "subject", "timezone", "title",
+      "canCheckIn", "canFinish", "checkedIn", "checkedInAt", "end", "id", "organizerFirstName", "organizerName", "start", "subject", "timezone", "title",
     ]);
     assert.equal(event.title.includes("Private"), false);
   }

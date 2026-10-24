@@ -269,6 +269,7 @@ export const getKioskSchedule = async (query, room) => {
     end: row.end_at,
     timezone: row.timezone,
     checkedIn: Boolean(row.checked_in),
+    checkedInAt: row.checked_in ? new Date(row.checked_in).toISOString() : null,
     ...kioskCapabilities(row),
   }));
 };
