@@ -44,3 +44,7 @@ Riwayat isi paket:
   di layar agar bisa langsung didaftarkan; UID hex di logcat hanya aktif bila
   `/sdcard/kiosk-debug-uid` ada (provisioning). Diuji 3 kartu karyawan
   (semua UID 4 byte) untuk check-in/pesan ruangan.
+
+- 2026-10-24: naik 1.3.1 (versionCode 12)—branding user-facing menjadi
+  **RoomBooking**: label APK dan layar setup kiosk memakai nama baru. Tidak ada
+  perubahan alur pairing/check-in.
