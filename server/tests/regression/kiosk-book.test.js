@@ -110,13 +110,13 @@ test("a booking that starts within two minutes is checked in immediately", { ski
   // cannot collide with any fixture; end stays inside the same day.
   const pad = (value) => String(value).padStart(2, "0");
   const nowParts = zonedParts(new Date(), SERVER_TIMEZONE);
-  const dayKey = `${nowParts.year}-${pad(nowParts.month)}-${pad(nowParts.day)}`;
+  const dayKey = `${nowParts.year}${pad(nowParts.month)}${pad(nowParts.day)}`;
   const tomorrow = zonedParts(new Date(Date.now() + 24 * 60 * 60_000), SERVER_TIMEZONE);
-  const nextDay = `${tomorrow.year}-${pad(tomorrow.month)}-${pad(tomorrow.day)}`;
+  const nextDay = `${tomorrow.year}${pad(tomorrow.month)}${pad(tomorrow.day)}`;
   const rows = (await apiRequest(targets.reconstructed, `/api/kiosk/schedule?start=${dayKey}&end=${nextDay}`, {
     headers: { Authorization: `Bearer ${kioskToken}` },
   })).body || [];
-  const lastEnd = rows.reduce((latest, row) => Math.max(latest, Date.parse(row.end_at || "")), 0);
+  const lastEnd = rows.reduce((latest, row) => Math.max(latest, Date.parse(row.end || row.end_at || "")), 0);
   const startMs = Math.max(Date.now() + 20_000, lastEnd + 60_000);
   const start = new Date(Math.ceil(startMs / 60_000) * 60_000);
   const todaysLast = zonedPartsToDate({ ...nowParts, hour: 23, minute: 59 }, SERVER_TIMEZONE).getTime();
