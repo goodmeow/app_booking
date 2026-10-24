@@ -1,8 +1,11 @@
 import { api } from "../api.js";
+import { directoryUrl } from "../../domain/users/attendee-directory.js";
 
 export const usersApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    listUser: builder.query({ query: () => "users/", providesTags: ["users"] }),
+    // An argument adds the directory search (`?q=`); no argument keeps the
+    // plain list that the admin management screen relies on.
+    listUser: builder.query({ query: (argument) => directoryUrl(argument), providesTags: ["users"] }),
     detailUser: builder.query({ query: (id) => `users/${id}`, providesTags: ["users"] }),
     createUser: builder.mutation({ query: (body) => ({ url: "users/", method: "POST", body }), invalidatesTags: ["users"] }),
     updateUser: builder.mutation({ query: ({ userId, ...body }) => ({ url: `users/${userId}`, method: "PUT", body }), invalidatesTags: ["users"] }),

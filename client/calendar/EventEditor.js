@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Autocomplete,
@@ -50,6 +50,7 @@ import {
 } from "../redux/services/events.js";
 import { useLazyGetAvailableRoomsQuery } from "../redux/services/rooms.js";
 import { calendarLocaleForLanguage } from "../i18n/languages.js";
+import AttendeePicker from "./AttendeePicker.js";
 
 const pad = (value) => String(value).padStart(2, "0");
 
@@ -106,6 +107,7 @@ const EventEditor = ({
   initialStart,
   initialEnd,
   sessionEmail,
+  isAdmin = false,
   users = [],
   rooms = [],
   initialRoom,
@@ -151,8 +153,6 @@ const EventEditor = ({
   const endDay = !editing && draft.bookingKind === "recurring" ? draft.startDate : draft.endDate;
   const endValue = endDay ? `${endDay}T${draft.endTime}` : "";
 
-  const userEmails = useMemo(() => uniqueAttendees(users).map(({ attendee_email }) => attendee_email), [users]);
-  const usersByEmail = useMemo(() => new Map(users.map((user) => [String(user.email || "").toLowerCase(), user])), [users]);
   const attendeeEmails = draft.attendees.filter((item) => !isRoomAttendee(item)).map(emailOf);
   const location = draft.attendees.find(isRoomAttendee)?.attendee_email || null;
   const locationValue = rooms.find((room) => room.email === location)
@@ -421,26 +421,20 @@ const EventEditor = ({
                 onChange={change("subject")}
                 disabled={readOnly || busy}
               />
-              <Autocomplete
-                multiple
-                freeSolo
-                options={userEmails}
+              <AttendeePicker
+                isAdmin={isAdmin}
+                users={users}
+                attendees={draft.attendees}
                 value={attendeeEmails}
-                onChange={(_, values) => {
+                disabled={readOnly || busy}
+                onChange={(people) => {
                   setDraft((current) => {
                     const room = current.attendees.find(isRoomAttendee);
-                    const people = values.map((value) => {
-                      const email = emailOf(value);
-                      const user = usersByEmail.get(String(email).toLowerCase());
-                      return user ? { attendee_email: user.email, attendee_user_id: user._id } : { attendee_email: email };
-                    });
                     return { ...current, attendees: uniqueAttendees([...people, ...(room ? [room] : [])]) };
                   });
                   setError("");
                   setGuidance("");
                 }}
-                disabled={readOnly || busy}
-                renderInput={(params) => <TextField {...params} label={t("editor.attendees")} />}
               />
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <TextField
