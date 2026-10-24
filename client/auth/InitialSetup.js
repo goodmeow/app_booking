@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useDispatch } from "react-redux";
-import { useHistory } from "react-router-dom";
 import SigninBrandPanel from "./SigninBrandPanel.js";
+import { authenticate, signin } from "./auth-helper.js";
 import { getApiError } from "../domain/api-error.js";
 import { buildSetupPayload, validateSetupForm } from "../domain/setup.js";
-import { setupApi, useSubmitSetupMutation } from "../redux/services/setup.js";
+import { useSubmitSetupMutation } from "../redux/services/setup.js";
 
 const focusStyles = `
   .kiosk-auth button:focus-visible,
@@ -44,8 +43,6 @@ const SetupField = ({ id, label, help, type = "text", autoComplete, value, onCha
 
 const InitialSetup = () => {
   const { t } = useTranslation(["auth", "common"]);
-  const dispatch = useDispatch();
-  const history = useHistory();
   const [form, setForm] = useState({ name: "", email: "", employeeId: "", password: "", confirm: "" });
   const [error, setError] = useState("");
   const [submitSetup, { isLoading }] = useSubmitSetupMutation();
@@ -64,12 +61,16 @@ const InitialSetup = () => {
     }
     try {
       await submitSetup(buildSetupPayload(form)).unwrap();
-      // Update the cached status before navigating; otherwise the gate still
-      // believes setup is required and bounces sign-in back to this page.
-      dispatch(setupApi.util.updateQueryData("getSetupStatus", undefined, (draft) => {
-        draft.required = false;
-      }));
-      history.replace({ pathname: "/signin", state: { setupComplete: true } });
+      // Sign in with the password just chosen and reload the app. A hard
+      // navigation drops the stale setup-status cache instead of racing the
+      // gate between /setup and /signin, and the operator lands on the
+      // calendar without retyping the credentials.
+      try {
+        const session = await signin({ email: form.email.trim(), password: form.password });
+        authenticate(session, () => window.location.assign("/"), false);
+      } catch {
+        window.location.assign("/signin");
+      }
     } catch (reason) {
       setError(getApiError(reason, t("auth:setup.errors.generic")));
     }

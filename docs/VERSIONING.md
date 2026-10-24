@@ -17,7 +17,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 ## Posisi saat ini (Ver 3 Rev 10)
 
-- CMS + API: **Ver 3 Rev 10**, `package.json` `3.10.0`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 10**, `package.json` `3.10.1`, ditampilkan di footer
   semua halaman CMS (dari package.json).
 - APK kiosk: `versionName 1.3.1 / versionCode 12`, menampilkan ver + UUID
   perangkat di layar; string di res/values + values-en (bahasa ID/EN),
@@ -130,6 +130,9 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
   `postgres:16-alpine`, `nginx:alpine`), entrypoint migrasi + seed role,
   initial setup teruji end-to-end. Bukti: DB kosong `required=true` → setup
   `201` → terkunci `409`, login `200`, 17 migrasi, APK tersaji.
+- Patch `3.10.1`: setelah setup sukses CMS **auto-login** dan melakukan hard
+  redirect ke kalender; menghilangkan layar putih/race cache gate dan tidak
+  perlu mengetik ulang kredensial.
 
 ## Cara naikkan
 

@@ -81,7 +81,10 @@ test("sign in page announces a completed setup", () => {
 
   assert.match(signin, /location\.state\?\.setupComplete/);
   assert.match(signin, /t\("auth:setup\.success"\)/);
-  assert.match(readClientFile("auth/InitialSetup.js"), /state: \{ setupComplete: true \}/);
+  const setup = readClientFile("auth/InitialSetup.js");
+  assert.match(setup, /await signin\(/);
+  assert.match(setup, /authenticate\(session/);
+  assert.match(setup, /window\.location\.assign\("\/"\)/);
 });
 
 test("setup translations exist in both languages with matching interpolation", () => {
