@@ -1,8 +1,11 @@
 import express from "express";
 import { adminOnly, requireSignin } from "../../security/auth.middleware.js";
-import { cards, createCard, editCard, read, removeCard, update } from "./setting.controller.js";
+import { cards, createCard, editCard, read, readPublic, removeCard, update } from "./setting.controller.js";
 
 const router = express.Router();
+// Read-only public flag so the sign-in page can hide the signup link before
+// authentication. It exposes nothing besides the toggle state.
+router.get("/public", readPublic);
 router.use(requireSignin);
 router.get("/", read);
 router.put("/", adminOnly, update);

@@ -26,7 +26,7 @@ Kode status yang dipakai: `200`, `201`, `400`, `401`, `403`, `404`, `409`,
 | Method & path | Akses | Body / query | Sukses | Error penting |
 |---|---|---|---|---|
 | `POST /api/auth/signin` | Publik | `{email\|username, password}` | `200 {token, user:{_id,name,email,username,type,floor,role}}` + cookie `t` | `401 INVALID_CREDENTIALS`, `429 RATE_LIMITED` |
-| `POST /api/auth/signup` | Publik | `{name, email, username?, password}` | `201 {message}` | `400 INVALID_SIGNUP/INVALID_EMAIL/INVALID_USERNAME/INVALID_PASSWORD`, `409 IDENTITY_EXISTS`, `429` |
+| `POST /api/auth/signup` | Publik | `{name, email, username?, password}` | `201 {message}` — hanya bila `self_signup_enabled=true` | `403 SIGNUP_DISABLED` (toggle mati), `400 INVALID_SIGNUP/INVALID_EMAIL/INVALID_USERNAME/INVALID_PASSWORD`, `409 IDENTITY_EXISTS`, `429` |
 | `GET /api/auth/signout` | Publik | – | `200 {message:"signed out"}`, cookie dihapus | – |
 | `POST /api/door-open` | JWT user | `{card_number}` | `200 {message:"Door opened"}` | `400 INVALID_CARD`, `401` |
 
@@ -36,7 +36,11 @@ Catatan:
 - Password harus 8–72 byte UTF-8 untuk signup/ganti sandi; akun demo lama
   (`1234`) dibuat lewat skrip, bukan endpoint ini.
 - Rate limit signin: 10 kegagalan per akun per IP dan 100 kegagalan per IP
-  dalam 15 menit; signup 5 per jam per IP.
+  dalam 15 menit; signup 5 per jam per IP saat toggle aktif.
+- **Self signup mengikuti toggle** `self_signup_enabled` di
+  `tbl_app_settings` (default `false`). Saat mati, endpoint menolak dengan
+  `403 SIGNUP_DISABLED`, tombol/halaman Daftar disembunyikan, dan akun hanya
+  dibuat admin lewat `POST /api/users`.
 
 ## 3. Users
 
@@ -148,14 +152,17 @@ Catatan penting:
 
 | Method & path | Akses | Body / query | Sukses | Error penting |
 |---|---|---|---|---|
+| `GET /api/settings/public` | Publik | – | `200 {self_signup_enabled}` | – |
 | `GET /api/settings` | JWT user | – | `200` objek settings atau `{}` | `401` |
-| `PUT /api/settings` | JWT admin | `{id, lock_timer, led_timer, table_input, not_checked_in_time_limit, time_of_event_start_soon, available_color, will_start_color, on_meeting_color}` (semua wajib) | `200 {status:"updated"}` | `400 INVALID_SETTINGS`, `404 NOT_FOUND` |
+| `PUT /api/settings` | JWT admin | `{id, lock_timer, led_timer, table_input, not_checked_in_time_limit, time_of_event_start_soon, available_color, will_start_color, on_meeting_color, self_signup_enabled}` (semua wajib; boolean untuk `table_input`/`self_signup_enabled`) | `200 {status:"updated"}` | `400 INVALID_SETTINGS`, `404 NOT_FOUND` |
 | `GET /api/settings/card-master` | JWT admin | `card_number` (opsional) | `200` daftar kartu | `403` |
 | `POST /api/settings/card-master` | JWT admin | `{card_number}` | `201` kartu | `400 INVALID_CARD`, `409 CARD_EXISTS` |
 | `PUT /api/settings/card-master/:idCardMaster` | JWT admin | `{card_number}` | `200` kartu | `400 INVALID_CARD`, `404`, `409 CARD_EXISTS` |
 | `DELETE /api/settings/card-master/:idCardMaster` | JWT admin | – | `200 {status:"deleted"}` | `404` |
 
-`GET /api/settings` dapat diakses semua user yang login; `PUT` hanya admin.
+`GET /api/settings/public` sengaja tanpa login dan hanya mengembalikan
+`self_signup_enabled`. `GET /api/settings` dapat diakses semua user yang login;
+`PUT` hanya admin.
 `id` pada body `PUT` adalah `_id` baris settings yang dikembalikan `GET`.
 
 ## 7. Kiosk

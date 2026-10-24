@@ -6,6 +6,7 @@ import { useGetSettingsQuery } from "../redux/services/settings.js";
 import RoomManagementSection from "./RoomManagementSection.js";
 import UserManagementSection from "./UserManagementSection.js";
 import KioskDeviceManagementSection from "./KioskDeviceManagementSection.js";
+import SettingsSection from "./SettingsSection.js";
 
 const AppManagement = () => {
   const { t } = useTranslation("management");
@@ -18,6 +19,7 @@ const AppManagement = () => {
     { value: "users", label: t("users.title"), content: <UserManagementSection /> },
     { value: "rooms", label: t("rooms.title"), content: <RoomManagementSection /> },
     { value: "devices", label: t("devices.title"), content: <KioskDeviceManagementSection /> },
+    { value: "settings", label: t("settings.tab"), content: <SettingsSection /> },
   ];
   const active = sections.find((item) => item.value === section) || sections[0];
 

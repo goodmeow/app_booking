@@ -142,5 +142,14 @@
     "floorMissingNotice": "{{count}} pengguna belum punya grup lantai dan belum bisa memesan ruangan sampai diisi.",
     "passwordRule": "Kata sandi minimal 8 karakter.",
     "passwordTooShort": "Kata sandi terlalu pendek — minimal 8 karakter."
+  },
+  "settings": {
+    "tab": "Pengaturan",
+    "title": "Pendaftaran publik",
+    "selfSignup": "Izinkan pendaftaran mandiri",
+    "selfSignupHelp": "Saat mati, tombol Daftar dan halaman /signup disembunyikan, dan server menolak pendaftaran publik. Buat akun karyawan lewat tab Pengguna.",
+    "saved": "Pengaturan tersimpan.",
+    "saveError": "Tidak dapat menyimpan pengaturan.",
+    "loading": "Memuat pengaturan..."
   }
 }

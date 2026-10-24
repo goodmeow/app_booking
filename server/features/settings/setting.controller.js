@@ -9,12 +9,20 @@ const run = (handler) => async (req, res, next) => {
 };
 
 export const read = run(async (req, res) => res.json((await getSettings()) || {}));
+export const readPublic = run(async (req, res) => {
+  const settings = await getSettings();
+  res.json({ self_signup_enabled: settings?.self_signup_enabled === true });
+});
 export const update = run(async (req, res) => {
-  const required = ["id", "lock_timer", "led_timer", "table_input", "not_checked_in_time_limit", "time_of_event_start_soon", "available_color", "will_start_color", "on_meeting_color"];
-  if (required.some((field) => req.body[field] === undefined || req.body[field] === null || req.body[field] === "")) {
+  const settingsId = req.body.id || req.body._id;
+  const required = ["lock_timer", "led_timer", "table_input", "not_checked_in_time_limit", "time_of_event_start_soon", "available_color", "will_start_color", "on_meeting_color", "self_signup_enabled"];
+  if (!settingsId || required.some((field) => req.body[field] === undefined || req.body[field] === null || req.body[field] === "")) {
     throw badRequest("INVALID_SETTINGS", "Every settings field is required");
   }
-  if (!(await updateSettings(req.body.id, req.body))) throw notFound("Settings not found");
+  if (typeof req.body.self_signup_enabled !== "boolean") {
+    throw badRequest("INVALID_SETTINGS", "self_signup_enabled must be a boolean");
+  }
+  if (!(await updateSettings(settingsId, req.body))) throw notFound("Settings not found");
   req.io?.emit("response:setting", { type: "settings:changed" });
   res.json({ status: "updated", message: "Setting successfully updated" });
 });

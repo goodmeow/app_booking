@@ -183,8 +183,8 @@ test("retiring a role revokes existing JWT privileges", async () => {
   }
 });
 
-test("public signup accepts arbitrary domains and ignores requested privilege", async () => {
-  const response = await apiRequest(targets.reconstructed, "/api/auth/signup", {
+test("public signup follows the admin switch and ignores requested privilege", async () => {
+  const signup = () => apiRequest(targets.reconstructed, "/api/auth/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -197,11 +197,29 @@ test("public signup accepts arbitrary domains and ignores requested privilege", 
       type: "room",
     }),
   });
-  assert.equal(response.status, 201);
-  assert.equal(
-    await queryParityDatabase("SELECT type || '|' || lower(r.role_name) FROM tbl_users u JOIN tbl_role r ON r._id=u.role_id WHERE u.email='domain-neutral@room.com';"),
-    "employee|user"
-  );
+
+  const publicFlag = await apiRequest(targets.reconstructed, "/api/settings/public");
+  assert.equal(publicFlag.status, 200);
+  assert.equal(publicFlag.body.self_signup_enabled, false);
+
+  const disabled = await signup();
+  assert.equal(disabled.status, 403);
+  assert.equal(disabled.body.code, "SIGNUP_DISABLED");
+
+  await queryParityDatabase("UPDATE tbl_app_settings SET self_signup_enabled = true;");
+  try {
+    const enabledFlag = await apiRequest(targets.reconstructed, "/api/settings/public");
+    assert.equal(enabledFlag.body.self_signup_enabled, true);
+
+    const enabled = await signup();
+    assert.equal(enabled.status, 201);
+    assert.equal(
+      await queryParityDatabase("SELECT type || '|' || lower(r.role_name) FROM tbl_users u JOIN tbl_role r ON r._id=u.role_id WHERE u.email='domain-neutral@room.com';"),
+      "employee|user"
+    );
+  } finally {
+    await queryParityDatabase("UPDATE tbl_app_settings SET self_signup_enabled = false;");
+  }
 });
 
 test("inactive accounts are rejected even when their JWT is still valid", async () => {

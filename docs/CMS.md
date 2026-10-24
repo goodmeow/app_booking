@@ -28,7 +28,8 @@ Login demo: `admin@example.test` (password di `.env.demo`).
 ```
 /                      Kalender Rapat            (login)
 /user/:userId          Profil Pengguna           (login)
-/signin  /signup       Masuk / Daftar            (publik, tanpa header)
+/signin                Masuk                    (publik, tanpa header)
+/signup                Daftar                   (publik; hanya bila toggle self signup aktif)
 /app-management        Manajemen Aplikasi        (ADMIN)
 /report                Laporan Pemakaian Ruangan (ADMIN)
 /kiosk  /kiosk/setup   Kiosk web (referensi)     (tanpa header CMS)
@@ -56,8 +57,10 @@ sehingga tidak memakai header CMS.
 - API: `POST /api/auth/signin`.
 
 ### 3.2 Daftar (`/signup`) — `client/auth/Signup.js`
-- Pembuatan akun baru.
-- API: `POST /api/auth/signup`.
+- Hanya tersedia bila **Pengaturan → Izinkan pendaftaran mandiri** aktif.
+  Saat mati, rute langsung diarahkan ke `/signin` dan tautan Daftar tidak
+  dirender (menu maupun halaman masuk).
+- API: `POST /api/auth/signup` (server juga menolak `403 SIGNUP_DISABLED`).
 
 ### 3.3 Kalender Rapat (`/`) — `client/calendar/`
 - Klik event membuka **drawer detail** (judul, waktu, ruangan, peserta, status
@@ -171,7 +174,7 @@ modal email + sandi ruangan.
 
 | Komponen | Fungsi |
 |---|---|
-| `core/Menu.js` | Header + drawer. Item: Kalender; Manajemen & Laporan (ADMIN saja); Profil; Masuk/Daftar |
+| `core/Menu.js` | Header + drawer. Item: Kalender; Manajemen & Laporan (ADMIN saja); Profil; Masuk (Daftar hanya bila toggle self signup aktif) |
 | `core/ProtectedShell.js` | Menghubungkan Socket.io saat area login aktif |
 | `core/NotFound.js`, `core/PlaceholderPage.js` | Halaman 404 / placeholder |
 | `components/common/AsyncState.js` | State loading/error standar |

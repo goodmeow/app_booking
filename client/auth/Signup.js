@@ -13,12 +13,14 @@ import {
   Typography,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 import LanguageSwitcher from "../components/common/LanguageSwitcher.js";
 import { signup } from "./auth-helper.js";
+import { useGetPublicSettingsQuery } from "../redux/services/settings.js";
 
 const Signup = () => {
   const { t } = useTranslation(["auth", "common"]);
+  const { data: publicSettings, isLoading: settingsLoading } = useGetPublicSettingsQuery();
   const [form, setForm] = useState({ name: "", email: "", username: "", password: "" });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -43,6 +45,11 @@ const Signup = () => {
     value: form[name],
     onChange: (event) => setForm({ ...form, [name]: event.target.value }),
   });
+
+  // The admin switch hides the form and sends direct visitors back to sign in.
+  // Wait for the flag first so an enabled form never flashes as disabled.
+  if (settingsLoading) return null;
+  if (!publicSettings?.self_signup_enabled) return <Redirect to="/signin" />;
 
   return (
     <Box sx={{ minHeight: "calc(100vh - 64px)", display: "grid", placeItems: "center", p: 2 }}>

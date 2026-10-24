@@ -3,11 +3,18 @@ import { query } from "../../db/pool.js";
 export const getSettings = async () => (await query(
   `SELECT _id, lock_timer, led_timer, table_input, not_checked_in_time_limit,
           time_of_event_start_soon, available_color, will_start_color, on_meeting_color,
-          created_at, updated_at
+          self_signup_enabled, created_at, updated_at
    FROM tbl_app_settings
    ORDER BY created_at
    LIMIT 1`
 )).rows[0] || null;
+
+export const getSelfSignupEnabled = async () => (await query(
+  `SELECT self_signup_enabled
+   FROM tbl_app_settings
+   ORDER BY created_at
+   LIMIT 1`
+)).rows[0]?.self_signup_enabled === true;
 
 export const updateSettings = async (id, values) => (await query(
   `UPDATE tbl_app_settings
@@ -19,10 +26,11 @@ export const updateSettings = async (id, values) => (await query(
        available_color = $7,
        will_start_color = $8,
        on_meeting_color = $9,
+       self_signup_enabled = $10,
        updated_at = now()
    WHERE _id = $1
    RETURNING _id`,
-  [id, values.lock_timer, values.led_timer, values.table_input, values.not_checked_in_time_limit, values.time_of_event_start_soon, values.available_color, values.will_start_color, values.on_meeting_color]
+  [id, values.lock_timer, values.led_timer, values.table_input, values.not_checked_in_time_limit, values.time_of_event_start_soon, values.available_color, values.will_start_color, values.on_meeting_color, values.self_signup_enabled]
 )).rows[0] || null;
 
 export const listCards = async (cardNumber) => (await query(

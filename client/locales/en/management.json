@@ -142,5 +142,14 @@
     "floorMissingNotice": "{{count}} user(s) have no floor group and cannot book rooms until one is set.",
     "passwordRule": "Password must be at least 8 characters.",
     "passwordTooShort": "Password is too short — at least 8 characters are required."
+  },
+  "settings": {
+    "tab": "Settings",
+    "title": "Public registration",
+    "selfSignup": "Allow self sign-up",
+    "selfSignupHelp": "When off, the Sign Up button and the /signup page are hidden, and the server rejects public registrations. Create employee accounts under Users instead.",
+    "saved": "Setting saved.",
+    "saveError": "Unable to save the setting.",
+    "loading": "Loading settings..."
   }
 }

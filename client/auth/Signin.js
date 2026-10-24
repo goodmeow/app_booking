@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory, useLocation, Link } from "react-router-dom";
 import { authenticate, signin } from "./auth-helper.js";
+import { useGetPublicSettingsQuery } from "../redux/services/settings.js";
 import SigninBrandPanel from "./SigninBrandPanel.js";
 
 const HELPDESK_EMAIL = "helpdesk@integrasolution.id";
@@ -24,6 +25,8 @@ const Signin = () => {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
+  const { data: publicSettings } = useGetPublicSettingsQuery();
+  const signupEnabled = publicSettings?.self_signup_enabled === true;
 
   const submit = async (event) => {
     event.preventDefault();
@@ -261,6 +264,14 @@ const Signin = () => {
             >
               {loading ? t("common:states.loading") : t("auth:signin.submit")}
             </button>
+
+            {signupEnabled && (
+              <p style={{ margin: 0, textAlign: "center", fontSize: 16 }}>
+                <Link to="/signup" style={{ color: "#FFD25A", fontWeight: 700 }}>
+                  {t("auth:signin.createAccount")}
+                </Link>
+              </p>
+            )}
           </form>
 
         </div>

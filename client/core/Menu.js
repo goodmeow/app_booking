@@ -22,6 +22,7 @@ import { isAuthenticated, signout } from "../auth/auth-helper.js";
 import LanguageSwitcher from "../components/common/LanguageSwitcher.js";
 import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { useDetailUserQuery } from "../redux/services/users.js";
+import { useGetPublicSettingsQuery } from "../redux/services/settings.js";
 
 const BrandLockup = () => {
   const { t } = useTranslation("common");
@@ -99,6 +100,8 @@ const Menu = () => {
   const session = isAuthenticated();
   const admin = session?.user?.role === "ADMIN";
   const { data: currentUser } = useDetailUserQuery(session?.user?._id, { skip: !session?.user?._id });
+  const { data: publicSettings } = useGetPublicSettingsQuery();
+  const signupEnabled = publicSettings?.self_signup_enabled === true;
   const displayName = currentUser?.name || session?.user?.name;
   const closeDrawer = () => setDrawerOpen(false);
   const handleSignOutClick = () => {
@@ -108,7 +111,8 @@ const Menu = () => {
   const handleSignout = () => signout(() => history.push("/"));
   const navItems = [
     ...(admin ? [{ to: "/app-management", label: t("nav.management") }, { to: "/report", label: t("nav.report") }] : []),
-    ...(!session ? [{ to: "/signup", label: t("nav.signUp") }, { to: "/signin", label: t("nav.signIn") }] : []),
+    ...(!session && signupEnabled ? [{ to: "/signup", label: t("nav.signUp") }] : []),
+    ...(!session ? [{ to: "/signin", label: t("nav.signIn") }] : []),
     ...(session ? [{ to: `/user/${session.user._id}`, label: t("nav.myProfile") }] : []),
   ];
 

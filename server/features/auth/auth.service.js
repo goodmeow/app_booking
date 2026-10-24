@@ -4,6 +4,7 @@ import config from "../../../config/config.js";
 import { badRequest, HttpError } from "../../lib/http-error.js";
 import { normalizedEmail, normalizedUsername, validatedPassword } from "../accounts/identity.validation.js";
 import { createEmployeeAccount, findActivePrincipalById, findPrincipalByLogin, hasDoorCard } from "./auth.repository.js";
+import { getSelfSignupEnabled } from "../settings/setting.repository.js";
 
 export const publicPrincipal = (principal) => ({
   _id: principal._id,
@@ -56,7 +57,15 @@ export const verifyPrincipalToken = async (token) => {
   return publicPrincipal(principal);
 };
 
+// Public registration is a switch, not a permanent route: the admin can turn it
+// off in Management > Settings, and the endpoint must refuse even when the CMS
+// link is hidden.
+export const signupAllowed = (enabled) => enabled === true;
+
 export const registerEmployee = async ({ name, email, username, password }) => {
+  if (!signupAllowed(await getSelfSignupEnabled())) {
+    throw new HttpError(403, "SIGNUP_DISABLED", "Self signup is disabled");
+  }
   const cleanName = String(name || "").trim();
   if (!cleanName) throw badRequest("INVALID_SIGNUP", "Name is required");
   const cleanEmail = normalizedEmail(email);

@@ -64,6 +64,11 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
 - Migrasi 013 memindahkan kartu legacy `tbl_users.card_number` ke tabel baru.
 - CMS: field/kolom Employee ID, dialog kartu (tambah, tandai hilang, hitungan
   aktif), locale en/id. Unit 58/58, client 72/72, regresi 71/71, parity 8/8.
+- Self signup menjadi **toggle admin** (`self_signup_enabled`, default mati):
+  tombol Daftar dan halaman `/signup` hilang saat mati, dan endpoint
+  `POST /api/auth/signup` menolak `403 SIGNUP_DISABLED`. Tab Pengaturan di
+  Manajemen menampilkan switch-nya; akun tetap bisa dibuat admin lewat tab
+  Pengguna.
 
 ## Cara naikkan
 
