@@ -137,40 +137,260 @@ Urutan yang sudah terbukti (README “Setelah restart mesin”):
 4. Verifikasi tablet benar-benar lewat LAN: lihat koneksi masuk ke port 5100
    dari IP tablet dan log server terus menerima `/context` + `/schedule`.
 
-## 5. Backup dan restore
+## 5. Backup, restore, dan impor user
 
-### 5.1 Kondisi saat ini
+Tiga skrip di `database/scripts/` menutup operasi ini. Semuanya membaca
+kredensial dari environment atau file env, tidak pernah menulis kredensial ke
+log, dan menolak database legacy (`bjb`, `bjb_compare`,
+`360booking_reconstruction_test`, `360booking_parity_test`).
 
-**Belum ada backup otomatis, retensi, atau uji restore di repo.** Yang ada
-hanya skrip demo yang menghapus database demo dan skrip parity yang menghapus
-`360booking_parity_test`. Anggap belum ada jaminan backup sampai langkah
-berikut dipasang.
+| Skrip | Sifat | Keterangan |
+|---|---|---|
+| `backup-db.sh` | menulis file dump | `pg_dump -Fc`, cek arsip + sha256, retensi, rsync opsional |
+| `restore-db.sh` | menimpa DB tujuan | default ke `<db>_restore_test`, `--force` untuk produksi |
+| `preflight-import.mjs` | baca saja | cek skema, role, lantai, bentrok plan |
+| `import-bjb-users.mjs` | dry-run default | `--apply` butuh `IMPORT_TARGET_DB` + bukti backup |
 
-### 5.2 Rekomendasi backup harian
+### 5.1 Backup harian
+
+Buat file kredensial khusus backup (jangan pakai `app.env` untuk timer agar
+`NODE_ENV` tidak ikut tersimpan):
 
 ```bash
-# /etc/360booking/backup.env (0600): PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD
-sudo install -d -m 700 /var/backups/360booking
-sudo -u postgres pg_dump -Fc -d 360booking \
-  -f "/var/backups/360booking/360booking-$(date +%F-%H%M).dump"
+sudo install -d -m 0700 /var/backups/360booking
+sudo install -m 0600 /dev/null /etc/360booking/backup.env
+sudo nano /etc/360booking/backup.env
 ```
 
-- Simpan 14 salinan harian + 1 bulanan; hapus yang lebih lama dengan `find`.
-- Jalankan lewat systemd timer harian, bukan cron, agar log terpusat.
-- Simpan salinan di mesin lain (rsync/NAS); backup di host yang sama tidak
-  melindungi dari kegagalan disk.
+Isi `backup.env` (ganti nilai `<...>`):
 
-### 5.3 Uji restore (lakukan berkala)
+```bash
+PGHOST=127.0.0.1
+PGPORT=5432
+PGDATABASE=360booking
+PGUSER=360booking
+PGPASSWORD=<password-role-aplikasi>
+BACKUP_DIR=/var/backups/360booking
+BACKUP_RETENTION_DAYS=14
+# Opsional, salinan off-host (butuh kunci SSH milik root):
+BACKUP_RSYNC_TARGET=<user>@<nas>:/srv/360booking/
+```
+
+Pasang skrip dan timer:
+
+```bash
+sudo install -m 0755 database/scripts/backup-db.sh /usr/local/sbin/360booking-backup
+sudo install -m 0644 deploy/systemd/360booking-backup.service /etc/systemd/system/
+sudo install -m 0644 deploy/systemd/360booking-backup.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now 360booking-backup.timer
+sudo systemctl start 360booking-backup.service
+journalctl -u 360booking-backup.service -n 30 --no-pager
+```
+
+Timer berjalan harian pukul 02:30 (dengan delay acak 15 menit, `Persistent=true`
+sehingga ketinggalan jadwal saat host mati tetap dijalankan). Unit memakai
+`ProtectSystem=strict` dan hanya boleh menulis ke `/var/backups/360booking`,
+jadi direktori itu harus dibuat lebih dulu seperti perintah di atas.
+
+Uji manual (juga cara membuat backup sebelum impor):
+
+```bash
+sudo ./database/scripts/backup-db.sh --env-file=/etc/360booking/backup.env
+sudo ls -lh /var/backups/360booking/
+(cd /var/backups/360booking && sudo sha256sum --check <file>.dump.sha256)
+```
+
+Perilaku retensi: file `360booking-*.dump` dan `.sha256` yang lebih tua dari
+`BACKUP_RETENTION_DAYS` dihapus setelah dump baru lolos verifikasi. Salinan
+off-host memakai `rsync --archive --partial`; bila rsync gagal, backup lokal
+tetap ada dan unit keluar non-zero agar alarm monitoring menyala.
+
+### 5.2 Uji restore (lakukan berkala)
+
+Restore selalu ke database uji. Skrip men-drop/membuat ulang DB tujuan dan
+menghentikan semua koneksi ke DB itu, jadi jangan arahkan ke produksi.
+
+```bash
+# PGUSER di backup.env adalah role aplikasi; untuk membuat DB uji butuh role
+# yang punya CREATEDB. Jalankan sebagai postgres dengan env file kosong:
+sudo -u postgres env -i PATH="$PATH" \
+  PGHOST=/var/run/postgresql PGDATABASE=360booking PGUSER=postgres \
+  ./database/scripts/restore-db.sh \
+  /var/backups/360booking/<file>.dump \
+  --env-file=/dev/null \
+  --target-db=360booking_restore_test
+```
+
+Verifikasi lalu hapus:
+
+```bash
+sudo -u postgres psql -d 360booking_restore_test -c "SELECT count(*) FROM tbl_users;"
+sudo -u postgres dropdb 360booking_restore_test
+```
+
+Untuk menguji aplikasi terhadap hasil restore, jalankan instance sementara
+dengan `PGDATABASE=360booking_restore_test` dan `SERVER_PORT` berbeda; jangan
+mengubah `app.env` produksi. Menimpa DB produksi hanya dengan `--force`, dan
+hanya setelah `systemctl stop 360booking-server` serta backup terbaru ada.
+
+### 5.3 Impor fresh install (clean slate)
+
+Server baru mulai dari nol: **event historis tidak dimigrasikan**. Seluruh 238
+karyawan diimpor sebagai akun **baru** (`action=create`), bukan update akun
+lama. Database target harus kosong dari user plan; preflight akan menolak bila
+ada email/employee_id yang sudah terpakai.
+
+File rencana berisi PII dan **tidak** masuk repo:
+
+```text
+integration/plan-import-fresh.local.csv     238 create, 198 kartu add, 40 tanpa kartu
+integration/plan-rooms-fresh.local.csv      11 ruangan aktif
+integration/plan-special-users.local.csv     1 admin tablet + 4 resepsionis
+integration/plan-master-cards.local.csv      24 nomor master card
+integration/plan-password-reset.local.csv   243 baris (238 user + 5 special)
+integration/.env.import.local               DEFAULT_PASSWORD
+```
+
+Semua file `.local.*`/`.env.*.local` di-ignore git. Jangan menyalin isinya ke
+tiket, log, atau dokumen.
+
+Urutan fresh yang benar:
+
+| Urutan | Aset | Skrip | Jumlah |
+|---|---|---|---|
+| 0 | Role `admin`, `user`, `receptionist` | SQL manual (§5.3.0) | 3 |
+| 1 | Backup database kosong | `backup-db.sh` | 1 dump |
+| 2 | Preflight read-only | `preflight-import.mjs --fresh` | 0 error |
+| 3 | Ruangan | `import-fresh-assets.mjs --phase=rooms` | 11 |
+| 4 | Admin + resepsionis | `import-fresh-assets.mjs --phase=special` | 5 |
+| 5 | Master card | `import-fresh-assets.mjs --phase=master-cards` | 24 |
+| 6 | Karyawan + kartu | `import-bjb-users.mjs --fresh` | 238 + 198 |
+| 7 | Password | fase `passwords` | no-op (create sudah set default) |
+
+#### 5.3.0 Seed role
+
+Migrasi hanya mengisi role `receptionist` (015). Database baru tetap butuh
+`admin` dan `user`, dan `special` butuh `admin`:
+
+```bash
+sudo -u postgres psql -d 360booking <<'SQL'
+INSERT INTO tbl_role (_id, role_name, is_deleted) VALUES
+  ('471ba030-c950-41f9-90da-4e0fe10426a6', 'admin', false),
+  ('67e9500b-908a-497d-9d3b-54bc020700cb', 'user',  false),
+  ('3f6a9c2e-8b41-4d7a-9e52-6c0b8a1d4f73', 'receptionist', false)
+ON CONFLICT (_id) DO NOTHING;
+SQL
+sudo -u postgres psql -d 360booking -c "SELECT role_name FROM tbl_role ORDER BY 1;"
+```
+
+#### 5.3.1 Backup
+
+```bash
+set -a; . /etc/360booking/app.env; set +a
+export PLAN=/path/ke/integration/plan-import-fresh.local.csv
+export PW=/path/ke/integration/plan-password-reset.local.csv
+export ROOMS=/path/ke/integration/plan-rooms-fresh.local.csv
+export SPECIAL=/path/ke/integration/plan-special-users.local.csv
+export MASTER=/path/ke/integration/plan-master-cards.local.csv
+export DEF=/path/ke/integration/.env.import.local
+
+sudo ./database/scripts/backup-db.sh --env-file=/etc/360booking/backup.env
+BACKUP=/var/backups/360booking/<file>.dump
+```
+
+#### 5.3.2 Preflight fresh (read-only)
+
+```bash
+node database/scripts/preflight-import.mjs --fresh   --plan="$PLAN" --passwords="$PW"   --rooms="$ROOMS" --special="$SPECIAL" --master-cards="$MASTER"   --defaults="$DEF"
+```
+
+Harus `Summary: errors=0`. Warning yang wajar: 18 email placeholder
+`@prasada.id`, 40 akun tanpa kartu, dan (bila ruangan belum diimpor)
+`missing-floor` yang akan hilang setelah fase `rooms`.
+
+#### 5.3.3 Dry-run kedua skrip
+
+```bash
+node database/scripts/import-fresh-assets.mjs --phase=all   --rooms="$ROOMS" --special="$SPECIAL" --master-cards="$MASTER" --defaults="$DEF"
+
+node database/scripts/import-bjb-users.mjs --fresh --phase=all   --plan="$PLAN" --passwords="$PW" --defaults="$DEF"
+```
+
+Dry-run user harus melaporkan `mode=fresh`, `[update] ok=0`, `[create] ok=238`,
+`[cards] ok=198`, dan password seluruhnya `skipped` karena create sudah menulis
+password default + flag wajib ganti.
+
+#### 5.3.4 Apply aset
+
+```bash
+for phase in rooms special master-cards; do
+  IMPORT_TARGET_DB=360booking node database/scripts/import-fresh-assets.mjs     --phase="$phase" --apply --backup-file="$BACKUP"     --rooms="$ROOMS" --special="$SPECIAL" --master-cards="$MASTER"     --defaults="$DEF" || break
+done
+```
+
+#### 5.3.5 Apply karyawan + kartu
+
+```bash
+IMPORT_TARGET_DB=360booking node database/scripts/import-bjb-users.mjs   --fresh --phase=all --apply --backup-file="$BACKUP"   --plan="$PLAN" --passwords="$PW" --defaults="$DEF"
+```
+
+Fase berjalan `update` (0 baris) → `create` (238) → `cards` (198) →
+`passwords` (semua skip). `--cards` tidak dipakai pada fresh karena kartu sudah
+ada di plan utama. Semua penulisan per fase dalam transaksi.
+
+#### 5.3.6 Verifikasi
+
+```bash
+sudo -u postgres psql -d 360booking -c   "SELECT type, count(*) FROM tbl_users GROUP BY type ORDER BY type;"
+sudo -u postgres psql -d 360booking -c   "SELECT count(*) AS aktif FROM tbl_user_cards WHERE status='active';"
+sudo -u postgres psql -d 360booking -c   "SELECT count(*) AS master FROM tbl_card_masters;"
+sudo -u postgres psql -d 360booking -c   "SELECT count(*) AS wajib_ganti FROM tbl_users WHERE must_change_password;"
+```
+
+Target: `employee=243` (238 + 5 special), `room=11`, kartu aktif `198`,
+master `24`, wajib ganti `243` (ruangan `false`).
+
+Apply ulang kedua skrip harus `ok=0` dan semua `skipped` (idempoten).
+Setelah verifikasi, login CMS sebagai admin tablet, cek daftar ruangan, lalu
+pairing tablet.
+
+### 5.4 Mode update lama (kompatibilitas)
+
+Plan lama `integration/plan-import.local.csv` (197 update + 41 create) dan
+`plan-card-changes.local.csv` tetap didukung untuk database yang **sudah berisi
+user BJB**. Jangan memakai plan ini untuk server clean slate: user lama tidak
+ada, sehingga fase update akan melaporkan 197 `user-not-found`.
+
+```bash
+node database/scripts/preflight-import.mjs   --plan=integration/plan-import.local.csv   --passwords=integration/plan-password-reset.local.csv   --cards=integration/plan-card-changes.local.csv   --defaults=integration/.env.import.local
+
+node database/scripts/import-bjb-users.mjs --phase=all   --plan=integration/plan-import.local.csv   --passwords=integration/plan-password-reset.local.csv   --cards=integration/plan-card-changes.local.csv   --defaults=integration/.env.import.local
+```
+
+Tanpa `--fresh` dan tanpa plan khusus, deteksi otomatis hanya mengaktifkan mode
+fresh bila **semua** baris `action=create`; plan campuran tetap berjalan di mode
+lama.
+
+### 5.5 Rollback impor
+
+Impor fresh tidak membawa event historis; setelah go-live, satu-satunya rollback
+yang bersih adalah restore backup sebelum impor (event baru yang sudah dibuat
+setelah go-live akan hilang). Impor hanya menambah user/kartu/ruangan dan
+mengubah password serta status kartu.
 
 ```bash
 sudo systemctl stop 360booking-server
-sudo -u postgres createdb 360booking_restore_test
-sudo -u postgres pg_restore --clean --if-exists -d 360booking_restore_test <dump>
-# arahkan sementara PG_DATABASE ke DB uji, cek login + kalender, lalu hapus DB uji
+sudo -u postgres env -i PATH="$PATH" PGHOST=/var/run/postgresql PGUSER=postgres \
+  ./database/scripts/restore-db.sh "$BACKUP" --env-file=/dev/null \
+  --target-db=360booking --force
 sudo systemctl start 360booking-server
 ```
 
-Jangan pernah menguji restore di database produksi.
+Tanpa downtime, rollback selektif hanya aman untuk user yang dibuat fase
+`create` (belum punya event/kartu): hapus berdasarkan `employee_id` dari
+report, lalu jalankan ulang fase lain. Jangan menghapus user yang sudah
+memiliki event.
 
 ## 6. Monitoring
 

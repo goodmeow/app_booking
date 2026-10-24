@@ -108,6 +108,12 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
   `must_change_password=true`.
 - Bukti: unit 74/74, client 81/81, regresi 81/81, parity 8/8; uji API
   login → 403 → ganti → 200 berhasil, dan admin dapat mengubah flag.
+- Kit operasional: `backup-db.sh` + `restore-db.sh` + systemd timer harian,
+  `preflight-import.mjs`, dan `import-bjb-users.mjs` (dry-run default,
+  `--apply` hanya dengan `IMPORT_TARGET_DB` dan bukti backup).
+- Kit fresh install 3.9.0: plan clean slate 238 create + 198 kartu,
+  `import-fresh-assets.mjs` untuk 11 ruangan, 5 akun admin/resepsionis, dan
+  24 master card. Event historis tidak dimigrasikan.
 
 ## Cara naikkan
 
