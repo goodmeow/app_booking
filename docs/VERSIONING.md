@@ -15,9 +15,9 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
-## Posisi saat ini (Ver 3 Rev 6)
+## Posisi saat ini (Ver 3 Rev 7)
 
-- CMS + API: **Ver 3 Rev 6**, `package.json` `3.6.0`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 7**, `package.json` `3.7.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
 - APK kiosk: `versionName 1.3 / versionCode 11`, menampilkan ver + UUID
   perangkat di layar; string di res/values + values-en (bahasa ID/EN),
@@ -55,6 +55,15 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
   ini) + tombol "Pilih waktu" di tablet (APK 1.3 code 7).
 - Gate kualitas: npm run verify, CI GitHub Actions, pin Node 20
   (.nvmrc), docs/handover/START-HERE.md.
+
+### Ver 3 Rev 7 - 2026-10-24 (selesai)
+- Employee ID (NIK) wajib saat create user dan unik tanpa memandang huruf
+  besar/kecil; format huruf, angka, dash, atau underscore.
+- Tabel `tbl_user_cards`: maksimal 2 kartu aktif per user; kartu hilang tetap
+  tersimpan sebagai record `lost` dan tidak berlaku untuk kiosk/pintu.
+- Migrasi 013 memindahkan kartu legacy `tbl_users.card_number` ke tabel baru.
+- CMS: field/kolom Employee ID, dialog kartu (tambah, tandai hilang, hitungan
+  aktif), locale en/id. Unit 58/58, client 72/72, regresi 71/71, parity 8/8.
 
 ## Cara naikkan
 
