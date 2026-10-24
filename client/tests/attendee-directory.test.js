@@ -16,7 +16,7 @@ test("directory URL only adds ?q= when a search term exists", () => {
   assert.equal(directoryUrl("   "), "users/");
   assert.equal(directoryUrl({ q: "" }), "users/");
   assert.equal(directoryUrl("harun"), "users/?q=harun");
-  assert.equal(directoryUrl({ q: " harun@prasada.id " }), "users/?q=harun%40prasada.id");
+  assert.equal(directoryUrl({ q: " harun@contoh.id " }), "users/?q=harun%40contoh.id");
   assert.equal(directoryUrl({ q: "budi santoso" }), "users/?q=budi%20santoso");
 });
 
@@ -29,22 +29,22 @@ test("directory query trims string and object arguments alike", () => {
 
 test("user index maps e-mail to user and lists unique option addresses", () => {
   const users = [
-    { _id: "u1", name: "Harun", email: "harun@prasada.id" },
-    { _id: "u2", name: "Budi", email: "BUDI@prasada.id" },
+    { _id: "u1", name: "Harun", email: "harun@contoh.id" },
+    { _id: "u2", name: "Budi", email: "BUDI@contoh.id" },
     { _id: "u3", name: "No Mail", email: "" },
   ];
-  assert.equal(userIndexByEmail(users).get("harun@prasada.id")._id, "u1");
+  assert.equal(userIndexByEmail(users).get("harun@contoh.id")._id, "u1");
   assert.equal(userIndexByEmail(users).size, 2);
-  assert.deepEqual(directoryEmails(users), ["harun@prasada.id", "BUDI@prasada.id"]);
+  assert.deepEqual(directoryEmails(users), ["harun@contoh.id", "BUDI@contoh.id"]);
 });
 
 test("merged index keeps earlier users so selected attendees keep their id", () => {
-  const first = mergeUserIndex(new Map(), [{ _id: "u1", name: "Harun", email: "harun@prasada.id" }]);
-  const second = mergeUserIndex(first, [{ _id: "u2", name: "Budi", email: "budi@prasada.id" }]);
-  assert.equal(second.get("harun@prasada.id")._id, "u1");
-  assert.equal(second.get("budi@prasada.id")._id, "u2");
+  const first = mergeUserIndex(new Map(), [{ _id: "u1", name: "Harun", email: "harun@contoh.id" }]);
+  const second = mergeUserIndex(first, [{ _id: "u2", name: "Budi", email: "budi@contoh.id" }]);
+  assert.equal(second.get("harun@contoh.id")._id, "u1");
+  assert.equal(second.get("budi@contoh.id")._id, "u2");
   // Unchanged input returns the same map so the effect does not loop.
-  assert.equal(mergeUserIndex(second, [{ _id: "u2", name: "Budi", email: "budi@prasada.id" }]), second);
+  assert.equal(mergeUserIndex(second, [{ _id: "u2", name: "Budi", email: "budi@contoh.id" }]), second);
 });
 
 test("listUser forwards the search argument and keeps the users tag", () => {

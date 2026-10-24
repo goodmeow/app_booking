@@ -83,7 +83,7 @@
     },
     "monthWeekdayLabel": "Hari",
     "monthWeekLabel": "Kejadian dalam bulan",
-    "guestInvalid": "Peserta \"{{value}}\" bukan alamat email yang valid. Tulis email lengkap, mis. harun@prasada.id.",
+    "guestInvalid": "Peserta \"{{value}}\" bukan alamat email yang valid. Tulis email lengkap, mis. harun@contoh.id.",
     "onBehalfLabel": "Pesan untuk karyawan (opsional)",
     "onBehalfHelp": "Kosongkan untuk memesan untuk diri sendiri. Karyawan yang dipilih menjadi organizer dan booking tercatat atas nama Anda.",
     "onBehalfSearchHint": "Ketik minimal 2 karakter untuk mencari karyawan.",

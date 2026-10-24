@@ -83,7 +83,7 @@
     },
     "monthWeekdayLabel": "Weekday",
     "monthWeekLabel": "Occurrence in month",
-    "guestInvalid": "Participant \"{{value}}\" is not a valid email address. Write a full email, e.g. harun@prasada.id.",
+    "guestInvalid": "Participant \"{{value}}\" is not a valid email address. Write a full email, e.g. harun@contoh.id.",
     "onBehalfLabel": "Booking for an employee (optional)",
     "onBehalfHelp": "Leave empty to book for yourself. The chosen employee becomes the organizer and the booking is recorded as yours.",
     "onBehalfSearchHint": "Type at least 2 characters to search employees.",

@@ -45,7 +45,7 @@ test("returns semantic meeting validation keys", () => {
     "validation.guestEmail"
   );
   assert.equal(
-    validateEventDraft({ ...validDraft, attendees: [...attendees, { attendee_email: "harun@prasada.id" }] }, { now }),
+    validateEventDraft({ ...validDraft, attendees: [...attendees, { attendee_email: "harun@contoh.id" }] }, { now }),
     null
   );
   assert.equal(
@@ -136,14 +136,14 @@ test("on-behalf organizer email is sent on create only", () => {
   assert.deepEqual(organizerEmailField({}), {});
   assert.deepEqual(organizerEmailField({ organizerEmail: "   " }), {});
   assert.deepEqual(
-    organizerEmailField({ organizerEmail: " budi@prasada.id " }),
-    { organizer_email: "budi@prasada.id" }
+    organizerEmailField({ organizerEmail: " budi@contoh.id " }),
+    { organizer_email: "budi@contoh.id" }
   );
 
   const single = {
     id: "event-1",
-    organizer: "resepsionis@prasada.id",
-    organizerEmail: "budi@prasada.id",
+    organizer: "resepsionis@contoh.id",
+    organizerEmail: "budi@contoh.id",
     subject: "Planning",
     description: "",
     startDate,
@@ -154,9 +154,9 @@ test("on-behalf organizer email is sent on create only", () => {
   assert.equal(create.length, 2);
   // The booker stays the organizer of the request; the employee is named
   // separately so the server can record booked_by = the receptionist.
-  assert.equal(create[0].organizer, "resepsionis@prasada.id");
-  assert.equal(create[0].organizer_email, "budi@prasada.id");
-  assert.equal(create[1].organizer_email, "budi@prasada.id");
+  assert.equal(create[0].organizer, "resepsionis@contoh.id");
+  assert.equal(create[0].organizer_email, "budi@contoh.id");
+  assert.equal(create[1].organizer_email, "budi@contoh.id");
 
   const update = buildUpdateEventPayload(single);
   assert.equal(Object.hasOwn(update, "organizer_email"), false);
@@ -167,14 +167,14 @@ test("on-behalf organizer email is sent on create only", () => {
     recurrence: { cadence: "daily", interval: 1, endDate: "2030-01-17" },
   });
   assert.equal(recurring.bookingKind, "recurring");
-  assert.equal(recurring.organizer_email, "budi@prasada.id");
+  assert.equal(recurring.organizer_email, "budi@contoh.id");
   // The preview payload stays free of the create-only field.
   assert.equal(Object.hasOwn(buildModernEventPayload(single), "organizer_email"), false);
 });
 
 test("a booking without an on-behalf employee sends no organizer email", () => {
   const draft = {
-    organizer: "budi@prasada.id",
+    organizer: "budi@contoh.id",
     subject: "Planning",
     startDate,
     endDate,

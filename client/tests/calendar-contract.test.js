@@ -140,7 +140,7 @@ test("carries the on-behalf booker only when the server sends it", () => {
     title: "Planning",
     start: "2030-01-15T09:00:00.000Z",
     end: "2030-01-15T10:00:00.000Z",
-    organizer: "budi@prasada.id",
+    organizer: "budi@contoh.id",
     booked_by: "user-receptionist",
     booked_by_name: "Rina",
   });
@@ -154,25 +154,25 @@ test("carries the on-behalf booker only when the server sends it", () => {
 });
 
 test("lets the organizer and the receptionist who booked manage a meeting", () => {
-  const session = { sessionEmail: "Rina@Prasada.id", sessionUserId: "u-receptionist" };
+  const session = { sessionEmail: "Rina@Contoh.id", sessionUserId: "u-receptionist" };
   assert.equal(
-    canManageBooking({ event: { organizer: "budi@prasada.id" }, ...session }),
+    canManageBooking({ event: { organizer: "budi@contoh.id" }, ...session }),
     false
   );
   assert.equal(
-    canManageBooking({ event: { organizer: "budi@prasada.id", booked_by: "u-receptionist" }, ...session }),
+    canManageBooking({ event: { organizer: "budi@contoh.id", booked_by: "u-receptionist" }, ...session }),
     true
   );
   assert.equal(
-    canManageBooking({ event: { organizer: "rina@prasada.id" }, ...session }),
+    canManageBooking({ event: { organizer: "rina@contoh.id" }, ...session }),
     true
   );
   assert.equal(
-    canManageBooking({ event: { organizer: "budi@prasada.id", booked_by: "u-other" }, ...session }),
+    canManageBooking({ event: { organizer: "budi@contoh.id", booked_by: "u-other" }, ...session }),
     false
   );
   assert.equal(
-    canManageBooking({ event: { organizer: "budi@prasada.id" }, ...session, isAdmin: true }),
+    canManageBooking({ event: { organizer: "budi@contoh.id" }, ...session, isAdmin: true }),
     true
   );
   assert.equal(canManageBooking(), false);

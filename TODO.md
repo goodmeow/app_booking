@@ -326,7 +326,7 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 ## Uji NFC 2026-10-23
 
 - [x] Tiga kartu karyawan diuji di tablet (APK 1.3 code 11). Semua **UID 4 byte**:
-  - kartu 1 -> nomor `<card-1>` (akun Harun) : booking 30 menit **200**
+  - kartu 1 -> nomor `<card-1>` (akun `<karyawan-1>`) : booking 30 menit **200**
   - kartu 2 -> UID hex (dibalik) -> nomor `<card-2>` (Karyawan Uji) : **200**
   - kartu 3 -> UID hex `<uid-hex>` -> nomor `<card-3>` (Karyawan Prasada) : **200**
 - [x] Kartu tak terdaftar kini menampilkan nomornya di layar
@@ -439,3 +439,33 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
   `FLOOR_RESTRICTION=true`); lama: pastikan semua akun karyawan sudah diisi grup lantainya di produksi
   (kalau kosong, booking akan ditolak). Gunakan **Semua lantai** hanya untuk
   orang yang memang perlu lintas lantai (mis. resepsionis).
+
+## Gelombang Ver 3 Rev 10 — 2026-10-24
+
+Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
+
+- [x] `017_initial_setup.sql` + `GET /api/setup/status` + `POST /api/setup`;
+  CMS `/setup` dan gate instalasi baru. Bukti: setup 201 → panggilan kedua
+  409, login 200 (commit `f88a86e`).
+- [x] Stack Docker Alpine `deploy/docker/` (`node:20-alpine`,
+  `postgres:16-alpine`, `nginx:alpine`), entrypoint migrasi + seed role.
+  Bukti: build sukses, DB kosong `required=true`, setup 201/409, 17 migrasi,
+  APK tersaji, restart idempoten (commit `b91091b`).
+- [x] Patch `3.10.1`: auto-login + hard redirect setelah setup (commit
+  `ef9fd8e`).
+- [x] Patch `3.10.2`: `/api/kiosk/schedule` mengirim `checkedInAt`; tablet
+  menampilkan jam check-in aktual; APK 1.3.3 (14). Regresi 83/83, parity 8/8
+  (commit `f0e6db7`).
+- [x] Patch `3.10.3`: CMS Pengguna (pencarian nama/email/employee ID, kolom +
+  filter role, tinggi viewport, pagination 25/50/100, admin list mengirim
+  `role_id`), Pengaturan global menggantikan Floor groups, filter Building di
+  kalender dihapus. Kiosk 1.3.4: Finish easter egg 5 tap pill IN USE, +15
+  menit wajib kartu (server memverifikasi), until-next hanya bila ada jadwal,
+  schedule retry 3x, footer versi APK + CMS. API: extend wajib `card_number`,
+  context mengirim `cmsVersion`. Bukti: unit 79/79, client 92/92, regresi
+  83/83, parity 8/8; uji tablet +15 prompt kartu dan Finish easter egg
+  (commit `00e39ed`).
+- [x] Dokumentasi diselaraskan 2026-10-24: `docs/CMS.md`, `docs/api-reference.md`,
+  `docs/erd.md`, `docs/architecture.md`, `docs/operations-runbook.md`,
+  `docs/handover/START-HERE.md`, `docs/VERSIONING.md`, catatan rilis
+  `docs/release-v3.10.3.md`; `package-lock.json` disamakan ke `3.10.3`.

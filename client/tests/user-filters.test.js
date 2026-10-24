@@ -8,15 +8,15 @@ import {
 } from "../management/users/user-filters.js";
 
 const users = [
-  { _id: "u1", name: "Rina", email: "rina@prasada.id", employee_id: "EMP-001", floor: "2", role_id: ROLE_IDS.RECEPTIONIST },
-  { _id: "u2", name: "Budi Santoso", email: "budi@prasada.id", employee_id: "EMP-002", floor: "2", role_id: ROLE_IDS.USER },
-  { _id: "u3", name: "Sari", email: "sari@prasada.id", employee_id: "", floor: "", role_id: ROLE_IDS.USER },
-  { _id: "u4", name: "Admin", email: "admin@prasada.id", employee_id: "ADM-9", floor: "all", role_id: ROLE_IDS.ADMIN },
+  { _id: "u1", name: "Rina", email: "rina@contoh.id", employee_id: "EMP-001", floor: "2", role_id: ROLE_IDS.RECEPTIONIST },
+  { _id: "u2", name: "Budi Santoso", email: "budi@contoh.id", employee_id: "EMP-002", floor: "2", role_id: ROLE_IDS.USER },
+  { _id: "u3", name: "Sari", email: "sari@contoh.id", employee_id: "", floor: "", role_id: ROLE_IDS.USER },
+  { _id: "u4", name: "Admin", email: "admin@contoh.id", employee_id: "ADM-9", floor: "all", role_id: ROLE_IDS.ADMIN },
 ];
 
 test("search matches name, email, and employee id case-insensitively", () => {
   assert.deepEqual(filterUsers(users, { search: "rina" }).map(({ _id }) => _id), ["u1"]);
-  assert.deepEqual(filterUsers(users, { search: "PRASADA.ID" }).length, 4);
+  assert.deepEqual(filterUsers(users, { search: "CONTOH.ID" }).length, 4);
   assert.deepEqual(filterUsers(users, { search: "emp-00" }).map(({ _id }) => _id), ["u1", "u2"]);
   assert.deepEqual(filterUsers(users, { search: "  adm-9  " }).map(({ _id }) => _id), ["u4"]);
   assert.deepEqual(filterUsers(users, { search: "nobody" }), []);

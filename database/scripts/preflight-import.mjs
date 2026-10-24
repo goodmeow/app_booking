@@ -219,12 +219,12 @@ const runOfflineChecks = (
   if (placeholderCount !== EXPECTED_PLACEHOLDER_ROWS) {
     findings.warning(
       "placeholder-count-changed",
-      `${placeholderCount} placeholder accounts (@prasada.id), expected ${EXPECTED_PLACEHOLDER_ROWS}; review before import`,
+      `${placeholderCount} placeholder accounts (@<company-domain>), expected ${EXPECTED_PLACEHOLDER_ROWS}; review before import`,
     );
   } else {
     findings.warning(
       "placeholder-accounts",
-      `${placeholderCount} accounts still use a placeholder e-mail (@prasada.id); they can log in only after the address is updated`,
+      `${placeholderCount} accounts still use a placeholder e-mail (@<company-domain>); they can log in only after the address is updated`,
     );
   }
 

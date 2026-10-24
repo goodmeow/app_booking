@@ -24,8 +24,8 @@ const accounts = [
   // set directly in the local demo DB with private SQL when needed.
   { employeeId: "EMP-PRASADA", name: "Karyawan Prasada", email: "karyawan@uji.prasada.test", password: "1234", floor: "1", card: "DEMO-PRASADA-CARD" },
   { employeeId: "EMP-UJI", name: "Karyawan Uji", email: "emp@uji.local", password: "1234", floor: "1", card: "DEMO-UJI-CARD" },
-  // Office employee account (a short password is expected, created via script: the CMS rejects passwords under 8 characters).
-  { employeeId: "EMP-HARUN", name: "Harun", email: "karyawan3@uji.local", password: "1234", floor: "1" },
+  // Third demo account, used when a demo needs a second office employee.
+  { employeeId: "EMP-DEMO-3", name: "Karyawan Demo", email: "karyawan3@uji.local", password: "1234", floor: "1" },
 ];
 
 const client = new Client({

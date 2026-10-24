@@ -10,6 +10,12 @@ node_modules/
 *.pid
 .DS_Store
 
+# Local data exports, dumps and backups: they carry personal data
+*.local.*
+*.dump
+*.bak
+backups/
+
 # Reconstructed build output. Existing dist is preserved as baseline via force-add.
 coverage/
 build/
