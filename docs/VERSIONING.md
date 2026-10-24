@@ -15,9 +15,9 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
-## Posisi saat ini (Ver 3 Rev 7)
+## Posisi saat ini (Ver 3 Rev 8)
 
-- CMS + API: **Ver 3 Rev 7**, `package.json` `3.7.0`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 8**, `package.json` `3.8.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
 - APK kiosk: `versionName 1.3 / versionCode 11`, menampilkan ver + UUID
   perangkat di layar; string di res/values + values-en (bahasa ID/EN),
@@ -69,6 +69,21 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
   `POST /api/auth/signup` menolak `403 SIGNUP_DISABLED`. Tab Pengaturan di
   Manajemen menampilkan switch-nya; akun tetap bisa dibuat admin lewat tab
   Pengguna.
+
+### Ver 3 Rev 8 - 2026-10-24 (selesai)
+- Role baru `receptionist` (non-admin): boleh membuat booking **atas nama
+  karyawan lain**, hanya untuk ruangan di lantainya sendiri.
+- `POST /api/events` menerima `organizer_email` (admin/resepsionis); organizer
+  tetap karyawan, kolom baru `tbl_events.booked_by` mencatat resepsionis untuk
+  audit. Resepsionis bisa melihat/mengubah booking yang ia buat; admin tetap
+  penuh; user biasa tetap hanya lantainya sendiri.
+- CMS: opsi role Resepsionis, field **"Pesan untuk karyawan"** (autocomplete,
+  create-only), filter ruangan sesuai lantai resepsionis, tampilan
+  **"Dipesan oleh"**, dan panel **Floor groups** di Pengaturan (lantai,
+  ruangan, karyawan, resepsionis, peringatan tanpa lantai).
+- Migrasi `015_receptionist_on_behalf.sql`. Bukti: unit 74/74, client 80/80,
+  regresi 77/77, parity 8/8; alur demo (booking lt.2 untuk karyawan lt.1
+  berhasil, lt.3 ditolak) dan pairing tablet utuh.
 
 ## Cara naikkan
 
