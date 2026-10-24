@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Alert, Box, Divider, FormControlLabel, Switch, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { useGetSettingsQuery, useUpdateSettingsMutation } from "../../redux/services/settings.js";
+import { useGetSettingsQuery, useUpdateSettingsMutation } from "../redux/services/settings.js";
 import FloorGroupsSection from "./FloorGroupsSection.js";
 
 // Only the self-signup switch is exposed here. Other legacy timer fields are

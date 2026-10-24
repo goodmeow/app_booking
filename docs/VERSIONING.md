@@ -126,6 +126,10 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
 - CMS: halaman `/setup` + gate yang mengarahkan instalasi baru ke setup dan
   mengunci `/setup` setelah selesai; locale en/id, tampilan selaras Signin.
 - Bukti: unit 79/79, client 88/88, regresi 83/83, parity 8/8.
+- Deploy Docker Alpine: `deploy/docker/` (multi-stage `node:20-alpine`,
+  `postgres:16-alpine`, `nginx:alpine`), entrypoint migrasi + seed role,
+  initial setup teruji end-to-end. Bukti: DB kosong `required=true` → setup
+  `201` → terkunci `409`, login `200`, 17 migrasi, APK tersaji.
 
 ## Cara naikkan
 

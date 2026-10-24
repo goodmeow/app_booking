@@ -1,0 +1,99 @@
+# Alpine demo/test stack. Never reuse these credentials outside a local run.
+#
+# Build context is the repository root, so run from the repo root:
+#   docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d --build
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${ALPINE_PGDATABASE:-360booking}
+      POSTGRES_USER: ${ALPINE_PGUSER:-booking}
+      POSTGRES_PASSWORD: ${ALPINE_PGPASSWORD:-booking_alpine_local_only}
+    volumes:
+      - alpine-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.alpine
+      target: app
+    environment:
+      NODE_ENV: production
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: ${ALPINE_PGDATABASE:-360booking}
+      PGUSER: ${ALPINE_PGUSER:-booking}
+      PGPASSWORD: ${ALPINE_PGPASSWORD:-booking_alpine_local_only}
+      # validateRuntimeConfig() reads JWT_SECRET and requires at least 32
+      # non-placeholder characters. JWT_SECRET_KEY is kept for parity with
+      # older env files but is not read by the current server.
+      JWT_SECRET: ${ALPINE_JWT_SECRET:-alpine-local-jwt-secret-0123456789abcdef}
+      JWT_SECRET_KEY: ${ALPINE_JWT_SECRET:-alpine-local-jwt-secret-0123456789abcdef}
+      JWT_EXPIRY_TOKEN: 1d
+      JWT_ISSUER: 360-scheduler
+      JWT_AUDIENCE: 360-scheduler-web
+      KIOSK_JWT_AUDIENCE: 360-scheduler-kiosk
+      KIOSK_JWT_EXPIRY: 15m
+      KIOSK_REFRESH_DAYS: "30"
+      HOST: 0.0.0.0
+      PORT: "8182"
+      SERVER_PORT: "9091"
+      SSR: "false"
+      HTTPS: "false"
+      TRUST_PROXY: "true"
+      CORS_ORIGINS: ${ALPINE_CORS_ORIGINS:-http://localhost:8182}
+      APP_TIMEZONE: Asia/Jakarta
+      MAX_BOOKING_DURATION_HOURS: "168"
+      MAX_CALENDAR_RANGE_DAYS: "366"
+      FLOOR_RESTRICTION: "false"
+      MAX_PREVIEW_CONFLICTS: "50"
+      RECURRENCE_MAX_DAYS: "366"
+      RECURRENCE_MAX_OCCURRENCES: "200"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -qO- http://127.0.0.1:9091/api/health | grep -q '"ok":true'
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    ports:
+      # Optional direct API access for debugging; nginx is the normal entry.
+      - "127.0.0.1:9191:9091"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.alpine
+      target: web
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "8182:80"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -qO- http://127.0.0.1/ | grep -q '<div id="root">'
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+volumes:
+  alpine-db-data:

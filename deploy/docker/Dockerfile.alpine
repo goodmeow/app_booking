@@ -1,0 +1,53 @@
+# syntax=docker/dockerfile:1
+#
+# Two final targets share one build stage:
+#   app  -> Node runtime with the webpack server bundle + production modules
+#   web  -> nginx serving the Vite static client and proxying the API
+#
+# Build context is the repository root (see deploy/docker/compose.alpine.yaml).
+
+FROM node:20-alpine AS build
+
+# bcrypt has an install script; Alpine/musl may need to compile it.
+RUN apk add --no-cache python3 make g++ libstdc++
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+
+COPY . .
+RUN npm run build \
+  && npm prune --omit=dev --no-audit --no-fund
+
+
+FROM node:20-alpine AS app
+
+# psql/pg_isready drive the entrypoint migrations; tini forwards signals.
+RUN apk add --no-cache postgresql16-client tini libstdc++
+
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+COPY --from=build /app/package.json /app/package-lock.json ./
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/build ./build
+COPY --from=build /app/database/migrations ./database/migrations
+COPY deploy/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+USER node
+
+EXPOSE 9091
+
+ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/entrypoint.sh"]
+
+
+FROM nginx:1.27-alpine AS web
+
+COPY deploy/docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/build/client /usr/share/nginx/html
+
+EXPOSE 80

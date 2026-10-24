@@ -1,0 +1,39 @@
+# Build context allowlist. Everything is excluded unless listed here, so
+# integration plans, private docs, env files, tests and local build output
+# cannot leak into the image.
+*
+!package.json
+!package-lock.json
+!index.html
+!vite.config.js
+!webpack.config.cjs
+!.babelrc
+
+!config/
+!config/**
+!client/
+!client/**
+!public/
+!public/**
+!scripts/
+scripts/*
+!scripts/create-server-package.js
+!server/
+!server/**
+
+!database/
+database/*
+!database/migrations/
+!database/migrations/**
+
+!deploy/
+deploy/*
+!deploy/docker/
+deploy/docker/*
+!deploy/docker/entrypoint.sh
+!deploy/docker/nginx.conf
+
+# Tests are not needed to build or run the image.
+client/tests
+server/tests
+scripts/**/*.test.js
