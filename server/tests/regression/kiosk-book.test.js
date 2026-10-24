@@ -24,9 +24,10 @@ const slotSkipReason = minutesLeftToday() < MIDNIGHT_SAFETY_MINUTES + 10
   : false;
 
 // The shared free slot for the create/overlap pair; fixed once so the
-// overlap test reuses the exact same instants.
-const SLOT_START_MINUTES = 5;
-const SLOT_DURATION_MINUTES = Math.max(5, Math.min(60, minutesLeftToday() - MIDNIGHT_SAFETY_MINUTES - SLOT_START_MINUTES));
+// overlap test reuses the exact same instants. It starts well after the
+// "within two minutes" scenario, so the two do not overlap.
+const SLOT_START_MINUTES = 70;
+const SLOT_DURATION_MINUTES = Math.max(5, Math.min(30, minutesLeftToday() - MIDNIGHT_SAFETY_MINUTES - SLOT_START_MINUTES));
 const slotFrom = (minutes) => fromNow(minutes);
 const slotStart = slotFrom(SLOT_START_MINUTES);
 const slotEnd = fromNow(SLOT_START_MINUTES + SLOT_DURATION_MINUTES);
@@ -106,22 +107,14 @@ test("a slot that crosses midnight into tomorrow is rejected", { skip: minutesLe
 });
 
 test("a booking that starts within two minutes is checked in immediately", { skip: minutesLeftToday() < 40 }, async () => {
-  // Choose the start right after the last known booking today so the slot
-  // cannot collide with any fixture; end stays inside the same day.
-  const pad = (value) => String(value).padStart(2, "0");
-  const nowParts = zonedParts(new Date(), SERVER_TIMEZONE);
-  const dayKey = `${nowParts.year}${pad(nowParts.month)}${pad(nowParts.day)}`;
-  const tomorrow = zonedParts(new Date(Date.now() + 24 * 60 * 60_000), SERVER_TIMEZONE);
-  const nextDay = `${tomorrow.year}${pad(tomorrow.month)}${pad(tomorrow.day)}`;
-  const rows = (await apiRequest(targets.reconstructed, `/api/kiosk/schedule?start=${dayKey}&end=${nextDay}`, {
-    headers: { Authorization: `Bearer ${kioskToken}` },
-  })).body || [];
-  const lastEnd = rows.reduce((latest, row) => Math.max(latest, Date.parse(row.end || row.end_at || "")), 0);
-  const startMs = Math.max(Date.now() + 20_000, lastEnd + 60_000);
-  const start = new Date(Math.ceil(startMs / 60_000) * 60_000);
-  const todaysLast = zonedPartsToDate({ ...nowParts, hour: 23, minute: 59 }, SERVER_TIMEZONE).getTime();
-  const end = new Date(Math.min(start.getTime() + 30 * 60_000, todaysLast));
-  assert.ok(end.getTime() - start.getTime() >= 5 * 60_000, "not enough room for the slot");
+  // Reserve the short window right now: it ends before SLOT_START_MINUTES,
+  // so it cannot overlap the shared free slot used by the other cases.
+  const start = new Date(Math.ceil((Date.now() + 20_000) / 60_000) * 60_000);
+  const end = new Date(start.getTime() + 10 * 60_000);
+  assert.ok(
+    end.getTime() <= Date.now() + SLOT_START_MINUTES * 60_000,
+    "the immediate window would overlap the shared slot",
+  );
   const response = await book({ card_number: "TEST-USER-CARD", start: start.toISOString(), end: end.toISOString() });
   assert.equal(response.status, 200);
   assert.equal(response.body.checkedIn, true);
