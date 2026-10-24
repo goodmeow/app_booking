@@ -81,6 +81,11 @@ Catatan:
   tetap dipakai sebagai lapisan kedua supaya `employee_id`, `card_number`,
   `cards`, `is_master_card`, dan `floor` tidak pernah lolos.
 - `roleId` wajib UUID; nilai non-UUID ditolak `400` sebelum menyentuh DB.
+- Role yang tersedia: `admin`, `user`, dan `receptionist` (case-insensitive;
+  JWT membawa bentuk upper-case). `receptionist` adalah role global yang boleh
+  membuat booking atas nama karyawan lain, tetapi hanya untuk ruangan di
+  lantainya sendiri; tanpa `floor` ia hanya bisa mencari lewat `?q=` dan tidak
+  bisa membuat booking (`403 FLOOR_REQUIRED`).
 - Kartu karyawan disimpan di `tbl_user_cards`; satu user maksimal **2 kartu
   aktif**. Kartu ke-3 ditolak `409 CARD_LIMIT`, nomor yang sudah dipakai user
   lain ditolak `409 CARD_EXISTS`.
@@ -122,8 +127,8 @@ pairing ulang bila ruangan diaktifkan kembali.
 
 | Method & path | Akses | Body / query | Sukses | Error penting |
 |---|---|---|---|---|
-| `GET /api/events` | JWT user | `start`,`end` (`YYYYMMDD`), `rooms` (UUID/email), `all=true` (admin) | `200` event terproyeksi | `400 INVALID_RANGE/RANGE_TOO_LARGE`, `404` ruangan |
-| `POST /api/events` | JWT user | single: array `{organizer,subject,description,start_date,end_date,timezone?,attendee_email}`; recurring: `{bookingKind:"recurring",subject,description,start,end,timezone,roomIds[],attendeeIds[],visitorEmails[],recurrence{...}}` | `200 {series, occurrences}` atau array event legacy | `400 INVALID_EVENT/INVALID_RANGE/BOOKING_DURATION_LIMIT/INVALID_TIME/INVALID_TIMEZONE/INVALID_LOCAL_TIME/ROOM_REQUIRED/INVALID_ATTENDEE/INVALID_VISITOR/INVALID_BOOKING_KIND/INVALID_RECURRENCE/RECURRENCE_LIMIT`, `403 FLOOR_REQUIRED/FLOOR_RESTRICTED`, `409 ROOM_CONFLICT` |
+| `GET /api/events` | JWT user | `start`,`end` (`YYYYMMDD`), `rooms` (UUID/email), `all=true` (admin) | `200` event terproyeksi (`organizer`, `booked_by`, `booked_by_name`) | `400 INVALID_RANGE/RANGE_TOO_LARGE`, `404` ruangan |
+| `POST /api/events` | JWT user | single: array `{organizer,subject,description,start_date,end_date,timezone?,attendee_email}`; recurring: `{bookingKind:"recurring",subject,description,start,end,timezone,roomIds[],attendeeIds[],visitorEmails[],organizer_email?,recurrence{...}}` | `200 {series, occurrences}` atau array event legacy | `400 INVALID_EVENT/INVALID_RANGE/BOOKING_DURATION_LIMIT/INVALID_TIME/INVALID_TIMEZONE/INVALID_LOCAL_TIME/ROOM_REQUIRED/INVALID_ATTENDEE/INVALID_VISITOR/INVALID_BOOKING_KIND/INVALID_RECURRENCE/RECURRENCE_LIMIT/INVALID_ORGANIZER`, `403 FLOOR_REQUIRED/FLOOR_RESTRICTED/FORBIDDEN`, `409 ROOM_CONFLICT` |
 | `POST /api/events/preview` | JWT user | body sama dengan create | `200 {occurrences, conflicts, conflictTotal, conflictsTruncated}` | `400` (semua validasi create), `401` |
 | `PUT /api/events` | JWT user | `{id\|eventId, scope:"occurrence"\|"following"\|"series", subject?, start?, end?, timezone?, attendees?:[{attendee_email}]}` | `200` daftar event terbarui | `400 INVALID_SCOPE`, `403`, `404`, `409 ROOM_CONFLICT` |
 | `PATCH /api/events/:eventId` | JWT user | sama dengan `PUT /api/events` | `200` | idem |
@@ -147,6 +152,27 @@ Catatan penting:
   kalender.
 - Untuk single booking, `organizer` di body tidak menentukan pemilik; server
   memakai principal JWT.
+- `organizer_email` (opsional, hanya dibaca saat **create**) memindahkan
+  kepemilikan booking ke karyawan lain. Hanya principal dengan role `ADMIN`
+  atau `RECEPTIONIST` yang boleh mengisinya; role lain ditolak
+  `403 FORBIDDEN`. Email dinormalkan (trim + lower-case) dan harus milik akun
+  `type='employee'` yang aktif; selain itu `400 INVALID_ORGANIZER`.
+- Booking atas nama tetap milik karyawan (`organizer_id` dan `organizer`), dan
+  akun pembuatnya dicatat di `booked_by`. `booked_by` hanya terisi bila
+  organizer berbeda dari principal, jadi self booking selalu `booked_by=null`.
+  Seri berulang menyimpan organizer target yang sama di `tbl_event_series`.
+- `organizer_email` **tidak** berlaku untuk update: `PUT /api/events` dan
+  `PATCH /api/events/:eventId` tidak pernah memindahkan organizer.
+- Aturan lantai tidak berubah: receptionist hanya boleh memakai ruangan di
+  lantainya sendiri (`403 FLOOR_RESTRICTED`), admin lintas lantai, dan lantai
+  `"all"` tetap lintas lantai. `POST /api/events/preview` tetap tidak memeriksa
+  lantai.
+- Izin baca dan ubah: `ADMIN`, organizer, peserta (baca), dan akun `booked_by`
+  (baca + ubah). Receptionist lain yang bukan `booked_by` tidak mendapat akses
+  ke booking tersebut.
+- Proyeksi kalender penuh memuat `booked_by` (UUID) dan `booked_by_name` (nama
+  akun pembuat); keduanya `null` untuk self booking. Proyeksi `busy` (tanpa
+  `can_view_details`) tidak memuat keduanya.
 
 ## 6. Settings dan kartu master
 

@@ -65,6 +65,7 @@ test("registered dynamic translation keys exist in every supported language", ()
     "common:actions.create",
     "common:actions.save",
     "common:roles.admin",
+    "common:roles.receptionist",
     "common:roles.user",
     "common:dataGrid.displayedRows",
     "common:dataGrid.displayedRowsMore",

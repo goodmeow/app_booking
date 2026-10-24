@@ -150,6 +150,19 @@
     "selfSignupHelp": "Saat mati, tombol Daftar dan halaman /signup disembunyikan, dan server menolak pendaftaran publik. Buat akun karyawan lewat tab Pengguna.",
     "saved": "Pengaturan tersimpan.",
     "saveError": "Tidak dapat menyimpan pengaturan.",
-    "loading": "Memuat pengaturan..."
+    "loading": "Memuat pengaturan...",
+    "floorGroups": {
+      "title": "Grup lantai",
+      "description": "Ruangan, karyawan, dan resepsionis yang termasuk tiap lantai. Panel ini hanya untuk dilihat.",
+      "floor": "Lantai",
+      "rooms": "Ruangan",
+      "employees": "Karyawan",
+      "receptionists": "Resepsionis",
+      "none": "Tidak ada",
+      "missingFloor": "{{count}} karyawan belum punya grup lantai sehingga tidak dapat memesan ruangan.",
+      "manageHint": "Buka tab Pengguna lalu isi Grup lantai untuk setiap karyawan.",
+      "loading": "Memuat grup lantai...",
+      "empty": "Belum ada lantai. Tambahkan ruangan beserta lantainya di tab Ruangan."
+    }
   }
 }

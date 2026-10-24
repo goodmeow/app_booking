@@ -15,9 +15,14 @@ TRUNCATE TABLE
   tbl_users,
   tbl_role;
 
+-- The receptionist role is part of the schema (015_receptionist_on_behalf.sql),
+-- but this seed truncates tbl_role, so the role has to be inserted again here.
+-- No demo account uses it by default; a receptionist is created through the CMS
+-- or by a regression test.
 INSERT INTO tbl_role (_id, role_name, is_deleted) VALUES
   ('471ba030-c950-41f9-90da-4e0fe10426a6', 'admin', false),
-  ('67e9500b-908a-497d-9d3b-54bc020700cb', 'user', false);
+  ('67e9500b-908a-497d-9d3b-54bc020700cb', 'user', false),
+  ('3f6a9c2e-8b41-4d7a-9e52-6c0b8a1d4f73', 'receptionist', false);
 
 INSERT INTO tbl_users
   (_id, name, email, password, role_id, employee_id, is_deleted, type)

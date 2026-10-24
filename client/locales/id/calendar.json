@@ -84,7 +84,13 @@
     },
     "monthWeekdayLabel": "Hari",
     "monthWeekLabel": "Kejadian dalam bulan",
-    "guestInvalid": "Peserta \"{{value}}\" bukan alamat email yang valid. Tulis email lengkap, mis. harun@prasada.id."
+    "guestInvalid": "Peserta \"{{value}}\" bukan alamat email yang valid. Tulis email lengkap, mis. harun@prasada.id.",
+    "onBehalfLabel": "Pesan untuk karyawan (opsional)",
+    "onBehalfHelp": "Kosongkan untuk memesan untuk diri sendiri. Karyawan yang dipilih menjadi organizer dan booking tercatat atas nama Anda.",
+    "onBehalfSearchHint": "Ketik minimal 2 karakter untuk mencari karyawan.",
+    "onBehalfSearching": "Mencari karyawan...",
+    "onBehalfNoOptions": "Tidak ada karyawan yang cocok.",
+    "floorRoomsEmpty": "Lantai Anda belum punya ruangan yang bisa dipesan. Minta admin menambah ruangan untuk lantai Anda di Manajemen > Ruangan."
   },
   "validation": {
     "subjectRequired": "Isi judul meeting.",
@@ -148,6 +154,8 @@
     "conflictDetected": "Ruangan ini sudah dipakai pada waktu tersebut.",
     "alternativesTitle": "Ruangan lain yang kosong:",
     "noAlternatives": "Tidak ada ruangan lain yang kosong di waktu ini.",
-    "conflictTruncated": "Menampilkan {{shown}} dari {{total}} konflik."
+    "conflictTruncated": "Menampilkan {{shown}} dari {{total}} konflik.",
+    "detailBookedBy": "Dipesan oleh",
+    "bookedBy": "Dipesan oleh {{name}}"
   }
 }

@@ -140,4 +140,18 @@ export const calendarEventFromApi = (event) => ({
   ...(eventValue(event, "timezone") === undefined ? {} : { timezone: eventValue(event, "timezone") }),
   ...(eventValue(event, "series_id") === undefined ? {} : { series_id: eventValue(event, "series_id") }),
   ...(eventValue(event, "occurrence_index") === undefined ? {} : { occurrence_index: eventValue(event, "occurrence_index") }),
+  ...(eventValue(event, "booked_by") === undefined ? {} : { booked_by: eventValue(event, "booked_by") }),
+  ...(eventValue(event, "booked_by_name") === undefined ? {} : { booked_by_name: eventValue(event, "booked_by_name") }),
 });
+
+// A booking created by the front desk belongs to the employee (organizer), but
+// the receptionist who placed it must still be able to edit or cancel it.
+export const canManageBooking = ({ event, sessionEmail, sessionUserId, isAdmin = false } = {}) => {
+  if (isAdmin) return true;
+  const organizer = String(eventValue(event, "organizer") ?? "").trim().toLowerCase();
+  const ownEmail = String(sessionEmail ?? "").trim().toLowerCase();
+  if (organizer && ownEmail && organizer === ownEmail) return true;
+  const bookedBy = String(eventValue(event, "booked_by") ?? "").trim();
+  const ownId = String(sessionUserId ?? "").trim();
+  return Boolean(bookedBy && ownId && bookedBy === ownId);
+};

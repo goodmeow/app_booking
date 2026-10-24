@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 import { getApiError } from "../domain/api-error.js";
-import { ROLE_IDS, ROLE_OPTIONS } from "../domain/roles.js";
+import { ROLE_IDS, ROLE_OPTIONS, canBookForEmployees, isReceptionistRole, roomsForRole } from "../domain/roles.js";
 import { createEmptyUserForm, EMPLOYEE_ID_MAX_LENGTH, employeeIdErrorKey } from "../management/user-form.js";
 import {
   CARD_ACTIVE_LIMIT,
@@ -14,8 +14,35 @@ import { userMutationError } from "../management/users/user-api-errors.js";
 
 test("uses recovered role UUIDs", () => {
   assert.equal(ROLE_IDS.ADMIN, "471ba030-c950-41f9-90da-4e0fe10426a6");
+  assert.equal(ROLE_IDS.RECEPTIONIST, "3f6a9c2e-8b41-4d7a-9e52-6c0b8a1d4f73");
   assert.equal(ROLE_IDS.USER, "67e9500b-908a-497d-9d3b-54bc020700cb");
-  assert.deepEqual(ROLE_OPTIONS.map(({ labelKey }) => labelKey), ["roles.admin", "roles.user"]);
+  assert.deepEqual(
+    ROLE_OPTIONS.map(({ labelKey }) => labelKey),
+    ["roles.admin", "roles.receptionist", "roles.user"]
+  );
+});
+
+test("receptionist role can book for employees but only on its own floor", () => {
+  assert.equal(isReceptionistRole("RECEPTIONIST"), true);
+  assert.equal(isReceptionistRole("receptionist "), true);
+  assert.equal(isReceptionistRole(ROLE_IDS.RECEPTIONIST), false);
+  assert.equal(isReceptionistRole("USER"), false);
+  assert.equal(canBookForEmployees("RECEPTIONIST"), true);
+  assert.equal(canBookForEmployees("ADMIN"), true);
+  assert.equal(canBookForEmployees("USER"), false);
+  assert.equal(canBookForEmployees(undefined), false);
+
+  const rooms = [
+    { _id: "r1", name: "Garuda", floor: "2" },
+    { _id: "r2", name: "Rajawali", floor: " 10 " },
+    { _id: "r3", name: "Merpati", floor: "" },
+  ];
+  assert.deepEqual(roomsForRole(rooms, { role: "RECEPTIONIST", floor: "2" }).map(({ _id }) => _id), ["r1"]);
+  assert.deepEqual(roomsForRole(rooms, { role: "RECEPTIONIST", floor: "9" }), []);
+  // Everyone else keeps the list the calendar already prepared.
+  assert.equal(roomsForRole(rooms, { role: "ADMIN", floor: "2" }).length, 3);
+  assert.equal(roomsForRole(rooms, { role: "USER", floor: "2" }).length, 3);
+  assert.deepEqual(roomsForRole(undefined, { role: "RECEPTIONIST", floor: "2" }), []);
 });
 
 test("new users default to User role", () => {

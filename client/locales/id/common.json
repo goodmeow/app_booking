@@ -69,7 +69,8 @@
   },
   "roles": {
     "admin": "Admin",
-    "user": "Pengguna"
+    "user": "Pengguna",
+    "receptionist": "Resepsionis"
   },
   "apiErrors": {
     "authenticationRequired": "Silakan masuk kembali untuk melanjutkan",
@@ -101,7 +102,8 @@
     "kioskProvisioningRequired": "Lakukan provisioning kiosk kembali untuk melanjutkan",
     "kioskAuthenticationRequired": "Autentikasi kiosk diperlukan",
     "requestFailed": "Permintaan tidak dapat diselesaikan",
-    "invalidVisitor": "Periksa alamat email peserta yang diundang"
+    "invalidVisitor": "Periksa alamat email peserta yang diundang",
+    "invalidOrganizer": "Karyawan yang dipilih tidak dapat menjadi organizer booking ini"
   },
   "dataGrid": {
     "noRows": "Tidak ada baris",

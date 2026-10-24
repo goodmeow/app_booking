@@ -13,6 +13,7 @@ import {
   findAccountsByEmails,
   findAccountsByIds,
   findActiveRoom,
+  findEmployeeByEmail,
   findEventAccess,
   findParticipantEvent,
   releaseAbandonedRoomBookings,
@@ -65,6 +66,7 @@ const normalizedCreate = (body) => {
       end: first.end_date,
       timezone: first.timezone || config.appTimezone,
       attendeeEmails: unique(body.map((item) => item.attendee_email)),
+      organizerEmail: null,
     };
   }
   return {
@@ -78,6 +80,7 @@ const normalizedCreate = (body) => {
     roomIds: unique([body.roomId, ...(body.roomIds || [])]),
     attendeeIds: unique(body.attendeeIds || []),
     visitorEmails: unique(body.visitorEmails || []),
+    organizerEmail: body.organizer_email,
     recurrence: body.recurrence,
   };
 };
@@ -129,6 +132,44 @@ const createPlan = async (body) => {
 
 const roomIdsFor = (participants) => participants.filter((item) => item.roomId).map((item) => item.roomId);
 
+// Roles allowed to create a booking for somebody else. A receptionist still
+// only reaches rooms on their own floor (see assertRoomFloorAccess), and an
+// admin keeps every floor.
+const ORGANIZER_DELEGATE_ROLES = new Set(["ADMIN", "RECEPTIONIST"]);
+
+// organizer_email is optional and only read when a booking is created. An empty
+// value means the principal books for themselves; that is the only path a plain
+// employee may use, so a crafted body cannot move a booking onto a colleague.
+export const requestedOrganizer = (organizerEmail, principal) => {
+  const email = String(organizerEmail ?? "").trim().toLowerCase();
+  if (!email) return { email: null, onBehalf: false };
+  if (!EMAIL_PATTERN.test(email)) {
+    throw badRequest("INVALID_ORGANIZER", "Organizer email must be a valid employee email address");
+  }
+  if (!ORGANIZER_DELEGATE_ROLES.has(String(principal?.role || "").toUpperCase())) {
+    throw forbidden("Only an admin or a receptionist can book for another employee");
+  }
+  return { email, onBehalf: true };
+};
+
+// The organizer account must be an active employee. It is looked up by email
+// instead of trusted from the body, so a stale or misspelt address fails loudly
+// rather than silently booking for the principal.
+export const resolveOrganizer = async (requested, principal, findEmployee = findEmployeeByEmail) => {
+  if (!requested.onBehalf) {
+    return { organizerId: principal._id, organizerEmail: principal.email, bookedBy: null };
+  }
+  const account = await findEmployee(requested.email);
+  if (!account) throw badRequest("INVALID_ORGANIZER", "Organizer must be an active employee account");
+  // Naming yourself keeps booked_by empty: the audit column only points at a
+  // booking that was made for somebody else.
+  const booksForSelf = String(account._id) === String(principal._id);
+  return {
+    organizerId: account._id,
+    organizerEmail: account.email,
+    bookedBy: booksForSelf ? null : principal._id,
+  };
+};
 
 const FLOOR_EXEMPT_ROLES = new Set(["ADMIN"]);
 const normalizedFloor = (value) => String(value ?? "").trim();
@@ -168,11 +209,12 @@ export const previewEvents = async (body) => {
 
 export const createEvents = async (body, principal) => {
   const plan = await createPlan(body);
+  const organizer = await resolveOrganizer(requestedOrganizer(plan.request.organizerEmail, principal), principal);
   await assertRoomFloorAccess(roomIdsFor(plan.participants), principal);
   try {
     const result = await transaction(async (client) => {
       const series = plan.rule ? await insertSeries(client, {
-        organizerId: principal._id,
+        organizerId: organizer.organizerId,
         subject: plan.request.subject,
         description: plan.request.description,
         timezone: plan.request.timezone,
@@ -184,8 +226,9 @@ export const createEvents = async (body, principal) => {
       const rows = [];
       for (const occurrence of plan.occurrences) {
         const event = await insertEvent(client, {
-          organizerId: principal._id,
-          organizerEmail: principal.email,
+          organizerId: organizer.organizerId,
+          organizerEmail: organizer.organizerEmail,
+          bookedBy: organizer.bookedBy,
           subject: plan.request.subject,
           description: plan.request.description,
           start: occurrence.start,
@@ -268,6 +311,10 @@ const projectCalendarEvent = (row) => {
     start: row.start_at,
     end: row.end_at,
     organizer: row.organizer,
+    // booked_by is NULL for a self booking; the CMS shows "booked by" only when
+    // the meeting was created for somebody else.
+    booked_by: row.booked_by || null,
+    booked_by_name: row.booked_by ? row.booked_by_name || null : null,
     description: row.description,
     is_cancel: row.is_cancel,
     is_draft: row.is_draft,
@@ -296,8 +343,22 @@ export const listEvents = async (queryParams, principal) => {
   return rows.map(projectCalendarEvent);
 };
 
-const canView = (event, principal) => principal.role === "ADMIN" || String(event.organizer_id) === String(principal._id) || event.is_attendee;
-const canMutate = (event, principal) => principal.role === "ADMIN" || String(event.organizer_id) === String(principal._id);
+// booked_by is the account that created the booking for somebody else. That
+// account keeps read and write access, so a receptionist can still correct the
+// booking they made; any other receptionist gets no access at all.
+const bookedByPrincipal = (event, principal) =>
+  Boolean(event.booked_by) && String(event.booked_by) === String(principal._id);
+
+export const canView = (event, principal) =>
+  principal.role === "ADMIN"
+  || String(event.organizer_id) === String(principal._id)
+  || event.is_attendee
+  || bookedByPrincipal(event, principal);
+
+export const canMutate = (event, principal) =>
+  principal.role === "ADMIN"
+  || String(event.organizer_id) === String(principal._id)
+  || bookedByPrincipal(event, principal);
 
 export const getEventDetails = async (eventId, principal) => {
   const event = await findEventAccess(eventId, principal._id);
@@ -435,7 +496,7 @@ export const addAttendee = async (body, principal) => {
 export const deleteAttendee = async (detailId, principal) => {
   const event = await findParticipantEvent(detailId);
   if (!event) throw notFound("Attendee not found");
-  if (principal.role !== "ADMIN" && String(event.organizer_id) !== String(principal._id)) throw forbidden();
+  if (!canMutate(event, principal)) throw forbidden();
   return transaction(async (client) => {
     const deleted = await deleteParticipantById(client, detailId);
     if (!deleted) throw notFound("Attendee not found");

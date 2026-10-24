@@ -150,6 +150,19 @@
     "selfSignupHelp": "When off, the Sign Up button and the /signup page are hidden, and the server rejects public registrations. Create employee accounts under Users instead.",
     "saved": "Setting saved.",
     "saveError": "Unable to save the setting.",
-    "loading": "Loading settings..."
+    "loading": "Loading settings...",
+    "floorGroups": {
+      "title": "Floor groups",
+      "description": "Which rooms, employees, and receptionists belong to each floor. This panel is read-only.",
+      "floor": "Floor",
+      "rooms": "Rooms",
+      "employees": "Employees",
+      "receptionists": "Receptionists",
+      "none": "None",
+      "missingFloor": "{{count}} employee(s) have no floor group yet, so they cannot book a room.",
+      "manageHint": "Open the Users tab and set Floor group for each employee.",
+      "loading": "Loading floor groups...",
+      "empty": "No floors yet. Add rooms with a floor in the Rooms tab."
+    }
   }
 }

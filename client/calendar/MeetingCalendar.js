@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { isAuthenticated } from "../auth/auth-helper.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
-import { calendarEventFilters, calendarEventFromApi, calendarRangeForView, defaultEventRange, navigateCalendarDate } from "../domain/calendar.js";
+import { canManageBooking, calendarEventFilters, calendarEventFromApi, calendarRangeForView, defaultEventRange, navigateCalendarDate } from "../domain/calendar.js";
 import { getApiError } from "../domain/api-error.js";
 import { useGetEventsQuery } from "../redux/services/events.js";
 import { useGetRoomStatusQuery, useGetRoomsQuery } from "../redux/services/rooms.js";
@@ -145,7 +145,12 @@ const MeetingCalendar = () => {
         open={Boolean(details)}
         event={details}
         rooms={allRooms}
-        canMutate={Boolean(details) && (isAdmin || String(details.organizer || "").toLowerCase() === String(session.user.email).toLowerCase())}
+        canMutate={Boolean(details) && canManageBooking({
+          event: details,
+          sessionEmail: session.user.email,
+          sessionUserId: session.user._id,
+          isAdmin,
+        })}
         onClose={() => setDetails(null)}
         onEdit={() => {
           setEditor({ open: true, event: details, start: details.start, end: details.end });
@@ -159,6 +164,9 @@ const MeetingCalendar = () => {
         initialStart={editor.start}
         initialEnd={editor.end}
         sessionEmail={session.user.email}
+        sessionUserId={session.user._id}
+        role={session.user.role}
+        userFloor={userFloor}
         isAdmin={isAdmin}
         users={Array.isArray(userQuery.data) ? userQuery.data : []}
         rooms={bookableRooms}

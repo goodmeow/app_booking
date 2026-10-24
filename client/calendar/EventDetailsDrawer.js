@@ -63,6 +63,15 @@ const EventDetailsDrawer = ({ open, event, rooms = [], canMutate = false, onClos
         <Typography variant="subtitle2">{t("calendar.detailRoom")}</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{roomName || "-"}</Typography>
 
+        {event?.booked_by_name ? (
+          <>
+            <Typography variant="subtitle2">{t("calendar.detailBookedBy")}</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              {t("calendar.bookedBy", { name: event.booked_by_name })}
+            </Typography>
+          </>
+        ) : null}
+
         <Typography variant="subtitle2">{t("calendar.detailAttendees")}</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {attendees.length ? attendees.join(", ") : "-"}

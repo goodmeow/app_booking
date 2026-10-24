@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Autocomplete,
@@ -30,8 +30,9 @@ import dayjs from "dayjs";
 import FeedbackSnackbar from "../components/common/FeedbackSnackbar.js";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
-import { durationMinutes } from "../domain/calendar.js";
+import { canManageBooking, durationMinutes } from "../domain/calendar.js";
 import { getApiError } from "../domain/api-error.js";
+import { canBookForEmployees, isReceptionistRole, roomsForRole } from "../domain/roles.js";
 import {
   buildModernEventPayload,
   buildCreateEventPayload,
@@ -51,6 +52,7 @@ import {
 import { useLazyGetAvailableRoomsQuery } from "../redux/services/rooms.js";
 import { calendarLocaleForLanguage } from "../i18n/languages.js";
 import AttendeePicker from "./AttendeePicker.js";
+import OnBehalfPicker from "./OnBehalfPicker.js";
 
 const pad = (value) => String(value).padStart(2, "0");
 
@@ -107,6 +109,9 @@ const EventEditor = ({
   initialStart,
   initialEnd,
   sessionEmail,
+  sessionUserId,
+  role,
+  userFloor,
   isAdmin = false,
   users = [],
   rooms = [],
@@ -141,6 +146,9 @@ const EventEditor = ({
   });
   const [error, setError] = useState("");
   const [guidance, setGuidance] = useState("");
+  // An employee picked in the on-behalf field; empty means the booker is the
+  // organizer themselves.
+  const [onBehalf, setOnBehalf] = useState(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [feedback, setFeedback] = useState({ open: false, message: "", severity: "error" });
 
@@ -155,11 +163,21 @@ const EventEditor = ({
 
   const attendeeEmails = draft.attendees.filter((item) => !isRoomAttendee(item)).map(emailOf);
   const location = draft.attendees.find(isRoomAttendee)?.attendee_email || null;
-  const locationValue = rooms.find((room) => room.email === location)
+  // A receptionist only books rooms on their own floor; an admin keeps every
+  // floor the calendar offered. Memoised so the conflict-effect dependencies
+  // stay stable between renders.
+  const availableRooms = useMemo(
+    () => roomsForRole(rooms, { role, floor: userFloor }),
+    [rooms, role, userFloor]
+  );
+  const floorRoomsEmpty = !editing && isReceptionistRole(role) && availableRooms.length === 0;
+  // "Organizer on behalf" is a create-only field for the front desk and admins.
+  const showOnBehalf = !editing && canBookForEmployees(role);
+  const locationValue = availableRooms.find((room) => room.email === location)
     || (location ? { name: location, email: location } : null);
   const organizer = eventField(event, "organizer") || sessionEmail || "";
   const eventEnd = eventField(event, "end");
-  const isOrganizer = !editing || String(organizer) === String(sessionEmail || "");
+  const isOrganizer = !editing || canManageBooking({ event, sessionEmail, sessionUserId, isAdmin });
   const hasEnded = editing && eventEnd && new Date(eventEnd) < new Date();
   const readOnly = editing && (!isOrganizer || hasEnded);
   const recurringEvent = Boolean(eventField(event, "series_id"));
@@ -196,6 +214,7 @@ const EventEditor = ({
     });
     setError("");
     setGuidance("");
+    setOnBehalf(null);
     setDeleteConfirmOpen(false);
   }, [open, eventId, initialStart, initialEnd, initialRoom?._id]);
 
@@ -293,7 +312,7 @@ const EventEditor = ({
           const freeEmails = new Set((available || []).map((room) => String(room.email).toLowerCase()));
           const peopleCount = attendees.filter((item) => !isRoomAttendee(item)).length;
           setAlternatives(
-            rooms
+            availableRooms
               .filter((room) => freeEmails.has(String(room.email).toLowerCase()))
               .filter((room) => String(room.email).toLowerCase() !== String(location).toLowerCase())
               .filter((room) => !room.capacity || Number(room.capacity) >= peopleCount)
@@ -309,7 +328,7 @@ const EventEditor = ({
     }, 600);
     return () => clearTimeout(timer);
   }, [
-    open, editing, readOnly, location, organizer, rooms,
+    open, editing, readOnly, location, organizer, availableRooms,
     startValue, endValue, draft.timezone, draft.subject, draft.description,
     draft.bookingKind, draft.recurrence, draft.scope, draft.attendees,
     previewEvents, fetchAvailableRooms,
@@ -347,6 +366,8 @@ const EventEditor = ({
     const eventDraft = {
       ...(editing ? { id: eventId } : {}),
       organizer,
+      // Empty for a normal booking; the server then keeps the booker as organizer.
+      organizerEmail: showOnBehalf ? onBehalf?.email || "" : "",
       subject: draft.subject,
       description: encodeEventDescription(draft.description),
       startDate: startValue,
@@ -421,6 +442,18 @@ const EventEditor = ({
                 onChange={change("subject")}
                 disabled={readOnly || busy}
               />
+              {showOnBehalf ? (
+                <OnBehalfPicker
+                  value={onBehalf}
+                  disabled={busy}
+                  onChange={(employee) => {
+                    setOnBehalf(employee);
+                    setError("");
+                    setGuidance("");
+                  }}
+                />
+              ) : null}
+              {floorRoomsEmpty ? <Alert severity="warning">{t("editor.floorRoomsEmpty")}</Alert> : null}
               <AttendeePicker
                 isAdmin={isAdmin}
                 users={users}
@@ -638,12 +671,12 @@ const EventEditor = ({
                 </FormControl>
               ) : null}
               <Autocomplete
-                options={rooms}
+                options={availableRooms}
                 value={locationValue}
                 onChange={(_, value) => selectRoom(value)}
                 getOptionLabel={(option) => option?.name || option?.email || ""}
                 isOptionEqualToValue={(option, value) => option?.email === value?.email}
-                disabled={readOnly || busy}
+                disabled={readOnly || busy || floorRoomsEmpty}
                 renderInput={(params) => <TextField {...params} label={t("editor.location")} />}
               />
               {conflictCount > 0 ? (
@@ -687,7 +720,7 @@ const EventEditor = ({
               type="submit"
               form="event-editor-form"
               variant="contained"
-              disabled={busy || (editing && (details.isFetching || details.isError))}
+              disabled={busy || floorRoomsEmpty || (editing && (details.isFetching || details.isError))}
             >
               {t("common:actions.save")}
             </Button>

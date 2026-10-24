@@ -1,6 +1,6 @@
 # ERD dan Kamus Data
 
-Sumber: `database/migrations/001_prerequisites.sql` … `013_employee_id_and_user_cards.sql`.
+Sumber: `database/migrations/001_prerequisites.sql` … `015_receptionist_on_behalf.sql`.
 Diperiksa 2026-10-24. Tidak ada ORM: server memakai SQL langsung, jadi nama
 kolom di dokumen ini adalah nama fisik di PostgreSQL.
 
@@ -11,6 +11,7 @@ erDiagram
   tbl_role ||--o{ tbl_users : "role_id"
   tbl_users ||--o{ tbl_user_cards : "user_id"
   tbl_users ||--o{ tbl_events : "organizer_id"
+  tbl_users ||--o{ tbl_events : "booked_by"
   tbl_event_series ||--o{ tbl_events : "series_id"
   tbl_events ||--o{ tbl_event_details : "event_id"
   tbl_users ||--o{ tbl_event_details : "attendee_user_id"
@@ -48,6 +49,7 @@ erDiagram
   tbl_events {
     uuid _id PK
     uuid organizer_id FK
+    uuid booked_by FK
     varchar organizer
     varchar subject
     timestamp start_date
@@ -158,11 +160,16 @@ Constraint/index penting (`005_phase9_identity.sql`, `009_room_role_separation.s
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | `_id` | uuid PK | ID peran |
-| `role_name` | varchar | `admin` / `user` (dibandingkan case-insensitive) |
+| `role_name` | varchar | `admin` / `user` / `receptionist` (dibandingkan case-insensitive) |
 | `is_deleted` | boolean | Tidak dipakai untuk otorisasi saat ini |
 
 Seed demo memakai UUID tetap: admin `471ba030-c950-41f9-90da-4e0fe10426a6`,
-user `67e9500b-908a-497d-9d3b-54bc020700cb`.
+user `67e9500b-908a-497d-9d3b-54bc020700cb`, receptionist
+`3f6a9c2e-8b41-4d7a-9e52-6c0b8a1d4f73` (migrasi 015 dan `development.sql`).
+
+`receptionist` adalah role global (bukan per lantai). Yang membatasi wilayah
+kerjanya adalah `tbl_users.floor` pada akunnya: server hanya mengizinkan
+ruangan di lantai itu, sama seperti aturan lantai karyawan biasa.
 
 ### 2.3 `tbl_events`
 
@@ -171,6 +178,7 @@ user `67e9500b-908a-497d-9d3b-54bc020700cb`.
 | `_id` | uuid | PK | ID occurrence |
 | `organizer` | varchar | nullable | Email organizer (legacy, disinkronkan trigger) |
 | `organizer_id` | uuid | FK `tbl_users` | Pemilik meeting |
+| `booked_by` | uuid | FK `tbl_users` ON DELETE SET NULL, nullable | Akun yang membuat booking atas nama organizer (migrasi 015); `NULL` untuk self booking |
 | `subject`, `description` | varchar | nullable | Judul/deskripsi |
 | `start_date`, `end_date` | timestamp(6) without time zone | nullable | Jam dinding pada zona `timezone` |
 | `timezone` | text | default `Asia/Jakarta` | Zona tafsir jam dinding |
@@ -187,6 +195,8 @@ Constraint (`006_phase9_scheduler.sql:7-39`):
 
 - `tbl_events_time_order` — `CHECK (end_date > start_date)`.
 - `tbl_events_organizer_fk` — `organizer_id` → `tbl_users._id`.
+- `tbl_events_booked_by_fkey` — `booked_by` → `tbl_users._id` (`ON DELETE SET NULL`),
+  indeks `tbl_events_booked_by_idx` (migrasi 015).
 - `tbl_events_series_fk` — `series_id` → `tbl_event_series._id`.
 - `tbl_events_occurrence_identity` — `series_id` dan `occurrence_index` harus
   sama-sama NULL atau sama-sama terisi (`occurrence_index >= 0`).

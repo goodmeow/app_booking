@@ -8,6 +8,7 @@ import {
   calendarEventFromApi,
   calendarRangeForView,
   calendarWeekRange,
+  canManageBooking,
   defaultEventRange,
   durationMinutes,
   formatCalendarQueryDate,
@@ -131,4 +132,48 @@ test("maps plain API event objects from Agenda clicks", () => {
     }).series_id,
     "series-1"
   );
+});
+
+test("carries the on-behalf booker only when the server sends it", () => {
+  const mapped = calendarEventFromApi({
+    id: "event-1",
+    title: "Planning",
+    start: "2030-01-15T09:00:00.000Z",
+    end: "2030-01-15T10:00:00.000Z",
+    organizer: "budi@prasada.id",
+    booked_by: "user-receptionist",
+    booked_by_name: "Rina",
+  });
+  assert.equal(mapped.booked_by, "user-receptionist");
+  assert.equal(mapped.booked_by_name, "Rina");
+  // A self booking (booked_by null) keeps the old shape, so no empty
+  // "Booked by" row renders.
+  const own = calendarEventFromApi({ id: "event-2", title: "Own", booked_by: null });
+  assert.equal(Object.hasOwn(own, "booked_by"), false);
+  assert.equal(Object.hasOwn(own, "booked_by_name"), false);
+});
+
+test("lets the organizer and the receptionist who booked manage a meeting", () => {
+  const session = { sessionEmail: "Rina@Prasada.id", sessionUserId: "u-receptionist" };
+  assert.equal(
+    canManageBooking({ event: { organizer: "budi@prasada.id" }, ...session }),
+    false
+  );
+  assert.equal(
+    canManageBooking({ event: { organizer: "budi@prasada.id", booked_by: "u-receptionist" }, ...session }),
+    true
+  );
+  assert.equal(
+    canManageBooking({ event: { organizer: "rina@prasada.id" }, ...session }),
+    true
+  );
+  assert.equal(
+    canManageBooking({ event: { organizer: "budi@prasada.id", booked_by: "u-other" }, ...session }),
+    false
+  );
+  assert.equal(
+    canManageBooking({ event: { organizer: "budi@prasada.id" }, ...session, isAdmin: true }),
+    true
+  );
+  assert.equal(canManageBooking(), false);
 });

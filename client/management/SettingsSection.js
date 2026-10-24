@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Box, FormControlLabel, Switch, Typography } from "@mui/material";
+import { Alert, Box, Divider, FormControlLabel, Switch, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useGetSettingsQuery, useUpdateSettingsMutation } from "../../redux/services/settings.js";
+import FloorGroupsSection from "./FloorGroupsSection.js";
 
 // Only the self-signup switch is exposed here. Other legacy timer fields are
 // still stored but have no confirmed UI behaviour, so they stay untouched.
@@ -32,25 +33,29 @@ const SettingsSection = () => {
   if (isLoading) return <Typography>{t("settings.loading")}</Typography>;
 
   return (
-    <Box sx={{ maxWidth: 640 }}>
-      <Typography variant="h6" component="h2" gutterBottom>
-        {t("settings.title")}
-      </Typography>
-      <FormControlLabel
-        control={
-          <Switch
-            checked={signupEnabled}
-            onChange={toggleSignup}
-            disabled={saving || !settings}
-          />
-        }
-        label={t("settings.selfSignup")}
-      />
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        {t("settings.selfSignupHelp")}
-      </Typography>
-      {feedback && <Alert severity={feedback.severity}>{feedback.message}</Alert>}
-    </Box>
+    <>
+      <Box sx={{ maxWidth: 640 }}>
+        <Typography variant="h6" component="h2" gutterBottom>
+          {t("settings.title")}
+        </Typography>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={signupEnabled}
+              onChange={toggleSignup}
+              disabled={saving || !settings}
+            />
+          }
+          label={t("settings.selfSignup")}
+        />
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {t("settings.selfSignupHelp")}
+        </Typography>
+        {feedback && <Alert severity={feedback.severity}>{feedback.message}</Alert>}
+      </Box>
+      <Divider sx={{ my: 3 }} />
+      <FloorGroupsSection />
+    </>
   );
 };
 

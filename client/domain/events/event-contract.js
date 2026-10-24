@@ -88,12 +88,21 @@ export const buildModernEventPayload = (draft) => {
   };
 };
 
+// On-behalf booking: an admin or receptionist names the employee the meeting is
+// for. An empty value means the booker organizes the meeting themselves, so the
+// field is simply left out. The server only accepts it on create.
+export const organizerEmailField = (draft) => {
+  const email = String(draft?.organizerEmail ?? "").trim();
+  return email ? { organizer_email: email } : {};
+};
+
 export const buildCreateEventPayload = (draft) =>
   draft.bookingKind === "recurring"
-    ? buildModernEventPayload(draft)
+    ? { ...buildModernEventPayload(draft), ...organizerEmailField(draft) }
     : draft.attendees.map((attendee) => ({
       ...eventFields(draft),
       timezone: draft.timezone,
+      ...organizerEmailField(draft),
       attendee_email: attendeeEmail(attendee),
     }));
 
@@ -101,6 +110,8 @@ export const buildUpdateEventPayload = (draft) => ({
   id: draft.id,
   scope: draft.scope,
   timezone: draft.timezone,
+  // `organizer_email` is create-only: an edit must not move the meeting to
+  // another employee.
   ...eventFields(draft),
   attendees: draft.attendees.map((attendee) => ({ attendee_email: attendeeEmail(attendee) })),
 });

@@ -22,6 +22,7 @@ export const API_ERROR_KEYS = {
   INVALID_ATTENDEE: "apiErrors.invalidRequest",
   INVALID_BOOKING_KIND: "apiErrors.invalidRequest",
   INVALID_VISITOR: "apiErrors.invalidVisitor",
+  INVALID_ORGANIZER: "apiErrors.invalidOrganizer",
   INVALID_SCOPE: "apiErrors.invalidRequest",
   INVALID_SETTINGS: "apiErrors.invalidRequest",
   INVALID_TIME: "apiErrors.invalidTime",

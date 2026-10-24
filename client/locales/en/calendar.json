@@ -84,7 +84,13 @@
     },
     "monthWeekdayLabel": "Weekday",
     "monthWeekLabel": "Occurrence in month",
-    "guestInvalid": "Participant \"{{value}}\" is not a valid email address. Write a full email, e.g. harun@prasada.id."
+    "guestInvalid": "Participant \"{{value}}\" is not a valid email address. Write a full email, e.g. harun@prasada.id.",
+    "onBehalfLabel": "Booking for an employee (optional)",
+    "onBehalfHelp": "Leave empty to book for yourself. The chosen employee becomes the organizer and the booking is recorded as yours.",
+    "onBehalfSearchHint": "Type at least 2 characters to search employees.",
+    "onBehalfSearching": "Searching employees...",
+    "onBehalfNoOptions": "No employee matches this search.",
+    "floorRoomsEmpty": "Your floor has no bookable rooms yet. Ask an admin to add rooms for your floor in Management > Rooms."
   },
   "validation": {
     "subjectRequired": "Enter a meeting title.",
@@ -148,6 +154,8 @@
     "conflictDetected": "This room is already booked for that time.",
     "alternativesTitle": "Other free rooms:",
     "noAlternatives": "No other rooms are free at this time.",
-    "conflictTruncated": "Showing {{shown}} of {{total}} conflicts."
+    "conflictTruncated": "Showing {{shown}} of {{total}} conflicts.",
+    "detailBookedBy": "Booked by",
+    "bookedBy": "Booked by {{name}}"
   }
 }

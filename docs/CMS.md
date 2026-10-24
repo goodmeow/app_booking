@@ -80,6 +80,11 @@ sehingga tidak memakai header CMS.
     (mis. `harun@prasada.id`); sebelum kirim, editor memvalidasi dan
     menampilkan chip yang salah ketik (`editor.guestInvalid`), bukan lagi
     pesan generik `INVALID_VISITOR`.
+  - **Pesan untuk karyawan** — hanya muncul saat membuat meeting untuk role
+    **Admin/Resepsionis**: cari karyawan (min. 2 karakter), lalu simpan.
+    Organizer tetap karyawan tersebut dan server mencatat `booked_by` =
+    resepsionis; ruangan resepsionis dibatasi ke lantainya. Booking tetap
+    self-service bila field dikosongkan.
   - **Zona waktu dihapus** — server otomatis memakai zona waktu aplikasi
     (`APP_TIMEZONE`, default `Asia/Jakarta`); pengguna tidak lagi memilih
     Asia/Jakarta/UTC. Saat mengedit event lama, `timezone` tersimpan tetap
@@ -126,13 +131,14 @@ sehingga tidak memakai header CMS.
 - API: `GET /api/rooms/usage-report`.
 
 ### 3.6 Manajemen Aplikasi (`/app-management`, admin) — `client/management/`
-Empat tab (`AppManagement.js`):
+Lima tab (`AppManagement.js`):
 
 | Tab | Isi | API |
 |---|---|---|
-| Pengguna (`UserManagementSection.js`, `user-form.js`) | CRUD user **beserta akses kartunya**: kolom nomor kartu, tombol **kartu master**, dan **kolom grup lantai** (pilih **Semua lantai**, lantai tertentu, atau belum diatur) yang bisa diubah langsung dari tabel atau lewat form; ganti sandi, hapus. | `/api/users` |
+| Pengguna (`UserManagementSection.js`, `user-form.js`) | CRUD user **beserta akses kartunya**: kolom nomor kartu, tombol **kartu master**, **kolom grup lantai** (pilih **Semua lantai**, lantai tertentu, atau belum diatur), dan **role Admin/Resepsionis/Pengguna**; ganti sandi, hapus. | `/api/users` |
 | Ruangan (`RoomManagementSection.js`) | CRUD ruangan: nama, gedung, lantai, **kapasitas**, fitur, email, sandi. **Kolom Tablet: Online/Offline/Belum ada/Dicabut**, auto-refresh 15 s | `/api/rooms`, `/api/kiosk/devices` |
 | Perangkat Tablet (`KioskDeviceManagementSection.js`) | Daftar tablet: nama, ruangan, **Online/Offline/Dicabut/Kedaluwarsa**, switch **LED**, switch **Judul** (tampilkan/sembunyikan judul meeting — admin per perangkat), last seen, waktu pairing, cabut perangkat, tombol **Unduh APK Tablet** (tautan statik `/apk/kiosk-release.apk`, unduh saja). Auto-refresh 15 s | `/api/kiosk/devices`, `PATCH …/capabilities`, `DELETE …/:id` |
+| Pengaturan (`SettingsSection.js`) | Switch **Izinkan pendaftaran mandiri** + panel **Floor groups** (read-only): lantai, jumlah ruangan, jumlah karyawan, nama resepsionis per lantai, dan peringatan karyawan tanpa lantai. | `/api/settings`, `/api/settings/public`, `/api/rooms`, `/api/users` |
 
 **Toggle "Judul" per perangkat** (migrasi `011_kiosk_show_subject.sql`,
 kolom `tbl_kiosk_devices.show_subject`, default **tampil**): ketika aktif,

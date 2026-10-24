@@ -4,6 +4,7 @@ const eventInstantColumns = `
   e._id,
   e.organizer_id,
   e.organizer,
+  e.booked_by,
   e.subject,
   e.description,
   e.start_date AT TIME ZONE e.timezone AS start_at,
@@ -43,6 +44,18 @@ export const findAccountsByIds = async (ids, client = { query }) => {
   )).rows;
 };
 
+// The organizer of a booking created on behalf of somebody else must be a real
+// employee account. Rooms are excluded because a room cannot own a meeting.
+export const findEmployeeByEmail = async (email, client = { query }) => (await client.query(
+  `SELECT _id, name, email
+   FROM tbl_users
+   WHERE lower(btrim(email)) = $1
+     AND type = 'employee'
+     AND is_deleted IS NOT TRUE
+   LIMIT 1`,
+  [String(email).trim().toLowerCase()]
+)).rows[0] || null;
+
 export const findActiveRoom = async (identifier) => (await query(
   `SELECT _id, name, email
    FROM tbl_users
@@ -64,20 +77,31 @@ export const insertSeries = async (client, values) => (await client.query(
 export const insertEvent = async (client, values) => (await client.query(
   `INSERT INTO tbl_events
      (organizer_id, organizer, subject, description, start_date, end_date, timezone,
-      series_id, occurrence_index, original_start, is_cancel, is_draft, is_allday)
+      series_id, occurrence_index, original_start, is_cancel, is_draft, is_allday, booked_by)
    VALUES
      ($1, $2, $3, $4,
       $5::timestamptz AT TIME ZONE $7,
       $6::timestamptz AT TIME ZONE $7,
       $7, $8, $9,
       $5::timestamptz AT TIME ZONE $7,
-      false, false, false)
+      false, false, false, $10)
    RETURNING
-     _id, organizer, subject, description,
+     _id, organizer, booked_by, subject, description,
      start_date AT TIME ZONE timezone AS start_at,
      end_date AT TIME ZONE timezone AS end_at,
      timezone, series_id, occurrence_index`,
-  [values.organizerId, values.organizerEmail, values.subject, values.description, values.start, values.end, values.timezone, values.seriesId || null, values.occurrenceIndex ?? null]
+  [
+    values.organizerId,
+    values.organizerEmail,
+    values.subject,
+    values.description,
+    values.start,
+    values.end,
+    values.timezone,
+    values.seriesId || null,
+    values.occurrenceIndex ?? null,
+    values.bookedBy || null,
+  ]
 )).rows[0];
 
 export const insertEventParticipant = async (client, eventId, participant) => (await client.query(
@@ -92,9 +116,11 @@ export const listEventsForPrincipal = async ({ principalId, role, roomId, rangeS
   `SELECT DISTINCT
      ${eventInstantColumns},
      split_part(btrim(organizer_account.name), ' ', 1) AS organizer_first_name,
+     booked_by_account.name AS booked_by_name,
      (
        $2 = 'ADMIN'
        OR e.organizer_id = $1
+       OR e.booked_by = $1
        OR EXISTS (
          SELECT 1 FROM tbl_event_details access_detail
          WHERE access_detail.event_id = e._id
@@ -104,6 +130,7 @@ export const listEventsForPrincipal = async ({ principalId, role, roomId, rangeS
      ) AS can_view_details
    FROM tbl_events e
    JOIN tbl_users organizer_account ON organizer_account._id = e.organizer_id
+   LEFT JOIN tbl_users booked_by_account ON booked_by_account._id = e.booked_by
    LEFT JOIN tbl_event_rooms room_booking ON room_booking.event_id = e._id AND room_booking.active
    WHERE e.is_cancel IS NOT TRUE
      AND tstzrange(
@@ -116,6 +143,7 @@ export const listEventsForPrincipal = async ({ principalId, role, roomId, rangeS
        OR ($3::uuid IS NULL AND (
          ($6::boolean AND $2 = 'ADMIN')
          OR e.organizer_id = $1
+         OR e.booked_by = $1
          OR EXISTS (
            SELECT 1 FROM tbl_event_details personal_detail
            WHERE personal_detail.event_id = e._id
@@ -167,6 +195,10 @@ export const findEventAudience = async (eventIds) => {
        SELECT 'user'::text AS kind, e.organizer_id AS id
        FROM tbl_events e WHERE e._id = ANY($1::uuid[])
        UNION ALL
+       SELECT 'user', e.booked_by
+       FROM tbl_events e
+       WHERE e._id = ANY($1::uuid[]) AND e.booked_by IS NOT NULL
+       UNION ALL
        SELECT 'user', d.attendee_user_id
        FROM tbl_event_details d
        WHERE d.event_id = ANY($1::uuid[]) AND d.attendee_user_id IS NOT NULL AND d.is_deleted IS NOT TRUE
@@ -197,6 +229,10 @@ export const findMutationAudience = async (eventId, scope = "occurrence") => (aw
    ), audience AS (
      SELECT 'user'::text AS kind, e.organizer_id AS id
      FROM tbl_events e JOIN targets t ON t._id = e._id
+     UNION ALL
+     SELECT 'user', e.booked_by
+     FROM tbl_events e JOIN targets t ON t._id = e._id
+     WHERE e.booked_by IS NOT NULL
      UNION ALL
      SELECT 'user', d.attendee_user_id
      FROM tbl_event_details d JOIN targets t ON t._id = d.event_id
@@ -313,7 +349,7 @@ export const deleteParticipantById = async (client, detailId) => (await client.q
 )).rows[0] || null;
 
 export const findParticipantEvent = async (detailId) => (await query(
-  `SELECT e._id, e.organizer_id
+  `SELECT e._id, e.organizer_id, e.booked_by
    FROM tbl_event_details d
    JOIN tbl_events e ON e._id = d.event_id
    WHERE d._id = $1`,
