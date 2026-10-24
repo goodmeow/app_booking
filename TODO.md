@@ -141,7 +141,9 @@ Phase 9 complete: identity and authorization are server-authoritative, unrelated
 - [x] Add managed device pairing, rotating refresh credentials/version revocation, and an admin device inventory.
 - [x] Scope event invalidations to affected Socket.io user/room channels instead of broadcasting a data-free global refresh signal.
 - [x] Add independent per-device NFC and LED visibility toggles in Apps Management; keep both disabled by default.
-- [ ] Implement the native tablet bridge for NFC and LEDs when hardware integration resumes; keep controls hidden until then.
+- [x] Implement the native tablet bridge for NFC and LEDs (selesai di kioskapp:
+  `KioskHardwareModule` — `setLed`, `startNfc/stopNfc`, `connectSerial`,
+  `writeHex`, `getStatus`; diuji di tablet: LED 0x05/0x14/0x04/0x06, tap kartu).
 
 Phase 10A software complete: a provisioned tablet is cryptographically bound to one room, rotates short-lived access credentials, can be inventoried, revoked, and assigned NFC/LED visibility per device, receives privacy-safe scoped realtime updates, and switches directly to red `OCCUPIED` for active bookings. Native hardware integration remains explicitly deferred.
 
@@ -195,18 +197,27 @@ Protokol perangkat: `nauchara/hardware/` (APK, LED, relay).
 - [x] Samakan state kiosk dengan perangkat: kuning bila meeting aktif belum check-in, merah bila sudah, hijau bila kosong.
 - [x] Palet kuning/merah/hijau sesuai perangkat; jendela “akan mulai” dihapus (state hanya dari meeting aktif).
 - [x] Hubungkan `checkInKioskMeeting` ke UI (dialog kartu), tampilkan hasil dan error. Pemicu NFC menyusul di Phase 12 bridge.
-- [ ] Normalisasi nomor kartu (`parseInt` UID 4 byte dibalik) dan uji dengan kartu nyata.
+- [x] Normalisasi nomor kartu (`parseInt` UID 4 byte dibalik) dan uji dengan
+  kartu nyata: 3 kartu 4-byte -> `<card-1>`, `<card-2>`, `<card-3>`,
+  semua booking 200. Kartu 7-byte belum tersedia (lihat catatan uji NFC).
 - [x] Tampilkan state `OFFLINE` eksplisit saat jadwal gagal dimuat (bukan “Available”).
 - [x] LED aktif secara default untuk perangkat baru (`010_kiosk_led_default.sql`).
 - [x] Tambah endpoint kiosk untuk membuka pintu (token kiosk, terikat room, rate-limit); relay tetap ditulis tablet.
 - [x] Izinkan kartu karyawan membuka pintu (bukan hanya kartu master), sesuai keputusan produk.
 - [x] Halaman masuk CMS sesuai desain (logo The Prasada, alert gagal, tetap-masuk) dengan font Inter di-self-host.
 - [x] Endpoint kiosk untuk desain tablet ruang meeting: `POST /api/kiosk/events/extend` (+15 menit), `POST /api/kiosk/events/complete` (Selesai), `POST /api/kiosk/events/instant` (Pesan sekarang, wajib kartu karyawan).
-- [ ] Petakan state ke kode LED (`0x05`, `0x14`, `0x04`) hanya bila `ledEnabled`.
-- [ ] Bangun APK kiosk React Native + modul native NFC/relay/sysfs dengan whitelist perintah.
-- [ ] Simpan `@ipServer`/sesi di penyimpanan native; sediakan layar first-run.
+- [x] Petakan state ke kode LED (`0x05`, `0x14`, `0x04`, `0x06` offline) hanya
+  bila `ledEnabled` — `src/theme/palette.ts` + `KioskDisplay.writeLed`.
+  Aktif hanya saat `device.ledEnabled` dan status fresh/terhubung.
+- [x] Bangun APK kiosk React Native + modul native NFC/relay/sysfs (APK 1.3
+  code 11; modul `KioskHardwareModule` dengan 8 method, tanpa shell bebas).
+- [x] Simpan sesi/server di penyimpanan native (AsyncStorage `@kiosk/session`,
+  `@kiosk/server`) + layar first-run provisioning (KioskSetup).
 - [x] Putuskan runtime kiosk: **React Native**, karena WebView tablet hanya Chrome 64 (Vite 8/MUI 5 tidak kompatibel). Web `/kiosk` tetap sebagai referensi.
 - [ ] Uji perangkat: matriks state, check-in, buka pintu, LED, offline, reboot.
+  Sudah: state (tersedia/terpakai/menunggu), check-in, offline+pulih, LED,
+  pick time, 3 kartu NFC. Belum: buka pintu (relay belum ada), reboot,
+  autostart/kiosk lock.
 
 ## Sisa pending 2026-10-21
 
