@@ -103,7 +103,9 @@
     "kioskAuthenticationRequired": "Kiosk authentication is required",
     "requestFailed": "The request could not be completed",
     "invalidVisitor": "Check the invited guest email addresses",
-    "invalidOrganizer": "The selected employee cannot be the organizer of this booking"
+    "invalidOrganizer": "The selected employee cannot be the organizer of this booking",
+    "employeeIdExists": "Employee ID is already used by another account",
+    "setupCompleted": "Setup has already been completed on this installation"
   },
   "dataGrid": {
     "noRows": "No rows",

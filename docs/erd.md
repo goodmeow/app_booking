@@ -111,6 +111,7 @@ erDiagram
     integer not_checked_in_time_limit
     integer time_of_event_start_soon
     varchar available_color
+    boolean setup_completed
   }
 ```
 
@@ -326,6 +327,8 @@ Satu baris konfigurasi operasional; server selalu mengambil baris pertama
 | `not_checked_in_time_limit` | integer NOT NULL | Menit setelah mulai sebelum booking no-show dilepas |
 | `time_of_event_start_soon` | integer NOT NULL | Menit sebelum mulai saat check-in dibuka |
 | `available_color`, `will_start_color`, `on_meeting_color` | varchar NOT NULL | Kode warna/LED |
+| `setup_completed` | boolean NOT NULL DEFAULT false | Migrasi 017: `false`/tidak ada baris = instalasi baru; `true` = admin pertama sudah dibuat (atau database lama sudah punya admin) dan halaman setup dikunci |
+| `self_signup_enabled` | boolean NOT NULL DEFAULT false | Migrasi 014: toggle halaman Daftar publik |
 
 ### 2.10 `tbl_rooms` (legacy)
 

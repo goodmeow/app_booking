@@ -16,7 +16,7 @@ Dokumen ini menggantikan ringkasan di `README.md` bila ada perbedaan.
 | Rate limit | Header `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`; kode `429 RATE_LIMITED` |
 | Trailing slash | Tidak dipakai route; Express tetap menerima `/users/` karena strict routing mati |
 | Zona waktu | Timestamp input wajib berakhiran `Z` atau offset (`+07:00`); tanggal kalender memakai `YYYYMMDD` |
-| Status sukses | `201` hanya untuk signup, buat ruangan, buat user, dan buat kartu master; sisanya `200` |
+| Status sukses | `201` hanya untuk signup, setup awal, buat ruangan, buat user, dan buat kartu master; sisanya `200` |
 
 Kode status yang dipakai: `200`, `201`, `400`, `401`, `403`, `404`, `409`,
 `429`, `500`.
@@ -47,6 +47,36 @@ Catatan:
   `tbl_app_settings` (default `false`). Saat mati, endpoint menolak dengan
   `403 SIGNUP_DISABLED`, tombol/halaman Daftar disembunyikan, dan akun hanya
   dibuat admin lewat `POST /api/users`.
+
+### 2.1 Setup awal (instalasi baru)
+
+Database baru tidak punya akun sama sekali, sehingga dua endpoint ini publik
+(tanpa JWT) dan hanya dipakai sampai admin pertama dibuat.
+
+| Method & path | Akses | Body | Sukses | Error penting |
+|---|---|---|---|---|
+| `GET /api/setup/status` | Publik | – | `200 {required:boolean}` | `429 RATE_LIMITED` (60/15 menit/IP) |
+| `POST /api/setup` | Publik | `{name, email, password, employeeId?}` | `201 {message, user:{_id,name,email,role}}` | `409 SETUP_COMPLETED`, `400 INVALID_SETUP/INVALID_EMAIL/INVALID_PASSWORD/INVALID_EMPLOYEE_ID/ADMIN_ROLE_MISSING`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS`, `429 RATE_LIMITED` (5/jam/IP) |
+
+Catatan:
+- `required=true` bila `tbl_app_settings.setup_completed` belum `true` **dan**
+  belum ada admin aktif. Baris settings yang kosong diperlakukan sama dengan
+  instalasi baru. Status tidak pernah membocorkan data user.
+- `POST` hanya berjalan saat `required=true`; setelah sukses, semua panggilan
+  berikutnya (dan panggilan pada database yang sudah punya admin) ditolak
+  `409 SETUP_COMPLETED`. Pemeriksaan admin aktif juga menjaga database lama yang
+  flag-nya belum pernah diset.
+- Akun dibuat sebagai `type='employee'`, role `admin`, `floor=NULL`,
+  `must_change_password=false`, password bcrypt cost 12, dan `employeeId`
+  default `ADMIN-001` bila dikosongkan (format 1–40 huruf/angka/`.`/`-`/`_`,
+  harus unik). Bila baris `tbl_app_settings` belum ada, satu baris default
+  dibuat (`lock_timer=5`, `led_timer=5`, `table_input=true`,
+  `not_checked_in_time_limit=15`, `time_of_event_start_soon=10`,
+  `available_color='05'`, `will_start_color='08'`, `on_meeting_color='04'`)
+  dengan `setup_completed=true`. User, settings, dan flag ditulis dalam satu
+  transaksi.
+- `ADMIN_ROLE_MISSING` (400) berarti `tbl_role` belum berisi role `admin`;
+  seed role dulu (lihat operations runbook).
 
 ## 3. Users
 
@@ -257,6 +287,7 @@ memakai fallback pemanggil atau `apiErrors.requestFailed`.
 | `NOT_FOUND` | 404 | `notFound` |
 | `RATE_LIMITED` | 429 | `rateLimited` |
 | `IDENTITY_EXISTS` | 409 | `identityExists` |
+| `SETUP_COMPLETED` | 409 | `requestFailed` (halaman setup sudah ditutup) |
 | `CARD_EXISTS` | 409 | `cardExists` |
 | `INVALID_EMAIL` | 400 | `invalidEmail` |
 | `INVALID_USERNAME` | 400 | `invalidUsername` |
@@ -264,7 +295,8 @@ memakai fallback pemanggil atau `apiErrors.requestFailed`.
 | `INVALID_CARD` | 400 | `invalidCard` |
 | `INVALID_ROOM` | 400 | `invalidRoom` |
 | `INVALID_USER` | 400 | `invalidUser` |
-| `INVALID_SIGNUP`, `INVALID_EVENT`, `INVALID_ATTENDEE`, `INVALID_BOOKING_KIND`, `INVALID_SCOPE`, `INVALID_SETTINGS` | 400 | `invalidRequest` |
+| `INVALID_SIGNUP`, `INVALID_EVENT`, `INVALID_ATTENDEE`, `INVALID_BOOKING_KIND`, `INVALID_SCOPE`, `INVALID_SETTINGS`, `INVALID_SETUP`, `ADMIN_ROLE_MISSING`, `INVALID_EMPLOYEE_ID` | 400 | `invalidRequest` |
+| `EMPLOYEE_ID_EXISTS` | 409 | `identityExists` |
 | `INVALID_VISITOR` | 400 | `invalidVisitor` |
 | `INVALID_TIME`, `INVALID_TIMEZONE`, `INVALID_LOCAL_TIME` | 400 | `invalidTime` |
 | `INVALID_RECURRENCE` | 400 | `invalidRecurrence` |

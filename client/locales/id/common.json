@@ -103,7 +103,9 @@
     "kioskAuthenticationRequired": "Autentikasi kiosk diperlukan",
     "requestFailed": "Permintaan tidak dapat diselesaikan",
     "invalidVisitor": "Periksa alamat email peserta yang diundang",
-    "invalidOrganizer": "Karyawan yang dipilih tidak dapat menjadi organizer booking ini"
+    "invalidOrganizer": "Karyawan yang dipilih tidak dapat menjadi organizer booking ini",
+    "employeeIdExists": "ID karyawan sudah dipakai akun lain",
+    "setupCompleted": "Setup sudah diselesaikan pada instalasi ini"
   },
   "dataGrid": {
     "noRows": "Tidak ada baris",

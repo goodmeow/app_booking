@@ -23,7 +23,9 @@ const Signin = () => {
   const [remember, setRemember] = useState(false);
   const [reveal, setReveal] = useState(false);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState(
+    location.state?.setupComplete ? t("auth:setup.success") : ""
+  );
   const [loading, setLoading] = useState(false);
   const { data: publicSettings } = useGetPublicSettingsQuery();
   const signupEnabled = publicSettings?.self_signup_enabled === true;

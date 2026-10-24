@@ -15,9 +15,9 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
-## Posisi saat ini (Ver 3 Rev 9)
+## Posisi saat ini (Ver 3 Rev 10)
 
-- CMS + API: **Ver 3 Rev 9**, `package.json` `3.9.1`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 10**, `package.json` `3.10.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
 - APK kiosk: `versionName 1.3.1 / versionCode 12`, menampilkan ver + UUID
   perangkat di layar; string di res/values + values-en (bahasa ID/EN),
@@ -117,6 +117,15 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
 - Patch `3.9.1`: branding user-facing menjadi **RoomBooking** (tanpa spasi);
   judul dokumen, footer CMS, layar kiosk, dan label APK memakai nama baru.
   Nama teknis (database/service/repo) tidak diubah.
+### Ver 3 Rev 10 - 2026-10-24 (selesai)
+- Migrasi `017_initial_setup.sql`: kolom `tbl_app_settings.setup_completed`.
+- Endpoint publik `GET /api/setup/status` dan `POST /api/setup` untuk membuat
+  admin pertama di instalasi baru; setelah selesai endpoint terkunci
+  (`409 SETUP_COMPLETED`). Setup juga membaca keberadaan admin aktif agar DB
+  lama/seed tidak membuka form bootstrap.
+- CMS: halaman `/setup` + gate yang mengarahkan instalasi baru ke setup dan
+  mengunci `/setup` setelah selesai; locale en/id, tampilan selaras Signin.
+- Bukti: unit 79/79, client 88/88, regresi 83/83, parity 8/8.
 
 ## Cara naikkan
 

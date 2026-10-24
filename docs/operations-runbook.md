@@ -30,14 +30,42 @@ sudo nano /etc/360booking/app.env          # ganti semua change-me
 sudo ./deploy/02-provision-database.sh     # role + DB + migrasi
 ./deploy/03-build.sh                       # npm ci && npm run build
 sudo ./deploy/04-install-app.sh            # /opt/360booking + systemd + nginx
-sudo ./deploy/05-create-admin.sh           # akun admin pertama
+# buka https://<host>/setup dan buat admin pertama (lihat §2.1)
+# atau, bila halaman setup tidak dipakai: sudo ./deploy/05-create-admin.sh
 ```
 
 `03-build.sh` boleh dijalankan di mesin lain; `04` membutuhkan
 `build/client`, `build/server/server.bundle.cjs`, `package.json`, dan
 `package-lock.json` di root repo host target.
 
-### 2.1 Jebakan: `tbl_role` kosong pada database baru
+### 2.1 Admin pertama lewat `/setup` (instalasi baru)
+
+Database hasil `02-provision-database.sh` belum punya akun. Halaman `/setup`
+CMS membuat admin pertama tanpa perlu JWT:
+
+1. Pastikan service hidup dan `GET /api/setup/status` mengembalikan
+   `{"required":true}`.
+2. Buka `https://<host>/setup`, isi nama, email, password (8–72 byte), dan
+   employee ID (opsional, default `ADMIN-001`).
+3. `POST /api/setup` membuat akun role `admin` (`type=employee`, password
+   bcrypt cost 12, tanpa paksa ganti password), mengisi baris
+   `tbl_app_settings` default bila belum ada, lalu menulis
+   `setup_completed=true`. Semuanya dalam satu transaksi.
+4. Setelah sukses, `GET /api/setup/status` menjadi `{"required":false}` dan
+   `POST /api/setup` selalu `409 SETUP_COMPLETED`. Login di CMS memakai akun
+   tersebut, lalu lanjut impor user (§5.3).
+5. Jika `POST /api/setup` menjawab `400 ADMIN_ROLE_MISSING`, isi role lebih
+   dulu (§2.2) lalu ulangi.
+
+Akun yang dibuat lewat `/setup` tidak memakai `must_change_password`, karena
+password dipilih sendiri oleh operator. Jangan mengaktifkan `/setup` untuk
+database yang sudah berisi user: status membaca `setup_completed` dan
+keberadaan admin aktif, sehingga endpoint tetap menolak `409`.
+
+`deploy/05-create-admin.sh` tetap tersedia sebagai jalur alternatif (mis. bila
+halaman setup tidak dapat diakses). Jalankan salah satu, jangan keduanya.
+
+### 2.2 Jebakan: `tbl_role` kosong pada database baru
 
 `02-provision-database.sh` hanya menjalankan migrasi. Migrasi **tidak**
 mengisi `tbl_role`, sedangkan `05-create-admin.sh` memakai `role_id` admin
@@ -60,7 +88,7 @@ ON CONFLICT (_id) DO NOTHING;
 Ini rekomendasi berdasarkan pembacaan skrip; belum dijalankan pada mesin
 produksi.
 
-### 2.2 Environment penting
+### 2.3 Environment penting
 
 | Variabel | Nilai produksi | Catatan |
 |---|---|---|
@@ -76,7 +104,7 @@ produksi.
 | `FLOOR_RESTRICTION` | `true` (default) | Tidak ada di `deploy/app.env.example`; default tetap aktif |
 | `PG*` | kredensial role aplikasi | Jangan pakai superuser untuk runtime |
 
-### 2.3 HTTPS
+### 2.4 HTTPS
 
 Dua pilihan, jangan dicampur:
 
@@ -263,10 +291,15 @@ Urutan fresh yang benar:
 | 1 | Backup database kosong | `backup-db.sh` | 1 dump |
 | 2 | Preflight read-only | `preflight-import.mjs --fresh` | 0 error |
 | 3 | Ruangan | `import-fresh-assets.mjs --phase=rooms` | 11 |
-| 4 | Admin + resepsionis | `import-fresh-assets.mjs --phase=special` | 5 |
-| 5 | Master card | `import-fresh-assets.mjs --phase=master-cards` | 24 |
-| 6 | Karyawan + kartu | `import-bjb-users.mjs --fresh` | 238 + 198 |
-| 7 | Password | fase `passwords` | no-op (create sudah set default) |
+| 4 | Admin operator | halaman `/setup` (§2.1) atau `05-create-admin.sh` | 1 |
+| 5 | Admin + resepsionis | `import-fresh-assets.mjs --phase=special` | 5 |
+| 6 | Master card | `import-fresh-assets.mjs --phase=master-cards` | 24 |
+| 7 | Karyawan + kartu | `import-bjb-users.mjs --fresh` | 238 + 198 |
+| 8 | Password | fase `passwords` | no-op (create sudah set default) |
+
+Langkah 4 wajib lebih dulu dari impor: setelah admin pertama ada,
+`setup_completed` menjadi `true` sehingga halaman `/setup` tertutup, dan
+akun admin yang dipakai mengimpor tidak perlu dibuat manual di SQL.
 
 #### 5.3.0 Seed role
 

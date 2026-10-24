@@ -3,6 +3,7 @@ import { Redirect, Route, Switch, useLocation } from "react-router-dom";
 import Signin from "./auth/Signin.js";
 import ForcePasswordChange from "./auth/ForcePasswordChange.js";
 import Signup from "./auth/Signup.js";
+import { SetupGate, SetupRoute } from "./auth/SetupGate.js";
 import { isAuthenticated } from "./auth/auth-helper.js";
 import Menu from "./core/Menu.js";
 import NotFound from "./core/NotFound.js";
@@ -48,6 +49,8 @@ const WebChrome = () => {
   const location = useLocation();
   const session = isAuthenticated();
   if (location.pathname === "/signin") return null;
+  // The first-admin setup page is a standalone screen: no navigation chrome.
+  if (location.pathname === "/setup") return null;
   // The forced password screen must not mount the header, because its user
   // query would be rejected until the password is changed.
   if (session?.user?.mustChangePassword) return null;
@@ -57,15 +60,18 @@ const WebChrome = () => {
 const WebRouter = () => (
   <>
     <WebChrome />
-    <Switch>
-      <Route path="/signup" component={Signup} />
-      <Route path="/signin" component={Signin} />
-      <ProtectedRoute path="/app-management" adminOnly component={AppManagement} />
-      <ProtectedRoute path="/report" adminOnly component={RoomUsageReport} />
-      <ProtectedRoute path="/user/:userId" component={UserProfile} />
-      <ProtectedRoute exact path="/" component={MeetingCalendar} />
-      <Route component={NotFound} />
-    </Switch>
+    <SetupGate>
+      <Switch>
+        <Route path="/setup" component={SetupRoute} />
+        <Route path="/signup" component={Signup} />
+        <Route path="/signin" component={Signin} />
+        <ProtectedRoute path="/app-management" adminOnly component={AppManagement} />
+        <ProtectedRoute path="/report" adminOnly component={RoomUsageReport} />
+        <ProtectedRoute path="/user/:userId" component={UserProfile} />
+        <ProtectedRoute exact path="/" component={MeetingCalendar} />
+        <Route component={NotFound} />
+      </Switch>
+    </SetupGate>
     {/* The CMS version number is shown on every web page: Ver.Rev from package.json. */}
     <VersionFooter />
   </>
