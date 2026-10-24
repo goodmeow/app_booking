@@ -152,6 +152,7 @@ test("Crowdin maps English JSON sources to language-code target folders without 
 test("user-facing brand and Meeting copy no longer expose legacy names", () => {
   const files = [
     "../auth/Signin.js",
+    "../auth/ForcePasswordChange.js",
     "../auth/Signup.js",
     "../core/Menu.js",
     "../calendar/CalendarSidebar.js",

@@ -55,6 +55,9 @@ sehingga tidak memakai header CMS.
 - Tautan "Buat akun" tidak ditampilkan; akun dibuat admin lewat tab Pengguna.
 - Header CMS disembunyikan di rute ini (`WebChrome` di `MainRouter.js`).
 - API: `POST /api/auth/signin`.
+- Jika `user.mustChangePassword` aktif (akun impor/password di-reset admin), CMS
+  menampilkan layar **wajib ganti password** sebelum halaman lain; server juga
+  menolak endpoint lain dengan `403 PASSWORD_CHANGE_REQUIRED`.
 
 ### 3.2 Daftar (`/signup`) — `client/auth/Signup.js`
 - Hanya tersedia bila **Pengaturan → Izinkan pendaftaran mandiri** aktif.
@@ -139,6 +142,10 @@ Lima tab (`AppManagement.js`):
 | Ruangan (`RoomManagementSection.js`) | CRUD ruangan: nama, gedung, lantai, **kapasitas**, fitur, email, sandi. **Kolom Tablet: Online/Offline/Belum ada/Dicabut**, auto-refresh 15 s | `/api/rooms`, `/api/kiosk/devices` |
 | Perangkat Tablet (`KioskDeviceManagementSection.js`) | Daftar tablet: nama, ruangan, **Online/Offline/Dicabut/Kedaluwarsa**, switch **LED**, switch **Judul** (tampilkan/sembunyikan judul meeting — admin per perangkat), last seen, waktu pairing, cabut perangkat, tombol **Unduh APK Tablet** (tautan statik `/apk/kiosk-release.apk`, unduh saja). Auto-refresh 15 s | `/api/kiosk/devices`, `PATCH …/capabilities`, `DELETE …/:id` |
 | Pengaturan (`SettingsSection.js`) | Switch **Izinkan pendaftaran mandiri** + panel **Floor groups** (read-only): lantai, jumlah ruangan, jumlah karyawan, nama resepsionis per lantai, dan peringatan karyawan tanpa lantai. | `/api/settings`, `/api/settings/public`, `/api/rooms`, `/api/users` |
+
+Form **Pengguna** juga memiliki switch **Wajib ganti kata sandi** (bisa
+dicentang atau dimatikan). Bila aktif, pengguna harus mengganti password saat
+login berikutnya sebelum bisa memakai halaman lain.
 
 **Toggle "Judul" per perangkat** (migrasi `011_kiosk_show_subject.sql`,
 kolom `tbl_kiosk_devices.show_subject`, default **tampil**): ketika aktif,

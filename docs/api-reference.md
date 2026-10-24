@@ -25,7 +25,7 @@ Kode status yang dipakai: `200`, `201`, `400`, `401`, `403`, `404`, `409`,
 
 | Method & path | Akses | Body / query | Sukses | Error penting |
 |---|---|---|---|---|
-| `POST /api/auth/signin` | Publik | `{email\|username, password}` | `200 {token, user:{_id,name,email,username,type,floor,role}}` + cookie `t` | `401 INVALID_CREDENTIALS`, `429 RATE_LIMITED` |
+| `POST /api/auth/signin` | Publik | `{email\|username, password}` | `200 {token, user:{_id,name,email,username,type,floor,role,mustChangePassword}}` + cookie `t` | `401 INVALID_CREDENTIALS`, `429 RATE_LIMITED` |
 | `POST /api/auth/signup` | Publik | `{name, email, username?, password}` | `201 {message}` — hanya bila `self_signup_enabled=true` | `403 SIGNUP_DISABLED` (toggle mati), `400 INVALID_SIGNUP/INVALID_EMAIL/INVALID_USERNAME/INVALID_PASSWORD`, `409 IDENTITY_EXISTS`, `429` |
 | `GET /api/auth/signout` | Publik | – | `200 {message:"signed out"}`, cookie dihapus | – |
 | `POST /api/door-open` | JWT user | `{card_number}` | `200 {message:"Door opened"}` | `400 INVALID_CARD`, `401` |
@@ -35,6 +35,12 @@ Catatan:
   bisa login CMS.
 - Password harus 8–72 byte UTF-8 untuk signup/ganti sandi; akun demo lama
   (`1234`) dibuat lewat skrip, bukan endpoint ini.
+- **Password awal wajib diganti**: akun hasil impor dan akun yang di-reset
+  admin memiliki `must_change_password=true`. Login tetap `200`, tetapi semua
+  endpoint JWT (kecuali `PUT /api/users/change-password` dan
+  `GET /api/auth/signout`) menolak `403 PASSWORD_CHANGE_REQUIRED` sampai
+  pemilik mengganti password. Ganti sendiri menghapus flag; reset oleh admin
+  menyalakannya kembali.
 - Rate limit signin: 10 kegagalan per akun per IP dan 100 kegagalan per IP
   dalam 15 menit; signup 5 per jam per IP saat toggle aktif.
 - **Self signup mengikuti toggle** `self_signup_enabled` di
@@ -47,10 +53,10 @@ Catatan:
 | Method & path | Akses | Body / query | Sukses | Error penting |
 |---|---|---|---|---|
 | `GET /api/users` | JWT user | `q` (khusus non-admin, minimal 2 karakter) | `200` array karyawan aktif (lihat catatan privasi) | `400 INVALID_QUERY` (q terlalu pendek), `401` |
-| `POST /api/users` | JWT admin | `{name, email, employee_id, password, roleId(UUID), username?, floor?, card_number?, master_card?}` | `201` user + `cards[]` | `400 INVALID_USER/INVALID_EMAIL/INVALID_USERNAME/INVALID_PASSWORD/INVALID_EMPLOYEE_ID`, `403 FORBIDDEN`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS` |
-| `PUT /api/users/change-password` | JWT user/admin | `{userId?, oldPassword?, newPassword, newPasswordConfirmation}` | `200 {message}` | `400 INVALID_PASSWORD`, `403`, `404 NOT_FOUND` |
+| `POST /api/users` | JWT admin | `{name, email, employee_id, password, roleId(UUID), username?, floor?, card_number?, master_card?, must_change_password?}` | `201` user + `cards[]` | `400 INVALID_USER/INVALID_EMAIL/INVALID_USERNAME/INVALID_PASSWORD/INVALID_EMPLOYEE_ID`, `403 FORBIDDEN`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS` |
+| `PUT /api/users/change-password` | JWT user/admin | `{userId?, oldPassword?, newPassword, newPasswordConfirmation}` | `200 {message}`; ganti sendiri menghapus flag, reset admin menyalakannya | `400 INVALID_PASSWORD`, `403`, `404 NOT_FOUND` |
 | `GET /api/users/:userId` | JWT self/admin | – | `200` user + `cards[]` | `401`, `403`, `404` |
-| `PUT /api/users/:userId` | JWT self/admin | `{name?, email?, username?, employee_id?, ...}`; `roleId`/`employee_id`/`card_number`/`floor` hanya admin | `200` user + `cards[]` | `400`, `403`, `404`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS` |
+| `PUT /api/users/:userId` | JWT self/admin | `{name?, email?, username?, employee_id?, must_change_password?, ...}`; `roleId`/`employee_id`/`card_number`/`floor`/`must_change_password` hanya admin | `200` user + `cards[]` | `400`, `403`, `404`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS` |
 | `DELETE /api/users/:userId` | JWT self/admin | – | `200` user dengan `is_deleted=true` | `401`, `403`, `404` |
 | `POST /api/users/:userId/cards` | JWT admin | `{card_number}` | `201 {id, card_number, status, lost_at}` | `400 INVALID_CARD`, `403`, `404`, `409 CARD_EXISTS/CARD_LIMIT` |
 | `PATCH /api/users/:userId/cards/:cardId` | JWT admin | `{status: "lost" \| "active"}` | `200 {id, card_number, status, lost_at}` | `400 INVALID_CARD_STATUS`, `403`, `404`, `409 CARD_ALREADY_LOST/CARD_ALREADY_ACTIVE/CARD_LIMIT` |

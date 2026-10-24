@@ -132,6 +132,20 @@ test("user grid and service expose employee ID and card management", () => {
   assert.match(dialog, /users\.cardReactivate/);
 });
 
+test("first login is forced through a password change screen", () => {
+  const router = fs.readFileSync(new URL("../MainRouter.js", import.meta.url), "utf8");
+  const page = fs.readFileSync(new URL("../auth/ForcePasswordChange.js", import.meta.url), "utf8");
+  assert.match(router, /ForcePasswordChange/);
+  assert.match(router, /user\.mustChangePassword/);
+  assert.match(page, /useChangePasswordMutation/);
+  assert.match(page, /newPasswordConfirmation/);
+  assert.match(page, /mustChangePassword: false/);
+  assert.match(page, /users\/change-password|useChangePasswordMutation/);
+  const form = fs.readFileSync(new URL("../management/users/UserFormDialog.js", import.meta.url), "utf8");
+  assert.match(form, /must_change_password/);
+  assert.match(form, /users\.mustChangePassword/);
+});
+
 test("normalizes RTK Query and Error messages", () => {
   const translate = (key) => ({
     "common:apiErrors.forbidden": "Not allowed",

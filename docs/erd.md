@@ -131,6 +131,7 @@ satu tabel; ruangan dibedakan `type='room'`.
 | `employee_id` | varchar | nullable di DB, wajib di API (migrasi 013) | ID karyawan yang diketik admin; unik case-insensitive |
 | `password` | varchar | nullable | Hash bcrypt (cost 12 untuk akun baru) |
 | `hashed_password` | varchar | nullable | Kolom legacy, tidak dipakai server |
+| `must_change_password` | boolean NOT NULL DEFAULT false | Flag wajib ganti password (impor admin reset; migrasi 016) |
 | `role_id` | uuid | FK `tbl_role`, nullable | Dipakai karyawan; aplikasi mensyaratkan role; **harus NULL untuk ruangan** |
 | `type` | varchar | `CHECK (employee, room)` | Pemisah akun |
 | `floor` | varchar | nullable | Grup lantai; `all` = lintas lantai |

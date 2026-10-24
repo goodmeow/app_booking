@@ -10,6 +10,7 @@ const principalSelect = `
     u.type,
     u.floor,
     u.is_deleted,
+    u.must_change_password,
     lower(r.role_name) AS role
   FROM tbl_users u
   LEFT JOIN tbl_role r ON r._id = u.role_id AND r.is_deleted IS NOT TRUE

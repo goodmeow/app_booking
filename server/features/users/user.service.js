@@ -147,7 +147,7 @@ export const reactivateUserCard = async (userId, cardId, principal) => {
 
 // The card number is a credential (check-in, finish, instant booking, door).
 // Only admins may see the whole profile; other users only need the name list.
-export const publicEmployee = ({ card_number, is_master_card, floor, employee_id, cards, ...rest }) => rest;
+export const publicEmployee = ({ card_number, is_master_card, floor, employee_id, cards, must_change_password, ...rest }) => rest;
 
 // employee_id is HR data for the admin list. The account owner still sees their
 // own cards, because those are their door and kiosk credentials.
@@ -225,6 +225,9 @@ export const createUser = async (body, principal) => {
   const values = cleanIdentity(body);
   if (!values.name || !values.email || !body.password || !body.roleId) throw badRequest("INVALID_USER", "Name, email, password, and role are required");
   if (!UUID_PATTERN.test(String(body.roleId))) throw badRequest("INVALID_USER", "Role must be a valid role identifier");
+  if (Object.hasOwn(body, "must_change_password") && typeof body.must_change_password !== "boolean") {
+    throw badRequest("INVALID_USER", "must_change_password must be a boolean");
+  }
   const employeeId = normalizedEmployeeId(body.employee_id, { required: true });
   const cardNumber = legacyCardNumber(body);
   const passwordHash = await bcrypt.hash(validatedPassword(body.password), 12);
@@ -237,6 +240,7 @@ export const createUser = async (body, principal) => {
         roleId: body.roleId,
         type: "employee",
         password: passwordHash,
+        mustChangePassword: body.must_change_password === true,
       }, execute);
       if (cardNumber) {
         await addUserCard(user._id, cardNumber, { execute });
@@ -254,14 +258,22 @@ export const editUser = async (id, body, principal) => {
   const values = cleanIdentity(body);
   const isAdmin = principal.role === "ADMIN";
   if (!isAdmin) {
-    // Only admins may change the role, employee ID, floor, and cards.
+    // Only admins may change the role, employee ID, floor, cards, or the
+    // forced-password-change flag.
     delete values.roleId;
     delete values.employee_id;
     delete values.card_number;
     delete values.floor;
+    delete values.must_change_password;
   } else {
     if (values.roleId !== undefined && !UUID_PATTERN.test(String(values.roleId))) {
       throw badRequest("INVALID_USER", "Role must be a valid role identifier");
+    }
+    if (Object.hasOwn(body, "must_change_password")) {
+      if (typeof body.must_change_password !== "boolean") {
+        throw badRequest("INVALID_USER", "must_change_password must be a boolean");
+      }
+      values.mustChangePassword = body.must_change_password;
     }
     // Supplying the field means the admin wants to change it; clearing an
     // employee ID is not offered because new accounts always have one.
@@ -296,6 +308,7 @@ export const changeUserPassword = async (body, principal) => {
   const newPassword = validatedPassword(body.newPassword);
   const account = await findAccountWithPassword(targetId);
   if (!account || account.is_deleted) throw notFound("Account not found");
+  const changingOwnPassword = String(targetId) === String(principal._id);
   if (principal.role !== "ADMIN") {
     const valid = body.oldPassword && account.password && await bcrypt.compare(String(body.oldPassword), account.password);
     if (!valid) throw badRequest("INVALID_PASSWORD", "Current password is incorrect");
@@ -303,7 +316,9 @@ export const changeUserPassword = async (body, principal) => {
   const passwordHash = await bcrypt.hash(newPassword, 12);
   return withTransaction(async (client) => {
     const execute = (text, values) => client.query(text, values);
-    await updatePassword(targetId, passwordHash, execute);
+    // An admin reset creates a known password, so the owner must replace it.
+    // Changing your own password clears the flag.
+    await updatePassword(targetId, passwordHash, execute, !changingOwnPassword);
     return account.type === "room" ? revokeRoomKioskDevices(targetId, principal._id, execute) : [];
   });
 };

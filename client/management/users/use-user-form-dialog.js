@@ -38,6 +38,7 @@ export const useUserFormDialog = ({ t, onSaved }) => {
       employee_id: editUser.employee_id || "",
       card_number: primaryCardNumber(editUser),
       master_card: Boolean(editUser.is_master_card),
+      must_change_password: Boolean(editUser.must_change_password),
       floor: editUser.floor || "",
       roleId: editUser.role_id || ROLE_IDS.USER,
     });
@@ -109,6 +110,7 @@ export const useUserFormDialog = ({ t, onSaved }) => {
       username: form.username.trim(),
       card_number: cardNumber,
       master_card: Boolean(form.master_card),
+      must_change_password: Boolean(form.must_change_password),
       floor: form.floor,
       roleId: form.roleId,
     };

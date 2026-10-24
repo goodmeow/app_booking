@@ -6,6 +6,7 @@ import {
   Stack,
   Switch,
   TextField,
+  Typography,
 } from "@mui/material";
 import FormDialog from "../../components/common/FormDialog.js";
 import { LoadingState } from "../../components/common/AsyncState.js";
@@ -105,6 +106,20 @@ const UserFormDialog = ({
               <MenuItem key={role.value} value={role.value}>{t(`common:${role.labelKey}`)}</MenuItem>
             ))}
           </TextField>
+          <div>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={Boolean(form.must_change_password)}
+                  onChange={(event) => setForm((current) => ({ ...current, must_change_password: event.target.checked }))}
+                />
+              }
+              label={t("users.mustChangePassword")}
+            />
+            <Typography variant="body2" color="text.secondary">
+              {t("users.mustChangePasswordHelp")}
+            </Typography>
+          </div>
         </Stack>
       )}
     </FormDialog>

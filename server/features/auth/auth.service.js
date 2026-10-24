@@ -14,6 +14,7 @@ export const publicPrincipal = (principal) => ({
   type: principal.type,
   floor: principal.floor || null,
   role: String(principal.role || "user").toUpperCase(),
+  mustChangePassword: principal.must_change_password === true,
 });
 
 export const authenticateCredentials = async (login, password) => {

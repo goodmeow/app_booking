@@ -15,9 +15,9 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
-## Posisi saat ini (Ver 3 Rev 8)
+## Posisi saat ini (Ver 3 Rev 9)
 
-- CMS + API: **Ver 3 Rev 8**, `package.json` `3.8.2`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 9**, `package.json` `3.9.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
 - APK kiosk: `versionName 1.3 / versionCode 11`, menampilkan ver + UUID
   perangkat di layar; string di res/values + values-en (bahasa ID/EN),
@@ -92,6 +92,22 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
   menerima `lost`/`active`; CMS menampilkan tombol **Aktifkan kembali**.
   Bukti: unit 74/74, client 80/80, regresi 78/78, parity 8/8, uji demo
   lost → active berhasil.
+
+
+### Ver 3 Rev 9 - 2026-10-24 (selesai)
+- Migrasi `016_must_change_password.sql`: kolom `must_change_password`.
+- Akun hasil impor dan akun yang di-reset admin wajib mengganti password saat
+  login pertama. Server menolak endpoint lain dengan `403 PASSWORD_CHANGE_REQUIRED`
+  (kecuali ganti password sendiri dan signout); ganti sendiri menghapus flag.
+- Admin dapat **mencentang/mematikan** “Wajib ganti kata sandi” di form
+  Pengguna (`POST/PUT /api/users` menerima `must_change_password`); create dan
+  edit sama-sama mendukung.
+- CMS menampilkan layar **wajib ganti password** sebelum halaman lain, dengan
+  locale en/id; header disembunyikan agar tidak memanggil API yang diblokir.
+- Rencana impor 243 akun memakai password awal `123456Ab` (bcrypt) dan
+  `must_change_password=true`.
+- Bukti: unit 74/74, client 81/81, regresi 81/81, parity 8/8; uji API
+  login → 403 → ganti → 200 berhasil, dan admin dapat mengubah flag.
 
 ## Cara naikkan
 

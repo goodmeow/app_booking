@@ -3,7 +3,7 @@ import { query } from "../../db/pool.js";
 const safeColumns = `
   u._id, u.name, u.email, u.username, u.role_id, u.employee_id,
   u.type, u.floor, u.capacity, u.building, u.feature,
-  u.is_deleted, u.created_at, u.updated_at
+  u.is_deleted, u.must_change_password, u.created_at, u.updated_at
 `;
 
 const publicRoomColumns = `
@@ -41,6 +41,7 @@ const masterCardFlag = `EXISTS (
 
 export const listEmployees = async () => (await query(
   `SELECT u._id, u.name, u.email, u.username, u.employee_id, u.type, u.floor,
+          u.must_change_password,
           ${masterCardFlag},
           ${userCardColumns}
    FROM tbl_users u
@@ -133,15 +134,15 @@ export const setMasterCard = async (cardNumber, enabled, principalId, execute = 
   await execute(`DELETE FROM tbl_card_masters WHERE lower(card_number) = lower($1)`, [value]);
 };
 
-export const insertAccount = async ({ name, email, username, password, roleId, employeeId, type, floor, capacity, building, feature }, execute = query) => (await execute(
+export const insertAccount = async ({ name, email, username, password, roleId, employeeId, type, floor, capacity, building, feature, mustChangePassword = false }, execute = query) => (await execute(
   `INSERT INTO tbl_users
-     (name, email, username, password, role_id, employee_id, type, floor, capacity, building, feature, is_deleted)
+     (name, email, username, password, role_id, employee_id, type, floor, capacity, building, feature, must_change_password, is_deleted)
    VALUES
      ($1, lower($2), nullif(btrim($3), ''), $4, $5, nullif(btrim($6), ''), $7,
-      nullif($8, ''), nullif($9, ''), nullif($10, ''), nullif($11, ''), false)
+      nullif($8, ''), nullif($9, ''), nullif($10, ''), nullif($11, ''), $12, false)
    RETURNING _id, name, email, username, role_id, employee_id,
-             type, floor, capacity, building, feature, created_at`,
-  [name, email, username || null, password || null, roleId || null, employeeId || null, type, floor || null, capacity || null, building || null, feature || null]
+             type, floor, capacity, building, feature, must_change_password, created_at`,
+  [name, email, username || null, password || null, roleId || null, employeeId || null, type, floor || null, capacity || null, building || null, feature || null, Boolean(mustChangePassword)]
 )).rows[0];
 
 export const updateAccount = async (id, values, type) => (await query(
@@ -155,10 +156,11 @@ export const updateAccount = async (id, values, type) => (await query(
        capacity = CASE WHEN $11::boolean THEN nullif(btrim($12), '') ELSE capacity END,
        building = CASE WHEN $13::boolean THEN nullif(btrim($14), '') ELSE building END,
        feature = CASE WHEN $15::boolean THEN nullif(btrim($16), '') ELSE feature END,
+       must_change_password = CASE WHEN $17::boolean THEN $18 ELSE must_change_password END,
        updated_at = now()
-   WHERE _id = $1 AND type = $17 AND is_deleted IS NOT TRUE
+   WHERE _id = $1 AND type = $19 AND is_deleted IS NOT TRUE
    RETURNING _id, name, email, username, role_id, employee_id,
-             type, floor, capacity, building, feature, created_at, updated_at`,
+             type, floor, capacity, building, feature, must_change_password, created_at, updated_at`,
   [
     id,
     values.name ?? null,
@@ -170,6 +172,7 @@ export const updateAccount = async (id, values, type) => (await query(
     Object.hasOwn(values, "capacity"), values.capacity ?? null,
     Object.hasOwn(values, "building"), values.building ?? null,
     Object.hasOwn(values, "feature"), values.feature ?? null,
+    Object.hasOwn(values, "mustChangePassword"), Boolean(values.mustChangePassword),
     type,
   ]
 )).rows[0] || null;
@@ -220,11 +223,14 @@ export const setUserCardActive = async (cardId, execute = query) => (await execu
   [cardId]
 )).rows[0] || null;
 
-export const updatePassword = async (id, password, execute = query) => (await execute(
-  `UPDATE tbl_users SET password = $2, updated_at = now()
+export const updatePassword = async (id, password, execute = query, mustChangePassword = false) => (await execute(
+  `UPDATE tbl_users
+   SET password = $2,
+       must_change_password = $3,
+       updated_at = now()
    WHERE _id = $1 AND is_deleted IS NOT TRUE
    RETURNING _id`,
-  [id, password]
+  [id, password, mustChangePassword]
 )).rowCount === 1;
 
 export const softDeleteAccount = async (id, type) => (await query(

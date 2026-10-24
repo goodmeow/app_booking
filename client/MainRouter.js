@@ -1,6 +1,7 @@
 import React from "react";
 import { Redirect, Route, Switch, useLocation } from "react-router-dom";
 import Signin from "./auth/Signin.js";
+import ForcePasswordChange from "./auth/ForcePasswordChange.js";
 import Signup from "./auth/Signup.js";
 import { isAuthenticated } from "./auth/auth-helper.js";
 import Menu from "./core/Menu.js";
@@ -22,6 +23,13 @@ const ProtectedRoute = ({ component: Component, adminOnly = false, ...rest }) =>
     render={(props) => {
       const session = isAuthenticated();
       if (!session) return <Redirect to={{ pathname: "/signin", state: { from: props.location } }} />;
+      if (session.user.mustChangePassword) {
+        return (
+          <ProtectedShell>
+            <ForcePasswordChange />
+          </ProtectedShell>
+        );
+      }
       if (adminOnly && session.user.role !== "ADMIN") return <Redirect to="/" />;
       return (
         <ProtectedShell>
@@ -38,7 +46,12 @@ const ProtectedRoute = ({ component: Component, adminOnly = false, ...rest }) =>
 
 const WebChrome = () => {
   const location = useLocation();
-  return location.pathname === "/signin" ? null : <Menu />;
+  const session = isAuthenticated();
+  if (location.pathname === "/signin") return null;
+  // The forced password screen must not mount the header, because its user
+  // query would be rejected until the password is changed.
+  if (session?.user?.mustChangePassword) return null;
+  return <Menu />;
 };
 
 const WebRouter = () => (
