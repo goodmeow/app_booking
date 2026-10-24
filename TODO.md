@@ -182,11 +182,21 @@ Phase 10A software complete: a provisioned tablet is cryptographically bound to 
   Lint/format enforcement BELUM (belum ada eslint/prettier config).
 - [x] Add `docs/handover/START-HERE.md` + README/quickstart sudah sesuai
   perintah dan layout sekarang.
-- [ ] Document current architecture and UI-to-API-to-DB-to-Socket.io sequence diagrams.
-- [ ] Document business processes: auth/roles, user/room lifecycle, meeting create/edit/cancel, collision, check-in/early-finish, and reports.
-- [ ] Publish current API reference plus ERD and stored-function contracts.
-- [ ] Add executable scenario catalog with sanitized demo accounts and request examples.
-- [ ] Add contribution, code ownership, and deployment/operations runbook.
+- [x] Document current architecture and UI-to-API-to-DB-to-Socket.io sequence diagrams.
+  Bukti: `docs/architecture.md` (komponen, alur login/create/check-in,
+  invalidasi Socket.io, zona waktu, privasi, dev vs prod).
+- [x] Document business processes: auth/roles, user/room lifecycle, meeting create/edit/cancel, collision, check-in/early-finish, and reports.
+  Bukti: `docs/business-processes.md` (termasuk aturan lantai, rekurensi,
+  instant/book kiosk, auto-release no-show).
+- [x] Publish current API reference plus ERD and stored-function contracts.
+  Bukti: `docs/api-reference.md` + `docs/erd.md`; kontrak 28 fungsi legacy
+  dicatat sebagai tidak dipanggil server saat ini.
+- [x] Add executable scenario catalog with sanitized demo accounts and request examples.
+  Bukti: `docs/scenarios.md` (curl + langkah UI, akun demo tersanitasi).
+- [x] Add contribution, code ownership, and deployment/operations runbook.
+  Bukti: `docs/operations-runbook.md` (deploy/HTTPS/CORS, restart, pemulihan
+  reboot, backup/monitoring rekomendasi, re-pair tablet, rotasi JWT,
+  kontribusi & kepemilikan area).
 - [ ] Tag reconstructed baseline.
 
 ## Phase 12 — Hardware (NFC, akses pintu, LED)

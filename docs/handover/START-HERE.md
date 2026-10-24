@@ -45,7 +45,7 @@ tablet bila sesi kios ikut hilang.
 | Database | `database/migrations/` (urut), seed disposable di `database/seeds/` |
 | Test | `server/tests/unit|parity|regression`, `client/tests` |
 | Deploy Ubuntu 22.04 | `deploy/` (lihat `deploy/README.md`) |
-| Versi & riwayat | `docs/VERSIONING.md`, `package.json` (`3.5.0` = Ver 3 Rev 5) |
+| Versi & riwayat | `docs/VERSIONING.md`, `package.json` (`3.6.0` = Ver 3 Rev 6) |
 
 ## 4. Alur kiosk singkat
 

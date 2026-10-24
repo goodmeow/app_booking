@@ -15,7 +15,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
-## Posisi saat ini (penutupan Ver 3 Rev 5)
+## Posisi saat ini (Ver 3 Rev 6)
 
 - CMS + API: **Ver 3 Rev 6**, `package.json` `3.6.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
