@@ -152,9 +152,10 @@ hanya saat start pertama.
 - Instalasi baru: `GET /api/setup/status` → `{"required":true}`, buka
   `http://localhost:8082/setup`, buat admin pertama; panggilan berikutnya
   `409 SETUP_COMPLETED` (§2.1).
-- Backup volume DB: lihat `deploy/docker/README.md` (arsip volume
-  `roombooking-alpine_alpine-db-data`). Jangan pakai default password/secret
-  contoh di produksi.
+- Backup DB Docker: lihat `deploy/docker/README.md`. Default memakai volume
+  `roombooking-alpine_alpine-db-data`; kalau `ALPINE_DB_PATH` diarahkan ke
+  `database/pgdata`, backup lewat `pg_dump`/CMS Backup. Jangan pakai default
+  password/secret contoh di produksi.
 - Setelah go-live, impor fresh install tetap memakai §5.3 (event historis
   tidak dimigrasikan).
 

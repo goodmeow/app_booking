@@ -119,16 +119,17 @@ $C ps
 $C logs -f app
 $C restart app
 
-# hentikan stack (volume DB tetap, pairing tablet aman)
+# hentikan stack (data dan pairing tablet aman)
 $C down
 
-# hentikan dan hapus data (HANYA untuk instalasi uji)
+# hapus data HANYA jika memakai named volume (bukan database/pgdata)
 $C down -v
 ```
 
 - **Backup/restore.** Backup harian + uji restore: lihat
   [`docs/operations-runbook.md`](docs/operations-runbook.md) §5. Untuk stack
-  Alpine, salin volume `roombooking-alpine_alpine-db-data`
+  Alpine default, salin volume `roombooking-alpine_alpine-db-data`; kalau
+  memakai bind mount `database/pgdata`, backup lewat `pg_dump`/CMS Backup
   ([`deploy/docker/README.md`](deploy/docker/README.md)).
 - **APK tablet.** Unduh dari CMS atau langsung di
   `/apk/kiosk-release.apk`; riwayat versi di

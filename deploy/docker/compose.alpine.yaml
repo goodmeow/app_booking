@@ -11,7 +11,9 @@ services:
       POSTGRES_USER: ${ALPINE_PGUSER:-booking}
       POSTGRES_PASSWORD: ${ALPINE_PGPASSWORD:-booking_alpine_local_only}
     volumes:
-      - alpine-db-data:/var/lib/postgresql/data
+      # Default: named Docker volume. Set ALPINE_DB_PATH=../../database/pgdata
+      # to keep the cluster inside the repo instead (Linux/ext4 only; gitignored).
+      - ${ALPINE_DB_PATH:-alpine-db-data}:/var/lib/postgresql/data
     healthcheck:
       test:
         - CMD-SHELL

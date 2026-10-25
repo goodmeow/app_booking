@@ -25,7 +25,7 @@ docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine logs -
 # hentikan (volume DB tetap)
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine down
 
-# hapus stack beserta volume DB uji
+# hapus stack + named volume DB uji (tidak menghapus bind mount database/pgdata)
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine down -v
 ```
 
@@ -60,6 +60,7 @@ ini di produksi. Override lewat shell env:
 | `ALPINE_PGPASSWORD` | `booking_alpine_local_only` |
 | `ALPINE_JWT_SECRET` | secret uji >= 32 karakter |
 | `ALPINE_CORS_ORIGINS` | `http://localhost:8082` |
+| `ALPINE_DB_PATH` | `alpine-db-data` (named volume) |
 
 `validateRuntimeConfig()` membaca `JWT_SECRET` (bukan `JWT_SECRET_KEY`) dan
 menolak secret < 32 karakter atau placeholder `change-me`.
@@ -82,8 +83,18 @@ menolak secret < 32 karakter atau placeholder `change-me`.
 
 ## Volume dan backup
 
-- Data DB: volume bernama `roombooking-alpine_alpine-db-data`.
-- Backup:
+- Default: volume bernama `roombooking-alpine_alpine-db-data`.
+- Kalau ingin data di dalam repo, set:
+  ```bash
+  mkdir -p database/pgdata
+  chmod 700 database/pgdata
+  export ALPINE_DB_PATH=../../database/pgdata
+  ```
+  Folder `database/pgdata/` sudah gitignored. Ini hanya untuk Linux/ext4;
+  jangan pakai di `/mnt/e` (drvfs) karena ownership PostgreSQL bisa gagal.
+  Pindah dari named volume lama: backup dulu, lalu restore dump ke bind mount;
+  mengganti path tanpa restore akan membuat database kosong.
+- Backup default named volume:
   ```bash
   docker run --rm -v roombooking-alpine_alpine-db-data:/data -v "$PWD":/backup \
     alpine tar czf /backup/roombooking-alpine-db.tgz -C /data .
@@ -93,8 +104,10 @@ menolak secret < 32 karakter atau placeholder `change-me`.
   docker run --rm -v roombooking-alpine_alpine-db-data:/data -v "$PWD":/backup \
     alpine sh -c 'rm -rf /data/* && tar xzf /backup/roombooking-alpine-db.tgz -C /data'
   ```
+- Untuk bind mount `database/pgdata`, backup lewat `pg_dump`/CMS Backup, bukan
+  `docker volume tar`; `down -v` tidak menghapus folder bind mount.
 - `down` tanpa `-v` mempertahankan data dan pairing tablet; `down -v` menghapus
-  seluruh data uji.
+  seluruh data **hanya jika** memakai named volume.
 
 ## Catatan
 
