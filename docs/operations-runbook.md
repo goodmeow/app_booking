@@ -129,16 +129,16 @@ Stack uji/produksi kecil: `deploy/docker/compose.alpine.yaml` menjalankan
 (web SPA + proxy `/api` + `/socket.io`). Build context harus root repo.
 
 ```bash
-# Ganti dengan http://localhost:8082 bila hanya diakses dari server.
-export ALPINE_CORS_ORIGINS=http://<ip-server>:8082
+# Sekali saja: buat env lokal, lalu isi origin CMS/tablet.
+cp deploy/docker/.env.example deploy/docker/.env
 
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
   up -d --build
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
 ```
 
-Nilai `ALPINE_CORS_ORIGINS` harus disertakan pada setiap `up`/rebuild, bukan
-hanya saat start pertama.
+Simpan `ALPINE_CORS_ORIGINS` dan `ALPINE_DB_PATH` di `deploy/docker/.env`
+supaya tetap terbaca setiap `up`/rebuild.
 
 | Service | Host | Container |
 |---|---|---|
@@ -152,10 +152,10 @@ hanya saat start pertama.
 - Instalasi baru: `GET /api/setup/status` → `{"required":true}`, buka
   `http://localhost:8082/setup`, buat admin pertama; panggilan berikutnya
   `409 SETUP_COMPLETED` (§2.1).
-- Backup DB Docker: lihat `deploy/docker/README.md`. Default memakai volume
-  `roombooking-alpine_alpine-db-data`; kalau `ALPINE_DB_PATH` diarahkan ke
-  `database/pgdata`, backup lewat `pg_dump`/CMS Backup. Jangan pakai default
-  password/secret contoh di produksi.
+- Backup DB Docker: lihat `deploy/docker/README.md`. Gunakan `pg_dump`/CMS
+  Backup untuk named volume maupun `database/pgdata`; jangan menyalin folder
+  PostgreSQL yang sedang hidup. Jangan pakai default password/secret contoh di
+  produksi.
 - Setelah go-live, impor fresh install tetap memakai §5.3 (event historis
   tidak dimigrasikan).
 

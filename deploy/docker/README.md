@@ -9,8 +9,8 @@ Jalankan dari root repo (build context harus root agar `package-lock.json`,
 `client/`, `server/`, dan `database/migrations/` ikut):
 
 ```bash
-# Wajib untuk CMS/tablet. Ganti dengan http://localhost:8082 untuk akses lokal.
-export ALPINE_CORS_ORIGINS=http://<ip-server>:8082
+# Sekali saja: buat env lokal, lalu isi origin CMS/tablet.
+cp deploy/docker/.env.example deploy/docker/.env
 
 # validasi compose
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine config
@@ -25,16 +25,16 @@ docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine logs -
 # hentikan (volume DB tetap)
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine down
 
-# hapus stack + named volume DB uji (tidak menghapus bind mount database/pgdata)
+# hapus stack + SEMUA named volume (DB + backup); bind mount database/pgdata tetap
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine down -v
 ```
 
 Di laptop ini `docker compose` tidak tersedia; gunakan `docker-compose` dengan
 argumen yang sama.
 
-`ALPINE_CORS_ORIGINS` harus tetap ada setiap kali `up`/rebuild. Kalau root repo
-punya `.env`, nilai yang sama juga bisa dibaca dengan menambahkan
-`--env-file .env`; Compose di setup ini tidak selalu membacanya otomatis.
+Nilai `ALPINE_CORS_ORIGINS` dan `ALPINE_DB_PATH` disimpan di
+`deploy/docker/.env` supaya tetap terbaca setiap `up`/rebuild. Jangan hanya
+mengekspor di satu terminal.
 
 ## Port dan endpoint
 
@@ -88,26 +88,28 @@ menolak secret < 32 karakter atau placeholder `change-me`.
   ```bash
   mkdir -p database/pgdata
   chmod 700 database/pgdata
-  export ALPINE_DB_PATH=../../database/pgdata
+  # lalu set di deploy/docker/.env:
+  # ALPINE_DB_PATH=../../database/pgdata
   ```
   Folder `database/pgdata/` sudah gitignored. Ini hanya untuk Linux/ext4;
   jangan pakai di `/mnt/e` (drvfs) karena ownership PostgreSQL bisa gagal.
   Pindah dari named volume lama: backup dulu, lalu restore dump ke bind mount;
   mengganti path tanpa restore akan membuat database kosong.
-- Backup default named volume:
+- Backup dengan `pg_dump` (aman saat database berjalan):
   ```bash
-  docker run --rm -v roombooking-alpine_alpine-db-data:/data -v "$PWD":/backup \
-    alpine tar czf /backup/roombooking-alpine-db.tgz -C /data .
+  docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
+    exec -T db pg_dump -U booking -d 360booking -Fc > roombooking-db.dump
   ```
-- Restore ke volume baru (stack harus berhenti dulu):
+- Restore ke database kosong:
   ```bash
-  docker run --rm -v roombooking-alpine_alpine-db-data:/data -v "$PWD":/backup \
-    alpine sh -c 'rm -rf /data/* && tar xzf /backup/roombooking-alpine-db.tgz -C /data'
+  docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
+    exec -T db pg_restore -U booking -d 360booking --clean --if-exists < roombooking-db.dump
   ```
-- Untuk bind mount `database/pgdata`, backup lewat `pg_dump`/CMS Backup, bukan
-  `docker volume tar`; `down -v` tidak menghapus folder bind mount.
-- `down` tanpa `-v` mempertahankan data dan pairing tablet; `down -v` menghapus
-  seluruh data **hanya jika** memakai named volume.
+- `database/pgdata` dan named volume sama-sama memakai `pg_dump`; jangan
+  menyalin folder PostgreSQL yang sedang hidup.
+- `down` tanpa `-v` mempertahankan data dan pairing tablet. `down -v` menghapus
+  **named volume DB dan volume backup**; bind mount `database/pgdata` tidak
+  terhapus.
 
 ## Catatan
 

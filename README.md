@@ -27,8 +27,8 @@ cd app_booking
 
 # jalankan dari root repo (build context harus root)
 # Jika host memakai plugin Compose v2, ganti `docker-compose` dengan `docker compose`.
-# Ganti dengan http://localhost:8082 bila CMS hanya dibuka dari server.
-export ALPINE_CORS_ORIGINS=http://<ip-server>:8082
+# Sekali saja: isi ALPINE_CORS_ORIGINS dengan http://<ip-server>:8082.
+cp deploy/docker/.env.example deploy/docker/.env
 
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
   up -d --build
@@ -36,8 +36,9 @@ docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
 ```
 
-Buka `http://<ip-server>:8082`. Nilai `ALPINE_CORS_ORIGINS` harus tetap ada
-setiap kali container dibuat ulang; jangan hanya saat start pertama.
+Buka `http://<ip-server>:8082`. Isi `ALPINE_CORS_ORIGINS` di
+`deploy/docker/.env` (bukan hanya `export` di satu terminal), supaya tetap
+terbaca setiap container dibuat ulang.
 
 Lalu:
 
@@ -122,15 +123,14 @@ $C restart app
 # hentikan stack (data dan pairing tablet aman)
 $C down
 
-# hapus data HANYA jika memakai named volume (bukan database/pgdata)
+# hapus SEMUA named volume (DB + backup), bukan database/pgdata
 $C down -v
 ```
 
 - **Backup/restore.** Backup harian + uji restore: lihat
   [`docs/operations-runbook.md`](docs/operations-runbook.md) §5. Untuk stack
-  Alpine default, salin volume `roombooking-alpine_alpine-db-data`; kalau
-  memakai bind mount `database/pgdata`, backup lewat `pg_dump`/CMS Backup
-  ([`deploy/docker/README.md`](deploy/docker/README.md)).
+  Alpine, gunakan `pg_dump`/CMS Backup; jangan menyalin folder PostgreSQL yang
+  sedang hidup ([`deploy/docker/README.md`](deploy/docker/README.md)).
 - **APK tablet.** Unduh dari CMS atau langsung di
   `/apk/kiosk-release.apk`; riwayat versi di
   [`public/apk/README.md`](public/apk/README.md).
