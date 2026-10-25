@@ -17,6 +17,9 @@ docs/tablet-room-logins.local.md
 *.bak
 backups/
 
+# PostgreSQL data directory if the Docker stack uses a repo bind mount.
+database/pgdata/
+
 # Reconstructed build output. Existing dist is preserved as baseline via force-add.
 coverage/
 build/
