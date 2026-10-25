@@ -1,11 +1,12 @@
 import express from "express";
 import { adminOnly, requireSignin, selfOrAdmin } from "../../security/auth.middleware.js";
-import { addCard, changePassword, create, list, read, remove, update, updateCardStatus } from "./user.controller.js";
+import { addCard, bulkImport, changePassword, create, list, read, remove, update, updateCardStatus } from "./user.controller.js";
 
 const router = express.Router();
 router.use(requireSignin);
 router.get("/", list);
 router.post("/", adminOnly, create);
+router.post("/import", adminOnly, bulkImport);
 router.put("/change-password", changePassword);
 // Card mutations are management actions: an employee cannot move a card to
 // their account, and a lost report has to revoke the door master list too.

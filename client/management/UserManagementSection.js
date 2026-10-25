@@ -16,6 +16,7 @@ import { primaryCardNumber } from "./users/user-cards.js";
 import { filterUsers, ROLE_FILTER_ALL } from "./users/user-filters.js";
 import UserFormDialog from "./users/UserFormDialog.js";
 import UserCardsDialog from "./users/UserCardsDialog.js";
+import UserImportDialog from "./users/UserImportDialog.js";
 import { buildUserColumns } from "./users/user-columns.js";
 import { useUserFormDialog } from "./users/use-user-form-dialog.js";
 import { useUserCardsDialog } from "./users/use-user-cards-dialog.js";
@@ -52,6 +53,7 @@ const UserManagementSection = () => {
   const [onlyMissingFloor, setOnlyMissingFloor] = useState(false);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState(ROLE_FILTER_ALL);
+  const [importOpen, setImportOpen] = useState(false);
 
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
   const [changePassword, { isLoading: isChangingPassword, reset: resetPassword }] = useChangePasswordMutation();
@@ -182,7 +184,10 @@ const UserManagementSection = () => {
     <Box component="section">
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
         <Typography variant="h5" component="h2">{t("users.title")}</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={formDialog.openCreate}>{t("users.add")}</Button>
+        <Stack direction="row" spacing={1}>
+          <Button variant="outlined" onClick={() => setImportOpen(true)}>{t("users.importButton")}</Button>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={formDialog.openCreate}>{t("users.add")}</Button>
+        </Stack>
       </Stack>
 
       {isFetching && !isLoading && users.length > 0 ? <Alert severity="info" sx={{ mb: 1 }}>{t("common:states.refreshing")}</Alert> : null}
@@ -279,6 +284,15 @@ const UserManagementSection = () => {
         onMarkLost={cardsDialog.markLost}
         onReactivate={cardsDialog.reactivate}
         t={t}
+      />
+
+      <UserImportDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={() => {
+          refetch();
+          showFeedback(t("users.imported"));
+        }}
       />
 
       <PasswordDialog

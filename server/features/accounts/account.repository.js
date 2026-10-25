@@ -113,6 +113,16 @@ export const findAccountById = async (id, type, execute = query) => (await execu
   [id, type || null]
 )).rows[0] || null;
 
+export const findEmployeeByEmployeeId = async (employeeId, execute = query) => (await execute(
+  `SELECT ${safeColumns}, ${masterCardFlag}, ${userCardColumns}
+   FROM tbl_users u
+   WHERE u.type = 'employee'
+     AND u.is_deleted IS NOT TRUE
+     AND lower(btrim(u.employee_id)) = lower(btrim($1))
+   LIMIT 1`,
+  [employeeId]
+)).rows[0] || null;
+
 export const findAccountWithPassword = async (id) => (await query(
   `SELECT u._id, u.password, u.type, u.is_deleted
    FROM tbl_users u WHERE u._id = $1 LIMIT 1`,

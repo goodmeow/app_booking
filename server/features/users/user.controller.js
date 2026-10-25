@@ -10,6 +10,7 @@ import {
   markUserCardLost,
   reactivateUserCard,
 } from "./user.service.js";
+import { importUsers } from "./user.import.service.js";
 
 const run = (handler) => async (req, res, next) => {
   try { await handler(req, res); } catch (error) { next(error); }
@@ -18,6 +19,7 @@ const run = (handler) => async (req, res, next) => {
 export const list = run(async (req, res) => res.json(await getUsers(req.auth, req.query)));
 export const read = run(async (req, res) => res.json(await getUser(req.params.userId, req.auth)));
 export const create = run(async (req, res) => res.status(201).json(await createUser(req.body, req.auth)));
+export const bulkImport = run(async (req, res) => res.json(await importUsers(req.body, req.auth)));
 export const update = run(async (req, res) => res.json(await editUser(req.params.userId, req.body, req.auth)));
 export const remove = run(async (req, res) => res.json(await deleteUser(req.params.userId, req.auth)));
 
