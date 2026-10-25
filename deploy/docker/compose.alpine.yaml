@@ -51,7 +51,7 @@ services:
       SSR: "false"
       HTTPS: "false"
       TRUST_PROXY: "true"
-      CORS_ORIGINS: ${ALPINE_CORS_ORIGINS:-http://localhost:8182}
+      CORS_ORIGINS: ${ALPINE_CORS_ORIGINS:-http://localhost:5100}
       APP_TIMEZONE: Asia/Jakarta
       MAX_BOOKING_DURATION_HOURS: "168"
       MAX_CALENDAR_RANGE_DAYS: "366"
@@ -74,6 +74,8 @@ services:
       # Optional direct API access for debugging; nginx is the normal entry.
       - "127.0.0.1:9191:9091"
     restart: unless-stopped
+    volumes:
+      - backup-data:/backups
 
   web:
     build:
@@ -84,7 +86,7 @@ services:
       app:
         condition: service_healthy
     ports:
-      - "8182:80"
+      - "8082:80"
     healthcheck:
       test:
         - CMD-SHELL
@@ -97,3 +99,4 @@ services:
 
 volumes:
   alpine-db-data:
+  backup-data:

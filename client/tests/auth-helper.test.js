@@ -9,6 +9,7 @@ test("auth errors prefer localized stable codes over server text", async () => {
   const responses = [
     { code: "INVALID_CREDENTIALS", error: "Invalid login or password" },
     { code: "IDENTITY_EXISTS", error: "Email or username already exists" },
+    { code: "CORS_ORIGIN", error: "Origin is not allowed" },
   ];
 
   globalThis.fetch = async () => ({
@@ -25,6 +26,10 @@ test("auth errors prefer localized stable codes over server text", async () => {
     await assert.rejects(
       signup({ email: "used@example.com" }),
       { message: "Email atau nama pengguna sudah terdaftar" },
+    );
+    await assert.rejects(
+      signin({ email: "test@example.com", password: "secret" }),
+      { message: "Alamat browser ini belum diizinkan server. Hubungi admin." },
     );
   } finally {
     await i18n.changeLanguage(originalLanguage);

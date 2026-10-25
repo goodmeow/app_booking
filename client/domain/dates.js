@@ -14,6 +14,15 @@ export const formatDateDDMMYYYY = (value) => {
   return `${pad(date.getDate())}-${pad(date.getMonth() + 1)}-${date.getFullYear()}`;
 };
 
+export const formatDateDDMMMYYYY = (value, language = "en") => {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) throw new TypeError("Invalid date");
+  const month = new Intl.DateTimeFormat(localeForLanguage(language), { month: "short" })
+    .format(date)
+    .replace(/\.$/, "");
+  return `${pad(date.getDate())}-${month}-${date.getFullYear()}`;
+};
+
 export const formatDateYYYYMMDD = (value) => {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) throw new TypeError("Invalid date");

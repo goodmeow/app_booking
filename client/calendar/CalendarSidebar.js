@@ -35,6 +35,7 @@ const CalendarSidebar = ({
   rooms = [],
   floor = "",
   showAllFloors = false,
+  showFloorSchedule = false,
   isAdmin = false,
   showTabletStatus = false,
   roomStatus = [],
@@ -71,6 +72,7 @@ const CalendarSidebar = ({
           }}
         >
           <ToggleButton value="mine">{t("sidebar.mySchedule")}</ToggleButton>
+          {showFloorSchedule ? <ToggleButton value="floor">{t("sidebar.floorSchedule")}</ToggleButton> : null}
           <ToggleButton value="room">{t("sidebar.roomSchedule")}</ToggleButton>
           {isAdmin ? <ToggleButton value="all">{t("sidebar.allSchedule")}</ToggleButton> : null}
         </ToggleButtonGroup>
@@ -80,7 +82,9 @@ const CalendarSidebar = ({
               ? "sidebar.roomHint"
               : scheduleMode === "all"
                 ? "sidebar.allHint"
-                : "sidebar.mineHint"
+                : scheduleMode === "floor"
+                  ? "sidebar.floorHint"
+                  : "sidebar.mineHint"
           )}
         </Alert>
       </Box>
@@ -93,37 +97,39 @@ const CalendarSidebar = ({
         />
       </LocalizationProvider>
 
-      <Box>
-        <Typography variant="subtitle2" component="h2" sx={{ mb: 1 }}>
-          {t("sidebar.filterTitle")}
-        </Typography>
-        <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
-          {showAllFloors
-            ? t("calendar.floorScopeAll")
-            : floor
-              ? t("calendar.floorScope", { floor })
-              : t("calendar.floorMissing")}
-        </Typography>
-        <Autocomplete
-          options={rooms}
-          value={selectedRoom || null}
-          onChange={(_event, value) => onRoomChange?.(value)}
-          getOptionLabel={roomLabel}
-          isOptionEqualToValue={(option, value) => roomKey(option) === roomKey(value)}
-          renderInput={(params) => (
-            <TextField {...params} label={t("sidebar.searchRoom")} placeholder={t("sidebar.allRooms")} size="small" />
-          )}
-        />
-        {selectedRoom ? (
-          <Chip
-            label={roomLabel(selectedRoom)}
-            onDelete={() => onRoomChange?.(null)}
-            color="primary"
-            variant="outlined"
-            sx={{ mt: 1.5, maxWidth: "100%" }}
+      {scheduleMode === "room" ? (
+        <Box>
+          <Typography variant="subtitle2" component="h2" sx={{ mb: 1 }}>
+            {t("sidebar.filterTitle")}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+            {showAllFloors
+              ? t("calendar.floorScopeAll")
+              : floor
+                ? t("calendar.floorScope", { floor })
+                : t("calendar.floorMissing")}
+          </Typography>
+          <Autocomplete
+            options={rooms}
+            value={selectedRoom || null}
+            onChange={(_event, value) => onRoomChange?.(value)}
+            getOptionLabel={roomLabel}
+            isOptionEqualToValue={(option, value) => roomKey(option) === roomKey(value)}
+            renderInput={(params) => (
+              <TextField {...params} label={t("sidebar.searchRoom")} placeholder={t("sidebar.noRoomFilter")} size="small" />
+            )}
           />
-        ) : null}
-      </Box>
+          {selectedRoom ? (
+            <Chip
+              label={roomLabel(selectedRoom)}
+              onDelete={() => onRoomChange?.(null)}
+              color="primary"
+              variant="outlined"
+              sx={{ mt: 1.5, maxWidth: "100%" }}
+            />
+          ) : null}
+        </Box>
+      ) : null}
 
       {roomStatus.length ? (
         <Box>
@@ -165,7 +171,7 @@ const CalendarSidebar = ({
             </Typography>
           )}
           {showTabletStatus ? (
-            <Button component={Link} to="/app-management?section=devices" size="small" sx={{ mt: 1, px: 0 }}>
+            <Button component={Link} to="/app-management?section=devices" size="small" sx={{ mt: 2.5, px: 0 }}>
               {t("calendar.tabletDetailLink")}
             </Button>
           ) : null}

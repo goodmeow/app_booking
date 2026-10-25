@@ -1,8 +1,9 @@
 import {
+  formatDateDDMMMYYYY,
   formatDateDDMMYYYY,
-  formatDateTimeLong,
 } from "./dates.js";
 import i18n from "../i18n/index.js";
+import { localeForLanguage } from "../i18n/languages.js";
 
 const activeLanguage = (language) => language || i18n.resolvedLanguage || i18n.language || "en";
 const reportTranslator = (language) => i18n.getFixedT(activeLanguage(language), "report");
@@ -44,7 +45,12 @@ export const formatReportMeetingDate = (value, language) => {
   if (!value) return "-";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
-  return formatDateTimeLong(date, activeLanguage(language));
+  const time = new Intl.DateTimeFormat(localeForLanguage(activeLanguage(language)), {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+  return `${formatDateDDMMMYYYY(date, activeLanguage(language))} ${time}`;
 };
 
 export const reportMeetingsFor = (room) => (

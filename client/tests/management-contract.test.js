@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 import { getApiError } from "../domain/api-error.js";
-import { ROLE_IDS, ROLE_OPTIONS, canBookForEmployees, isReceptionistRole, roomsForRole } from "../domain/roles.js";
+import { ROLE_IDS, ROLE_OPTIONS, canBookForEmployees, canUseAllFloors, defaultScheduleModeForRole, isReceptionistRole, roomsForRole } from "../domain/roles.js";
 import { createEmptyUserForm, EMPLOYEE_ID_MAX_LENGTH, employeeIdErrorKey } from "../management/user-form.js";
 import {
   CARD_ACTIVE_LIMIT,
@@ -39,10 +39,25 @@ test("receptionist role can book for employees but only on its own floor", () =>
   ];
   assert.deepEqual(roomsForRole(rooms, { role: "RECEPTIONIST", floor: "2" }).map(({ _id }) => _id), ["r1"]);
   assert.deepEqual(roomsForRole(rooms, { role: "RECEPTIONIST", floor: "9" }), []);
-  // Everyone else keeps the list the calendar already prepared.
-  assert.equal(roomsForRole(rooms, { role: "ADMIN", floor: "2" }).length, 3);
-  assert.equal(roomsForRole(rooms, { role: "USER", floor: "2" }).length, 3);
+  // Employees are floor-scoped too: the server rejects other floors anyway.
+  assert.deepEqual(roomsForRole(rooms, { role: "USER", floor: "2" }).map(({ _id }) => _id), ["r1"]);
+  assert.deepEqual(roomsForRole(rooms, { role: "USER", floor: "" }), []);
+  // Admins and the "all" floor group keep every room.
+  assert.equal(roomsForRole(rooms, { role: "ADMIN", floor: "2", isAdmin: true }).length, 3);
+  assert.equal(roomsForRole(rooms, { role: "RECEPTIONIST", floor: "all" }).length, 3);
+  assert.equal(roomsForRole(rooms, { role: "USER", floor: "all" }).length, 3);
+  assert.equal(roomsForRole(rooms, { role: "USER", floor: "2", isAdmin: true }).length, 3);
+  assert.equal(canUseAllFloors({ role: "USER", floor: "2" }), false);
+  assert.equal(canUseAllFloors({ role: "RECEPTIONIST", floor: "ALL" }), true);
   assert.deepEqual(roomsForRole(undefined, { role: "RECEPTIONIST", floor: "2" }), []);
+
+  // The calendar must not open an empty "my schedule" for the front desk: the
+  // default scope is the floor it serves, and every room in the dropdown comes
+  // from that same scope.
+  assert.equal(defaultScheduleModeForRole("RECEPTIONIST"), "floor");
+  assert.equal(defaultScheduleModeForRole("ADMIN"), "all");
+  assert.equal(defaultScheduleModeForRole("USER"), "mine");
+  assert.equal(defaultScheduleModeForRole(undefined), "mine");
 });
 
 test("new users default to User role", () => {

@@ -6,7 +6,7 @@ memanggil tim teknis. Aturan yang mengikat tetap
 [`business-processes.md`](business-processes.md); dokumen ini menjelaskan
 _apa yang harus dilakukan_, bukan detail kode.
 
-Versi acuan: CMS/API **3.10.3**, APK kiosk **1.3.5 (16)**.
+Versi acuan: CMS/API **3.11.0**, APK kiosk **1.3.7 (18)**.
 
 ## 1. Peran dan wewenang
 
@@ -25,7 +25,7 @@ akun admin untuk keperluan ini.
 
 Urutan yang aman, jangan diacak:
 
-1. Buka `http://<ip-server>:8182/setup` (stack Docker) atau
+1. Buka `http://<ip-server>:8082/setup` (stack Docker) atau
    `https://<domain>/setup`, buat akun admin pertama. Setelah sukses form
    terkunci (`409 SETUP_COMPLETED`) dan CMS masuk otomatis ke kalender.
 2. Login, lalu **ganti kata sandi admin** dan simpan di tempat aman.
@@ -68,7 +68,7 @@ dari kalender kosong. Itu keputusan yang disepakati, bukan bug.
 | `AVAILABLE` | Tidak ada meeting berjalan | **30 minutes** (instant) atau **Pick a time** memakai kartu |
 | Menunggu check-in | Meeting akan/sedang mulai | Tap kartu pada **Check-in** |
 | `IN USE` | Meeting berjalan | **+15 menit** dengan kartu organizer/peserta/master |
-| `IN USE` tanpa tombol Finish | Disengaja (1.3.5) | Tap pill **IN USE** 5× untuk memunculkan **Finish** |
+| `IN USE` tanpa tombol Finish | Disengaja (1.3.7) | Tap pill **IN USE** 5× untuk memunculkan **Finish** |
 | `OFFLINE` | Server tak terjangkau setelah 3 percobaan | Cek jaringan/tablet; lihat §6 |
 
 Instant dan "Pick a time" hanya untuk **hari itu**, wajib kartu karyawan, dan
@@ -118,7 +118,7 @@ beserta tanggal; jangan menjanjikan angka baru tanpa menjalankan suite.
 | Tablet `OFFLINE` | kabel/jaringan, URL server di layar setup | server sehat tapi tablet tetap offline |
 | Tablet menolak pairing | `409 ROOM_ALREADY_PAIRED` | perlu cabut perangkat lama (admin) |
 | NFC tidak terbaca | kartu 4-byte, posisi tap | kartu 7-byte (belum didukung) atau reader rusak |
-| LED tidak menyala | pengaturan LED di CMS | tablet memang tanpa LED (didukung 1.3.5) |
+| LED tidak menyala | pengaturan LED di CMS | tablet memang tanpa LED (didukung 1.3.7) |
 | Laporan kosong | rentang tanggal, status check-in | angka tidak cocok dengan kalender |
 | CMS 502/blank | `systemctl status` / `docker compose ps` | restart tidak memulihkan |
 

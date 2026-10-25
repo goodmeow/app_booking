@@ -10,6 +10,7 @@ import {
   organizerEmailField,
   validateEventDraft,
 } from "../domain/events/event-contract.js";
+import { editorFieldDisabled } from "../domain/events/editor-lock.js";
 
 const startDate = new Date("2030-01-15T09:00:00");
 const endDate = new Date("2030-01-15T10:00:00");
@@ -51,6 +52,10 @@ test("returns semantic meeting validation keys", () => {
   assert.equal(
     validateEventDraft(validDraft, { now: new Date("2030-01-15T11:00:00"), editing: true }),
     "validation.pastEdit"
+  );
+  assert.equal(
+    validateEventDraft(validDraft, { now: new Date("2030-01-15T09:30:00") }),
+    "validation.startInPast"
   );
   assert.equal(
     validateEventDraft({ ...validDraft, bookingKind: "recurring", recurrence: { cadence: "weekly", endDate: "2030-02-01", weekdays: [] } }, { now }),
@@ -148,15 +153,23 @@ test("on-behalf organizer email is sent on create only", () => {
     description: "",
     startDate,
     endDate,
-    attendees,
+    attendees: [
+      { attendee_email: "meeting@room.test", type: "room", room_id: "room-1" },
+      { attendee_email: "budi@contoh.id", attendee_user_id: "user-budi" },
+      { attendee_email: "guest@example.test" },
+    ],
   };
+  // The recovered per-attendee array carries organizer_email in the body, but
+  // the server reads it only from the single-object payload. On-behalf bookings
+  // therefore have to use the object shape, or the meeting stays with the
+  // receptionist and booked_by is left empty.
   const create = buildCreateEventPayload(single);
-  assert.equal(create.length, 2);
-  // The booker stays the organizer of the request; the employee is named
-  // separately so the server can record booked_by = the receptionist.
-  assert.equal(create[0].organizer, "resepsionis@contoh.id");
-  assert.equal(create[0].organizer_email, "budi@contoh.id");
-  assert.equal(create[1].organizer_email, "budi@contoh.id");
+  assert.equal(Array.isArray(create), false);
+  assert.equal(create.bookingKind, "single");
+  assert.equal(create.organizer_email, "budi@contoh.id");
+  assert.deepEqual(create.roomIds, ["room-1"]);
+  assert.deepEqual(create.attendeeIds, ["user-budi"]);
+  assert.deepEqual(create.visitorEmails, ["guest@example.test"]);
 
   const update = buildUpdateEventPayload(single);
   assert.equal(Object.hasOwn(update, "organizer_email"), false);
@@ -180,7 +193,10 @@ test("a booking without an on-behalf employee sends no organizer email", () => {
     endDate,
     attendees,
   };
-  assert.equal(Object.hasOwn(buildCreateEventPayload(draft)[0], "organizer_email"), false);
+  const plain = buildCreateEventPayload(draft);
+  // A self booking keeps the recovered per-attendee array shape.
+  assert.equal(Array.isArray(plain), true);
+  assert.equal(Object.hasOwn(plain[0], "organizer_email"), false);
   assert.equal(
     Object.hasOwn(
       buildCreateEventPayload({ ...draft, bookingKind: "recurring", recurrence: { cadence: "daily", endDate: "2030-01-17" } }),
@@ -188,4 +204,13 @@ test("a booking without an on-behalf employee sends no organizer email", () => {
     ),
     false
   );
+});
+
+test("background availability preview never locks the editor fields", () => {
+  // Focus loss while typing the meeting title: the preview request used to
+  // flip the whole form into a disabled state, which blurs the focused input.
+  assert.equal(editorFieldDisabled({ readOnly: false, saving: false }), false);
+  assert.equal(editorFieldDisabled({ readOnly: false, saving: true }), true);
+  assert.equal(editorFieldDisabled({ readOnly: true, saving: false }), true);
+  assert.equal(editorFieldDisabled(), false);
 });

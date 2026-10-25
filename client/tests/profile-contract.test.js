@@ -10,7 +10,7 @@ test("allows profile mutations only for session owner", () => {
 });
 
 test("formats joined date for the active language", () => {
-  assert.equal(formatJoinedDate(new Date(2030, 0, 15), "en"), "15 Jan 2030");
-  assert.equal(formatJoinedDate(new Date(2030, 0, 15), "id"), "15 Jan 2030");
+  assert.equal(formatJoinedDate(new Date(2030, 0, 15), "en"), "15-Jan-2030");
+  assert.equal(formatJoinedDate(new Date(2030, 0, 15), "id"), "15-Jan-2030");
   assert.equal(formatJoinedDate("invalid"), "-");
 });

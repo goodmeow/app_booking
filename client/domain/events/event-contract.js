@@ -20,6 +20,9 @@ export const validateEventDraft = (
   if (current > end) {
     return editing ? "validation.pastEdit" : "validation.pastCreate";
   }
+  // A new booking may be scheduled in the future, but it may not start in
+  // the past. Editing an existing meeting keeps its historical start intact.
+  if (!editing && start < current) return "validation.startInPast";
   if (start >= end) return "validation.endBeforeStart";
   if (!attendees.some(isRoomAttendee)) return "validation.roomRequired";
   // A guest without an account must use an email format; the server rejects with
@@ -96,15 +99,22 @@ export const organizerEmailField = (draft) => {
   return email ? { organizer_email: email } : {};
 };
 
-export const buildCreateEventPayload = (draft) =>
-  draft.bookingKind === "recurring"
-    ? { ...buildModernEventPayload(draft), ...organizerEmailField(draft) }
-    : draft.attendees.map((attendee) => ({
-      ...eventFields(draft),
-      timezone: draft.timezone,
-      ...organizerEmailField(draft),
-      attendee_email: attendeeEmail(attendee),
-    }));
+export const buildCreateEventPayload = (draft) => {
+  const onBehalf = Boolean(organizerEmailField(draft).organizer_email);
+  // The server reads organizer_email only from the single-object payload; the
+  // recovered per-attendee array identifies the organizer as the caller. A
+  // front-desk booking for an employee therefore has to use the object shape,
+  // otherwise the meeting is stored on the receptionist instead.
+  if (draft.bookingKind === "recurring" || onBehalf) {
+    return { ...buildModernEventPayload(draft), ...organizerEmailField(draft) };
+  }
+  return draft.attendees.map((attendee) => ({
+    ...eventFields(draft),
+    timezone: draft.timezone,
+    ...organizerEmailField(draft),
+    attendee_email: attendeeEmail(attendee),
+  }));
+};
 
 export const buildUpdateEventPayload = (draft) => ({
   id: draft.id,

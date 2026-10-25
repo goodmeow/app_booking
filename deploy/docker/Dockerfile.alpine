@@ -38,6 +38,8 @@ COPY deploy/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+RUN mkdir -p /backups && chown node:node /backups
+
 USER node
 
 EXPOSE 9091

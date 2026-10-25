@@ -77,6 +77,11 @@ test("Socket.io broadcasts invalidations without private settings payloads", asy
         will_start_color: "08",
         on_meeting_color: "04",
         self_signup_enabled: false,
+        week_start_day: 1,
+        backup_enabled: false,
+        backup_path: "/backups",
+        backup_time: "02:30",
+        backup_retention_days: 14,
       }),
     });
     assert.equal(response.status, 200);

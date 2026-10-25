@@ -6,6 +6,7 @@ import routes from "./routes/index.js";
 import { createHttpServer } from "./runtime/create-http-server.js";
 import { closePool } from "./db/pool.js";
 import { releaseAbandonedBookings } from "./features/events/event.service.js";
+import { startBackupScheduler } from "./features/settings/backup.service.js";
 import { findEventAudience } from "./features/events/event.repository.js";
 import { emitEventInvalidation } from "./socket/event-invalidation.js";
 import { log } from "./observability/logger.js";
@@ -57,6 +58,7 @@ const releaseAbandonedTimer = setInterval(async () => {
   }
 }, 60_000);
 releaseAbandonedTimer.unref();
+startBackupScheduler();
 
 const shutdown = async (signal) => {
   log("info", "server_stopping", { operation: signal });

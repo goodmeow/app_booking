@@ -46,7 +46,7 @@ tablet bila sesi kios ikut hilang.
 | Database | `database/migrations/` (urut), seed disposable di `database/seeds/` |
 | Test | `server/tests/unit|parity|regression`, `client/tests` |
 | Deploy Ubuntu 22.04 | `deploy/` (lihat `deploy/README.md`) |
-| Versi & riwayat | `docs/VERSIONING.md`, `package.json` (`3.10.3` = Ver 3 Rev 10), APK kiosk `1.3.5` (code 16) |
+| Versi & riwayat | `docs/VERSIONING.md`, `package.json` (`3.11.0` = Ver 3 Rev 12), APK kiosk `1.3.6` (code 17) |
 
 ## 4. Alur kiosk singkat
 
@@ -61,7 +61,7 @@ tablet bila sesi kios ikut hilang.
    - **Sampai HH:MM** hanya muncul bila masih ada meeting berikutnya hari itu;
    - **Finish/Selesai** disembunyikan; muncul setelah **5 tap** pada pill
      **IN USE** (easter egg operator).
-4. Footer kios menampilkan versi APK + versi CMS (`v1.3.5 (16) · CMS 3.10.3`),
+4. Footer kios menampilkan versi APK + versi CMS (`v1.3.7 (18) · CMS 3.11.0`),
    berguna untuk memastikan tablet dan server memakai rilis yang sama.
 5. Admin mengelola perangkat di CMS → Manajemen → Perangkat Tablet (LED,
    tampilkan judul, cabut perangkat, unduh APK). Pengaturan global (timer

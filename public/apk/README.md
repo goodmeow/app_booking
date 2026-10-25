@@ -62,3 +62,12 @@ Riwayat isi paket:
 
 - 2026-10-24: naik 1.3.5 (versionCode 16)—LED opsional: tablet tanpa
   path LED tetap berjalan; status hardware melaporkan dukungan LED/NFC.
+
+- 2026-10-25: naik 1.3.6 (versionCode 17)—hint “Selesai aktif pukul HH:MM”
+  saat check-in early, judul meeting pada state STARTING SOON, dan copy popup
+  kartu per aksi (check-in meminta kartu pemesan; +15 menerima kartu
+  peserta/master). Layout sudah diuji di tablet Lt3; footer
+  `v1.3.7 (18) · CMS 3.11.0`.
+
+- 2026-10-25: naik 1.3.7 (versionCode 18)—icon launcher memakai mark
+  The Prasada di latar hijau brand. Tidak ada perubahan alur kiosk.

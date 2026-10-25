@@ -9,8 +9,8 @@ Express dan Socket.io, **PostgreSQL** sebagai basis data, dan **tablet kiosk**
 Tablet menampilkan status ruangan hari itu, menerima check-in, perpanjangan,
 pemesanan mendadak, dan membuka pintu lewat kartu NFC.
 
-Versi saat ini: CMS/API **3.10.3** (Ver 3 Rev 10) · APK kiosk **1.3.5**
-(versionCode 16). Riwayat lengkap ada di [`docs/VERSIONING.md`](docs/VERSIONING.md).
+Versi saat ini: CMS/API **3.11.0** (Ver 3 Rev 12) · APK kiosk **1.3.7**
+(versionCode 17). Riwayat lengkap ada di [`docs/VERSIONING.md`](docs/VERSIONING.md).
 
 - Baru bergabung? Mulai dari [`docs/handover/START-HERE.md`](docs/handover/START-HERE.md).
 - Mencari dokumen tertentu? Lihat index [`docs/README.md`](docs/README.md).
@@ -32,11 +32,11 @@ docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
 docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
 ```
 
-Buka `http://<ip-server>:8182`. Bila CMS diakses dari perangkat lain di LAN,
+Buka `http://<ip-server>:8082`. Bila CMS diakses dari perangkat lain di LAN,
 set dulu origin-nya agar CORS lolos:
 
 ```bash
-ALPINE_CORS_ORIGINS=http://<ip-server>:8182 \
+ALPINE_CORS_ORIGINS=http://<ip-server>:8082 \
 docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d
 ```
 
@@ -68,8 +68,8 @@ jangan dicampur.
    kartu per user.
 3. Periksa **Manajemen → Pengaturan**: pendaftaran mandiri (default mati),
    timer check-in, timer kunci, timer LED, input meja.
-4. Cek tablet: layar menampilkan jadwal hari ini, versi `v1.3.5 (16) · CMS
-   3.10.3` di footer.
+4. Cek tablet: layar menampilkan jadwal hari ini, versi `v1.3.7 (18) · CMS
+   3.11.0` di footer.
 5. Uji satu booking, satu check-in kartu, satu buka pintu, dan satu laporan
    pemakaian ruangan.
 
@@ -113,7 +113,7 @@ Panduan harian dan eskalasi untuk pendamping produk:
 C="docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine"
 
 # health check
-curl -fsS http://<ip-server>:8182/api/health        # {"ok":true}
+curl -fsS http://<ip-server>:8082/api/health        # {"ok":true}
 
 # status, log, restart satu service
 $C ps
@@ -146,11 +146,11 @@ $C down -v
 | Tidak bisa login | email tidak memakai domain lengkap; akun nonaktif; role kosong | tulis email utuh (`nama@<domain>`), cek status akun di Manajemen → Pengguna |
 | Halaman `/setup` putih atau form terkunci | instalasi sudah punya admin; cache gate | cek `GET /api/setup/status`; `required=false` berarti setup memang selesai — login biasa |
 | Tablet `OFFLINE` | kabel/jaringan, URL server salah, server restart | cek kabel + URL di layar setup; tablet mencoba 3× sebelum `OFFLINE` dan pulih sendiri |
-| LED tidak menyala | tablet tanpa LED, timer LED mati | 1.3.5 mendukung tablet tanpa LED; cek `led_timer` di Pengaturan |
+| LED tidak menyala | tablet tanpa LED, timer LED mati | 1.3.7 mendukung tablet tanpa LED; cek `led_timer` di Pengaturan |
 | NFC tidak terbaca | kartu 7 byte, posisi tap, reader | hanya UID 4 byte yang didukung; daftarkan UID yang tampil di layar |
 | Jadwal tablet `OFFLINE` terus | `/api/health` gagal, CORS, TLS | cek health dari jaringan tablet, `ALPINE_CORS_ORIGINS`, sertifikat |
 | Booking ditolak `403 FLOOR_RESTRICTED` | lantai user ≠ lantai ruangan | pilih ruangan sesuai lantai, atau minta resepsionis lantai tujuan |
-| Tombol Selesai tidak ada | desain 1.3.5 | tap pill **IN USE** 5× |
+| Tombol Selesai tidak ada | desain 1.3.7 | tap pill **IN USE** 5×; sebelum jam mulai muncul “Tombol Selesai aktif pukul HH:MM” |
 
 Tabel insiden yang lebih lengkap: [`docs/operations-runbook.md`](docs/operations-runbook.md) §9.
 
@@ -168,7 +168,9 @@ Tabel insiden yang lebih lengkap: [`docs/operations-runbook.md`](docs/operations
 | [`docs/operations-runbook.md`](docs/operations-runbook.md) | Instalasi, env, systemd, nginx, TLS, backup, impor |
 | [`docs/erd.md`](docs/erd.md) | ERD dan kamus data |
 | [`docs/VERSIONING.md`](docs/VERSIONING.md) | Skema versi dan riwayat Rev |
-| [`docs/release-v3.10.3.md`](docs/release-v3.10.3.md) | Catatan rilis 3.10.3 + checklist tag |
+| [`docs/release-v3.11.0.md`](docs/release-v3.11.0.md) | Catatan rilis 3.11.0 + checklist tag |
+| [`docs/release-v3.10.4.md`](docs/release-v3.10.4.md) | Catatan rilis 3.10.4 |
+| [`docs/release-v3.10.3.md`](docs/release-v3.10.3.md) | Catatan rilis 3.10.3 (riwayat) |
 | [`database/README.md`](database/README.md) | Migrasi, seed, dan batas aman database uji |
 | [`database/scripts/README.md`](database/scripts/README.md) | Skrip backup, restore, preflight, impor |
 | [`deploy/README.md`](deploy/README.md) | Deploy Ubuntu 22.04 (`deploy/01`…`05`) |

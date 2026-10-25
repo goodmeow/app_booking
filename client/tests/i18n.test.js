@@ -53,6 +53,7 @@ test("registered dynamic translation keys exist in every supported language", ()
     "calendar:validation.invalidTime",
     "calendar:validation.pastCreate",
     "calendar:validation.pastEdit",
+    "calendar:validation.startInPast",
     "calendar:validation.endBeforeStart",
     "calendar:validation.roomRequired",
     "management:devices.status.active",

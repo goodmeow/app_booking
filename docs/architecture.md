@@ -2,7 +2,7 @@
 
 Dokumen ini menjelaskan komponen, alur request, dan batas kepercayaan aplikasi
 **seperti kode saat ini** (diperiksa 2026-10-24). Versi acuan: CMS/API
-`3.10.3` (Ver 3 Rev 10), APK kiosk `1.3.5` (code 16) — lihat
+`3.11.0` (Ver 3 Rev 12), APK kiosk `1.3.6` (code 17) — lihat
 [`VERSIONING.md`](VERSIONING.md).
 
 ## 1. Komponen
@@ -29,7 +29,7 @@ kartu yang sudah dinormalisasi tablet.
 flowchart LR
   subgraph Klien
     CMS["Browser CMS<br/>React 17 + MUI 5"]
-    KIOSK["Tablet kiosk<br/>APK React Native 1.3.5"]
+    KIOSK["Tablet kiosk<br/>APK React Native 1.3.6"]
   end
 
   subgraph Host["Host aplikasi"]
@@ -161,7 +161,7 @@ sequenceDiagram
   organizer/peserta/master (`403`). Guard ini tidak bisa dilewati dari UI.
 - `GET /api/kiosk/context` mengirim `cmsVersion` dari `package.json` server;
   tablet menampilkannya di footer bersama versi APK
-  (`v1.3.5 (16) · CMS 3.10.3`).
+  (`v1.3.7 (18) · CMS 3.11.0`).
 
 ### 3.4 Invalidasi realtime
 

@@ -209,6 +209,9 @@ export const previewEvents = async (body) => {
 
 export const createEvents = async (body, principal) => {
   const plan = await createPlan(body);
+  if (new Date(plan.request.start).getTime() < Date.now()) {
+    throw badRequest("START_IN_PAST", "Start time cannot be earlier than now");
+  }
   const organizer = await resolveOrganizer(requestedOrganizer(plan.request.organizerEmail, principal), principal);
   await assertRoomFloorAccess(roomIdsFor(plan.participants), principal);
   try {

@@ -19,13 +19,14 @@ import { useTheme } from "@mui/material/styles";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { isAuthenticated, signout } from "../auth/auth-helper.js";
-import LanguageSwitcher from "../components/common/LanguageSwitcher.js";
 import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { useDetailUserQuery } from "../redux/services/users.js";
-import { useGetPublicSettingsQuery } from "../redux/services/settings.js";
+import { useGetBrandingQuery, useGetPublicSettingsQuery } from "../redux/services/settings.js";
+import { brandAsset } from "./brand-assets.js";
 
 const BrandLockup = () => {
   const { t } = useTranslation("common");
+  const { data: branding } = useGetBrandingQuery();
   return (
     <Box
       component={Link}
@@ -35,7 +36,7 @@ const BrandLockup = () => {
     >
       <Box
         component="img"
-        src="/the-prasada-mark.png"
+        src={brandAsset(branding, "mark")}
         alt=""
         sx={{ height: 38, width: "auto", display: "block" }}
       />
@@ -44,7 +45,7 @@ const BrandLockup = () => {
             the tablet exactly; Room Booking below it uses the accent colour. */}
         <Box
           component="img"
-          src="/the-prasada-wordmark.png"
+          src={brandAsset(branding, "wordmark")}
           alt="The Prasada"
           sx={{ height: 15, width: "auto", display: "block" }}
         />
@@ -59,7 +60,7 @@ const BrandLockup = () => {
             color: "primary.main",
           }}
         >
-          {t("brand.name")}
+          {branding?.brand_name || t("brand.name")}
         </Typography>
       </Box>
     </Box>
@@ -101,6 +102,7 @@ const Menu = () => {
   const admin = session?.user?.role === "ADMIN";
   const { data: currentUser } = useDetailUserQuery(session?.user?._id, { skip: !session?.user?._id });
   const { data: publicSettings } = useGetPublicSettingsQuery();
+  const { data: branding } = useGetBrandingQuery();
   const signupEnabled = publicSettings?.self_signup_enabled === true;
   const displayName = currentUser?.name || session?.user?.name;
   const closeDrawer = () => setDrawerOpen(false);
@@ -117,7 +119,7 @@ const Menu = () => {
   ];
 
   return (
-    <AppBar position="static" color="inherit" elevation={0}>
+    <AppBar position="sticky" color="inherit" elevation={0} sx={{ top: 0, zIndex: theme.zIndex.appBar }}>
       <Container maxWidth={false}>
         <Toolbar disableGutters>
         <BrandLockup />
@@ -132,7 +134,6 @@ const Menu = () => {
             ))}
             {session && <Typography variant="body2" sx={{ mx: 2 }}>{t("nav.welcome", { name: displayName })}</Typography>}
             {session && <Button color="inherit" onClick={handleSignout}>{t("nav.signOut")}</Button>}
-            <Box sx={{ ml: 1 }}><LanguageSwitcher /></Box>
           </Box>
           {mobile ? (
             <IconButton
@@ -150,7 +151,7 @@ const Menu = () => {
       <Drawer anchor="right" open={drawerOpen} onClose={closeDrawer}>
         <Box sx={{ width: 280 }} role="presentation">
           <Box sx={{ p: 2 }}>
-            <Typography variant="h6">{t("brand.name")}</Typography>
+            <Typography variant="h6">{branding?.brand_name || t("brand.name")}</Typography>
             {session ? <Typography variant="body2" color="text.secondary">{t("nav.welcome", { name: displayName })}</Typography> : null}
           </Box>
           <Divider />
@@ -166,9 +167,8 @@ const Menu = () => {
           </List>
           <Divider />
           <Box sx={{ p: 2 }}>
-            <LanguageSwitcher />
             {session ? (
-              <Button fullWidth sx={{ mt: 2 }} onClick={handleSignOutClick}>{t("nav.signOut")}</Button>
+              <Button fullWidth onClick={handleSignOutClick}>{t("nav.signOut")}</Button>
             ) : null}
           </Box>
         </Box>

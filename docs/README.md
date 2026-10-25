@@ -4,8 +4,8 @@ Peta seluruh dokumentasi proyek. Mulai dari
 [`handover/START-HERE.md`](handover/START-HERE.md) bila baru bergabung, atau
 dari [`../README.md`](../README.md) untuk instalasi cepat.
 
-Versi acuan dokumen: CMS/API **3.10.3** (Ver 3 Rev 10), APK kiosk **1.3.5**
-(versionCode 16). Setiap perubahan versi dicatat di
+Versi acuan dokumen: CMS/API **3.11.0** (Ver 3 Rev 12), APK kiosk **1.3.6**
+(versionCode 17). Setiap perubahan versi dicatat di
 [`VERSIONING.md`](VERSIONING.md).
 
 ## Untuk product champion dan operator
@@ -33,7 +33,9 @@ Versi acuan dokumen: CMS/API **3.10.3** (Ver 3 Rev 10), APK kiosk **1.3.5**
 | Dokumen | Isi |
 |---|---|
 | [`VERSIONING.md`](VERSIONING.md) | Skema `Ver.Rev`, posisi versi saat ini, riwayat tiap Rev |
-| [`release-v3.10.3.md`](release-v3.10.3.md) | Catatan rilis Ver 3 Rev 10 + checklist sebelum tag |
+| [`release-v3.11.0.md`](release-v3.11.0.md) | Catatan rilis Ver 3 Rev 12 + checklist sebelum tag |
+| [`release-v3.10.4.md`](release-v3.10.4.md) | Catatan rilis Ver 3 Rev 11 |
+| [`release-v3.10.3.md`](release-v3.10.3.md) | Catatan rilis Ver 3 Rev 10 (riwayat) |
 | [`baseline/README.md`](baseline/README.md) | Baseline rekonstruksi (runtime, checksum artefak `dist/`) |
 | [`reconstruction/`](reconstruction/) | Laporan rekonstruksi per fase (paritas server/client, peta modul, audit) |
 | [`reference/README.md`](reference/README.md) | Aturan material referensi dan sanitasi |

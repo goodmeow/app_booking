@@ -14,13 +14,14 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { Link, Redirect } from "react-router-dom";
-import LanguageSwitcher from "../components/common/LanguageSwitcher.js";
 import { signup } from "./auth-helper.js";
-import { useGetPublicSettingsQuery } from "../redux/services/settings.js";
+import { brandAsset } from "../core/brand-assets.js";
+import { useGetBrandingQuery, useGetPublicSettingsQuery } from "../redux/services/settings.js";
 
 const Signup = () => {
   const { t } = useTranslation(["auth", "common"]);
   const { data: publicSettings, isLoading: settingsLoading } = useGetPublicSettingsQuery();
+  const { data: branding } = useGetBrandingQuery();
   const [form, setForm] = useState({ name: "", email: "", username: "", password: "" });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -54,13 +55,10 @@ const Signup = () => {
   return (
     <Box sx={{ minHeight: "calc(100vh - 64px)", display: "grid", placeItems: "center", p: 2 }}>
       <Paper component="form" onSubmit={submit} sx={{ width: "100%", maxWidth: 420, p: 4 }}>
-        <Box component="img" src="/the-prasada-mark.png" alt={t("common:brand.name")} sx={{ display: "block", height: 64, width: "auto", mx: "auto", mb: 1 }} />
-        <Box component="img" src="/the-prasada-wordmark.png" alt="" sx={{ display: "block", height: 22, width: "auto", mx: "auto", mb: 2 }} />
-        <Typography variant="h4" color="primary" align="center" gutterBottom>{t("common:brand.name")}</Typography>
+        <Box component="img" src={brandAsset(branding, "mark")} alt={branding?.brand_name || t("common:brand.name")} sx={{ display: "block", height: 64, width: "auto", mx: "auto", mb: 1 }} />
+        <Box component="img" src={brandAsset(branding, "wordmark")} alt="" sx={{ display: "block", height: 22, width: "auto", mx: "auto", mb: 2 }} />
+        <Typography variant="h4" color="primary" align="center" gutterBottom>{branding?.brand_name || t("common:brand.name")}</Typography>
         <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>{t("common:brand.descriptor")}</Typography>
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-          <LanguageSwitcher />
-        </Box>
         <Typography variant="h6" gutterBottom>{t("auth:signup.title")}</Typography>
         {error && <Alert severity="error">{error}</Alert>}
         <TextField fullWidth required label={t("common:fields.name")} margin="normal" {...field("name")} />

@@ -1,8 +1,8 @@
 # CMS / Web Admin `app_booking` — breakdown halaman
 
 Dokumen ini memetakan halaman-halaman web admin (CMS) beserta isi, API, dan
-lokasi kodenya. Versi yang didokumentasikan: CMS/API **3.10.3** (Ver 3 Rev 10).
-Terakhir diperbarui: 2026-10-24.
+lokasi kodenya. Versi yang didokumentasikan: CMS/API **3.11.0** (Ver 3 Rev 12).
+Terakhir diperbarui: 2026-10-25.
 
 ## 1. Ringkasan teknis
 
@@ -244,13 +244,16 @@ modal email + sandi ruangan.
 
 ## 6. Catatan perubahan terbaru
 
-- **3.10.3 (Ver 3 Rev 10)**: tabel Pengguna dapat dicari (nama/email/employee
-  ID), punya kolom role (chip) + filter role yang bisa digabung dengan filter
-  lantai, serta tinggi mengikuti viewport dengan pagination 25/50/100. API
-  admin `GET /api/users` menyertakan `role_id`. Panel **Floor groups** di
-  Pengaturan dihapus dan diganti form **Global settings**; filter **Building**
-  di sidebar kalender dihapus sehingga daftar ruangan kembali semua (field
-  `building` tetap ada di master ruangan).
+- **3.10.4 (Ver 3 Rev 11)**: rentang minggu kalender kini Senin–Minggu,
+  sejalan dengan `firstDay` FullCalendar (memperbaiki minggu kosong saat
+  tanggal terpilih hari Minggu dan occurrence daily hari Minggu). Kalender
+  resepsionis terbuka pada **mode floor** (jadwal semua ruangan lantainya,
+  digabung tanpa duplikat); admin `all`, karyawan `mine`. Dropdown/filter
+  ruangan mengikuti lantai untuk karyawan maupun resepsionis, admin dan grup
+  `all` melihat semua; placeholder filter menjadi “tanpa filter ruangan”.
+  Booking atas nama kini tersimpan dengan payload bentuk objek sehingga
+  organizer = karyawan dan `booked_by` = resepsionis. Preview ketersediaan
+  tidak lagi men-disable form (fokus judul tidak terlepas).
 - Halaman masuk dibuat ulang sesuai desain (logo The Prasada, alert gagal,
   tetap-masuk) + font Inter di-self-host.
 - Status **Online/Offline** tablet dihitung live dan tampil di tab Perangkat

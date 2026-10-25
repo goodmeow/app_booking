@@ -32,6 +32,7 @@ import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import { canManageBooking, durationMinutes } from "../domain/calendar.js";
 import { getApiError } from "../domain/api-error.js";
+import { editorFieldDisabled } from "../domain/events/editor-lock.js";
 import { canBookForEmployees, isReceptionistRole, roomsForRole } from "../domain/roles.js";
 import {
   buildModernEventPayload,
@@ -123,7 +124,7 @@ const EventEditor = ({
   const eventId = event?.id;
   const editing = Boolean(eventId);
   const details = useGetEventDetailsQuery(eventId, { skip: !open || !editing });
-  const [previewEvents, previewState] = usePreviewEventsMutation();
+  const [previewEvents] = usePreviewEventsMutation();
   const [fetchAvailableRooms] = useLazyGetAvailableRoomsQuery();
   const [conflictCount, setConflictCount] = useState(0);
   const [conflictShown, setConflictShown] = useState(0);
@@ -167,8 +168,8 @@ const EventEditor = ({
   // floor the calendar offered. Memoised so the conflict-effect dependencies
   // stay stable between renders.
   const availableRooms = useMemo(
-    () => roomsForRole(rooms, { role, floor: userFloor }),
-    [rooms, role, userFloor]
+    () => roomsForRole(rooms, { role, floor: userFloor, isAdmin }),
+    [rooms, role, userFloor, isAdmin]
   );
   const floorRoomsEmpty = !editing && isReceptionistRole(role) && availableRooms.length === 0;
   // "Organizer on behalf" is a create-only field for the front desk and admins.
@@ -181,7 +182,11 @@ const EventEditor = ({
   const hasEnded = editing && eventEnd && new Date(eventEnd) < new Date();
   const readOnly = editing && (!isOrganizer || hasEnded);
   const recurringEvent = Boolean(eventField(event, "series_id"));
-  const busy = storeState.isLoading || updateState.isLoading || deleteState.isLoading || previewState.isLoading;
+  // Only a save in flight locks the form. The availability preview runs in the
+  // background while the user types and must not disable (and so blur) the
+  // focused input.
+  const saving = storeState.isLoading || updateState.isLoading || deleteState.isLoading;
+  const fieldDisabled = editorFieldDisabled({ readOnly, saving });
   const duration = durationMinutes(startValue, endValue);
 
   useEffect(() => {
@@ -335,7 +340,7 @@ const EventEditor = ({
   ]);
 
   const close = () => {
-    if (!busy) onClose();
+    if (!saving) onClose();
   };
 
   const submit = async (submitEvent) => {
@@ -440,12 +445,12 @@ const EventEditor = ({
                 label={t("editor.title")}
                 value={draft.subject}
                 onChange={change("subject")}
-                disabled={readOnly || busy}
+                disabled={fieldDisabled}
               />
               {showOnBehalf ? (
                 <OnBehalfPicker
                   value={onBehalf}
-                  disabled={busy}
+                  disabled={saving}
                   onChange={(employee) => {
                     setOnBehalf(employee);
                     setError("");
@@ -459,7 +464,7 @@ const EventEditor = ({
                 users={users}
                 attendees={draft.attendees}
                 value={attendeeEmails}
-                disabled={readOnly || busy}
+                disabled={fieldDisabled}
                 onChange={(people) => {
                   setDraft((current) => {
                     const room = current.attendees.find(isRoomAttendee);
@@ -476,7 +481,7 @@ const EventEditor = ({
                   label={t("editor.startDate")}
                   value={draft.startDate}
                   onChange={change("startDate")}
-                  disabled={readOnly || busy}
+                  disabled={fieldDisabled}
                   InputLabelProps={{ shrink: true }}
                 />
                 <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={dateLocale}>
@@ -488,7 +493,7 @@ const EventEditor = ({
                     ampm={false}
                     format="HH:mm"
                     views={["hours", "minutes"]}
-                    disabled={readOnly || busy}
+                    disabled={fieldDisabled}
                     slotProps={{ textField: { fullWidth: true, size: "small" } }}
                   />
                 </LocalizationProvider>
@@ -501,7 +506,7 @@ const EventEditor = ({
                     label={t("editor.endDate")}
                     value={draft.endDate}
                     onChange={change("endDate")}
-                    disabled={readOnly || busy}
+                    disabled={fieldDisabled}
                     InputLabelProps={{ shrink: true }}
                   />
                 ) : (
@@ -522,14 +527,14 @@ const EventEditor = ({
                     ampm={false}
                     format="HH:mm"
                     views={["hours", "minutes"]}
-                    disabled={readOnly || busy}
+                    disabled={fieldDisabled}
                     slotProps={{ textField: { fullWidth: true, size: "small" } }}
                   />
                 </LocalizationProvider>
               </Stack>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
                 {!editing ? (
-                  <FormControl fullWidth size="small" disabled={readOnly || busy}>
+                  <FormControl fullWidth size="small" disabled={fieldDisabled}>
                     <InputLabel id="event-kind-label">{t("editor.bookingKind")}</InputLabel>
                     <Select
                       labelId="event-kind-label"
@@ -557,7 +562,7 @@ const EventEditor = ({
                       label={t("editor.recurrenceCadence")}
                       value={draft.recurrence.cadence}
                       onChange={changeRecurrence("cadence")}
-                      disabled={busy}
+                      disabled={saving}
                     >
                       <MenuItem value="daily">{t("editor.daily")}</MenuItem>
                       <MenuItem value="weekly">{t("editor.weekly")}</MenuItem>
@@ -570,7 +575,7 @@ const EventEditor = ({
                       label={t("editor.recurrenceInterval")}
                       value={draft.recurrence.interval}
                       onChange={changeRecurrence("interval")}
-                      disabled={busy}
+                      disabled={saving}
                       inputProps={{ min: 1 }}
                     />
                     <TextField
@@ -580,12 +585,12 @@ const EventEditor = ({
                       label={t("editor.recurrenceEnd")}
                       value={draft.recurrence.endDate}
                       onChange={changeRecurrence("endDate")}
-                      disabled={busy}
+                      disabled={saving}
                       InputLabelProps={{ shrink: true }}
                     />
                   </Stack>
                   {draft.recurrence.cadence === "weekly" ? (
-                    <FormControl component="fieldset" sx={{ mt: 1.5 }} disabled={busy}>
+                    <FormControl component="fieldset" sx={{ mt: 1.5 }} disabled={saving}>
                       <FormHelperText>{t("editor.weekdayHelp")}</FormHelperText>
                       <Stack direction="row" spacing={1} flexWrap="wrap">
                         {[0, 1, 2, 3, 4, 5, 6].map((day) => (
@@ -631,7 +636,7 @@ const EventEditor = ({
                             label={t("editor.monthWeekLabel")}
                             value={draft.recurrence.monthWeekIndex}
                             onChange={changeRecurrence("monthWeekIndex")}
-                            disabled={busy}
+                            disabled={saving}
                           >
                             <MenuItem value={1}>{t("editor.monthWeek.1")}</MenuItem>
                             <MenuItem value={2}>{t("editor.monthWeek.2")}</MenuItem>
@@ -646,7 +651,7 @@ const EventEditor = ({
                             label={t("editor.monthWeekdayLabel")}
                             value={draft.recurrence.monthWeekday}
                             onChange={changeRecurrence("monthWeekday")}
-                            disabled={busy}
+                            disabled={saving}
                           >
                             {[0, 1, 2, 3, 4, 5, 6].map((day) => (
                               <MenuItem key={day} value={day}>{t(`editor.weekdays.${day}`)}</MenuItem>
@@ -676,7 +681,7 @@ const EventEditor = ({
                 onChange={(_, value) => selectRoom(value)}
                 getOptionLabel={(option) => option?.name || option?.email || ""}
                 isOptionEqualToValue={(option, value) => option?.email === value?.email}
-                disabled={readOnly || busy || floorRoomsEmpty}
+                disabled={fieldDisabled || floorRoomsEmpty}
                 renderInput={(params) => <TextField {...params} label={t("editor.location")} />}
               />
               {conflictCount > 0 ? (
@@ -707,20 +712,20 @@ const EventEditor = ({
                 label={t("editor.description")}
                 value={draft.description}
                 onChange={change("description")}
-                disabled={readOnly || busy}
+                disabled={fieldDisabled}
               />
             </Stack>
           ) : null}
         </DialogContent>
         <DialogActions>
-          <Button onClick={close} disabled={busy}>{t("common:actions.close")}</Button>
-          {editing && !readOnly ? <Button color="error" onClick={() => setDeleteConfirmOpen(true)} disabled={busy || details.isFetching}>{t("common:actions.delete")}</Button> : null}
+          <Button onClick={close} disabled={saving}>{t("common:actions.close")}</Button>
+          {editing && !readOnly ? <Button color="error" onClick={() => setDeleteConfirmOpen(true)} disabled={saving || details.isFetching}>{t("common:actions.delete")}</Button> : null}
           {!readOnly ? (
             <Button
               type="submit"
               form="event-editor-form"
               variant="contained"
-              disabled={busy || floorRoomsEmpty || (editing && (details.isFetching || details.isError))}
+              disabled={saving || floorRoomsEmpty || (editing && (details.isFetching || details.isError))}
             >
               {t("common:actions.save")}
             </Button>

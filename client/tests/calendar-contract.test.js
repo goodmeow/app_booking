@@ -16,11 +16,37 @@ import {
   formatMeetingTimeRange,
   navigateCalendarDate,
   spansMultipleCalendarDays,
+  uniqueCalendarEvents,
 } from "../domain/calendar.js";
 
-test("builds recovered Sunday-to-Saturday event query range", () => {
-  assert.deepEqual(calendarWeekRange(new Date(2030, 0, 16)), { start: "20300113", end: "20300119" });
+test("builds a Monday-first event query range that matches the calendar grid", () => {
+  assert.deepEqual(calendarWeekRange(new Date(2030, 0, 16)), { start: "20300114", end: "20300120" });
   assert.equal(formatCalendarQueryDate(new Date(2030, 0, 5)), "20300105");
+});
+
+test("keeps Sunday inside the selected week instead of shifting a week back", () => {
+  // 2030-01-20 is a Sunday: the week must stay 14-20 Jan and still include it.
+  const sunday = new Date(2030, 0, 20, 10, 30);
+  assert.deepEqual(calendarWeekRange(sunday), { start: "20300114", end: "20300120" });
+  assert.equal(formatCalendarQueryDate(sunday) >= "20300114" && formatCalendarQueryDate(sunday) <= "20300120", true);
+  // A Sunday that starts a week (2030-01-13) keeps its own seven days.
+  assert.deepEqual(calendarWeekRange(new Date(2030, 0, 13)), { start: "20300107", end: "20300113" });
+  assert.deepEqual(calendarRangeForView(sunday, "timeGridWeek"), { start: "20300114", end: "20300120" });
+});
+
+test("accepts any configured first day of the week", () => {
+  const wednesday = new Date(2030, 0, 16);
+  assert.deepEqual(calendarWeekRange(wednesday, 0), { start: "20300113", end: "20300119" });
+  assert.deepEqual(calendarWeekRange(wednesday, 1), { start: "20300114", end: "20300120" });
+  assert.deepEqual(calendarWeekRange(wednesday, 6), { start: "20300112", end: "20300118" });
+  assert.deepEqual(calendarRangeForView(wednesday, "timeGridWeek", 0), { start: "20300113", end: "20300119" });
+});
+
+test("merges one query per room without duplicating a multi-room meeting", () => {
+  const event = { id: "event-1", title: "Planning", start: "2030-01-15T09:00:00.000Z" };
+  const other = { id: "event-2", title: "Review", start: "2030-01-16T09:00:00.000Z" };
+  assert.deepEqual(uniqueCalendarEvents([[event], [event, other], undefined]), [event, other]);
+  assert.deepEqual(uniqueCalendarEvents([]), []);
 });
 
 test("builds Day, Week, and Agenda ranges for controlled calendar views", () => {
@@ -37,7 +63,7 @@ test("formats meeting time, date cue, and duration for visible calendar labels",
   const start = new Date("2030-01-15T09:00:00");
   const end = new Date("2030-01-16T10:30:00");
   assert.equal(formatMeetingTimeRange(start, end, "en-GB"), "09:00 - 10:30");
-  assert.match(formatMeetingDateCue(start, end, "en-GB"), /15 Jan 2030 - 16 Jan 2030/);
+  assert.match(formatMeetingDateCue(start, end, "en-GB"), /15-Jan-2030 - 16-Jan-2030/);
   assert.equal(spansMultipleCalendarDays(start, end), true);
   assert.equal(durationMinutes(start, end), 1530);
 });

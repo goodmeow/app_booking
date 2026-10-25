@@ -1,19 +1,61 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Box, Button, Container, LinearProgress, Paper, Stack, Typography, useMediaQuery } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { isAuthenticated } from "../auth/auth-helper.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
-import { canManageBooking, calendarEventFilters, calendarEventFromApi, calendarRangeForView, defaultEventRange, navigateCalendarDate } from "../domain/calendar.js";
+import {
+  canManageBooking,
+  calendarEventFilters,
+  calendarEventFromApi,
+  calendarRangeForView,
+  defaultEventRange,
+  DEFAULT_WEEK_START_DAY,
+  navigateCalendarDate,
+  uniqueCalendarEvents,
+} from "../domain/calendar.js";
 import { getApiError } from "../domain/api-error.js";
+import { canUseAllFloors, defaultScheduleModeForRole, roomsForRole } from "../domain/roles.js";
 import { useGetEventsQuery } from "../redux/services/events.js";
 import { useGetRoomStatusQuery, useGetRoomsQuery } from "../redux/services/rooms.js";
+import { useGetPublicSettingsQuery } from "../redux/services/settings.js";
 import { useListUserQuery } from "../redux/services/users.js";
 import { wsJoinRoom, wsLeaveRoom } from "../redux/websocket.js";
 import CalendarSidebar from "./CalendarSidebar.js";
 import EventEditor from "./EventEditor.js";
 import EventDetailsDrawer from "./EventDetailsDrawer.js";
 import MeetingWeek from "./MeetingWeek.js";
+
+// The API answers one room per query, so the floor schedule is assembled from
+// one query per room on that floor. The server still applies its privacy
+// projection, which means a colleague's meeting arrives as a busy block.
+const RoomEventsLoader = ({ roomEmail, range, refreshToken, onResult }) => {
+  const query = useGetEventsQuery(calendarEventFilters({ roomEmail, range }));
+  const refetchRoomEvents = query.refetch;
+  const roomEvents = query.data;
+  const roomFetching = query.isFetching;
+  const roomFailed = query.isError;
+  const handledRefreshToken = useRef(refreshToken);
+
+  useEffect(() => {
+    onResult(roomEmail, {
+      rangeKey: `${range.start}-${range.end}`,
+      events: Array.isArray(roomEvents) ? roomEvents : [],
+      isFetching: roomFetching,
+      isError: roomFailed,
+    });
+  }, [roomEmail, range.start, range.end, roomEvents, roomFetching, roomFailed, onResult]);
+
+  // The manual refresh button asks every room loader to refetch once; the
+  // mounted loader must not refetch again on its own first render.
+  useEffect(() => {
+    if (refreshToken === handledRefreshToken.current) return;
+    handledRefreshToken.current = refreshToken;
+    refetchRoomEvents();
+  }, [refreshToken, refetchRoomEvents]);
+
+  return null;
+};
 
 const MeetingCalendar = () => {
   const { t } = useTranslation(["calendar", "common"]);
@@ -22,8 +64,10 @@ const MeetingCalendar = () => {
   const isNarrow = useMediaQuery("(max-width:900px)");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarView, setCalendarView] = useState(isNarrow ? "agenda" : "timeGridWeek");
-  const [scheduleMode, setScheduleMode] = useState(session?.user?.role === "ADMIN" ? "all" : "mine");
+  const [scheduleMode, setScheduleMode] = useState(defaultScheduleModeForRole(session?.user?.role));
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const [floorResults, setFloorResults] = useState({});
+  const [refreshToken, setRefreshToken] = useState(0);
   const [editor, setEditor] = useState({ open: false, event: null, start: null, end: null });
   const [details, setDetails] = useState(null);
 
@@ -31,11 +75,24 @@ const MeetingCalendar = () => {
   useEffect(() => {
     setCalendarView(isNarrow ? "agenda" : "timeGridWeek");
   }, [isNarrow]);
+  const floorMode = scheduleMode === "floor";
   const activeRoom = scheduleMode === "room" ? selectedRoom : null;
-  const range = useMemo(() => calendarRangeForView(selectedDate, calendarView), [selectedDate, calendarView]);
-  const eventQuery = useGetEventsQuery(
+  const { data: publicSettings } = useGetPublicSettingsQuery();
+  // The first day of the week stays in one place: the same value feeds the
+  // FullCalendar grid and the query range. A global setting can replace the
+  // default without touching either caller.
+  const configuredWeekStart = Number(publicSettings?.week_start_day);
+  const weekStartsOn = Number.isInteger(configuredWeekStart) && configuredWeekStart >= 0 && configuredWeekStart <= 6
+    ? configuredWeekStart
+    : DEFAULT_WEEK_START_DAY;
+  const range = useMemo(
+    () => calendarRangeForView(selectedDate, calendarView, weekStartsOn),
+    [selectedDate, calendarView, weekStartsOn]
+  );
+  const rangeKey = `${range.start}-${range.end}`;
+  const singleQuery = useGetEventsQuery(
     calendarEventFilters({ email: session.user.email, roomEmail: activeRoom?.email, range, all: scheduleMode === "all" }),
-    { skip: scheduleMode === "room" && !activeRoom }
+    { skip: floorMode || (scheduleMode === "room" && !activeRoom) }
   );
   const roomQuery = useGetRoomsQuery();
   const roomStatusQuery = useGetRoomStatusQuery(undefined, { pollingInterval: 30_000 });
@@ -45,22 +102,49 @@ const MeetingCalendar = () => {
   const userQuery = useListUserQuery(undefined, { skip: !isAdmin });
   const userFloor = String(session?.user?.floor ?? "").trim();
   // The floor group "all" (or an admin) may view and book every floor.
-  const showAllFloors = isAdmin || userFloor.toLowerCase() === "all";
+  const showAllFloors = canUseAllFloors({ role: session?.user?.role, floor: userFloor, isAdmin });
   const allRooms = Array.isArray(roomQuery.data) ? roomQuery.data : [];
   // Everyone else sees only rooms on their own floor (the server still rejects
   // cross-floor bookings even if the UI is bypassed).
   const bookableRooms = useMemo(
-    () => (showAllFloors ? allRooms : allRooms.filter((room) => String(room.floor ?? "").trim() === userFloor)),
-    [allRooms, showAllFloors, userFloor]
+    () => roomsForRole(allRooms, { role: session?.user?.role, floor: userFloor, isAdmin }),
+    [allRooms, session?.user?.role, userFloor, isAdmin]
   );
   const roomStatus = useMemo(() => {
     const allowed = new Set(bookableRooms.map((room) => room._id));
     return (Array.isArray(roomStatusQuery.data) ? roomStatusQuery.data : []).filter((room) => allowed.has(room.id));
   }, [bookableRooms, roomStatusQuery.data]);
-  const eventHasData = Array.isArray(eventQuery.data);
-  const eventInitialLoading = eventQuery.isFetching && !eventHasData;
-  const eventRefreshing = eventQuery.isFetching && eventHasData;
-  const canLoadEvents = !(scheduleMode === "room" && !activeRoom);
+
+  const currentFloorResult = useCallback((room) => {
+    const result = floorResults[room.email];
+    return result?.rangeKey === rangeKey ? result : undefined;
+  }, [floorResults, rangeKey]);
+
+  const recordFloorResult = useCallback((roomEmail, result) => {
+    setFloorResults((current) => (current[roomEmail] === result ? current : { ...current, [roomEmail]: result }));
+  }, []);
+
+  const floorEvents = useMemo(
+    () => uniqueCalendarEvents(bookableRooms.map((room) => currentFloorResult(room)?.events)),
+    [bookableRooms, currentFloorResult]
+  );
+  // Before a room reports its first answer there is no result yet, so the
+  // aggregated view still counts as loading.
+  const floorFetching = floorMode && bookableRooms.some((room) => {
+    const result = currentFloorResult(room);
+    return !result || result.isFetching;
+  });
+  const floorFailed = floorMode
+    && bookableRooms.length > 0
+    && bookableRooms.every((room) => currentFloorResult(room)?.isError);
+
+  const events = floorMode ? floorEvents : (Array.isArray(singleQuery.data) ? singleQuery.data : []);
+  const hasEvents = events.length > 0;
+  const eventFetching = floorMode ? floorFetching : singleQuery.isFetching;
+  const eventError = floorMode ? floorFailed : singleQuery.isError;
+  const eventInitialLoading = eventFetching && !hasEvents;
+  const eventRefreshing = eventFetching && hasEvents;
+  const canLoadEvents = floorMode || !(scheduleMode === "room" && !activeRoom);
 
   useEffect(() => {
     const roomId = activeRoom?._id;
@@ -75,6 +159,30 @@ const MeetingCalendar = () => {
     openNewEvent(next.start, next.end);
   };
 
+  const changeScheduleMode = (mode) => {
+    setScheduleMode(mode);
+    if (mode !== "room") setSelectedRoom(null);
+  };
+
+  // Picking a room in the filter is the same intent as the room mode: show that
+  // room. Clearing the filter returns to the default scope for the role.
+  const changeRoomFilter = (room) => {
+    setSelectedRoom(room);
+    if (room) {
+      setScheduleMode("room");
+      return;
+    }
+    if (scheduleMode === "room") setScheduleMode(defaultScheduleModeForRole(session?.user?.role));
+  };
+
+  const refreshEvents = () => {
+    if (floorMode) {
+      setRefreshToken((current) => current + 1);
+      return;
+    }
+    singleQuery.refetch();
+  };
+
   return (
     <Container maxWidth={false} sx={{ py: 3 }}>
       {!showAllFloors && !userFloor ? <Alert severity="warning" sx={{ mb: 2 }}>{t("calendar.floorMissing")}</Alert> : null}
@@ -86,16 +194,14 @@ const MeetingCalendar = () => {
             rooms={bookableRooms}
             floor={userFloor}
             showAllFloors={showAllFloors}
+            showFloorSchedule={!showAllFloors && Boolean(userFloor)}
             isAdmin={isAdmin}
             showTabletStatus={isAdmin}
             roomStatus={roomStatus}
             scheduleMode={scheduleMode}
-            onScheduleModeChange={(mode) => {
-              setScheduleMode(mode);
-              if (mode === "mine") setSelectedRoom(null);
-            }}
+            onScheduleModeChange={changeScheduleMode}
             selectedRoom={selectedRoom}
-            onRoomChange={setSelectedRoom}
+            onRoomChange={changeRoomFilter}
             onAdd={addEvent}
           />
         </Paper>
@@ -105,7 +211,7 @@ const MeetingCalendar = () => {
               <Typography variant="subtitle2">{t("calendar.refreshTitle")}</Typography>
               {eventRefreshing ? <Typography variant="caption" color="text.secondary">{t("common:states.refreshing")}</Typography> : null}
             </Box>
-            <Button size="small" variant="outlined" disabled={!canLoadEvents || eventQuery.isFetching} onClick={() => eventQuery.refetch()}>
+            <Button size="small" variant="outlined" disabled={!canLoadEvents || eventFetching} onClick={refreshEvents}>
               {t("common:actions.refresh")}
             </Button>
           </Stack>
@@ -116,16 +222,33 @@ const MeetingCalendar = () => {
           {userQuery.isError ? (
             <ErrorState message={getApiError(userQuery.error, t("calendar.usersLoadError"))} busy={userQuery.isFetching} onAction={() => userQuery.refetch()} />
           ) : null}
+          {floorMode
+            ? bookableRooms.map((room) => (
+              <RoomEventsLoader
+                key={room.email}
+                roomEmail={room.email}
+                range={range}
+                refreshToken={refreshToken}
+                onResult={recordFloorResult}
+              />
+            ))
+            : null}
           {eventInitialLoading ? <LoadingState label={t("calendar.loading")} /> : null}
-          {eventQuery.isError ? (
-            <ErrorState message={getApiError(eventQuery.error, t("calendar.loadError"))} busy={eventQuery.isFetching} onAction={() => eventQuery.refetch()} />
+          {eventError ? (
+            <ErrorState
+              message={getApiError(floorMode ? undefined : singleQuery.error, t("calendar.loadError"))}
+              busy={eventFetching}
+              onAction={refreshEvents}
+            />
           ) : null}
           {scheduleMode === "room" && !activeRoom ? <Alert severity="info">{t("calendar.selectRoomPrompt")}</Alert> : null}
-          {!eventInitialLoading && (!eventQuery.isError || eventHasData) && canLoadEvents ? (
+          {floorMode && !bookableRooms.length ? <Alert severity="info">{t("calendar.floorScheduleEmpty")}</Alert> : null}
+          {!eventInitialLoading && (!eventError || hasEvents) && canLoadEvents ? (
             <MeetingWeek
-              events={Array.isArray(eventQuery.data) ? eventQuery.data : []}
+              events={events}
               selectedDate={selectedDate}
               view={calendarView}
+              weekStartsOn={weekStartsOn}
               onViewChange={setCalendarView}
               onToday={() => setSelectedDate(new Date())}
               onPrevious={() => setSelectedDate((current) => navigateCalendarDate(current, calendarView, "previous"))}

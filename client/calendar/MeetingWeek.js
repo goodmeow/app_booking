@@ -8,7 +8,7 @@ import { Alert, Box, Button, ButtonGroup, Divider, Paper, Stack, Typography } fr
 import enGbLocale from "@fullcalendar/core/locales/en-gb.js";
 import idLocale from "@fullcalendar/core/locales/id.js";
 import { useTranslation } from "react-i18next";
-import { calendarEventCueFlags, formatMeetingDateCue, formatMeetingTimeRange } from "../domain/calendar.js";
+import { calendarEventCueFlags, DEFAULT_WEEK_START_DAY, formatMeetingDateCue, formatMeetingTimeRange } from "../domain/calendar.js";
 import { calendarLocaleForLanguage } from "../i18n/languages.js";
 
 const selectableViews = new Set(["timeGridWeek", "timeGridDay"]);
@@ -108,7 +108,7 @@ const MeetingAgenda = ({ events, locale, onEventClick }) => {
   );
 };
 
-const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", onViewChange, onToday, onPrevious, onNext, onSelect, onEventClick }) => {
+const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", weekStartsOn = DEFAULT_WEEK_START_DAY, onViewChange, onToday, onPrevious, onNext, onSelect, onEventClick }) => {
   const { i18n, t } = useTranslation("calendar");
   const calendarLocale = calendarLocaleForLanguage(i18n.resolvedLanguage || i18n.language);
   const browserLocale = calendarLocale === "id" ? "id-ID" : "en-GB";
@@ -140,10 +140,13 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", onViewC
       {view === "agenda" ? (
         <MeetingAgenda events={events} locale={browserLocale} onEventClick={onEventClick} />
       ) : (
-    <FullCalendar
+        <Box sx={{ maxHeight: "calc(100vh - 360px)", minHeight: 320, overflow: "auto", pr: 0.5 }}>
+        <FullCalendar
       ref={calendarRef}
       plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, bootstrap5Plugin]}
       locale={calendarLocales[calendarLocale] || calendarLocale}
+      // The grid and the event query must agree on the first day of the week.
+      firstDay={weekStartsOn}
       themeSystem="bootstrap5"
       nowIndicator
       headerToolbar={{ left: "title", right: "" }}
@@ -165,17 +168,18 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", onViewC
       weekends
       dayMaxEvents
       selectOverlap={false}
-      // Working hours in 30-minute slots, so each row is tall enough for two lines of text.
-      slotMinTime="07:00:00"
-      slotMaxTime="20:00:00"
+      // The day grid is the full 24 hours: meetings before 07:00 or after
+      // 20:00 must stay visible instead of silently disappearing.
+      slotMinTime="00:00:00"
+      slotMaxTime="24:00:00"
       slotDuration="00:30:00"
       slotLabelInterval="01:00"
-      scrollTime={`${String(Math.max(7, Math.min(19, new Date().getHours() - 1))).padStart(2, "0")}:00:00`}
+      scrollTime={`${String(Math.max(0, Math.min(23, new Date().getHours() - 1))).padStart(2, "0")}:00:00`}
       scrollTimeReset={false}
       allDaySlot={false}
       expandRows
-      height={780}
-      eventMinHeight={40}
+      height={1440}
+      eventMinHeight={36}
       slotEventOverlap={false}
       displayEventTime={false}
       eventTimeFormat={{ hour12: false }}
@@ -217,6 +221,7 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", onViewC
       select={handleSelect}
       eventClick={({ event }) => onEventClick?.(event)}
     />
+        </Box>
       )}
     </Box>
   );

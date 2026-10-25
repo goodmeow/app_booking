@@ -1,6 +1,7 @@
 import React from "react";
 import { Box } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/common/LanguageSwitcher.js";
 import { CMS_VERSION } from "./version.js";
 
 // Version footer on every web page (including the sign-in page). The text goes
@@ -11,13 +12,19 @@ const VersionFooter = () => {
     <Box
       component="footer"
       sx={{
-        pt: 6,
-        pb: 3,
-        textAlign: "center",
+        pt: 2,
+        pb: 2,
+        px: { xs: 2, md: 4 },
         color: "text.disabled",
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: 2,
       }}
     >
-      <Box sx={{ typography: "caption", display: "block" }}>
+      <LanguageSwitcher />
+      <Box sx={{ typography: "caption", display: "block", ml: "auto", textAlign: "right" }}>
         {t("brand.footer", { version: CMS_VERSION })}
       </Box>
     </Box>

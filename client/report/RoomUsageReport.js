@@ -26,7 +26,7 @@ import { EmptyState, ErrorState, LoadingState } from "../components/common/Async
 import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import {
   currentMonthRange,
-  formatDateLong,
+  formatDateDDMMMYYYY,
   formatDateYYYYMMDD,
   isValidDateRange,
 } from "../domain/dates.js";
@@ -173,8 +173,8 @@ const RoomUsageReport = () => {
       {validRange ? (
         <Typography align="center" sx={{ my: 2 }}>
           {t("period", {
-            start: formatDateLong(new Date(`${start}T00:00:00`), language),
-            end: formatDateLong(new Date(`${end}T00:00:00`), language),
+            start: formatDateDDMMMYYYY(new Date(`${start}T00:00:00`), language),
+            end: formatDateDDMMMYYYY(new Date(`${end}T00:00:00`), language),
           })}
         </Typography>
       ) : null}

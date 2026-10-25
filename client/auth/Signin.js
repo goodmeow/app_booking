@@ -49,7 +49,9 @@ const Signin = () => {
     } catch (reason) {
       const message = String(reason?.message || "");
       const networkFailure = /fetch|network|timeout/i.test(message);
-      setError(networkFailure ? t("common:states.error") : t("auth:signin.errorInvalid"));
+      // Keep the server/CORS message visible; hiding it behind "wrong password"
+      // sends users chasing credentials when the origin allowlist is the cause.
+      setError(networkFailure ? t("common:states.error") : (message || t("auth:signin.errorInvalid")));
       setLoading(false);
     }
   };

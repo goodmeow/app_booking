@@ -3,7 +3,7 @@
 Panduan menjalankan, merawat, dan memulihkan RoomBooking. Sumber utama
 deploy tetap [`../deploy/README.md`](../deploy/README.md); dokumen ini
 melengkapi bagian operasional yang belum tercakup di sana. Versi acuan:
-CMS/API `3.10.3`, APK kiosk `1.3.5` (code 16).
+CMS/API `3.11.0`, APK kiosk `1.3.7` (code 18).
 
 Semua contoh memakai placeholder `<ip-server>` / `<domain>`; jangan menulis
 IP atau kredensial nyata ke repo.
@@ -136,7 +136,7 @@ docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
 
 | Service | Host | Container |
 |---|---|---|
-| web | `http://localhost:8182` | `80` |
+| web | `http://localhost:8082` | `80` |
 | app (API) | `http://127.0.0.1:9191` | `9091` |
 | db | tidak dipublikasikan | `5432` |
 
@@ -144,7 +144,7 @@ docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
   menerapkan migrasi yang belum tercatat (urut nama file) dan men-seed role
   `admin`/`user`/`receptionist`. Restart container aman (idempoten).
 - Instalasi baru: `GET /api/setup/status` → `{"required":true}`, buka
-  `http://localhost:8182/setup`, buat admin pertama; panggilan berikutnya
+  `http://localhost:8082/setup`, buat admin pertama; panggilan berikutnya
   `409 SETUP_COMPLETED` (§2.1).
 - Backup volume DB: lihat `deploy/docker/README.md` (arsip volume
   `roombooking-alpine_alpine-db-data`). Jangan pakai default password/secret
@@ -186,18 +186,13 @@ Urutan yang sudah terbukti (README “Setelah restart mesin”):
 
 1. `npm run demo:resume` — **jangan** `npm run demo` bila pairing tablet
    ingin dipertahankan.
-2. Jalankan forwarder LAN: `python3 ~/bin/forward9091.py` (port 5100).
+2. Pastikan stack Docker aktif; Nginx mempublikasikan **8082** langsung
+   (tanpa forwarder Python).
 3. Bila CMS/tablet tidak bisa diakses:
-   - cek portproxy: `netsh interface portproxy show all`;
-   - bila entri hilang, hapus lalu tambah ulang:
-     `netsh interface portproxy delete v4tov4 listenport=5100 listenaddress=0.0.0.0`
-     lalu `add v4tov4 listenport=5100 listenaddress=0.0.0.0 connectport=5100 connectaddress=127.0.0.1`
-     (butuh PowerShell admin);
-   - pastikan profil Ethernet **Private**, bukan Public:
-     `Set-NetConnectionProfile -InterfaceAlias Ethernet -NetworkCategory Private`;
-   - bila port CMS 8081 dipakai proses lain, set `PORT=8082` di `.env.local`,
-     tambahkan portproxy 8082, dan buka `http://<ip-server>:8082`.
-4. Verifikasi tablet benar-benar lewat LAN: lihat koneksi masuk ke port 5100
+   - cek `docker compose ... ps` dan listener `8082`;
+   - cek firewall Windows untuk TCP 8082;
+   - portproxy hanya diperlukan bila WSL memakai NAT, bukan mirrored network.
+4. Verifikasi tablet benar-benar lewat LAN: lihat koneksi masuk ke port 8082
    dari IP tablet dan log server terus menerima `/context` + `/schedule`.
 
 ## 5. Backup, restore, dan impor user
@@ -469,13 +464,16 @@ memiliki event.
   `request_id`, status, dan `error_code`.
 - Status tablet di CMS: `online`, `last_seen_at`, `refresh_expires_at`.
 - `systemd` me-restart API otomatis (`Restart=on-failure`).
+- Backup diatur dari **CMS → Pengaturan → Backup database**: enable, path,
+  jam, retensi, dan tombol **Backup sekarang**. Scheduler berjalan di proses
+  API; Docker memakai volume `/backups`.
 
 ### 6.2 Yang belum ada (rekomendasi)
 
 | Kebutuhan | Rekomendasi |
 |---|---|
 | Uptime | Probe `/api/health` tiap 1 menit dari host lain; alarm bila 3 gagal berturut |
-| Backup | systemd timer harian + verifikasi ukuran file |
+| Backup | Aktifkan dari CMS → Pengaturan → Backup database; verifikasi file/retensi |
 | Disk | Alarm bila `/var` atau `/var/lib/postgresql` >80% |
 | Database | Pantau `pg_stat_activity` (koneksi menumpuk) dan ukuran DB |
 | Tablet | Alarm bila `last_seen_at` >5 menit untuk perangkat aktif saat jam kerja |
@@ -509,7 +507,7 @@ lagi memicu langkah ini karena memakai database `360booking_parity_test`.
 
 Verifikasi versi setelah pairing: footer kiosk menampilkan
 `v<versi APK> (<versionCode>) · CMS <versi server>` (contoh
-`v1.3.5 (16) · CMS 3.10.3`), bukan lagi “perangkat …”. Bila bagian `CMS`
+`v1.3.7 (18) · CMS 3.11.0`), bukan lagi “perangkat …”. Bila bagian `CMS`
 kosong/`unknown`, tablet belum berhasil memuat `/api/kiosk/context` versi
 terbaru — cek koneksi dan pastikan server sudah di-restart dengan build baru.
 Tombol **Finish** sengaja tersembunyi; muncul setelah **5 tap** pada pill
@@ -553,7 +551,7 @@ konfigurasi kiosk; token lama akan ditolak.
 | Kiosk `409 ROOM_ALREADY_PAIRED` | daftar perangkat | cabut perangkat lama, pairing ulang |
 | Kiosk offline | `last_seen_at`, jaringan, URL server | cek portproxy/forwarder, DNS/TLS; tablet mencoba 3× sebelum `OFFLINE` |
 | Kiosk menolak +15 menit | kartu yang di-tap | gunakan kartu organizer/peserta/master; server menolak kartu lain (`403`) |
-| Tombol Selesai tidak ada | desain 1.3.5 | tap pill **IN USE** 5× untuk membuka **Finish** |
+| Tombol Selesai tidak ada | desain 1.3.7 | tap pill **IN USE** 5× untuk membuka **Finish**; sebelum jam mulai muncul “Tombol Selesai aktif pukul HH:MM” |
 | “No time left today” | jam server dan `APP_TIMEZONE` | periksa zona waktu dan meeting berikutnya |
 | Laporan kosong | rentang tanggal dan `checked_in` | laporan hanya menghitung booking aktif |
 
@@ -660,12 +658,11 @@ Tablet dan laptop dijadikan satu subnet (contoh `192.168.1.0/24`):
 |---|---|
 | Tablet (`eth0`) | statis `<ip-tablet>/24` via Settings → Ethernet (persisten) |
 | Windows host | statis `<ip-server>/24` via `netsh` |
-| Portproxy | `<ip-server>:5100 → 127.0.0.1:5100` (`netsh interface portproxy`) |
-| Forwarder | `python3 ~/bin/forward9091.py` (WSL) meneruskan `0.0.0.0:5100 → 127.0.0.1:9091` |
-| Firewall | rule inbound TCP 5100 (`360booking-kiosk-5100`) |
+| Akses LAN | Docker web mem-publish **8082** langsung (tanpa forwarder Python) |
+| Firewall | rule inbound TCP 8082 (`360booking-kiosk-8082`) |
 | APK | URL server diketik saat provisioning; HTTP polos diizinkan lewat `network_security_config.xml` |
 
-Origin LAN untuk CMS (mis. `http://<ip-server>:8081`) jangan di-commit; salin
+Origin LAN untuk CMS (mis. `http://<ip-server>:8082`) jangan di-commit; salin
 ke `.env.local` (di-ignore) yang ditimpa di atas `.env.demo` saat
 `npm run demo`. `adb` hanya diperlukan untuk instalasi APK dan screenshot.
 

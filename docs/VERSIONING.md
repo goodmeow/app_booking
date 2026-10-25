@@ -15,24 +15,32 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
-## Posisi saat ini (Ver 3 Rev 10)
+## Posisi saat ini (Ver 3 Rev 12)
 
-- CMS + API: **Ver 3 Rev 10**, `package.json` `3.10.3`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 12**, `package.json` `3.11.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.3.5 / versionCode 16`. Footer kios menampilkan
-  versi APK + **versi CMS** (`v1.3.5 (16) · CMS 3.10.3`), bukan “perangkat …”.
+- APK kiosk: `versionName 1.3.7 / versionCode 18`. Footer kios menampilkan
+  versi APK + **versi CMS** (`v1.3.7 (18) · CMS 3.11.0`), bukan “perangkat …”.
   Tombol **Finish** tersembunyi di balik 5 tap pill **IN USE**, **+15 menit**
   wajib kartu organizer/peserta/master (diverifikasi server), tombol
   until-next hanya muncul bila ada jadwal berikutnya, dan siklus
   `/context` + `/schedule` dicoba 3× sebelum status `OFFLINE`.
   Bahasa ID/EN tetap memakai `res/values` + `values-en`; panel AVAILABLE
   tidak meluber dan tombol **Pilih waktu** tetap ada.
-- Rev 10 sudah tertutup (patch 3.10.3 lulus unit 79/79, client 92/92,
-  regresi 83/83, parity 8/8). Gelombang perbaikan berikutnya mulai dari
-  **Rev 11**; Ver baru hanya bila kemampuan baru benar-benar dipakai di
-  produksi/tablet lantai.
+- Rev 12 masih terbuka: patch perbaikan UAT 3.10.4 + fitur/UX 3.11.0 / APK 1.3.7 sudah lulus
+  unit server 79/79, unit kiosk 21/21, client 96/96 (dijalankan ulang
+  2026-10-25). Regresi dan parity **belum** dijalankan untuk gelombang ini,
+  jadi jangan menyebut angkanya sampai ada bukti baru. Lihat
+  `docs/release-v3.11.0.md` untuk isi rilis dan risiko yang belum diuji.
 
 ## Riwayat
+
+### Ver 3 Rev 12 - 2026-10-25 (rilis saat ini)
+Branding global (upload icon/logo/favicon/nama/judul tab), kalender 24 jam
+dengan scroll, pengaturan hari pertama minggu, validasi start/end, format
+tanggal DD-MMM-YYYY, language chip di footer, navbar sticky, dan APK 1.3.7
+(hint Finish early, judul STARTING SOON, copy kartu per aksi). Detail:
+`docs/release-v3.11.0.md`.
 
 ### Ver 1 - Rekonstruksi basis (selesai)
 Migrasi DB, server paritas 32 rute, CMS seluruh halaman utama, hardening
@@ -164,6 +172,42 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
 - Patch APK `1.3.5` (16): LED menjadi opsional. `getStatus()` melaporkan
   `led`, `nfcHardware`, dan `nfcEnabled`; `setLed` tidak menulis bila path LED
   tidak ada, sehingga tablet tanpa LED tetap berjalan.
+
+### Ver 3 Rev 11 - 2026-10-25 (terbuka)
+- Patch `3.10.4` — perbaikan UAT kalender:
+  - Rentang query mingguan kini **Senin–Minggu**, sama dengan grid
+    FullCalendar locale `id`/`en-gb`; `startOfWeek` menerima parameter
+    hari pertama (default `DEFAULT_WEEK_START_DAY = 1`) dan `MeetingWeek`
+    mengoper nilai yang sama ke `firstDay`. Ini memperbaiki minggu kosong
+    saat tanggal terpilih hari Minggu sekaligus occurrence **daily yang
+    jatuh pada hari Minggu**.
+  - Kalender resepsionis dibuka pada mode **floor schedule** (bukan “my
+    schedule” yang kosong); admin `all`, karyawan `mine`. Mode floor
+    mengambil jadwal per ruangan lantai itu dan menggabungkannya tanpa
+    duplikat (`uniqueCalendarEvents`), plus tombol refresh sendiri.
+  - Dropdown/filter ruangan mengikuti role dan lantai: karyawan dan
+    resepsionis hanya ruangan lantainya, admin dan grup lantai `all` semua
+    (`roomsForRole`, `canUseAllFloors`). Placeholder filter berganti dari
+    “All rooms” menjadi “tanpa filter ruangan”.
+  - **Booking atas nama tersimpan**: payload create memakai bentuk objek
+    (bukan array per-attendee) saat `organizer_email` diisi, karena server
+    hanya membaca field itu dari objek tunggal; organizer = karyawan,
+    `booked_by` = resepsionis.
+  - **Fokus judul meeting** tidak lagi terlepas: preview ketersediaan di
+    latar belakang tidak men-disable form; hanya simpan/hapus yang mengunci
+    (`editor-lock.js`).
+- Patch APK `1.3.6` (17):
+  - Closing UAT: 5 tap pill **IN USE** sebelum jam mulai kini menampilkan
+    **“Tombol Selesai aktif pukul HH:MM”**, bukan diam saja.
+  - Judul meeting tampil di bawah pill saat **STARTING SOON** (tetap kosong
+    bila `show_subject` mati).
+  - Copy popup kartu dipisah per aksi: check-in meminta **kartu pemesan
+    ruangan**, +15 menerima **kartu peserta atau kartu master**.
+- Bukti: unit server 79/79, unit kiosk 21/21, client 96/96 (dijalankan
+  ulang 2026-10-25 pada build copy). Regresi/parity belum dijalankan.
+- Belum masuk wave ini: pengaturan global hari pertama minggu, branding
+  dapat diganti (icon/logo/favicon/judul tab), navbar sticky, chip bahasa
+  di footer, dan uji perangkat untuk layout kiosk baru.
 
 ## Cara naikkan
 

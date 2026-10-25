@@ -3,7 +3,7 @@ import { query } from "../../db/pool.js";
 export const getSettings = async () => (await query(
   `SELECT _id, lock_timer, led_timer, table_input, not_checked_in_time_limit,
           time_of_event_start_soon, available_color, will_start_color, on_meeting_color,
-          self_signup_enabled, created_at, updated_at
+          self_signup_enabled, week_start_day, backup_enabled, backup_path, backup_time, backup_retention_days, backup_last_at, backup_last_status, created_at, updated_at
    FROM tbl_app_settings
    ORDER BY created_at
    LIMIT 1`
@@ -27,10 +27,15 @@ export const updateSettings = async (id, values) => (await query(
        will_start_color = $8,
        on_meeting_color = $9,
        self_signup_enabled = $10,
+       week_start_day = $11,
+       backup_enabled = $12,
+       backup_path = $13,
+       backup_time = $14,
+       backup_retention_days = $15,
        updated_at = now()
    WHERE _id = $1
    RETURNING _id`,
-  [id, values.lock_timer, values.led_timer, values.table_input, values.not_checked_in_time_limit, values.time_of_event_start_soon, values.available_color, values.will_start_color, values.on_meeting_color, values.self_signup_enabled]
+  [id, values.lock_timer, values.led_timer, values.table_input, values.not_checked_in_time_limit, values.time_of_event_start_soon, values.available_color, values.will_start_color, values.on_meeting_color, values.self_signup_enabled, values.week_start_day, values.backup_enabled, values.backup_path, values.backup_time, values.backup_retention_days]
 )).rows[0] || null;
 
 export const listCards = async (cardNumber) => (await query(

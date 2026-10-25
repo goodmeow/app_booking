@@ -30,10 +30,13 @@ const OnBehalfPicker = ({ value = null, disabled = false, onChange }) => {
   }, [inputValue]);
 
   const searchQuery = useListUserQuery({ q: searchTerm }, { skip: !searchTerm });
-  const options = useMemo(
-    () => (Array.isArray(searchQuery.data) ? searchQuery.data : []),
-    [searchQuery.data]
-  );
+  // Keep the selected employee in the option list: the search result moves on
+  // as soon as the input text changes, and the value must stay resolvable.
+  const options = useMemo(() => {
+    const found = Array.isArray(searchQuery.data) ? searchQuery.data : [];
+    if (!value || found.some((option) => option?._id === value?._id)) return found;
+    return [value, ...found];
+  }, [searchQuery.data, value]);
 
   const typedTerm = directoryQuery(inputValue);
   const needsMoreCharacters = typedTerm.length < MIN_DIRECTORY_QUERY_LENGTH;
@@ -51,7 +54,10 @@ const OnBehalfPicker = ({ value = null, disabled = false, onChange }) => {
       value={value}
       inputValue={inputValue}
       onChange={(_, selected) => onChange?.(selected || null)}
-      onInputChange={(_, nextValue, reason) => setInputValue(reason === "reset" ? "" : nextValue)}
+      // MUI reports reason "reset" when the selected option changes and passes
+      // the new label with it. Keeping that label means the chosen employee
+      // stays visible in the field instead of looking unsaved.
+      onInputChange={(_, nextValue) => setInputValue(nextValue)}
       // The server already narrowed the result list, so no local filtering.
       filterOptions={(available) => available}
       getOptionLabel={(option) => option?.name || option?.email || ""}

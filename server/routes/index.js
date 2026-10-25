@@ -1,5 +1,6 @@
 import express from "express";
 import authRoutes, { doorRoute } from "../features/auth/auth.routes.js";
+import brandingRoutes from "../features/branding/branding.routes.js";
 import eventRoutes from "../features/events/event.routes.js";
 import kioskRoutes from "../features/kiosk/kiosk.routes.js";
 import roomRoutes from "../features/rooms/room.routes.js";
@@ -17,6 +18,7 @@ router.get("/health", (req, res) => res.json({ ok: true }));
 // has no account to sign in with yet.
 router.use("/setup", setupRoutes);
 router.use("/auth", authRoutes);
+router.use("/branding", brandingRoutes);
 router.use("/events", eventRoutes);
 router.use("/kiosk", kioskRoutes);
 router.use("/users", userRoutes);

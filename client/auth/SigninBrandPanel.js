@@ -1,10 +1,13 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { brandAsset } from "../core/brand-assets.js";
+import { useGetBrandingQuery } from "../redux/services/settings.js";
 
-// Static identity lockup for the sign-in page: the mark on top, the wordmark
-// below it, and the admin panel label. No state, no handlers.
+// Brand lockup for the sign-in page: the mark on top, the wordmark below it,
+// and the admin panel label. Asset URLs come from Global Settings.
 const SigninBrandPanel = () => {
   const { t } = useTranslation("common");
+  const { data: branding } = useGetBrandingQuery();
 
   return (
     <section
@@ -23,12 +26,12 @@ const SigninBrandPanel = () => {
       }}
     >
       <img
-        src="/the-prasada-mark.png"
+        src={brandAsset(branding, "mark")}
         alt="The Prasada"
         style={{ display: "block", height: 150, width: "auto" }}
       />
       <img
-        src="/the-prasada-wordmark.png"
+        src={brandAsset(branding, "wordmark")}
         alt=""
         style={{ display: "block", height: 46, width: "auto" }}
       />

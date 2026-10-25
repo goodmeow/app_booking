@@ -13,9 +13,17 @@ const addDays = (value, amount) => {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount);
 };
 
-const startOfWeek = (value) => {
+// 0 = Sunday, 1 = Monday, matching the FullCalendar `firstDay` option. The
+// bundled `id` and `en-gb` locales render Monday-first weeks, so the query range
+// must start on Monday too; otherwise a Sunday selection is queried one week
+// earlier and its meetings never load. Kept as a parameter so a global
+// first-day-of-week setting can drive both the calendar and this range later.
+export const DEFAULT_WEEK_START_DAY = 1;
+
+export const startOfWeek = (value, weekStartsOn = DEFAULT_WEEK_START_DAY) => {
   const selected = startOfDay(value);
-  return addDays(selected, -selected.getDay());
+  const daysSinceWeekStart = (selected.getDay() - weekStartsOn + 7) % 7;
+  return addDays(selected, -daysSinceWeekStart);
 };
 
 export const formatCalendarQueryDate = (value) => {
@@ -24,8 +32,8 @@ export const formatCalendarQueryDate = (value) => {
   return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}`;
 };
 
-export const calendarWeekRange = (value) => {
-  const start = startOfWeek(value);
+export const calendarWeekRange = (value, weekStartsOn = DEFAULT_WEEK_START_DAY) => {
+  const start = startOfWeek(value, weekStartsOn);
   const end = addDays(start, 6);
   return { start: formatCalendarQueryDate(start), end: formatCalendarQueryDate(end) };
 };
@@ -40,10 +48,10 @@ export const calendarAgendaRange = (value) => {
   return { start: formatCalendarQueryDate(start), end: formatCalendarQueryDate(addDays(start, 6)) };
 };
 
-export const calendarRangeForView = (value, view) => {
+export const calendarRangeForView = (value, view, weekStartsOn = DEFAULT_WEEK_START_DAY) => {
   if (view === "timeGridDay") return calendarDayRange(value);
   if (view === "agenda") return calendarAgendaRange(value);
-  return calendarWeekRange(value);
+  return calendarWeekRange(value, weekStartsOn);
 };
 
 export const navigateCalendarDate = (value, view, direction) => {
@@ -59,6 +67,22 @@ export const calendarEventFilters = ({ email, roomEmail, range, all = false }) =
   start: range.start,
   end: range.end,
 });
+
+// The floor schedule is assembled from one query per room, so a meeting that
+// books several rooms on the same floor arrives more than once.
+export const uniqueCalendarEvents = (groups = []) => {
+  const seen = new Set();
+  const events = [];
+  for (const group of groups) {
+    for (const event of Array.isArray(group) ? group : []) {
+      const key = String(event?.id ?? `${event?.start}-${event?.title}`);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      events.push(event);
+    }
+  }
+  return events;
+};
 
 export const defaultEventRange = (value, now = new Date()) => {
   const selected = asDate(value);
@@ -83,9 +107,13 @@ export const formatMeetingDateCue = (startValue, endValue, locale = "en-GB") => 
   const start = asDate(startValue);
   const end = asDate(endValue);
   if ([start, end].some((date) => Number.isNaN(date.getTime()))) return "";
-  const dateFormatter = new Intl.DateTimeFormat(locale, { day: "2-digit", month: "short", year: "numeric" });
-  if (start.toDateString() === end.toDateString()) return dateFormatter.format(start);
-  return `${dateFormatter.format(start)} - ${dateFormatter.format(end)}`;
+  const day = (date) => String(date.getDate()).padStart(2, "0");
+  const month = (date) => new Intl.DateTimeFormat(locale, { month: "short" })
+    .format(date)
+    .replace(/\.$/, "");
+  const dateLabel = (date) => `${day(date)}-${month(date)}-${date.getFullYear()}`;
+  if (start.toDateString() === end.toDateString()) return dateLabel(start);
+  return `${dateLabel(start)} - ${dateLabel(end)}`;
 };
 
 export const spansMultipleCalendarDays = (startValue, endValue) => {

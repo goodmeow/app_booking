@@ -3,6 +3,8 @@ import { Alert, Box, Button, Paper, Stack, TextField, Typography } from "@mui/ma
 import { useTranslation } from "react-i18next";
 import { authenticate, isAuthenticated, signout } from "./auth-helper.js";
 import { useChangePasswordMutation } from "../redux/services/users.js";
+import { brandAsset } from "../core/brand-assets.js";
+import { useGetBrandingQuery } from "../redux/services/settings.js";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -11,6 +13,7 @@ const MIN_PASSWORD_LENGTH = 8;
 // with 403 PASSWORD_CHANGE_REQUIRED, so this is not only a UI gate.
 const ForcePasswordChange = () => {
   const { t } = useTranslation(["auth", "common"]);
+  const { data: branding } = useGetBrandingQuery();
   const session = isAuthenticated();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -55,7 +58,7 @@ const ForcePasswordChange = () => {
   return (
     <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", bgcolor: "background.default", p: 2 }}>
       <Paper component="form" onSubmit={submit} sx={{ width: "100%", maxWidth: 460, p: { xs: 3, sm: 4 } }}>
-        <Box component="img" src="/the-prasada-mark.png" alt={t("common:brand.name")} sx={{ display: "block", height: 56, mx: "auto", mb: 2 }} />
+        <Box component="img" src={brandAsset(branding, "mark")} alt={branding?.brand_name || t("common:brand.name")} sx={{ display: "block", height: 56, mx: "auto", mb: 2 }} />
         <Typography variant="h5" component="h1" align="center" gutterBottom>
           {t("auth:forcePassword.title")}
         </Typography>

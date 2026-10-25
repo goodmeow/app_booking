@@ -1,6 +1,6 @@
 import express from "express";
 import { adminOnly, requireSignin } from "../../security/auth.middleware.js";
-import { cards, createCard, editCard, read, readPublic, removeCard, update } from "./setting.controller.js";
+import { backupNow, cards, createCard, editCard, read, readPublic, removeCard, update } from "./setting.controller.js";
 
 const router = express.Router();
 // Read-only public flag so the sign-in page can hide the signup link before
@@ -8,6 +8,7 @@ const router = express.Router();
 router.get("/public", readPublic);
 router.use(requireSignin);
 router.get("/", read);
+router.post("/backup/run", adminOnly, backupNow);
 router.put("/", adminOnly, update);
 router.get("/card-master", adminOnly, cards);
 router.post("/card-master", adminOnly, createCard);

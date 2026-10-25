@@ -33,13 +33,13 @@ argumen yang sama.
 
 | Service | Host | Container |
 | --- | --- | --- |
-| web (SPA + proxy) | `http://localhost:8182` | `80` |
+| web (SPA + proxy) | `http://localhost:8082` | `80` |
 | app (API langsung) | `http://127.0.0.1:9191` | `9091` |
 | db | tidak dipublikasikan | `5432` |
 
-- Health API: `GET http://127.0.0.1:8182/api/health` -> `{"ok":true}`
+- Health API: `GET http://127.0.0.1:8082/api/health` -> `{"ok":true}`
 - Status setup: `GET /api/setup/status`
-- Halaman setup: `http://localhost:8182/setup`
+- Halaman setup: `http://localhost:8082/setup`
 
 ## Environment
 
@@ -52,7 +52,7 @@ ini di produksi. Override lewat shell env:
 | `ALPINE_PGUSER` | `booking` |
 | `ALPINE_PGPASSWORD` | `booking_alpine_local_only` |
 | `ALPINE_JWT_SECRET` | secret uji >= 32 karakter |
-| `ALPINE_CORS_ORIGINS` | `http://localhost:8182` |
+| `ALPINE_CORS_ORIGINS` | `http://localhost:8082` |
 
 `validateRuntimeConfig()` membaca `JWT_SECRET` (bukan `JWT_SECRET_KEY`) dan
 menolak secret < 32 karakter atau placeholder `change-me`.
@@ -95,3 +95,16 @@ menolak secret < 32 karakter atau placeholder `change-me`.
   masuk build context.
 - bcrypt 6 dikompilasi di stage build (Alpine/musl). Jika npm tidak menemukan
   prebuild, stage build sudah menyiapkan `python3 make g++`.
+
+## Backup dan monitoring Docker
+
+Backup diatur dari **CMS → Pengaturan → Backup database**:
+- toggle enable
+- path (Docker: `/backups` di volume `backup-data`)
+- jam harian (HH:MM, `APP_TIMEZONE`)
+- retensi hari
+- tombol **Backup sekarang**
+
+Scheduler berjalan di proses API (`backup.service.js`). Script host lama
+(`backup-docker.sh`) dan healthcheck tetap tersedia untuk manual/legacy,
+tetapi **tidak dijadwalkan lewat cron**.
