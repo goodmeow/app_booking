@@ -12,6 +12,7 @@ node_modules/
 
 # Local data exports, dumps and backups: they carry personal data
 *.local.*
+docs/tablet-room-logins.local.md
 *.dump
 *.bak
 backups/
