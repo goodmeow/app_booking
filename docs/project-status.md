@@ -1,6 +1,6 @@
 # Status Proyek RoomBooking
 
-Snapshot: **2026-10-25**. Angka kesiapan adalah penilaian berbobot, bukan
+Snapshot: **2026-10-25, 21:05 WIB**. Angka kesiapan adalah penilaian berbobot, bukan
 metrik otomatis.
 
 ## Versi dan akses
@@ -15,7 +15,7 @@ metrik otomatis.
 | Commit kiosk | `6acd7c4` |
 | Commit artefak REA | `f266e33` (`app_360booking`) |
 
-## Kesiapan produksi — ≈85%
+## Kesiapan produksi — ≈86%
 
 | Aspek | Bobot | Skor | Catatan |
 |---|---:|---:|---|
@@ -23,8 +23,8 @@ metrik otomatis.
 | Data/migrasi | 20% | 90% | Data UAT terisi; floor HR belum final |
 | Infrastruktur | 15% | 88% | Docker 8082 + bootstrap native; TLS/host final di tim deploy |
 | Keamanan | 15% | 88% | Auth/CORS/history bersih; TLS, password awal, old SHA |
-| Backup/monitoring | 10% | 75% | Backup dari Settings; alert/off-host/restore drill belum |
-| UAT/training | 8% | 75% | UAT teknis + regression/parity; training formal belum |
+| Backup/monitoring | 10% | 80% | Backup + restore test sukses; off-host/alert di luar scope |
+| UAT/training | 8% | 80% | UAT teknis, perangkat, deck training; formal training oleh owner |
 | Hardware | 7% | 35% | NFC 4-byte + LED; relay, 7-byte, autostart belum |
 
 ## Sudah selesai
@@ -47,12 +47,19 @@ metrik otomatis.
 - UAT formal/training dikerjakan oleh pemilik produk.
 - Monitoring alert opsional; health endpoint tetap tersedia.
 
+## Selesai pada gelombang ini
+
+- [x] Backup + restore test: dump terbaru direstore ke DB disposable;
+  users 260, events 114, cards 202, migrations 20; DB uji dihapus.
+- [x] Tablet diverifikasi: APK 1.3.7 (18), online, footer CMS 3.11.0.
+- [x] Deck training 16 slide (CMS + tablet + screenshot) masuk docs.
+- [x] Client 96/96, server unit 79/79, kiosk unit 21/21, typecheck kiosk bersih.
+- [x] Regression 83/83 dan parity 8/8 sudah lulus.
+
 ## Sisa pekerjaan kita
 
-1. Uji backup + restore (dan salinan off-host bila tersedia).
-2. Verifikasi perangkat kiosk setelah perubahan APK/ikon.
-3. Rapikan temuan UI/UX yang masih terbuka bila diminta.
-4. Jaga regression/parity/client/unit tetap hijau.
+Tidak ada blocker aplikasi yang tersisa. Pekerjaan deploy/TLS, training formal,
+dan hardware berada di luar scope ini.
 
 ## P1
 
