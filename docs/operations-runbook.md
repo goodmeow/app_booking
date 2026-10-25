@@ -129,17 +129,16 @@ Stack uji/produksi kecil: `deploy/docker/compose.alpine.yaml` menjalankan
 (web SPA + proxy `/api` + `/socket.io`). Build context harus root repo.
 
 ```bash
+# Ganti dengan http://localhost:8082 bila hanya diakses dari server.
+export ALPINE_CORS_ORIGINS=http://<ip-server>:8082
+
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
   up -d --build
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
 ```
 
-Default CORS hanya `http://localhost:8082`. Untuk tablet di LAN:
-
-```bash
-ALPINE_CORS_ORIGINS=http://<ip-server>:8082 \
-  docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d
-```
+Nilai `ALPINE_CORS_ORIGINS` harus disertakan pada setiap `up`/rebuild, bukan
+hanya saat start pertama.
 
 | Service | Host | Container |
 |---|---|---|
@@ -196,7 +195,7 @@ Urutan yang sudah terbukti (README “Setelah restart mesin”):
 2. Pastikan stack Docker aktif; Nginx mempublikasikan **8082** langsung
    (tanpa forwarder Python).
 3. Bila CMS/tablet tidak bisa diakses:
-   - cek `docker compose ... ps` dan listener `8082`;
+   - cek `docker-compose ... ps` dan listener `8082`;
    - cek firewall Windows untuk TCP 8082;
    - portproxy hanya diperlukan bila WSL memakai NAT, bukan mirrored network.
 4. Verifikasi tablet benar-benar lewat LAN: lihat koneksi masuk ke port 8082

@@ -2,7 +2,7 @@
 
 Dokumen ini menjelaskan komponen, alur request, dan batas kepercayaan aplikasi
 **seperti kode saat ini** (diperiksa 2026-10-24). Versi acuan: CMS/API
-`3.11.0` (Ver 3 Rev 12), APK kiosk `1.3.6` (code 17) — lihat
+`3.11.0` (Ver 3 Rev 12), APK kiosk `1.3.8` (code 19) — lihat
 [`VERSIONING.md`](VERSIONING.md).
 
 ## 1. Komponen
@@ -29,7 +29,7 @@ kartu yang sudah dinormalisasi tablet.
 flowchart LR
   subgraph Klien
     CMS["Browser CMS<br/>React 17 + MUI 5"]
-    KIOSK["Tablet kiosk<br/>APK React Native 1.3.6"]
+    KIOSK["Tablet kiosk<br/>APK React Native 1.3.8"]
   end
 
   subgraph Host["Host aplikasi"]

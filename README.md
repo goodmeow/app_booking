@@ -27,19 +27,17 @@ cd app_booking
 
 # jalankan dari root repo (build context harus root)
 # Jika host memakai plugin Compose v2, ganti `docker-compose` dengan `docker compose`.
+# Ganti dengan http://localhost:8082 bila CMS hanya dibuka dari server.
+export ALPINE_CORS_ORIGINS=http://<ip-server>:8082
+
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
   up -d --build
 
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
 ```
 
-Buka `http://<ip-server>:8082`. Bila CMS diakses dari perangkat lain di LAN,
-set dulu origin-nya agar CORS lolos:
-
-```bash
-ALPINE_CORS_ORIGINS=http://<ip-server>:8082 \
-docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d
-```
+Buka `http://<ip-server>:8082`. Nilai `ALPINE_CORS_ORIGINS` harus tetap ada
+setiap kali container dibuat ulang; jangan hanya saat start pertama.
 
 Lalu:
 

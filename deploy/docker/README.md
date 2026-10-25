@@ -9,6 +9,9 @@ Jalankan dari root repo (build context harus root agar `package-lock.json`,
 `client/`, `server/`, dan `database/migrations/` ikut):
 
 ```bash
+# Wajib untuk CMS/tablet. Ganti dengan http://localhost:8082 untuk akses lokal.
+export ALPINE_CORS_ORIGINS=http://<ip-server>:8082
+
 # validasi compose
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine config
 
@@ -29,16 +32,9 @@ docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine down -
 Di laptop ini `docker compose` tidak tersedia; gunakan `docker-compose` dengan
 argumen yang sama.
 
-Default CORS hanya `http://localhost:8082`. Untuk tablet di LAN, set origin
-secara eksplisit:
-
-```bash
-ALPINE_CORS_ORIGINS=http://<ip-server>:8082 \
-  docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d
-```
-
-Kalau root repo punya `.env`, tambahkan `--env-file .env`; Compose di setup ini
-tidak selalu membacanya otomatis.
+`ALPINE_CORS_ORIGINS` harus tetap ada setiap kali `up`/rebuild. Kalau root repo
+punya `.env`, nilai yang sama juga bisa dibaca dengan menambahkan
+`--env-file .env`; Compose di setup ini tidak selalu membacanya otomatis.
 
 ## Port dan endpoint
 
