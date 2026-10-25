@@ -171,7 +171,7 @@ const CalendarSidebar = ({
             </Typography>
           )}
           {showTabletStatus ? (
-            <Button component={Link} to="/app-management?section=devices" size="small" sx={{ mt: 2.5, px: 0 }}>
+            <Button component={Link} to="/app-management?section=devices" size="small" sx={{ mt: 2.5, px: 0, display: "flex" }}>
               {t("calendar.tabletDetailLink")}
             </Button>
           ) : null}
