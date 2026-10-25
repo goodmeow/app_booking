@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT_DIR"
+
+# The demo database is the only thing this script may rebuild. Parity and
+# regression suites reset 360booking_parity_test through reset-parity-db.sh.
+readonly DEMO_DATABASE_NAME="360booking_reconstruction_test"
+readonly PARITY_DATABASE_NAME="360booking_parity_test"
+
+DATABASE_NAME="${BOOKING_TEST_DB:-$DEMO_DATABASE_NAME}"
+DATABASE_USER="${BOOKING_TEST_USER:-booking_test}"
+
+if [[ "$DATABASE_NAME" != "$DEMO_DATABASE_NAME" ]]; then
+  echo "Refusing to reset unexpected database: $DATABASE_NAME" >&2
+  echo "The demo rebuild only touches $DEMO_DATABASE_NAME." >&2
+  exit 1
+fi
+
+if [[ "${BOOKING_PARITY_DB:-$PARITY_DATABASE_NAME}" == "$DEMO_DATABASE_NAME" ]]; then
+  echo "Refusing to run: BOOKING_PARITY_DB must not point at the demo database." >&2
+  exit 1
+fi
+
+# Docker 29 moved compose to a separate binary; try "docker compose"
+# first, and fall back to "docker-compose" when it is not available.
+run_compose() {
+  if docker compose version >/dev/null 2>&1; then
+    docker compose "$@"
+  else
+    docker-compose "$@"
+  fi
+}
+
+run_compose up -d postgres-test
+
+readonly PG_READY_MAX_ATTEMPTS=30
+for ((attempt = 1; attempt <= PG_READY_MAX_ATTEMPTS; attempt++)); do
+  if run_compose exec -T postgres-test pg_isready \
+    -U "$DATABASE_USER" -d postgres >/dev/null 2>&1; then
+    break
+  fi
+
+  if ((attempt == PG_READY_MAX_ATTEMPTS)); then
+    echo "PostgreSQL did not become ready after $PG_READY_MAX_ATTEMPTS attempts." >&2
+    exit 1
+  fi
+
+  sleep 1
+done
+
+run_compose exec -T postgres-test dropdb \
+  --force -U "$DATABASE_USER" --if-exists "$DATABASE_NAME"
+run_compose exec -T postgres-test createdb \
+  -U "$DATABASE_USER" -O "$DATABASE_USER" "$DATABASE_NAME"
+
+for migration in database/migrations/*.sql; do
+  echo "Applying $migration"
+  run_compose exec -T postgres-test psql \
+    -v ON_ERROR_STOP=1 -U "$DATABASE_USER" -d "$DATABASE_NAME" \
+    < "$migration"
+done
+
+run_compose exec -T postgres-test psql \
+  -v ON_ERROR_STOP=1 -U "$DATABASE_USER" -d "$DATABASE_NAME" \
+  < database/seeds/development.sql
+
+for test_file in database/tests/*.sql; do
+  echo "Running $test_file"
+  run_compose exec -T postgres-test psql \
+    -v ON_ERROR_STOP=1 -U "$DATABASE_USER" -d "$DATABASE_NAME" \
+    < "$test_file"
+done
+
+echo "Database reconstruction tests passed."

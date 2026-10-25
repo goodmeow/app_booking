@@ -1,0 +1,31 @@
+# The project name is fixed so maintenance scripts can find the running demo
+# container (no external COMPOSE_PROJECT_NAME needed).
+#
+# POSTGRES_DB initialises the demo database only. Parity/regression suites use
+# 360booking_parity_test, which database/scripts/reset-parity-db.sh creates
+# inside this same container with createdb (Compose cannot create two DBs).
+name: 360booking
+
+services:
+  postgres-test:
+    image: postgres:14-alpine
+    container_name: 360booking-postgres-test
+    environment:
+      POSTGRES_DB: ${BOOKING_TEST_DB:-360booking_reconstruction_test}
+      POSTGRES_USER: ${BOOKING_TEST_USER:-booking_test}
+      POSTGRES_PASSWORD: ${BOOKING_TEST_PASSWORD:-booking_test_local_only}
+    ports:
+      - "127.0.0.1:${BOOKING_TEST_PORT:-54320}:5432"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    volumes:
+      - booking-postgres-test-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  booking-postgres-test-data:

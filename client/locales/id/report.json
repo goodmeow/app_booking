@@ -1,0 +1,31 @@
+{
+  "title": "Laporan Penggunaan Ruangan",
+  "startDate": "Tanggal mulai",
+  "endDate": "Tanggal selesai",
+  "invalidRange": "Tanggal selesai tidak boleh sebelum tanggal mulai.",
+  "export": "Ekspor riwayat ke Excel",
+  "exportError": "Tidak dapat mengekspor laporan penggunaan ruangan.",
+  "period": "Periode {{start}} – {{end}}",
+  "loading": "Memuat laporan...",
+  "loadError": "Tidak dapat memuat laporan.",
+  "empty": "Tidak ada riwayat meeting",
+  "tableAria": "Tabel penggunaan ruangan yang dapat dibuka",
+  "expand": "Buka baris",
+  "collapse": "Tutup baris",
+  "roomName": "Nama Ruangan",
+  "roomEmail": "Email Ruangan",
+  "totalUsage": "Total Penggunaan",
+  "history": "Riwayat Meeting",
+  "subject": "Subjek",
+  "organizer": "Penyelenggara",
+  "description": "Deskripsi",
+  "meetingStart": "Tanggal Mulai",
+  "meetingEnd": "Tanggal Selesai",
+  "workbook": {
+    "usageTotal": "Total Penggunaan",
+    "history": "Riwayat Penggunaan",
+    "noHistory": "Tidak Ada Riwayat Meeting",
+    "sheet": "Periode {{start}} - {{end}}",
+    "filename": "Laporan Riwayat Meeting ({{start}} - {{end}}).xlsx"
+  }
+}

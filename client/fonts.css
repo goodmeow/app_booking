@@ -1,0 +1,25 @@
+/* Inter (latin, variable 500-800) is self-hosted so the CMS still renders correctly offline. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url("/fonts/Inter-latin.woff2") format("woff2");
+}
+
+/* Tablet fonts for the web kiosk page (desktop reference). */
+@font-face {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url("/fonts/PublicSans-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  src: url("/fonts/SourceSerif4-latin.woff2") format("woff2");
+}

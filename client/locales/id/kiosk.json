@@ -1,0 +1,54 @@
+{
+  "setup": {
+    "title": "Kiosk Ruangan",
+    "description": "Provisikan tablet ini dengan akun ruangan meeting.",
+    "roomLogin": "Email atau nama pengguna ruangan",
+    "deviceName": "Nama perangkat",
+    "defaultDeviceName": "Tablet Ruang Meeting",
+    "roomPassword": "Kata sandi ruangan",
+    "connecting": "Menghubungkan...",
+    "connect": "Hubungkan kiosk"
+  },
+  "schedule": {
+    "occupiedNow": "Sedang digunakan",
+    "reserved": "Sudah dipesan",
+    "floor": "Lantai {{floor}}",
+    "live": "Terhubung",
+    "offline": "Luring",
+    "fullscreen": "Layar Penuh",
+    "changeRoom": "Tahan untuk mengganti ruangan",
+    "unavailable": "Jadwal tidak tersedia",
+    "unavailableHelp": "Jangan menganggap ruangan ini kosong. Periksa koneksi server.",
+    "currentMeeting": "Meeting saat ini",
+    "nextMeeting": "Meeting berikutnya",
+    "ready": "Ruangan siap digunakan",
+    "noMore": "Tidak ada meeting lain yang dijadwalkan hari ini.",
+    "today": "Hari Ini",
+    "count_one": "{{count}} meeting terjadwal",
+    "count_other": "{{count}} meeting terjadwal",
+    "empty": "Jadwal kosong.",
+    "offlineHelp": "Server tidak dapat dihubungi. Jangan anggap ruangan ini kosong."
+  },
+  "states": {
+    "unknown": "Tidak Diketahui",
+    "available": "Tersedia",
+    "upcoming": "Segera Dimulai",
+    "occupied": "Digunakan",
+    "awaitingCheckIn": "Menunggu check-in",
+    "offline": "Offline"
+  },
+  "errors": {
+    "deprovisioned": "Kiosk telah dideprovisikan",
+    "requestFailed": "Permintaan kiosk gagal."
+  },
+  "checkin": {
+    "action": "Check in",
+    "title": "Check in meeting",
+    "cardNumber": "Nomor kartu",
+    "submit": "Check in",
+    "submitting": "Memproses...",
+    "cancel": "Batal",
+    "cardRequired": "Nomor kartu wajib diisi.",
+    "success": "Meeting berhasil di-check in."
+  }
+}
