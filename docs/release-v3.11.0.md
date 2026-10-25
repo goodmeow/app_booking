@@ -85,7 +85,7 @@ adalah APK yang dipasang di tablet Lt3 saat ini.
 ## Bukti
 
 - Client **98/98**, server unit **79/79**, kiosk unit **21/21**, regresi
-  **87 tes** (85 lulus, 2 skip sengaja karena dekat tengah malam), parity
+  **87/87** (0 skip), parity
   prepare 2/2 dan parity 8/8 (dijalankan 2026-10-25).
 - APK 1.3.8: check-in manual dengan kartu, hint kartu per aksi, five-tap
   Finish sebelum start, footer `v1.3.8 (19) · CMS 3.11.0`.

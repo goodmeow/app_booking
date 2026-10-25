@@ -38,7 +38,7 @@ metrik otomatis.
 - Setup admin terlindungi (`is_protected`, migrasi 021): delete `403
   PROTECTED_ACCOUNT`; UAT ADMIN-001 terverifikasi.
 - UAT lintas lantai dan multi-room; data kartu UAT.
-- Regression 87 tes (85 lulus, 2 skip tengah malam), parity prepare 2/2,
+- Regression 87/87 (0 skip), parity prepare 2/2,
   parity 8/8, client 98/98, server unit 79/79, kiosk 21/21.
 - Deploy native satu perintah: `deploy/bootstrap.sh` (IP + HTTP + 80).
 - Repo dipecah: `app_booking`, `app_360booking`, `kioskapp` root repo.
@@ -60,7 +60,7 @@ metrik otomatis.
 - [x] Tablet diverifikasi: APK 1.3.8 (19), online, footer CMS 3.11.0.
 - [x] Deck training 16 slide (CMS + tablet + screenshot) masuk docs.
 - [x] Client 98/98, server unit 79/79, kiosk unit 21/21, typecheck kiosk bersih.
-- [x] Regression 87 tes (85 lulus, 2 skip) dan parity 8/8 sudah lulus.
+- [x] Regression 87/87 (0 skip) dan parity 8/8 sudah lulus.
 
 ## Sisa pekerjaan kita
 
