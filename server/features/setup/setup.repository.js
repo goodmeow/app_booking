@@ -31,9 +31,9 @@ export const findAdminRoleId = async (execute = query) => (await execute(
 
 export const insertFirstAdmin = async ({ name, email, passwordHash, employeeId, roleId }, execute = query) => (await execute(
   `INSERT INTO tbl_users
-     (name, email, password, role_id, employee_id, type, floor, must_change_password, is_deleted)
+     (name, email, password, role_id, employee_id, type, floor, must_change_password, is_deleted, is_protected)
    VALUES
-     ($1, lower($2), $3, $4, $5, 'employee', NULL, false, false)
+     ($1, lower($2), $3, $4, $5, 'employee', NULL, false, false, true)
    RETURNING _id, name, email`,
   [name, email, passwordHash, roleId, employeeId]
 )).rows[0];

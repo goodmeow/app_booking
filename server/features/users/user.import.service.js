@@ -1,10 +1,27 @@
 import { query, withTransaction } from "../../db/pool.js";
-import { badRequest, forbidden } from "../../lib/http-error.js";
+import { badRequest, conflict, forbidden } from "../../lib/http-error.js";
 import { findEmployeeByEmployeeId } from "../accounts/account.repository.js";
 import { createUser, editUser } from "./user.service.js";
 
 const MAX_ROWS = 500;
 const DEFAULT_PASSWORD = "123456Ab";
+
+// Two concurrent imports must not both demote the last two admins, so the
+// remaining admin rows stay locked until the demotion commits.
+const refuseLastAdminDemotion = async (execute, adminRoleId) => {
+  const admins = await execute(
+    `SELECT _id
+     FROM tbl_users
+     WHERE role_id = $1
+       AND is_deleted IS NOT TRUE
+     ORDER BY _id
+     FOR UPDATE`,
+    [adminRoleId]
+  );
+  if (admins.rows.length <= 1) {
+    throw conflict("LAST_ADMIN", "Cannot demote the last active admin");
+  }
+};
 
 const roleMap = async () => {
   const rows = await query("SELECT _id, lower(role_name) AS name FROM tbl_role");
@@ -54,6 +71,10 @@ export const importUsers = async ({ rows, mode = "skip" }, principal) => {
         }
         await withTransaction(async (client) => {
           const execute = (text, params) => client.query(text, params);
+          const adminRoleId = roles.get("admin");
+          if (existing.role_id === adminRoleId && roleId !== adminRoleId) {
+            await refuseLastAdminDemotion(execute, adminRoleId);
+          }
           await editUser(existing._id, {
             name,
             email,

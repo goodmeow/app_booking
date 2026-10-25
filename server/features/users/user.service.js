@@ -5,6 +5,7 @@ import {
   findAccountById,
   findAccountWithPassword,
   findUserCard,
+  isProtectedAccount,
   insertAccount,
   insertUserCard,
   listEmployeeDirectory,
@@ -325,6 +326,9 @@ export const changeUserPassword = async (body, principal) => {
 
 export const deleteUser = async (id, principal) => {
   if (!UUID_PATTERN.test(String(id))) throw notFound("User not found");
+  if (await isProtectedAccount(id)) {
+    throw new HttpError(403, "PROTECTED_ACCOUNT", "The setup admin cannot be deleted");
+  }
   const cards = await listUserCards(id);
   const user = await softDeleteAccount(id, "employee");
   if (!user) throw notFound("User not found");

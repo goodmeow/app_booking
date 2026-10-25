@@ -6,16 +6,18 @@ import { bearer } from "../parity/fixtures.js";
 
 let server;
 let userRoleId;
+let adminRoleId;
 
 before(async () => {
   await resetParityDatabase();
   server = await startServer(targets.reconstructed);
   userRoleId = await queryParityDatabase("SELECT _id FROM tbl_role WHERE lower(role_name) = 'user';");
+  adminRoleId = await queryParityDatabase("SELECT _id FROM tbl_role WHERE lower(role_name) = 'admin';");
 });
 
 after(() => stopServer(server));
 
-const createEmployee = async ({ employeeId, name, email, floor, cardNumber }) => {
+const createEmployee = async ({ employeeId, name, email, floor, cardNumber, roleId = userRoleId }) => {
   const response = await apiRequest(targets.reconstructed, "/api/users/", {
     method: "POST",
     headers: bearer("admin"),
@@ -26,7 +28,7 @@ const createEmployee = async ({ employeeId, name, email, floor, cardNumber }) =>
       password: "Import123!",
       floor,
       card_number: cardNumber,
-      roleId: userRoleId,
+      roleId,
     }),
   });
   assert.equal(response.status, 201, JSON.stringify(response.body));
@@ -105,5 +107,73 @@ test("a card conflict rolls back the whole overwrite row", async () => {
   assert.equal(
     await queryParityDatabase("SELECT count(*) FROM tbl_user_cards WHERE card_number = '910000002';"),
     "1"
+  );
+});
+
+test("overwrite cannot demote the last active admin", async () => {
+  // The parity seed already holds exactly one admin, which is what makes this
+  // demotion the forbidden one.
+  assert.equal(
+    await queryParityDatabase(
+      `SELECT count(*) FROM tbl_users
+       WHERE role_id = '${adminRoleId}'
+         AND is_deleted IS NOT TRUE;`
+    ),
+    "1"
+  );
+
+  const response = await apiRequest(targets.reconstructed, "/api/users/import", {
+    method: "POST",
+    headers: bearer("admin"),
+    body: JSON.stringify({
+      mode: "overwrite",
+      rows: [{
+        employee_id: "EMP-ADMIN",
+        name: "Test Admin",
+        email: "admin@example.test",
+        role: "user",
+      }],
+    }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.updated, 0);
+  assert.equal(response.body.failed, 1);
+  assert.equal(response.body.errors[0].code, "LAST_ADMIN");
+  assert.equal(response.body.errors[0].message, "Cannot demote the last active admin");
+  assert.equal(
+    await queryParityDatabase("SELECT role_id FROM tbl_users WHERE employee_id = 'EMP-ADMIN';"),
+    adminRoleId
+  );
+});
+
+test("overwrite may demote an admin while another admin remains", async () => {
+  await createEmployee({
+    employeeId: "IMP-ADMIN",
+    name: "Second Admin",
+    email: "second.admin@example.test",
+    roleId: adminRoleId,
+  });
+
+  const response = await apiRequest(targets.reconstructed, "/api/users/import", {
+    method: "POST",
+    headers: bearer("admin"),
+    body: JSON.stringify({
+      mode: "overwrite",
+      rows: [{
+        employee_id: "IMP-ADMIN",
+        name: "Second Admin",
+        email: "second.admin@example.test",
+        role: "user",
+      }],
+    }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.updated, 1);
+  assert.equal(response.body.failed, 0);
+  assert.equal(
+    await queryParityDatabase("SELECT role_id FROM tbl_users WHERE employee_id = 'IMP-ADMIN';"),
+    userRoleId
   );
 });
