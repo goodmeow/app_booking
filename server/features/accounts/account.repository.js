@@ -155,7 +155,7 @@ export const insertAccount = async ({ name, email, username, password, roleId, e
   [name, email, username || null, password || null, roleId || null, employeeId || null, type, floor || null, capacity || null, building || null, feature || null, Boolean(mustChangePassword)]
 )).rows[0];
 
-export const updateAccount = async (id, values, type) => (await query(
+export const updateAccount = async (id, values, type, execute = query) => (await execute(
   `UPDATE tbl_users
    SET name = COALESCE($2, name),
        email = COALESCE(lower($3), email),

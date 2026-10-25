@@ -254,7 +254,7 @@ export const createUser = async (body, principal) => {
   }
 };
 
-export const editUser = async (id, body, principal) => {
+export const editUser = async (id, body, principal, { execute } = {}) => {
   const values = cleanIdentity(body);
   const isAdmin = principal.role === "ADMIN";
   if (!isAdmin) {
@@ -283,19 +283,19 @@ export const editUser = async (id, body, principal) => {
   }
   const cardNumber = isAdmin ? legacyCardNumber(body) : "";
   try {
-    const user = await updateAccount(id, values, "employee");
+    const user = await updateAccount(id, values, "employee", execute);
     if (!user || user.type !== "employee") throw notFound("User not found");
     // Existing cards are never removed by a profile update. A new number is
     // registered as another card; a number the user already holds is a no-op so
     // resubmitting the old form does not fail.
     if (cardNumber) {
-      const cards = await listUserCards(id);
-      if (!hasCardNumber(cards, cardNumber)) await addUserCard(id, cardNumber);
+      const cards = await listUserCards(id, execute);
+      if (!hasCardNumber(cards, cardNumber)) await addUserCard(id, cardNumber, { execute });
       if (body.master_card !== undefined) {
-        await setMasterCard(cardNumber, body.master_card === true, principal._id);
+        await setMasterCard(cardNumber, body.master_card === true, principal._id, execute);
       }
     }
-    return visibleAccount(await findAccountById(id, "employee"), principal);
+    return visibleAccount(await findAccountById(id, "employee", execute), principal);
   } catch (error) {
     mapIdentityError(error);
   }

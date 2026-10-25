@@ -10,7 +10,7 @@ Tablet menampilkan status ruangan hari itu, menerima check-in, perpanjangan,
 pemesanan mendadak, dan membuka pintu lewat kartu NFC.
 
 Versi saat ini: CMS/API **3.11.0** (Ver 3 Rev 12) · APK kiosk **1.3.7**
-(versionCode 17). Riwayat lengkap ada di [`docs/VERSIONING.md`](docs/VERSIONING.md).
+(versionCode 18). Riwayat lengkap ada di [`docs/VERSIONING.md`](docs/VERSIONING.md).
 
 - Baru bergabung? Mulai dari [`docs/handover/START-HERE.md`](docs/handover/START-HERE.md).
 - Mencari dokumen tertentu? Lihat index [`docs/README.md`](docs/README.md).
@@ -26,10 +26,11 @@ git clone <repo-url> app_booking
 cd app_booking
 
 # jalankan dari root repo (build context harus root)
-docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
+# Jika host memakai plugin Compose v2, ganti `docker-compose` dengan `docker compose`.
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
   up -d --build
 
-docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
 ```
 
 Buka `http://<ip-server>:8082`. Bila CMS diakses dari perangkat lain di LAN,
@@ -37,7 +38,7 @@ set dulu origin-nya agar CORS lolos:
 
 ```bash
 ALPINE_CORS_ORIGINS=http://<ip-server>:8082 \
-docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d
 ```
 
 Lalu:
@@ -110,7 +111,7 @@ Panduan harian dan eskalasi untuk pendamping produk:
 ## Operasional singkat
 
 ```bash
-C="docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine"
+C="docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine"
 
 # health check
 curl -fsS http://<ip-server>:8082/api/health        # {"ok":true}

@@ -1,4 +1,4 @@
-import { query } from "../../db/pool.js";
+import { query, withTransaction } from "../../db/pool.js";
 import { badRequest, forbidden } from "../../lib/http-error.js";
 import { findEmployeeByEmployeeId } from "../accounts/account.repository.js";
 import { createUser, editUser } from "./user.service.js";
@@ -36,6 +36,9 @@ export const importUsers = async ({ rows, mode = "skip" }, principal) => {
       const name = text(row.name);
       const email = text(row.email);
       if (!name || !email) throw badRequest("INVALID_USER", "name and email are required");
+      // A missing floor column means "leave the current floor alone"; an empty
+      // cell in an existing floor column means "clear the floor".
+      const floor = Object.hasOwn(row, "floor") ? text(row.floor) : undefined;
 
       const existing = await findEmployeeByEmployeeId(employeeId);
       const requestedRole = text(row.role).toLowerCase();
@@ -49,14 +52,17 @@ export const importUsers = async ({ rows, mode = "skip" }, principal) => {
           result.skipped += 1;
           continue;
         }
-        await editUser(existing._id, {
-          name,
-          email,
-          employee_id: employeeId,
-          roleId,
-          floor: text(row.floor),
-          ...(text(row.card_number) ? { card_number: text(row.card_number) } : {}),
-        }, principal);
+        await withTransaction(async (client) => {
+          const execute = (text, params) => client.query(text, params);
+          await editUser(existing._id, {
+            name,
+            email,
+            employee_id: employeeId,
+            roleId,
+            ...(floor !== undefined ? { floor } : {}),
+            ...(text(row.card_number) ? { card_number: text(row.card_number) } : {}),
+          }, principal, { execute });
+        });
         result.updated += 1;
       } else {
         await createUser({
@@ -64,7 +70,7 @@ export const importUsers = async ({ rows, mode = "skip" }, principal) => {
           email,
           employee_id: employeeId,
           roleId,
-          floor: text(row.floor),
+          ...(floor !== undefined ? { floor } : {}),
           password: DEFAULT_PASSWORD,
           must_change_password: true,
           ...(text(row.card_number) ? { card_number: text(row.card_number) } : {}),

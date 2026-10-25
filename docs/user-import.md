@@ -30,7 +30,7 @@ Kolom:
 | `name` | ya | nama tampilan |
 | `email` | ya | harus unik |
 | `role` | tidak | `user` (default), `receptionist`, `admin` |
-| `floor` | tidak | lantai kerja; kosong = tanpa lantai |
+| `floor` | tidak | lantai kerja; kosong = tanpa lantai; kolom tidak ada = floor lama dipertahankan |
 | `card_number` | tidak | satu kartu per baris; ditambahkan ke akun |
 
 CSV mendukung tanda kutip, koma di dalam field, dan CRLF.
