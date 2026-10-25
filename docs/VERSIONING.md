@@ -49,7 +49,7 @@ tanggal DD-MMM-YYYY, language chip di footer, navbar sticky, dan APK 1.3.7
   footer `v1.3.8 (19) · CMS 3.11.0`; distribusi
   `public/apk/kiosk-release.apk` (21.513.747 byte, SHA-256
   `255c95755d606a2ab2cf90696e72f8f415b572a9fc78e2c114238e4788a025b0`).
-- Patch server (belum di-commit saat catatan ini ditulis): impor CSV
+- Patch server: impor CSV
   overwrite transaksional per baris sehingga konflik kartu membatalkan
   perubahan profil; kolom `floor` yang tidak ada mempertahankan lantai lama
   sedangkan sel kosong menghapusnya; impor menolak menurunkan admin aktif
@@ -57,8 +57,8 @@ tanggal DD-MMM-YYYY, language chip di footer, navbar sticky, dan APK 1.3.7
   menambah `tbl_users.is_protected`: akun admin hasil `/setup` dilindungi,
   `DELETE` mengembalikan `403 PROTECTED_ACCOUNT`, dan CMS menyembunyikan
   tombol Hapus untuk akun itu (UAT: ADMIN-001 terlindungi, delete 403).
-  Commit kode server: `db57d7a` (impor transaksi + floor) dan `99d0043`
-  (guard tes tengah malam).
+  Commit: server `db57d7a` (impor transaksi + floor) + `bfbb962` (proteksi
+  setup admin + LAST_ADMIN), test `99d0043`, APK `fbd48dc`, docs `af6a88b`.
 
 ### Ver 1 - Rekonstruksi basis (selesai)
 Migrasi DB, server paritas 32 rute, CMS seluruh halaman utama, hardening

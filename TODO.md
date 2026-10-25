@@ -735,9 +735,9 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
   dan admin aktif terakhir tidak bisa diturunkan (`LAST_ADMIN`).
 - [x] Setup admin terlindungi: migrasi `021_protect_setup_admin.sql`
   (`is_protected`), delete `403 PROTECTED_ACCOUNT`, tombol Hapus disembunyikan
-  di CMS. UAT ADMIN-001: delete 403. **Belum di-commit.**
+  di CMS. UAT ADMIN-001: delete 403.
 - [x] Bukti tes: regresi 87 (85 lulus + 2 skip tengah malam), client 98/98,
   server unit 79/79, parity prepare 2/2, parity 8/8, kiosk unit 21/21.
 - [x] Commit: `db57d7a` (impor transaksi + floor), `99d0043` (guard tes
   tengah malam), kiosk `8277b93`.
-- [ ] Commit perlindungan setup admin + migrasi 021 (menunggu review).
+- [x] Commit perlindungan setup admin + migrasi 021 (`bfbb962`).
