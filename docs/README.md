@@ -17,6 +17,7 @@ Versi acuan dokumen: CMS/API **3.11.0** (Ver 3 Rev 12), APK kiosk **1.3.7**
 | [`operations-runbook.md`](operations-runbook.md) | Deploy pertama, restart, backup/restore, impor data, re-pair tablet, insiden |
 | [`CMS.md`](CMS.md) | Peta halaman CMS, tombol, dan alur tiap layar |
 | [`scenarios.md`](scenarios.md) | Katalog skenario uji manual end-to-end |
+| [`training/RoomBooking-Panduan-CMS-Tablet.pptx`](training/RoomBooking-Panduan-CMS-Tablet.pptx) | Deck 16 slide: panduan CMS + tablet, screenshot UI |
 
 ## Untuk developer
 
