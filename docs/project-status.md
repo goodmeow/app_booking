@@ -21,7 +21,7 @@ metrik otomatis.
 |---|---:|---:|---|
 | Software/fitur | 25% | 99% | Core, kiosk, branding, backup, kalender selesai |
 | Data/migrasi | 20% | 90% | Data UAT terisi; floor HR belum final |
-| Infrastruktur | 15% | 88% | Docker 8082 + bootstrap native; TLS/host final belum |
+| Infrastruktur | 15% | 88% | Docker 8082 + bootstrap native; TLS/host final di tim deploy |
 | Keamanan | 15% | 88% | Auth/CORS/history bersih; TLS, password awal, old SHA |
 | Backup/monitoring | 10% | 75% | Backup dari Settings; alert/off-host/restore drill belum |
 | UAT/training | 8% | 75% | UAT teknis + regression/parity; training formal belum |
@@ -39,14 +39,20 @@ metrik otomatis.
 - XERJ reindex 16.251 dokumen.
 - Cleanup file UI/aset tidak terpakai; logo asli dipertahankan.
 
-## Sisa P0 sebelum go-live
+## Keputusan scope (2026-10-25)
 
-1. TLS/domain final + firewall + update CORS/tablet.
-2. Aktifkan backup, uji restore, simpan salinan off-host.
-3. Monitoring alert (healthcheck belum dijadwalkan).
-4. UAT formal 5 pengguna + training admin/resepsionis.
-5. Rotasi password awal, kartu terekspos, purge old SHA GitHub.
-6. Verifikasi floor semua karyawan produksi.
+- TLS/domain/firewall menjadi tanggung jawab tim deploy, bukan aplikasi.
+- Rotasi password/kartu dan purge old SHA tidak diperlukan saat ini.
+- Verifikasi floor HR tidak diperlukan; karyawan ditambahkan sendiri bila belum terdaftar.
+- UAT formal/training dikerjakan oleh pemilik produk.
+- Monitoring alert opsional; health endpoint tetap tersedia.
+
+## Sisa pekerjaan kita
+
+1. Uji backup + restore (dan salinan off-host bila tersedia).
+2. Verifikasi perangkat kiosk setelah perubahan APK/ikon.
+3. Rapikan temuan UI/UX yang masih terbuka bila diminta.
+4. Jaga regression/parity/client/unit tetap hijau.
 
 ## P1
 
