@@ -11,7 +11,7 @@ metrik otomatis.
 | APK kiosk | **1.3.7 (18)** |
 | URL UAT Docker | `http://<ip-server>:8082` |
 | Database | `360booking` |
-| Commit app | `595da1a` (master), `362456c` (clean) |
+| Commit app | master terbaru; clean `362456c` |
 | Commit kiosk | `6acd7c4` |
 | Commit artefak REA | `f266e33` (`app_360booking`) |
 
