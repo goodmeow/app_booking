@@ -22,7 +22,7 @@ export const validateEventDraft = (
   }
   // A new booking may be scheduled in the future, but it may not start in
   // the past. Editing an existing meeting keeps its historical start intact.
-  if (!editing && start < current) return "validation.startInPast";
+  if (!editing && start.getTime() < current.getTime() - 2 * 60_000) return "validation.startInPast";
   if (start >= end) return "validation.endBeforeStart";
   if (!attendees.some(isRoomAttendee)) return "validation.roomRequired";
   // A guest without an account must use an email format; the server rejects with

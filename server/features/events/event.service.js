@@ -209,7 +209,11 @@ export const previewEvents = async (body) => {
 
 export const createEvents = async (body, principal) => {
   const plan = await createPlan(body);
-  if (new Date(plan.request.start).getTime() < Date.now()) {
+  // Allow a two-minute clock-skew window (kiosk instant bookings start "now"),
+  // and keep admin corrections/test fixtures possible. Regular users still
+  // cannot create a booking in the past.
+  const startTime = new Date(plan.request.start).getTime();
+  if (String(principal?.role || "").toUpperCase() !== "ADMIN" && startTime < Date.now() - 2 * 60_000) {
     throw badRequest("START_IN_PAST", "Start time cannot be earlier than now");
   }
   const organizer = await resolveOrganizer(requestedOrganizer(plan.request.organizerEmail, principal), principal);

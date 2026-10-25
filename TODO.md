@@ -713,3 +713,12 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
 - [x] Docker volume `/backups` + `pg_dump`/`pg_restore` di runtime; backup
   manual diuji (128.533 byte), lalu toggle dimatikan kembali.
 - [x] APK 1.3.7 (18) dengan icon mark The Prasada; distribusi diperbarui.
+
+## Bukti test lanjutan 2026-10-25
+
+- [x] Regression server **83/83**, parity **8/8** (DB disposable
+  `360booking_parity_test`; DB UAT tidak disentuh).
+- [x] Kiosk penuh: check-in kartu UAT Lt3, `+15` dengan kartu, Finish
+  5-tap, kamar kembali AVAILABLE. Screenshot `/tmp/opencode/flow-*.png`.
+- [x] Guard backdate diberi toleransi clock 2 menit; admin boleh koreksi,
+  user biasa tetap ditolak `START_IN_PAST`.
