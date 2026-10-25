@@ -699,8 +699,7 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
   `package-lock.json`).
 - [x] `docs/VERSIONING.md`, `docs/release-v3.11.0.md`, README, index docs,
   runbook, architecture, CMS, handover, product champion diselaraskan.
-- [x] Backup harian Docker: `deploy/docker/backup-docker.sh` + cron 02:30;
-  dump pertama terverifikasi di `/home/goodmeow/backups/360booking/`.
+- [x] Backup dipindah ke Global Settings; script host `backup-docker.sh` dan cron dihapus.
 - [x] Monitoring: `deploy/docker/healthcheck-docker.sh` + cron tiap 5 menit;
   status/log di `/home/goodmeow/logs/360booking-health.*`.
 

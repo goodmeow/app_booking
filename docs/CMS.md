@@ -222,7 +222,7 @@ modal email + sandi ruangan.
 |---|---|
 | `core/Menu.js` | Header + drawer. Item: Kalender; Manajemen & Laporan (ADMIN saja); Profil; Masuk (Daftar hanya bila toggle self signup aktif) |
 | `core/ProtectedShell.js` | Menghubungkan Socket.io saat area login aktif |
-| `core/NotFound.js`, `core/PlaceholderPage.js` | Halaman 404 / placeholder |
+| `core/NotFound.js` | Halaman 404 |
 | `components/common/AsyncState.js` | State loading/error standar |
 | `components/common/ConfirmDialog.js`, `FormDialog.js`, `PasswordDialog.js` | Dialog standar |
 | `components/common/LocalizedDataGrid.js` | Pembungkus DataGrid dengan lokalisasi |

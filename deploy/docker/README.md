@@ -105,6 +105,4 @@ Backup diatur dari **CMS → Pengaturan → Backup database**:
 - retensi hari
 - tombol **Backup sekarang**
 
-Scheduler berjalan di proses API (`backup.service.js`). Script host lama
-(`backup-docker.sh`) dan healthcheck tetap tersedia untuk manual/legacy,
-tetapi **tidak dijadwalkan lewat cron**.
+Scheduler berjalan di proses API (`backup.service.js`). Healthcheck host lama tetap tersedia untuk manual; backup host cron tidak dipakai lagi.
