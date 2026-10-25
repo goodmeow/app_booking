@@ -10,24 +10,35 @@ Jalankan dari root repo (build context harus root agar `package-lock.json`,
 
 ```bash
 # validasi compose
-docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine config
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine config
 
 # build + jalankan
-docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d --build
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d --build
 
 # status + log
-docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
-docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine logs -f app
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine logs -f app
 
 # hentikan (volume DB tetap)
-docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine down
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine down
 
 # hapus stack beserta volume DB uji
-docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine down -v
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine down -v
 ```
 
 Di laptop ini `docker compose` tidak tersedia; gunakan `docker-compose` dengan
 argumen yang sama.
+
+Default CORS hanya `http://localhost:8082`. Untuk tablet di LAN, set origin
+secara eksplisit:
+
+```bash
+ALPINE_CORS_ORIGINS=http://<ip-server>:8082 \
+  docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d
+```
+
+Kalau root repo punya `.env`, tambahkan `--env-file .env`; Compose di setup ini
+tidak selalu membacanya otomatis.
 
 ## Port dan endpoint
 
@@ -63,6 +74,8 @@ menolak secret < 32 karakter atau placeholder `change-me`.
 2. `deploy/docker/entrypoint.sh` membuat tabel `schema_migrations`, lalu
    menerapkan `database/migrations/*.sql` yang belum tercatat (urut nama file).
    Migrasi yang sudah tercatat dilewati, jadi restart container aman.
+   `021_protect_setup_admin.sql` menandai admin pertama sebagai
+   `is_protected`; akun itu tidak bisa dihapus (`403 PROTECTED_ACCOUNT`).
 3. Role tetap di-seed dengan UUID kontrak client:
    - admin `471ba030-c950-41f9-90da-4e0fe10426a6`
    - user `67e9500b-908a-497d-9d3b-54bc020700cb`

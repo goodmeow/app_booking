@@ -129,9 +129,16 @@ Stack uji/produksi kecil: `deploy/docker/compose.alpine.yaml` menjalankan
 (web SPA + proxy `/api` + `/socket.io`). Build context harus root repo.
 
 ```bash
-docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
   up -d --build
-docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
+```
+
+Default CORS hanya `http://localhost:8082`. Untuk tablet di LAN:
+
+```bash
+ALPINE_CORS_ORIGINS=http://<ip-server>:8082 \
+  docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d
 ```
 
 | Service | Host | Container |
