@@ -4,16 +4,36 @@ Target: satu host Ubuntu, PostgreSQL + nginx di situ, aplikasi RoomBooking
 dijalankan lewat systemd. Tablet kiosk dan CMS mengakses host ini lewat satu
 origin nginx (HTTP :80 atau HTTPS :443).
 
-## Urutan menjalankan
+## Satu perintah (IP + HTTP + port 80)
+
+Di Ubuntu kosong, setelah clone repo:
 
 ```bash
-sudo ./deploy/01-install-prerequisites.sh   # node, postgresql, nginx, ufw
-cp deploy/app.env.example /etc/360booking/app.env   # lalu isi nilai rahasia
-sudo nano /etc/360booking/app.env           # ganti semua `change-me`
-sudo ./deploy/02-provision-database.sh      # buat role+DB, terapkan migrasi
-./deploy/03-build.sh                        # npm ci + npm run build (di mesin deploy)
-sudo ./deploy/04-install-app.sh             # pasang build/, systemd, nginx
-sudo ./deploy/05-create-admin.sh            # akun admin pertama
+sudo ./deploy/bootstrap.sh
+```
+
+Script akan:
+1. install Node/PostgreSQL/nginx/ufw,
+2. generate password DB + `JWT_SECRET`,
+3. menulis `/etc/360booking/app.env` dengan origin `http://<ip>`,
+4. membuat DB + migrasi + role,
+5. build client/server,
+6. install systemd + nginx,
+7. mencetak URL `/setup`.
+
+Opsi: `--ip ADDRESS`, `--port PORT`, `--build-user USER`, `--force`.
+Admin pertama tetap dibuat lewat halaman `/setup`.
+
+## Urutan manual
+
+```bash
+sudo ./deploy/01-install-prerequisites.sh
+cp deploy/app.env.example /etc/360booking/app.env
+sudo nano /etc/360booking/app.env
+sudo ./deploy/02-provision-database.sh
+./deploy/03-build.sh
+sudo ./deploy/04-install-app.sh
+# lalu buka http://<ip>/setup (05-create-admin opsional)
 ```
 
 Lo script 03 boleh dijalankan di mesin lokal lalu hasil `build/` dikirim
