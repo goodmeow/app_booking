@@ -71,3 +71,10 @@ Riwayat isi paket:
 
 - 2026-10-25: naik 1.3.7 (versionCode 18)—icon launcher memakai mark
   The Prasada di latar hijau brand. Tidak ada perubahan alur kiosk.
+
+- 2026-10-25: naik 1.3.8 (versionCode 19)—hint kartu check-in dan **+15**
+  menyebut kartu organizer/peserta/master (selaras server); five-tap
+  **Finish** sebelum jam mulai kini langsung membuka tombol saat jam mulai,
+  tanpa five-tap kedua. Dipasang di tablet Lt3, footer
+  `v1.3.8 (19) · CMS 3.11.0`. Paket distribusi 21.513.747 byte, SHA-256
+  `255c95755d606a2ab2cf90696e72f8f415b572a9fc78e2c114238e4788a025b0`.

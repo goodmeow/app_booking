@@ -3,7 +3,7 @@
 Panduan menjalankan, merawat, dan memulihkan RoomBooking. Sumber utama
 deploy tetap [`../deploy/README.md`](../deploy/README.md); dokumen ini
 melengkapi bagian operasional yang belum tercakup di sana. Versi acuan:
-CMS/API `3.11.0`, APK kiosk `1.3.7` (code 18).
+CMS/API `3.11.0`, APK kiosk `1.3.8` (code 19).
 
 Semua contoh memakai placeholder `<ip-server>` / `<domain>`; jangan menulis
 IP atau kredensial nyata ke repo.
@@ -507,7 +507,7 @@ lagi memicu langkah ini karena memakai database `360booking_parity_test`.
 
 Verifikasi versi setelah pairing: footer kiosk menampilkan
 `v<versi APK> (<versionCode>) · CMS <versi server>` (contoh
-`v1.3.7 (18) · CMS 3.11.0`), bukan lagi “perangkat …”. Bila bagian `CMS`
+`v1.3.8 (19) · CMS 3.11.0`), bukan lagi “perangkat …”. Bila bagian `CMS`
 kosong/`unknown`, tablet belum berhasil memuat `/api/kiosk/context` versi
 terbaru — cek koneksi dan pastikan server sudah di-restart dengan build baru.
 Tombol **Finish** sengaja tersembunyi; muncul setelah **5 tap** pada pill
@@ -551,7 +551,7 @@ konfigurasi kiosk; token lama akan ditolak.
 | Kiosk `409 ROOM_ALREADY_PAIRED` | daftar perangkat | cabut perangkat lama, pairing ulang |
 | Kiosk offline | `last_seen_at`, jaringan, URL server | cek portproxy/forwarder, DNS/TLS; tablet mencoba 3× sebelum `OFFLINE` |
 | Kiosk menolak +15 menit | kartu yang di-tap | gunakan kartu organizer/peserta/master; server menolak kartu lain (`403`) |
-| Tombol Selesai tidak ada | desain 1.3.7 | tap pill **IN USE** 5× untuk membuka **Finish**; sebelum jam mulai muncul “Tombol Selesai aktif pukul HH:MM” |
+| Tombol Selesai tidak ada | desain 1.3.7+ | tap pill **IN USE** 5× untuk membuka **Finish**; sebelum jam mulai muncul “Tombol Selesai aktif pukul HH:MM”, di 1.3.8 tombol langsung terbuka saat jam mulai |
 | “No time left today” | jam server dan `APP_TIMEZONE` | periksa zona waktu dan meeting berikutnya |
 | Laporan kosong | rentang tanggal dan `checked_in` | laporan hanya menghitung booking aktif |
 

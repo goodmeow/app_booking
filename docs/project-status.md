@@ -8,11 +8,11 @@ metrik otomatis.
 | Item | Nilai |
 |---|---|
 | CMS/API | **3.11.0** (Ver 3 Rev 12) |
-| APK kiosk | **1.3.7 (18)** |
+| APK kiosk | **1.3.8 (19)** |
 | URL UAT Docker | `http://<ip-server>:8082` |
 | Database | `360booking` |
-| Commit app | master terbaru; clean `362456c` |
-| Commit kiosk | `6acd7c4` |
+| Commit app | `db57d7a` + `99d0043`; perlindungan setup admin belum di-commit |
+| Commit kiosk | `8277b93` |
 | Commit artefak REA | `f266e33` (`app_360booking`) |
 
 ## Kesiapan produksi — ≈86%
@@ -29,11 +29,17 @@ metrik otomatis.
 
 ## Sudah selesai
 
-- CMS/API 3.11.0, APK 1.3.7, branding upload, week start, backup settings.
+- CMS/API 3.11.0, APK 1.3.8, branding upload, week start, backup settings.
 - Kalender 24 jam, format tanggal, validasi backdate, CORS error yang jelas.
-- Kiosk: check-in, +15, Finish 5 tap, early-finish hint, judul STARTING SOON.
+- Kiosk: check-in, +15, Finish 5 tap, early-finish hint, judul STARTING SOON,
+  hint kartu organizer/peserta/master.
+- Impor CSV overwrite transaksional; floor lama dipertahankan bila kolom
+  tidak ada; admin aktif terakhir tidak bisa diturunkan (`LAST_ADMIN`).
+- Setup admin terlindungi (`is_protected`, migrasi 021): delete `403
+  PROTECTED_ACCOUNT`; UAT ADMIN-001 terverifikasi.
 - UAT lintas lantai dan multi-room; data kartu UAT.
-- Regression 83/83, parity 8/8, client 96/96, server unit 79/79, kiosk 21/21.
+- Regression 87 tes (85 lulus, 2 skip tengah malam), parity prepare 2/2,
+  parity 8/8, client 98/98, server unit 79/79, kiosk 21/21.
 - Deploy native satu perintah: `deploy/bootstrap.sh` (IP + HTTP + 80).
 - Repo dipecah: `app_booking`, `app_360booking`, `kioskapp` root repo.
 - XERJ reindex 16.251 dokumen.
@@ -51,10 +57,10 @@ metrik otomatis.
 
 - [x] Backup + restore test: dump terbaru direstore ke DB disposable;
   users 260, events 114, cards 202, migrations 20; DB uji dihapus.
-- [x] Tablet diverifikasi: APK 1.3.7 (18), online, footer CMS 3.11.0.
+- [x] Tablet diverifikasi: APK 1.3.8 (19), online, footer CMS 3.11.0.
 - [x] Deck training 16 slide (CMS + tablet + screenshot) masuk docs.
-- [x] Client 96/96, server unit 79/79, kiosk unit 21/21, typecheck kiosk bersih.
-- [x] Regression 83/83 dan parity 8/8 sudah lulus.
+- [x] Client 98/98, server unit 79/79, kiosk unit 21/21, typecheck kiosk bersih.
+- [x] Regression 87 tes (85 lulus, 2 skip) dan parity 8/8 sudah lulus.
 
 ## Sisa pekerjaan kita
 

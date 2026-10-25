@@ -721,3 +721,23 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
   5-tap, kamar kembali AVAILABLE. Screenshot `/tmp/opencode/flow-*.png`.
 - [x] Guard backdate diberi toleransi clock 2 menit; admin boleh koreksi,
   user biasa tetap ditolak `START_IN_PAST`.
+
+## Patch 1.3.8 + server 2026-10-25
+
+- [x] APK kiosk 1.3.8 (19) build + pasang di tablet Lt3; footer
+  `v1.3.8 (19) · CMS 3.11.0`. Distribusi `public/apk/kiosk-release.apk`
+  diganti (21.513.747 byte, SHA-256
+  `255c95755d606a2ab2cf90696e72f8f415b572a9fc78e2c114238e4788a025b0`).
+- [x] Kiosk: hint kartu check-in dan +15 menyebut organizer/peserta/master;
+  five-tap Finish sebelum start langsung membuka tombol saat jam mulai.
+- [x] Impor CSV: overwrite transaksional per baris (konflik kartu rollback),
+  `floor` lama dipertahankan bila kolom tidak ada, sel kosong menghapus floor,
+  dan admin aktif terakhir tidak bisa diturunkan (`LAST_ADMIN`).
+- [x] Setup admin terlindungi: migrasi `021_protect_setup_admin.sql`
+  (`is_protected`), delete `403 PROTECTED_ACCOUNT`, tombol Hapus disembunyikan
+  di CMS. UAT ADMIN-001: delete 403. **Belum di-commit.**
+- [x] Bukti tes: regresi 87 (85 lulus + 2 skip tengah malam), client 98/98,
+  server unit 79/79, parity prepare 2/2, parity 8/8, kiosk unit 21/21.
+- [x] Commit: `db57d7a` (impor transaksi + floor), `99d0043` (guard tes
+  tengah malam), kiosk `8277b93`.
+- [ ] Commit perlindungan setup admin + migrasi 021 (menunggu review).

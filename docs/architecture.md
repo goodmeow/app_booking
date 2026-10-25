@@ -161,7 +161,7 @@ sequenceDiagram
   organizer/peserta/master (`403`). Guard ini tidak bisa dilewati dari UI.
 - `GET /api/kiosk/context` mengirim `cmsVersion` dari `package.json` server;
   tablet menampilkannya di footer bersama versi APK
-  (`v1.3.7 (18) · CMS 3.11.0`).
+  (`v1.3.8 (19) · CMS 3.11.0`).
 
 ### 3.4 Invalidasi realtime
 

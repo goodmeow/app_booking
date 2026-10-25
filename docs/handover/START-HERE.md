@@ -61,7 +61,7 @@ tablet bila sesi kios ikut hilang.
    - **Sampai HH:MM** hanya muncul bila masih ada meeting berikutnya hari itu;
    - **Finish/Selesai** disembunyikan; muncul setelah **5 tap** pada pill
      **IN USE** (easter egg operator).
-4. Footer kios menampilkan versi APK + versi CMS (`v1.3.7 (18) · CMS 3.11.0`),
+4. Footer kios menampilkan versi APK + versi CMS (`v1.3.8 (19) · CMS 3.11.0`),
    berguna untuk memastikan tablet dan server memakai rilis yang sama.
 5. Admin mengelola perangkat di CMS → Manajemen → Perangkat Tablet (LED,
    tampilkan judul, cabut perangkat, unduh APK). Pengaturan global (timer

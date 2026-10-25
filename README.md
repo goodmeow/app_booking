@@ -9,8 +9,8 @@ Express dan Socket.io, **PostgreSQL** sebagai basis data, dan **tablet kiosk**
 Tablet menampilkan status ruangan hari itu, menerima check-in, perpanjangan,
 pemesanan mendadak, dan membuka pintu lewat kartu NFC.
 
-Versi saat ini: CMS/API **3.11.0** (Ver 3 Rev 12) · APK kiosk **1.3.7**
-(versionCode 18). Riwayat lengkap ada di [`docs/VERSIONING.md`](docs/VERSIONING.md).
+Versi saat ini: CMS/API **3.11.0** (Ver 3 Rev 12) · APK kiosk **1.3.8**
+(versionCode 19). Riwayat lengkap ada di [`docs/VERSIONING.md`](docs/VERSIONING.md).
 
 - Baru bergabung? Mulai dari [`docs/handover/START-HERE.md`](docs/handover/START-HERE.md).
 - Mencari dokumen tertentu? Lihat index [`docs/README.md`](docs/README.md).
@@ -69,7 +69,7 @@ jangan dicampur.
    kartu per user.
 3. Periksa **Manajemen → Pengaturan**: pendaftaran mandiri (default mati),
    timer check-in, timer kunci, timer LED, input meja.
-4. Cek tablet: layar menampilkan jadwal hari ini, versi `v1.3.7 (18) · CMS
+4. Cek tablet: layar menampilkan jadwal hari ini, versi `v1.3.8 (19) · CMS
    3.11.0` di footer.
 5. Uji satu booking, satu check-in kartu, satu buka pintu, dan satu laporan
    pemakaian ruangan.
@@ -147,11 +147,11 @@ $C down -v
 | Tidak bisa login | email tidak memakai domain lengkap; akun nonaktif; role kosong | tulis email utuh (`nama@<domain>`), cek status akun di Manajemen → Pengguna |
 | Halaman `/setup` putih atau form terkunci | instalasi sudah punya admin; cache gate | cek `GET /api/setup/status`; `required=false` berarti setup memang selesai — login biasa |
 | Tablet `OFFLINE` | kabel/jaringan, URL server salah, server restart | cek kabel + URL di layar setup; tablet mencoba 3× sebelum `OFFLINE` dan pulih sendiri |
-| LED tidak menyala | tablet tanpa LED, timer LED mati | 1.3.7 mendukung tablet tanpa LED; cek `led_timer` di Pengaturan |
+| LED tidak menyala | tablet tanpa LED, timer LED mati | didukung sejak 1.3.7 (tablet tanpa LED tetap jalan); cek `led_timer` di Pengaturan |
 | NFC tidak terbaca | kartu 7 byte, posisi tap, reader | hanya UID 4 byte yang didukung; daftarkan UID yang tampil di layar |
 | Jadwal tablet `OFFLINE` terus | `/api/health` gagal, CORS, TLS | cek health dari jaringan tablet, `ALPINE_CORS_ORIGINS`, sertifikat |
 | Booking ditolak `403 FLOOR_RESTRICTED` | lantai user ≠ lantai ruangan | pilih ruangan sesuai lantai, atau minta resepsionis lantai tujuan |
-| Tombol Selesai tidak ada | desain 1.3.7 | tap pill **IN USE** 5×; sebelum jam mulai muncul “Tombol Selesai aktif pukul HH:MM” |
+| Tombol Selesai tidak ada | desain 1.3.7+ | tap pill **IN USE** 5×; sebelum jam mulai muncul “Tombol Selesai aktif pukul HH:MM”, dan di 1.3.8 tombol langsung terbuka saat jam mulai tanpa five-tap kedua |
 
 Tabel insiden yang lebih lengkap: [`docs/operations-runbook.md`](docs/operations-runbook.md) §9.
 
