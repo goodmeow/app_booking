@@ -20,6 +20,7 @@ import { useGetEventsQuery } from "../redux/services/events.js";
 import { useGetRoomStatusQuery, useGetRoomsQuery } from "../redux/services/rooms.js";
 import { useGetPublicSettingsQuery } from "../redux/services/settings.js";
 import { useListUserQuery } from "../redux/services/users.js";
+import { useMenuAccess } from "../auth/use-menu-access.js";
 import { wsJoinRoom, wsLeaveRoom } from "../redux/websocket.js";
 import CalendarSidebar from "./CalendarSidebar.js";
 import EventEditor from "./EventEditor.js";
@@ -97,9 +98,11 @@ const MeetingCalendar = () => {
   const roomQuery = useGetRoomsQuery();
   const roomStatusQuery = useGetRoomStatusQuery(undefined, { pollingInterval: 30_000 });
   const isAdmin = isAdminRole(session?.user?.role);
-  // Only an admin loads the full employee directory; regular users search it
-  // on demand from the attendee picker.
-  const userQuery = useListUserQuery(undefined, { skip: !isAdmin });
+  const { can: canMenu } = useMenuAccess();
+  const canListAllUsers = canMenu("users");
+  // Only a Users-menu role loads the full employee directory; everyone else
+  // searches it on demand from the attendee picker.
+  const userQuery = useListUserQuery(undefined, { skip: !canListAllUsers });
   const userFloor = String(session?.user?.floor ?? "").trim();
   const userFloors = session?.user?.floors || [];
   // The floor group "all" (or an admin) may view and book every floor.

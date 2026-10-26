@@ -28,10 +28,13 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   Bahasa ID/EN tetap memakai `res/values` + `values-en`; panel AVAILABLE
   tidak meluber dan tombol **Pilih waktu** tetap ada.
 - Rev 12 masih terbuka: patch perbaikan UAT 3.10.4 + fitur/UX 3.11.0 / APK 1.3.8
-  sudah lulus unit server 79/79, unit kiosk 21/21, client 98/98,
-  regresi 87/87 (0 skip),
-  parity prepare 2/2 dan parity 8/8 (dijalankan 2026-10-25). Lihat
+  sudah lulus unit server 85/85, unit kiosk 21/21, client 98/98,
+  regresi 92/92 (0 skip),
+  parity prepare 2/2 dan parity 8/8. Lihat
   `docs/release-v3.11.0.md` untuk isi rilis dan risiko yang belum diuji.
+- Perubahan 2026-10-26 (belum naik versi): role `super_admin` dari akun setup,
+  matrix menu CMS per role, multi-lantai (`tbl_users.floors`), akses
+  resepsionis per lantai, dan audit log untuk role/lantai/kartu/settings.
 - Status UAT 2026-10-26: stack Docker Compose di VM Linux (CMS/API `8082`),
   setup admin + impor user bersih, tablet dipairing, akses pintu end-to-end
   terbukti (APK → validasi kartu API 200 → relay CH340 → klik relay fisik).

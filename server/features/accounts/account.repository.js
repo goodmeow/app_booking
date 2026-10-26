@@ -147,8 +147,12 @@ export const findEmployeeByEmployeeId = async (employeeId, execute = query) => (
 )).rows[0] || null;
 
 export const findAccountWithPassword = async (id) => (await query(
-  `SELECT u._id, u.password, u.type, u.is_deleted
-   FROM tbl_users u WHERE u._id = $1 LIMIT 1`,
+  `SELECT u._id, u.name, u.password, u.type, u.is_deleted,
+          lower(r.role_name) AS role
+   FROM tbl_users u
+   LEFT JOIN tbl_role r ON r._id = u.role_id
+   WHERE u._id = $1
+   LIMIT 1`,
   [id]
 )).rows[0] || null;
 
@@ -268,7 +272,7 @@ export const updatePassword = async (id, password, execute = query, mustChangePa
   [id, password, mustChangePassword]
 )).rowCount === 1;
 
-export const softDeleteAccount = async (id, type) => (await query(
+export const softDeleteAccount = async (id, type, execute = query) => (await execute(
   `UPDATE tbl_users SET is_deleted = true, updated_at = now()
    WHERE _id = $1 AND type = $2 AND is_deleted IS NOT TRUE
    RETURNING _id, name, email, type`,

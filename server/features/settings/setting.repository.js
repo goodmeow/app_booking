@@ -1,6 +1,6 @@
 import { query } from "../../db/pool.js";
 
-export const getSettings = async () => (await query(
+export const getSettings = async (execute = query) => (await execute(
   `SELECT _id, lock_timer, led_timer, table_input, not_checked_in_time_limit,
           time_of_event_start_soon, available_color, will_start_color, on_meeting_color,
           self_signup_enabled, week_start_day, backup_enabled, backup_path, backup_time, backup_retention_days, backup_last_at, backup_last_status, created_at, updated_at
@@ -16,7 +16,7 @@ export const getSelfSignupEnabled = async () => (await query(
    LIMIT 1`
 )).rows[0]?.self_signup_enabled === true;
 
-export const updateSettings = async (id, values) => (await query(
+export const updateSettings = async (id, values, execute = query) => (await execute(
   `UPDATE tbl_app_settings
    SET lock_timer = $2,
        led_timer = $3,
@@ -50,14 +50,14 @@ export const listCards = async (cardNumber) => (await query(
   [cardNumber || null]
 )).rows;
 
-export const insertCard = async (cardNumber, principalId) => (await query(
+export const insertCard = async (cardNumber, principalId, execute = query) => (await execute(
   `INSERT INTO tbl_card_masters (card_number, created_by)
    VALUES ($1, $2)
    RETURNING _id, card_number, created_at`,
   [cardNumber, principalId]
 )).rows[0];
 
-export const updateCard = async (id, cardNumber, principalId) => (await query(
+export const updateCard = async (id, cardNumber, principalId, execute = query) => (await execute(
   `UPDATE tbl_card_masters
    SET card_number = $2, updated_by = $3, updated_at = now()
    WHERE _id = $1
@@ -65,7 +65,7 @@ export const updateCard = async (id, cardNumber, principalId) => (await query(
   [id, cardNumber, principalId]
 )).rows[0] || null;
 
-export const deleteCard = async (id) => (await query(
+export const deleteCard = async (id, execute = query) => (await execute(
   `DELETE FROM tbl_card_masters WHERE _id = $1 RETURNING _id`,
   [id]
 )).rows[0] || null;

@@ -1,6 +1,9 @@
 import { badRequest, HttpError, notFound } from "../../lib/http-error.js";
 import { deleteCard, getSettings, insertCard, listCards, updateCard, updateSettings } from "./setting.repository.js";
 import { runBackup } from "./backup.service.js";
+import { withTransaction } from "../../db/pool.js";
+import { isSuperAdminRole } from "../../lib/roles.js";
+import { roleAllowsMenu } from "../access/menu-access.repository.js";
 import { writeAudit } from "../audit/audit.repository.js";
 
 const maskedCard = (value) => `****${String(value ?? "").trim().slice(-4)}`;
@@ -30,7 +33,19 @@ const run = (handler) => async (req, res, next) => {
   }
 };
 
-export const read = run(async (req, res) => res.json((await getSettings()) || {}));
+export const read = run(async (req, res) => {
+  const settings = (await getSettings()) || {};
+  if (isSuperAdminRole(req.auth.role) || await roleAllowsMenu(req.auth.role, "settings")) {
+    return res.json(settings);
+  }
+  // The matrix hides the Settings page, but old clients and the parity API
+  // still call this read. Return only non-sensitive fields without the menu.
+  res.json({
+    _id: settings._id || null,
+    week_start_day: settings.week_start_day ?? 1,
+    self_signup_enabled: settings.self_signup_enabled === true,
+  });
+});
 export const readPublic = run(async (req, res) => {
   const settings = await getSettings();
   res.json({
@@ -64,19 +79,22 @@ export const update = run(async (req, res) => {
   if (!String(req.body.backup_path || "").startsWith("/")) {
     throw badRequest("INVALID_SETTINGS", "backup_path must be absolute");
   }
-  const before = await getSettings();
-  if (!(await updateSettings(settingsId, req.body))) throw notFound("Settings not found");
-  const after = await getSettings();
-  const changed = changedValues(settingsAuditValues(before), settingsAuditValues(after));
-  if (changed) {
-    await writeAudit({
-      principal: req.auth,
-      action: "settings.update",
-      entityType: "settings",
-      entityId: settingsId,
-      ...changed,
-    });
-  }
+  await withTransaction(async (client) => {
+    const execute = (text, values) => client.query(text, values);
+    const before = await getSettings(execute);
+    if (!(await updateSettings(settingsId, req.body, execute))) throw notFound("Settings not found");
+    const after = await getSettings(execute);
+    const changed = changedValues(settingsAuditValues(before), settingsAuditValues(after));
+    if (changed) {
+      await writeAudit({
+        principal: req.auth,
+        action: "settings.update",
+        entityType: "settings",
+        entityId: settingsId,
+        ...changed,
+      }, execute);
+    }
+  });
   req.io?.emit("response:setting", { type: "settings:changed" });
   res.json({ status: "updated", message: "Setting successfully updated" });
 });
@@ -93,36 +111,47 @@ export const backupNow = run(async (req, res) => {
 });
 export const createCard = run(async (req, res) => {
   if (!req.body.card_number) throw badRequest("INVALID_CARD", "Card number is required");
-  const card = await insertCard(req.body.card_number, req.auth._id);
-  await writeAudit({
-    principal: req.auth,
-    action: "card_master.create",
-    entityType: "card_master",
-    entityId: card._id,
-    newValues: { card: maskedCard(card.card_number) },
+  const card = await withTransaction(async (client) => {
+    const execute = (text, values) => client.query(text, values);
+    const created = await insertCard(req.body.card_number, req.auth._id, execute);
+    await writeAudit({
+      principal: req.auth,
+      action: "card_master.create",
+      entityType: "card_master",
+      entityId: created._id,
+      newValues: { card: maskedCard(created.card_number) },
+    }, execute);
+    return created;
   });
   res.status(201).json(card);
 });
 export const editCard = run(async (req, res) => {
   if (!req.body.card_number) throw badRequest("INVALID_CARD", "Card number is required");
-  const card = await updateCard(req.params.idCardMaster, req.body.card_number, req.auth._id);
-  if (!card) throw notFound("Card not found");
-  await writeAudit({
-    principal: req.auth,
-    action: "card_master.update",
-    entityType: "card_master",
-    entityId: card._id,
-    newValues: { card: maskedCard(card.card_number) },
+  const card = await withTransaction(async (client) => {
+    const execute = (text, values) => client.query(text, values);
+    const updated = await updateCard(req.params.idCardMaster, req.body.card_number, req.auth._id, execute);
+    if (!updated) throw notFound("Card not found");
+    await writeAudit({
+      principal: req.auth,
+      action: "card_master.update",
+      entityType: "card_master",
+      entityId: updated._id,
+      newValues: { card: maskedCard(updated.card_number) },
+    }, execute);
+    return updated;
   });
   res.json(card);
 });
 export const removeCard = run(async (req, res) => {
-  if (!(await deleteCard(req.params.idCardMaster))) throw notFound("Card not found");
-  await writeAudit({
-    principal: req.auth,
-    action: "card_master.delete",
-    entityType: "card_master",
-    entityId: req.params.idCardMaster,
+  await withTransaction(async (client) => {
+    const execute = (text, values) => client.query(text, values);
+    if (!(await deleteCard(req.params.idCardMaster, execute))) throw notFound("Card not found");
+    await writeAudit({
+      principal: req.auth,
+      action: "card_master.delete",
+      entityType: "card_master",
+      entityId: req.params.idCardMaster,
+    }, execute);
   });
   res.json({ status: "deleted", message: "Card successfully deleted" });
 });

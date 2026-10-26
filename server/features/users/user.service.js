@@ -25,6 +25,7 @@ import { revokeRoomKioskDevices } from "../kiosk/kiosk.repository.js";
 import { isAdminRole, isSuperAdminRole } from "../../lib/roles.js";
 import { effectiveFloors } from "../../lib/floors.js";
 import { writeAudit } from "../audit/audit.repository.js";
+import { roleAllowsMenu } from "../access/menu-access.repository.js";
 
 // UUID format; enough to reject arbitrary values before touching the DB,
 // because a PostgreSQL uuid column throws 22P02 (HTTP 500) when the value gets through.
@@ -141,6 +142,12 @@ export const activeCardLimitReached = (cards) => activeCardCount(cards) >= ACTIV
 export const addUserCard = async (userId, cardNumber, { execute, principal } = {}) => {
   if (!UUID_PATTERN.test(String(userId))) throw notFound("User not found");
   const normalized = normalizedCardNumber(cardNumber);
+  if (!execute) {
+    return withTransaction((client) => addUserCard(userId, normalized, {
+      principal,
+      execute: (text, values) => client.query(text, values),
+    }));
+  }
   const user = await findAccountById(userId, "employee", execute);
   if (!user) throw notFound("User not found");
   const cards = await listUserCards(userId, execute);
@@ -164,16 +171,21 @@ export const addUserCard = async (userId, cardNumber, { execute, principal } = {
 
 // A lost card is kept as a record, never deleted. The door master list is
 // revoked at the same time so the physical card stops working immediately.
-export const markUserCardLost = async (userId, cardId, principal) => {
+export const markUserCardLost = async (userId, cardId, principal, { execute } = {}) => {
   if (!UUID_PATTERN.test(String(userId)) || !UUID_PATTERN.test(String(cardId))) {
     throw notFound("Card not found");
   }
-  const existing = await findUserCard(userId, cardId);
+  if (!execute) {
+    return withTransaction((client) => markUserCardLost(userId, cardId, principal, {
+      execute: (text, values) => client.query(text, values),
+    }));
+  }
+  const existing = await findUserCard(userId, cardId, execute);
   if (!existing) throw notFound("Card not found");
   if (existing.status !== "active") throw conflict("CARD_ALREADY_LOST", "The card is already marked as lost");
-  const lost = await setUserCardLost(cardId);
+  const lost = await setUserCardLost(cardId, execute);
   if (!lost) throw conflict("CARD_ALREADY_LOST", "The card is already marked as lost");
-  await setMasterCard(lost.card_number, false, principal?._id);
+  await setMasterCard(lost.card_number, false, principal?._id, execute);
   await writeAudit({
     principal,
     action: "user.card.status",
@@ -181,29 +193,34 @@ export const markUserCardLost = async (userId, cardId, principal) => {
     entityId: userId,
     oldValues: { card_id: cardId, status: "active", card: maskedCard(lost.card_number) },
     newValues: { card_id: cardId, status: "lost", card: maskedCard(lost.card_number) },
-  });
+  }, execute);
   return lost;
 };
 
 // A found card can be switched back on, but only while the user still has a
 // free slot. This is deliberately a separate transition from adding a card so
 // the audit trail (lost_at) stays on the same row.
-export const reactivateUserCard = async (userId, cardId, principal) => {
+export const reactivateUserCard = async (userId, cardId, principal, { execute } = {}) => {
   if (!UUID_PATTERN.test(String(userId)) || !UUID_PATTERN.test(String(cardId))) {
     throw notFound("Card not found");
   }
-  const existing = await findUserCard(userId, cardId);
+  if (!execute) {
+    return withTransaction((client) => reactivateUserCard(userId, cardId, principal, {
+      execute: (text, values) => client.query(text, values),
+    }));
+  }
+  const existing = await findUserCard(userId, cardId, execute);
   if (!existing) throw notFound("Card not found");
   if (existing.status === "active") {
     throw conflict("CARD_ALREADY_ACTIVE", "The card is already active");
   }
-  const cards = await listUserCards(userId);
+  const cards = await listUserCards(userId, execute);
   if (activeCardLimitReached(cards)) {
     throw conflict("CARD_LIMIT", `A user can hold at most ${ACTIVE_CARD_LIMIT} active cards`);
   }
-  const active = await setUserCardActive(cardId);
+  const active = await setUserCardActive(cardId, execute);
   if (!active) throw conflict("CARD_ALREADY_ACTIVE", "The card is already active");
-  await setMasterCard(active.card_number, true, principal?._id);
+  await setMasterCard(active.card_number, true, principal?._id, execute);
   await writeAudit({
     principal,
     action: "user.card.status",
@@ -211,7 +228,7 @@ export const reactivateUserCard = async (userId, cardId, principal) => {
     entityId: userId,
     oldValues: { card_id: cardId, status: "lost", card: maskedCard(active.card_number) },
     newValues: { card_id: cardId, status: "active", card: maskedCard(active.card_number) },
-  });
+  }, execute);
   return active;
 };
 
@@ -331,23 +348,28 @@ export const createUser = async (body, principal) => {
         await addUserCard(user._id, cardNumber, { execute });
         if (body.master_card === true) await setMasterCard(cardNumber, true, principal?._id, execute);
       }
-      return user;
+      const fullUser = await findAccountById(user._id, "employee", execute);
+      await writeAudit({
+        principal,
+        action: "user.create",
+        entityType: "user",
+        entityId: user._id,
+        newValues: { ...auditUserValues(fullUser), ...(cardNumber ? { card: maskedCard(cardNumber) } : {}) },
+      }, execute);
+      return fullUser;
     });
-    const user = await findAccountById(created._id, "employee");
-    await writeAudit({
-      principal,
-      action: "user.create",
-      entityType: "user",
-      entityId: created._id,
-      newValues: { ...auditUserValues(user), ...(cardNumber ? { card: maskedCard(cardNumber) } : {}) },
-    });
-    return user;
+    return created;
   } catch (error) {
     mapIdentityError(error);
   }
 };
 
 export const editUser = async (id, body, principal, { execute } = {}) => {
+  if (!execute) {
+    return withTransaction((client) => editUser(id, body, principal, {
+      execute: (text, values) => client.query(text, values),
+    }));
+  }
   const values = cleanIdentity(body);
   const isAdmin = isAdminRole(principal.role);
   if (!isAdmin) {
@@ -444,12 +466,22 @@ export const editUser = async (id, body, principal, { execute } = {}) => {
 
 export const changeUserPassword = async (body, principal) => {
   const targetId = body.userId || principal._id;
-  if (!isAdminRole(principal.role) && String(targetId) !== String(principal._id)) throw forbidden();
+  const changingOwnPassword = String(targetId) === String(principal._id);
+  if (!isAdminRole(principal.role) && !changingOwnPassword) throw forbidden();
   if (body.newPassword !== body.newPasswordConfirmation) throw badRequest("INVALID_PASSWORD", "New password confirmation must match");
   const newPassword = validatedPassword(body.newPassword);
   const account = await findAccountWithPassword(targetId);
   if (!account || account.is_deleted) throw notFound("Account not found");
-  const changingOwnPassword = String(targetId) === String(principal._id);
+
+  if (!changingOwnPassword) {
+    if (!isSuperAdminRole(principal.role) && !(await roleAllowsMenu(principal.role, "users"))) {
+      throw forbidden("Users menu access required to reset another password");
+    }
+    if (account.role === "super_admin" && !isSuperAdminRole(principal.role)) {
+      throw forbidden("Only a super administrator may reset the super administrator password");
+    }
+  }
+
   if (!isAdminRole(principal.role)) {
     const valid = body.oldPassword && account.password && await bcrypt.compare(String(body.oldPassword), account.password);
     if (!valid) throw badRequest("INVALID_PASSWORD", "Current password is incorrect");
@@ -460,22 +492,36 @@ export const changeUserPassword = async (body, principal) => {
     // An admin reset creates a known password, so the owner must replace it.
     // Changing your own password clears the flag.
     await updatePassword(targetId, passwordHash, execute, !changingOwnPassword);
+    if (!changingOwnPassword) {
+      await writeAudit({
+        principal,
+        action: "user.password.reset",
+        entityType: "user",
+        entityId: targetId,
+        newValues: { target: account.name, must_change_password: true },
+      }, execute);
+    }
     return account.type === "room" ? revokeRoomKioskDevices(targetId, principal._id, execute) : [];
   });
 };
 
-export const deleteUser = async (id, principal) => {
+export const deleteUser = async (id, principal, { execute } = {}) => {
   if (!UUID_PATTERN.test(String(id))) throw notFound("User not found");
-  if (await isProtectedAccount(id)) {
+  if (!execute) {
+    return withTransaction((client) => deleteUser(id, principal, {
+      execute: (text, values) => client.query(text, values),
+    }));
+  }
+  if (await isProtectedAccount(id, execute)) {
     throw new HttpError(403, "PROTECTED_ACCOUNT", "The setup admin cannot be deleted");
   }
-  const cards = await listUserCards(id);
-  const before = await findAccountById(id, "employee");
-  const user = await softDeleteAccount(id, "employee");
+  const cards = await listUserCards(id, execute);
+  const before = await findAccountById(id, "employee", execute);
+  const user = await softDeleteAccount(id, "employee", execute);
   if (!user) throw notFound("User not found");
   // A deleted account must not leave a card that still opens the door.
   for (const card of cards) {
-    await setMasterCard(card.card_number, false, principal?._id);
+    await setMasterCard(card.card_number, false, principal?._id, execute);
   }
   await writeAudit({
     principal,
@@ -483,6 +529,6 @@ export const deleteUser = async (id, principal) => {
     entityType: "user",
     entityId: id,
     oldValues: auditUserValues(before),
-  });
+  }, execute);
   return user;
 };

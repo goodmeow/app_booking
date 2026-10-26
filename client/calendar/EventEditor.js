@@ -461,7 +461,6 @@ const EventEditor = ({
               ) : null}
               {floorRoomsEmpty ? <Alert severity="warning">{t("editor.floorRoomsEmpty")}</Alert> : null}
               <AttendeePicker
-                isAdmin={isAdmin}
                 users={users}
                 attendees={draft.attendees}
                 value={attendeeEmails}

@@ -77,16 +77,17 @@ jangan dicampur.
 
 | Peran | Ringkas |
 |---|---|
-| **Admin** | Semua lantai dan semua event; kelola user, ruangan, kartu, pengaturan, perangkat tablet, laporan |
-| **Resepsionis** | Memesan **atas nama karyawan** untuk ruangan di lantainya sendiri; melihat booking yang ia buat |
+| **Super Admin** | Akun pertama hasil setup; semua menu dan semua lantai; satu-satunya yang bisa mengubah matrix role |
+| **Admin** | Semua lantai dan semua event; kelola user, ruangan, kartu, pengaturan, perangkat tablet, laporan sesuai menu yang diberikan |
+| **Resepsionis** | Memesan atas nama karyawan; melihat dan mengubah booking di semua lantai yang dipegang (`floors`) |
 | **Karyawan** | Memesan ruangan di lantai kerjanya, event miliknya, ganti sandi sendiri |
 
 Aturan yang sering ditanyakan:
 
-- **Lantai.** Karyawan hanya memesan ruangan di lantai kerjanya (kolom
-  `floor`). Lantai kosong ditolak `403 FLOOR_REQUIRED`; lantai berbeda ditolak
-  `403 FLOOR_RESTRICTED`. Lintas lantai hanya lewat **resepsionis lantai
-  tujuan** yang membuat booking atas nama karyawan tersebut.
+- **Lantai.** Karyawan hanya memesan ruangan di lantai yang tercantum pada
+  `floors` (fallback kolom lama `floor`). Lantai kosong ditolak
+  `403 FLOOR_REQUIRED`; lantai berbeda ditolak `403 FLOOR_RESTRICTED`.
+  Resepsionis dapat memegang beberapa lantai sekaligus.
 - **Kartu.** Maksimal **2 kartu aktif** per user. Kartu hilang ditandai
   **`lost`** (record tetap ada, tidak berlaku untuk kiosk/pintu) dan bisa
   **diaktifkan kembali** bila ditemukan, selama slot aktif masih di bawah 2.
@@ -102,6 +103,9 @@ Aturan yang sering ditanyakan:
 - **Kiosk.** Tombol **Finish** adalah easter egg: 5 tap pada pill **IN USE**.
   LED opsional (tablet tanpa path LED tetap jalan). NFC yang didukung baru
   kartu **UID 4 byte**; UID 7 byte belum.
+- **Hak akses.** Menu CMS diatur per role di **Settings → User Role
+  Management**. Perubahan role, lantai, kartu, dan settings dicatat di audit
+  log yang hanya bisa dibaca Super Admin.
 
 Detail aturan lengkap: [`docs/business-processes.md`](docs/business-processes.md).
 Panduan harian dan eskalasi untuk pendamping produk:

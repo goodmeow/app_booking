@@ -19,9 +19,12 @@ import { useGetAuditLogQuery } from "../redux/services/audit.js";
 const summary = (row) => {
   const values = row.new_values || row.old_values;
   if (!values) return "-";
-  return Object.entries(values)
-    .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : value}`)
-    .join(" · ");
+  const entries = Array.isArray(values) ? values : [values];
+  return entries.map((entry) => (
+    typeof entry === "object" && entry !== null
+      ? Object.entries(entry).map(([key, value]) => `${key}: ${value}`).join(" ")
+      : String(entry)
+  )).join("; ");
 };
 
 const AuditLogSection = () => {

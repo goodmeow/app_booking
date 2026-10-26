@@ -255,6 +255,9 @@
             "add": "Kartu ditambahkan",
             "status": "Status kartu diubah",
             "master": "Master card diubah"
+          },
+          "password": {
+            "reset": "Kata sandi direset"
           }
         },
         "settings": {
@@ -265,6 +268,9 @@
           "create": "Master card ditambah",
           "update": "Master card diubah",
           "delete": "Master card dihapus"
+        },
+        "access": {
+          "update": "Akses peran diubah"
         }
       }
     }

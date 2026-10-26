@@ -55,10 +55,10 @@ test("listUser forwards the search argument and keeps the users tag", () => {
 test("attendee picker searches on demand with a debounce instead of loading the directory", () => {
   const picker = fs.readFileSync(new URL("../calendar/AttendeePicker.js", import.meta.url), "utf8");
   const calendar = fs.readFileSync(new URL("../calendar/MeetingCalendar.js", import.meta.url), "utf8");
-  assert.match(picker, /useListUserQuery\(\{ q: searchTerm \}, \{ skip: isAdmin \|\| !searchTerm \}\)/);
+  assert.match(picker, /useListUserQuery\(\{ q: searchTerm \}, \{ skip: canListAllUsers \|\| !searchTerm \}\)/);
   assert.match(picker, /SEARCH_DEBOUNCE_MS = 300/);
   assert.match(picker, /MIN_DIRECTORY_QUERY_LENGTH/);
-  // The calendar only asks for the full list as an admin.
-  assert.match(calendar, /useListUserQuery\(undefined, \{ skip: !isAdmin \}\)/);
-  assert.match(calendar, /isAdmin=\{isAdmin\}/);
+  // The calendar only asks for the full list when the Users menu is allowed.
+  assert.match(calendar, /useListUserQuery\(undefined, \{ skip: !canListAllUsers \}\)/);
+  assert.doesNotMatch(picker, /isAdmin/);
 });

@@ -49,5 +49,5 @@ export const updateMatrix = run(async (req, res) => {
     return { role_name: roleName, menu_key: menuKey, allowed: entry.allowed };
   });
 
-  res.json(matrixPayload(await saveMenuAccess(entries)));
+  res.json(matrixPayload(await saveMenuAccess(entries, req.auth)));
 });

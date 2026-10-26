@@ -1,5 +1,5 @@
 import { forbidden, HttpError } from "../lib/http-error.js";
-import { isAdminRole, isSuperAdminRole } from "../lib/roles.js";
+import { isSuperAdminRole } from "../lib/roles.js";
 import { verifyPrincipalToken } from "../features/auth/auth.service.js";
 import { roleAllowsMenu } from "../features/access/menu-access.repository.js";
 
@@ -35,11 +35,6 @@ const passwordChangeAllowed = (req) => {
   return false;
 };
 
-export const adminOnly = (req, res, next) => {
-  if (!isAdminRole(req.auth?.role)) return next(forbidden("Administrator access required"));
-  next();
-};
-
 export const superAdminOnly = (req, res, next) => {
   if (!isSuperAdminRole(req.auth?.role)) return next(forbidden("Super administrator access required"));
   next();
@@ -56,11 +51,6 @@ export const menuAccess = (menuKey) => async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
-
-export const selfOrAdmin = (param = "userId") => (req, res, next) => {
-  if (isAdminRole(req.auth?.role) || String(req.auth?._id) === String(req.params[param])) return next();
-  next(forbidden());
 };
 
 // Self-service stays open, but changing someone else needs the matching menu.

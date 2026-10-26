@@ -255,6 +255,9 @@
             "add": "Card added",
             "status": "Card status changed",
             "master": "Master card changed"
+          },
+          "password": {
+            "reset": "Password reset"
           }
         },
         "settings": {
@@ -265,6 +268,9 @@
           "create": "Master card added",
           "update": "Master card updated",
           "delete": "Master card deleted"
+        },
+        "access": {
+          "update": "Role access updated"
         }
       }
     }
