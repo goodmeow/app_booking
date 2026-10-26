@@ -7,6 +7,8 @@ const receptionist = { _id: "account-receptionist", role: "RECEPTIONIST", floor:
 const otherReceptionist = { _id: "account-receptionist-2", role: "RECEPTIONIST", floor: "2" };
 const attendee = { _id: "account-attendee", role: "USER" };
 const admin = { _id: "account-admin", role: "ADMIN" };
+const floorReceptionist = { _id: "account-receptionist", role: "RECEPTIONIST", floor: "2" };
+const otherFloorReceptionist = { _id: "account-receptionist-3", role: "RECEPTIONIST", floor: "3" };
 
 // Created by a receptionist for somebody else: the organizer owns the meeting,
 // booked_by remembers who typed it in.
@@ -57,4 +59,19 @@ test("the organizer keeps full access to a booking made for them", () => {
 test("booked_by is compared as a string so a UUID object still matches", () => {
   const event = { organizer_id: organizer._id, booked_by: { toString: () => receptionist._id } };
   assert.equal(canView(event, receptionist), true);
+});
+
+test("a receptionist covers meetings in every room on their floor", () => {
+  const event = { ...selfEvent, room_floors: ["2"] };
+  assert.equal(canView(event, floorReceptionist), true);
+  assert.equal(canMutate(event, floorReceptionist), true);
+  assert.equal(canView(event, otherFloorReceptionist), false);
+  assert.equal(canMutate(event, otherFloorReceptionist), false);
+});
+
+test("a multi-floor receptionist covers any of their floors", () => {
+  const multi = { _id: "account-receptionist-multi", role: "RECEPTIONIST", floors: ["5", "6"] };
+  const event = { ...selfEvent, room_floors: ["6"] };
+  assert.equal(canView(event, multi), true);
+  assert.equal(canMutate(event, multi), true);
 });

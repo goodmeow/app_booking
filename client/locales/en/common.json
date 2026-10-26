@@ -68,6 +68,7 @@
     "welcome": "Welcome, {{name}}"
   },
   "roles": {
+    "superAdmin": "Super Admin",
     "admin": "Admin",
     "user": "User",
     "receptionist": "Receptionist"

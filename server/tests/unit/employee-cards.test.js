@@ -103,6 +103,6 @@ test("employee_id is hidden from non-admin responses, own cards are not", () => 
   };
   const self = visibleAccount(account, { _id: account._id, role: "USER" });
   assert.deepEqual(Object.keys(self).sort(), ["_id", "cards", "name"]);
-  const admin = visibleAccount(account, { _id: "admin", role: "ADMIN" });
+  const admin = visibleAccount(account, { _id: "admin", role: "ADMIN" }, { manageUsers: true });
   assert.equal(admin.employee_id, "EMP-USER");
 });

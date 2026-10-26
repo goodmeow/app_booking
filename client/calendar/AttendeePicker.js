@@ -10,12 +10,12 @@ import {
   userIndexByEmail,
 } from "../domain/users/attendee-directory.js";
 import { useListUserQuery } from "../redux/services/users.js";
+import { useMenuAccess } from "../auth/use-menu-access.js";
 
 // Long enough to skip most keystrokes, short enough to feel responsive.
 const SEARCH_DEBOUNCE_MS = 300;
 
 const AttendeePicker = ({
-  isAdmin = false,
   users = [],
   attendees = [],
   value = [],
@@ -23,17 +23,21 @@ const AttendeePicker = ({
   onChange,
 }) => {
   const { t } = useTranslation(["calendar", "common"]);
+  const { can } = useMenuAccess();
+  // The full management list is a Users-menu capability, not an admin-role
+  // capability. An admin without that menu uses the search path instead.
+  const canListAllUsers = can("users");
   const [inputValue, setInputValue] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Admins keep the full management list; everyone else searches on demand so
-  // the whole directory is never sent to a regular user.
-  const adminQuery = useListUserQuery(undefined, { skip: !isAdmin });
-  const searchQuery = useListUserQuery({ q: searchTerm }, { skip: isAdmin || !searchTerm });
-  const activeQuery = isAdmin ? adminQuery : searchQuery;
+  // Users-menu roles keep the full management list; everyone else searches on
+  // demand so the whole directory is never sent to a regular user.
+  const adminQuery = useListUserQuery(undefined, { skip: !canListAllUsers });
+  const searchQuery = useListUserQuery({ q: searchTerm }, { skip: canListAllUsers || !searchTerm });
+  const activeQuery = canListAllUsers ? adminQuery : searchQuery;
 
   useEffect(() => {
-    if (isAdmin) {
+    if (canListAllUsers) {
       setSearchTerm("");
       return undefined;
     }
@@ -44,7 +48,7 @@ const AttendeePicker = ({
     }
     const timer = setTimeout(() => setSearchTerm(term), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [inputValue, isAdmin]);
+  }, [inputValue, canListAllUsers]);
 
   const resultIndex = useMemo(() => userIndexByEmail(activeQuery.data), [activeQuery.data]);
   const [knownUsers, setKnownUsers] = useState(() => new Map());
@@ -69,17 +73,17 @@ const AttendeePicker = ({
   );
 
   const options = useMemo(
-    () => directoryEmails(isAdmin ? users : activeQuery.data),
-    [isAdmin, users, activeQuery.data]
+    () => directoryEmails(canListAllUsers ? users : activeQuery.data),
+    [canListAllUsers, users, activeQuery.data]
   );
 
   const typedTerm = directoryQuery(inputValue);
-  const needsMoreCharacters = !isAdmin && typedTerm.length < MIN_DIRECTORY_QUERY_LENGTH;
-  const searching = !isAdmin && !needsMoreCharacters && (activeQuery.isFetching || !searchTerm);
+  const needsMoreCharacters = !canListAllUsers && typedTerm.length < MIN_DIRECTORY_QUERY_LENGTH;
+  const searching = !canListAllUsers && !needsMoreCharacters && (activeQuery.isFetching || !searchTerm);
   const noOptionsText = needsMoreCharacters
     ? t("editor.attendeeSearchHint")
     : t("editor.attendeeNoOptions");
-  const helperText = !isAdmin && searchQuery.isError
+  const helperText = !canListAllUsers && searchQuery.isError
     ? getApiError(searchQuery.error, t("calendar.usersLoadError"))
     : (needsMoreCharacters ? t("editor.attendeeSearchHint") : undefined);
 
@@ -110,7 +114,7 @@ const AttendeePicker = ({
       onInputChange={changeInput}
       // Search results are already narrowed by the server; admin options are
       // filtered locally as before.
-      filterOptions={isAdmin ? undefined : (available) => available}
+      filterOptions={canListAllUsers ? undefined : (available) => available}
       getOptionLabel={(option) => (typeof option === "string" ? option : option?.email || "")}
       loading={searching}
       loadingText={t("editor.attendeeSearching")}
@@ -129,7 +133,7 @@ const AttendeePicker = ({
         <TextField
           {...params}
           label={t("editor.attendees")}
-          error={!isAdmin && searchQuery.isError}
+          error={!canListAllUsers && searchQuery.isError}
           helperText={helperText}
         />
       )}

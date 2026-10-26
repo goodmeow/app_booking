@@ -1,7 +1,8 @@
 {
   "page": {
     "title": "Management",
-    "navigation": "Management sections"
+    "navigation": "Management sections",
+    "noAccess": "No management menu is enabled for this account."
   },
   "cards": {
     "title": "Access Cards",
@@ -93,7 +94,6 @@
     "importErrorRow": "Row {{row}} ({{employee}}): {{message}}",
     "importParseError": "Invalid CSV.",
     "importError": "Import failed.",
-
     "createTitle": "Add User",
     "editTitle": "Edit User",
     "deleteTitle": "Delete User",
@@ -170,7 +170,8 @@
     "passwordTooShort": "Password is too short — at least 8 characters are required.",
     "mustChangePassword": "Require password change at next login",
     "mustChangePasswordHelp": "The user must set a new password before using the CMS.",
-    "roleClear": "Clear role filter"
+    "roleClear": "Clear role filter",
+    "protectedRoleHelp": "The setup account keeps the Super Admin role."
   },
   "settings": {
     "tab": "Settings",
@@ -213,7 +214,66 @@
     "selfSignupHelp": "When off, the Sign Up button and the /signup page are hidden, and the server rejects public registrations. Create employee accounts under Users instead.",
     "saved": "Setting saved.",
     "saveError": "Unable to save the setting.",
-    "loading": "Loading settings..."
+    "loading": "Loading settings...",
+    "roleAccess": {
+      "title": "User Role Management",
+      "description": "Choose which CMS menus each role may open. Changes apply to new requests immediately; the super admin always keeps full access.",
+      "role": "Role",
+      "menu": {
+        "calendar": "Calendar",
+        "report": "Report",
+        "users": "Users",
+        "rooms": "Rooms",
+        "devices": "Devices",
+        "settings": "Settings"
+      },
+      "save": "Save matrix",
+      "saving": "Saving...",
+      "saved": "Role matrix saved.",
+      "saveError": "Could not save the role matrix.",
+      "loadError": "Could not load the role matrix.",
+      "loading": "Loading role matrix...",
+      "superAdminHint": "Super Admin is fixed to full access and cannot be changed.",
+      "toggleAria": "{{role}} may open {{menu}}"
+    },
+    "audit": {
+      "title": "Audit log",
+      "description": "Recent sensitive changes: roles, floors, cards, and settings.",
+      "time": "Time",
+      "actor": "Actor",
+      "action": "Action",
+      "details": "Details",
+      "empty": "No audit entries yet.",
+      "loading": "Loading audit log...",
+      "loadError": "Could not load the audit log.",
+      "actions": {
+        "user": {
+          "create": "User created",
+          "update": "User updated",
+          "delete": "User deleted",
+          "card": {
+            "add": "Card added",
+            "status": "Card status changed",
+            "master": "Master card changed"
+          },
+          "password": {
+            "reset": "Password reset"
+          }
+        },
+        "settings": {
+          "update": "Settings updated",
+          "backup": "Backup run"
+        },
+        "card_master": {
+          "create": "Master card added",
+          "update": "Master card updated",
+          "delete": "Master card deleted"
+        },
+        "access": {
+          "update": "Role access updated"
+        }
+      }
+    }
   },
   "branding": {
     "tab": "Branding",

@@ -1,4 +1,6 @@
 import express from "express";
+import accessRoutes from "../features/access/menu-access.routes.js";
+import auditRoutes from "../features/audit/audit.routes.js";
 import authRoutes, { doorRoute } from "../features/auth/auth.routes.js";
 import brandingRoutes from "../features/branding/branding.routes.js";
 import eventRoutes from "../features/events/event.routes.js";
@@ -18,6 +20,8 @@ router.get("/health", (req, res) => res.json({ ok: true }));
 // has no account to sign in with yet.
 router.use("/setup", setupRoutes);
 router.use("/auth", authRoutes);
+router.use("/access", accessRoutes);
+router.use("/audit", auditRoutes);
 router.use("/branding", brandingRoutes);
 router.use("/events", eventRoutes);
 router.use("/kiosk", kioskRoutes);

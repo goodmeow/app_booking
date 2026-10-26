@@ -66,7 +66,7 @@ test("a fresh database creates the first admin once and then locks setup", async
     assert.equal(created.status, 201);
     assert.deepEqual(Object.keys(created.body.user).sort(), ["_id", "email", "name", "role"]);
     assert.equal(created.body.user.email, BOOTSTRAP_EMAIL);
-    assert.equal(created.body.user.role, "ADMIN");
+    assert.equal(created.body.user.role, "SUPER_ADMIN");
 
     const account = await queryParityDatabase(`
       SELECT
@@ -81,7 +81,7 @@ test("a fresh database creates the first admin once and then locks setup", async
       JOIN tbl_role r ON r._id = u.role_id
       WHERE u.email = '${BOOTSTRAP_EMAIL}';
     `);
-    assert.equal(account, `employee|${BOOTSTRAP_EMPLOYEE_ID}||f|f|t|admin`);
+    assert.equal(account, `employee|${BOOTSTRAP_EMPLOYEE_ID}||f|f|t|super_admin`);
 
     const login = await apiRequest(targets.reconstructed, "/api/auth/signin", {
       method: "POST",

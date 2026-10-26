@@ -25,6 +25,9 @@ import {
   SETTINGS_NUMBER_FIELDS,
 } from "./settings-form.js";
 import BrandingSection from "./BrandingSection.js";
+import RoleAccessMatrix from "./RoleAccessMatrix.js";
+import AuditLogSection from "./AuditLogSection.js";
+import { useMenuAccess } from "../auth/use-menu-access.js";
 
 const NUMBER_FIELD_LABELS = {
   not_checked_in_time_limit: { label: "settings.checkInLimit", help: "settings.checkInLimitHelp" },
@@ -37,6 +40,7 @@ const NUMBER_FIELD_LABELS = {
 // payload always carries the whole settings row.
 const SettingsSection = () => {
   const { i18n, t } = useTranslation("management");
+  const { isSuperAdmin } = useMenuAccess();
   const weekdayLabel = (day) => new Intl.DateTimeFormat(
     i18n.resolvedLanguage || i18n.language || "en",
     { weekday: "long" }
@@ -239,6 +243,15 @@ const SettingsSection = () => {
 
       <Divider sx={{ my: 4 }} />
       <BrandingSection />
+
+      {isSuperAdmin ? (
+        <>
+          <Divider sx={{ my: 4 }} />
+          <RoleAccessMatrix />
+          <Divider sx={{ my: 4 }} />
+          <AuditLogSection />
+        </>
+      ) : null}
     </Box>
   );
 };

@@ -78,3 +78,9 @@ Riwayat isi paket:
   tanpa five-tap kedua. Dipasang di tablet Lt3, footer
   `v1.3.8 (19) · CMS 3.11.0`. Paket distribusi 21.513.747 byte, SHA-256
   `255c95755d606a2ab2cf90696e72f8f415b572a9fc78e2c114238e4788a025b0`.
+
+- 2026-10-26: rebuild 1.3.8 (versionCode 19), build tag
+  `1.3.8-19-85ca335`—pill `TERSEDIA` 44 px dan hanya membesar pada state
+  tersedia; state kosong memakai copy netral **Siap digunakan / Belum ada
+  jadwal berikutnya**. Paket distribusi 21.514.430 byte, SHA-256
+  `ad21fbd777aad4d8f40da55c5879b930b15bb2cb0acd989088127b09a75735ab`.

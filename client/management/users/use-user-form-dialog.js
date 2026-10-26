@@ -40,6 +40,9 @@ export const useUserFormDialog = ({ t, onSaved }) => {
       master_card: Boolean(editUser.is_master_card),
       must_change_password: Boolean(editUser.must_change_password),
       floor: editUser.floor || "",
+      floors: Array.isArray(editUser.floors) && editUser.floors.length
+        ? editUser.floors
+        : (editUser.floor ? [editUser.floor] : []),
       roleId: editUser.role_id || ROLE_IDS.USER,
     });
   }, [editUser, editUserId]);
@@ -112,6 +115,7 @@ export const useUserFormDialog = ({ t, onSaved }) => {
       master_card: Boolean(form.master_card),
       must_change_password: Boolean(form.must_change_password),
       floor: form.floor,
+      floors: form.floors,
       roleId: form.roleId,
     };
 
@@ -141,6 +145,7 @@ export const useUserFormDialog = ({ t, onSaved }) => {
   return {
     formMode,
     form,
+    isProtectedAccount: Boolean(editUser?.is_protected),
     setForm,
     formError,
     detailError: isDetailError ? detailError : null,

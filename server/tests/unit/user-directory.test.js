@@ -5,8 +5,8 @@ import { directoryEmployee, directoryScope, publicEmployee } from "../../feature
 const employee = { ...{ name: "Karyawan Uji", email: "emp@uji.local" }, role: "USER" };
 
 test("a non-admin without a search term only reads their own floor", () => {
-  assert.deepEqual(directoryScope({ ...employee, floor: "1" }), { scope: "floor", floor: "1" });
-  assert.deepEqual(directoryScope({ ...employee, floor: " 2 " }), { scope: "floor", floor: "2" });
+  assert.deepEqual(directoryScope({ ...employee, floor: "1" }), { scope: "floor", floors: ["1"] });
+  assert.deepEqual(directoryScope({ ...employee, floor: " 2 " }), { scope: "floor", floors: ["2"] });
 });
 
 test("a non-admin without a work floor gets no directory at all", () => {
@@ -18,8 +18,8 @@ test("a non-admin without a work floor gets no directory at all", () => {
 });
 
 test("the all floor group lists the whole directory, still limited to minimal fields", () => {
-  assert.deepEqual(directoryScope({ ...employee, floor: "all" }), { scope: "floor", floor: null });
-  assert.deepEqual(directoryScope({ ...employee, floor: "ALL" }), { scope: "floor", floor: null });
+  assert.deepEqual(directoryScope({ ...employee, floor: "all" }), { scope: "floor", floors: null });
+  assert.deepEqual(directoryScope({ ...employee, floor: "ALL" }), { scope: "floor", floors: null });
 });
 
 test("a search term looks across floors and is capped at twenty rows", () => {
@@ -61,4 +61,11 @@ test("directory rows keep identity fields only, whatever the query returned", ()
   assert.deepEqual(Object.keys(directoryEmployee(row)).sort(), ["_id", "email", "name", "type"]);
   // The older blacklist projection is kept as the second line of defence.
   assert.deepEqual(Object.keys(publicEmployee(row)).sort(), ["_id", "email", "name", "type", "username"]);
+});
+
+test("a multi-floor user reads every listed floor", () => {
+  assert.deepEqual(
+    directoryScope({ ...employee, floors: ["1", "2"] }),
+    { scope: "floor", floors: ["1", "2"] }
+  );
 });

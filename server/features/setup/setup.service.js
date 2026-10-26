@@ -4,7 +4,7 @@ import { badRequest, conflict } from "../../lib/http-error.js";
 import { normalizedEmail, validatedPassword } from "../accounts/identity.validation.js";
 import { identityConflictCode, normalizedEmployeeId } from "../users/user.service.js";
 import {
-  findAdminRoleId,
+  findSuperAdminRoleId,
   getSetupState,
   insertDefaultSettings,
   insertFirstAdmin,
@@ -15,9 +15,10 @@ import {
 // Used when the operator leaves the employee ID empty on the setup form.
 export const DEFAULT_ADMIN_EMPLOYEE_ID = "ADMIN-001";
 
-// Setup is still needed only while the flag is unset and no admin exists.
-// The admin check keeps an installation whose seed (or a manual import) created
-// an admin before the flag was written from exposing the bootstrap form again.
+// Setup is still needed only while the flag is unset and no privileged
+// account exists. The account check keeps an installation whose seed (or a
+// manual import) created an admin before the flag was written from exposing the
+// bootstrap form again.
 export const setupRequired = ({ setup_completed: setupCompleted, has_admin: hasAdmin } = {}) =>
   setupCompleted !== true && hasAdmin !== true;
 
@@ -52,9 +53,9 @@ export const completeSetup = async (body) => {
       if (!setupRequired(await getSetupState(execute))) {
         throw conflict("SETUP_COMPLETED", "Initial setup is already completed");
       }
-      const roleId = await findAdminRoleId(execute);
+      const roleId = await findSuperAdminRoleId(execute);
       if (!roleId) {
-        throw badRequest("ADMIN_ROLE_MISSING", "The admin role is not configured; seed tbl_role before setup");
+        throw badRequest("SUPER_ADMIN_ROLE_MISSING", "The super admin role is not configured; run the migrations before setup");
       }
       const created = await insertFirstAdmin({
         name: values.name,
@@ -67,7 +68,7 @@ export const completeSetup = async (body) => {
       await markSetupCompleted(execute);
       return created;
     });
-    return { _id: user._id, name: user.name, email: user.email, role: "ADMIN" };
+    return { _id: user._id, name: user.name, email: user.email, role: "SUPER_ADMIN" };
   } catch (error) {
     mapSetupError(error);
   }

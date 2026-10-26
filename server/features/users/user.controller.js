@@ -11,13 +11,24 @@ import {
   reactivateUserCard,
 } from "./user.service.js";
 import { importUsers } from "./user.import.service.js";
+import { roleAllowsMenu } from "../access/menu-access.repository.js";
+import { isSuperAdminRole } from "../../lib/roles.js";
+
+const canManageUsers = async (principal) =>
+  isSuperAdminRole(principal?.role) || await roleAllowsMenu(principal?.role, "users");
 
 const run = (handler) => async (req, res, next) => {
   try { await handler(req, res); } catch (error) { next(error); }
 };
 
-export const list = run(async (req, res) => res.json(await getUsers(req.auth, req.query)));
-export const read = run(async (req, res) => res.json(await getUser(req.params.userId, req.auth)));
+export const list = run(async (req, res) => {
+  const manageUsers = await canManageUsers(req.auth);
+  res.json(await getUsers(req.auth, req.query, { manageUsers }));
+});
+export const read = run(async (req, res) => {
+  const manageUsers = await canManageUsers(req.auth);
+  res.json(await getUser(req.params.userId, req.auth, { manageUsers }));
+});
 export const create = run(async (req, res) => res.status(201).json(await createUser(req.body, req.auth)));
 export const bulkImport = run(async (req, res) => res.json(await importUsers(req.body, req.auth)));
 export const update = run(async (req, res) => res.json(await editUser(req.params.userId, req.body, req.auth)));
@@ -26,7 +37,7 @@ export const remove = run(async (req, res) => res.json(await deleteUser(req.para
 // POST /api/users/:userId/cards — a second card is allowed, a third active card
 // is not. The service owns the limit, the controller only forwards the number.
 export const addCard = run(async (req, res) => {
-  const card = await addUserCard(req.params.userId, req.body?.card_number);
+  const card = await addUserCard(req.params.userId, req.body?.card_number, { principal: req.auth });
   res.status(201).json(card);
 });
 

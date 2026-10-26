@@ -1,7 +1,8 @@
 {
   "page": {
     "title": "Manajemen",
-    "navigation": "Bagian manajemen"
+    "navigation": "Bagian manajemen",
+    "noAccess": "Tidak ada menu manajemen yang aktif untuk akun ini."
   },
   "cards": {
     "title": "Kartu Akses",
@@ -93,7 +94,6 @@
     "importErrorRow": "Baris {{row}} ({{employee}}): {{message}}",
     "importParseError": "CSV tidak valid.",
     "importError": "Import gagal.",
-
     "createTitle": "Tambah Pengguna",
     "editTitle": "Edit Pengguna",
     "deleteTitle": "Hapus Pengguna",
@@ -170,7 +170,8 @@
     "passwordTooShort": "Kata sandi terlalu pendek — minimal 8 karakter.",
     "mustChangePassword": "Wajib ganti kata sandi saat login berikutnya",
     "mustChangePasswordHelp": "Pengguna harus membuat kata sandi baru sebelum memakai CMS.",
-    "roleClear": "Hapus filter peran"
+    "roleClear": "Hapus filter peran",
+    "protectedRoleHelp": "Akun setup selalu memakai peran Super Admin."
   },
   "settings": {
     "tab": "Pengaturan",
@@ -213,7 +214,66 @@
     "selfSignupHelp": "Saat mati, tombol Daftar dan halaman /signup disembunyikan, dan server menolak pendaftaran publik. Buat akun karyawan lewat tab Pengguna.",
     "saved": "Pengaturan tersimpan.",
     "saveError": "Tidak dapat menyimpan pengaturan.",
-    "loading": "Memuat pengaturan..."
+    "loading": "Memuat pengaturan...",
+    "roleAccess": {
+      "title": "Manajemen Peran Pengguna",
+      "description": "Pilih menu CMS yang boleh dibuka setiap peran. Perubahan langsung berlaku untuk permintaan berikutnya; Super Admin selalu memiliki akses penuh.",
+      "role": "Peran",
+      "menu": {
+        "calendar": "Kalender",
+        "report": "Laporan",
+        "users": "Pengguna",
+        "rooms": "Ruangan",
+        "devices": "Perangkat",
+        "settings": "Pengaturan"
+      },
+      "save": "Simpan matriks",
+      "saving": "Menyimpan...",
+      "saved": "Matriks peran tersimpan.",
+      "saveError": "Gagal menyimpan matriks peran.",
+      "loadError": "Gagal memuat matriks peran.",
+      "loading": "Memuat matriks peran...",
+      "superAdminHint": "Super Admin selalu memiliki akses penuh dan tidak dapat diubah.",
+      "toggleAria": "{{role}} boleh membuka {{menu}}"
+    },
+    "audit": {
+      "title": "Log audit",
+      "description": "Perubahan sensitif terbaru: peran, lantai, kartu, dan pengaturan.",
+      "time": "Waktu",
+      "actor": "Pelaku",
+      "action": "Aksi",
+      "details": "Detail",
+      "empty": "Belum ada entri audit.",
+      "loading": "Memuat log audit...",
+      "loadError": "Gagal memuat log audit.",
+      "actions": {
+        "user": {
+          "create": "Pengguna dibuat",
+          "update": "Pengguna diubah",
+          "delete": "Pengguna dihapus",
+          "card": {
+            "add": "Kartu ditambahkan",
+            "status": "Status kartu diubah",
+            "master": "Master card diubah"
+          },
+          "password": {
+            "reset": "Kata sandi direset"
+          }
+        },
+        "settings": {
+          "update": "Pengaturan diubah",
+          "backup": "Backup dijalankan"
+        },
+        "card_master": {
+          "create": "Master card ditambah",
+          "update": "Master card diubah",
+          "delete": "Master card dihapus"
+        },
+        "access": {
+          "update": "Akses peran diubah"
+        }
+      }
+    }
   },
   "branding": {
     "tab": "Branding",

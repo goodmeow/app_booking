@@ -1,24 +1,47 @@
-import React, { useState } from "react";
-import { Container, Paper, Tab, Tabs, Typography } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { Alert, Container, Paper, Tab, Tabs, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import RoomManagementSection from "./RoomManagementSection.js";
 import UserManagementSection from "./UserManagementSection.js";
 import KioskDeviceManagementSection from "./KioskDeviceManagementSection.js";
 import SettingsSection from "./SettingsSection.js";
+import { useMenuAccess } from "../auth/use-menu-access.js";
 
 const AppManagement = () => {
   const { t } = useTranslation("management");
   const location = useLocation();
   const requestedSection = new URLSearchParams(location.search).get("section");
   const [section, setSection] = useState(requestedSection || "users");
-  const sections = [
-    { value: "users", label: t("users.title"), content: <UserManagementSection /> },
-    { value: "rooms", label: t("rooms.title"), content: <RoomManagementSection /> },
-    { value: "devices", label: t("devices.title"), content: <KioskDeviceManagementSection /> },
-    { value: "settings", label: t("settings.tab"), content: <SettingsSection /> },
+  const { can, isLoading } = useMenuAccess();
+  const allSections = [
+    { value: "users", menu: "users", label: t("users.title"), content: <UserManagementSection /> },
+    { value: "rooms", menu: "rooms", label: t("rooms.title"), content: <RoomManagementSection /> },
+    { value: "devices", menu: "devices", label: t("devices.title"), content: <KioskDeviceManagementSection /> },
+    { value: "settings", menu: "settings", label: t("settings.tab"), content: <SettingsSection /> },
   ];
+  const sections = allSections.filter((item) => can(item.menu));
+  const visibleValues = sections.map((item) => item.value).join(",");
+  useEffect(() => {
+    if (!sections.some((item) => item.value === section)) setSection(sections[0]?.value || "");
+  }, [section, visibleValues]);
   const active = sections.find((item) => item.value === section) || sections[0];
+
+  if (isLoading) {
+    return (
+      <Container maxWidth={false} sx={{ py: 4 }}>
+        <Typography>{t("common:states.loading")}</Typography>
+      </Container>
+    );
+  }
+
+  if (!active) {
+    return (
+      <Container maxWidth={false} sx={{ py: 4 }}>
+        <Alert severity="warning">{t("page.noAccess")}</Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth={false} sx={{ py: 4 }}>

@@ -34,6 +34,7 @@ const CalendarSidebar = ({
   onDateChange,
   rooms = [],
   floor = "",
+  floors = [],
   showAllFloors = false,
   showFloorSchedule = false,
   isAdmin = false,
@@ -47,6 +48,7 @@ const CalendarSidebar = ({
 }) => {
   const { i18n, t } = useTranslation("calendar");
   const dateLocale = calendarLocaleForLanguage(i18n.resolvedLanguage || i18n.language);
+  const floorScope = floors.length ? floors.join(", ") : floor;
 
   return (
   <Box
@@ -105,8 +107,8 @@ const CalendarSidebar = ({
           <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
             {showAllFloors
               ? t("calendar.floorScopeAll")
-              : floor
-                ? t("calendar.floorScope", { floor })
+              : floorScope
+                ? t("calendar.floorScope", { floor: floorScope })
                 : t("calendar.floorMissing")}
           </Typography>
           <Autocomplete

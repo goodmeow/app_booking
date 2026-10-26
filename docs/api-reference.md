@@ -56,7 +56,7 @@ Database baru tidak punya akun sama sekali, sehingga dua endpoint ini publik
 | Method & path | Akses | Body | Sukses | Error penting |
 |---|---|---|---|---|
 | `GET /api/setup/status` | Publik | – | `200 {required:boolean}` | `429 RATE_LIMITED` (60/15 menit/IP) |
-| `POST /api/setup` | Publik | `{name, email, password, employeeId?}` | `201 {message, user:{_id,name,email,role}}` | `409 SETUP_COMPLETED`, `400 INVALID_SETUP/INVALID_EMAIL/INVALID_PASSWORD/INVALID_EMPLOYEE_ID/ADMIN_ROLE_MISSING`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS`, `429 RATE_LIMITED` (5/jam/IP) |
+| `POST /api/setup` | Publik | `{name, email, password, employeeId?}` | `201 {message, user:{_id,name,email,role}}` | `409 SETUP_COMPLETED`, `400 INVALID_SETUP/INVALID_EMAIL/INVALID_PASSWORD/INVALID_EMPLOYEE_ID/SUPER_ADMIN_ROLE_MISSING`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS`, `429 RATE_LIMITED` (5/jam/IP) |
 
 Catatan:
 - `required=true` bila `tbl_app_settings.setup_completed` belum `true` **dan**
@@ -66,7 +66,7 @@ Catatan:
   berikutnya (dan panggilan pada database yang sudah punya admin) ditolak
   `409 SETUP_COMPLETED`. Pemeriksaan admin aktif juga menjaga database lama yang
   flag-nya belum pernah diset.
-- Akun dibuat sebagai `type='employee'`, role `admin`, `floor=NULL`,
+- Akun dibuat sebagai `type='employee'`, role `super_admin`, `floor=NULL`,
   `must_change_password=false`, password bcrypt cost 12, dan `employeeId`
   default `ADMIN-001` bila dikosongkan (format 1–40 huruf/angka/`.`/`-`/`_`,
   harus unik). Bila baris `tbl_app_settings` belum ada, satu baris default
@@ -75,8 +75,20 @@ Catatan:
   `available_color='05'`, `will_start_color='08'`, `on_meeting_color='04'`)
   dengan `setup_completed=true`. User, settings, dan flag ditulis dalam satu
   transaksi.
-- `ADMIN_ROLE_MISSING` (400) berarti `tbl_role` belum berisi role `admin`;
-  seed role dulu (lihat operations runbook).
+- `SUPER_ADMIN_ROLE_MISSING` (400) berarti migrasi belum mengisi role
+  `super_admin`; jalankan migrasi sebelum setup.
+
+### 2.2 Matrix menu dan audit
+
+| Method & path | Akses | Body / query | Sukses |
+|---|---|---|---|
+| `GET /api/access/menus` | JWT | – | `200 {menus:[...]}` menu yang boleh dibuka role pemanggil |
+| `GET /api/access/matrix` | Super admin | – | `200 {menus, roles, access}` |
+| `PUT /api/access/matrix` | Super admin | `{access:[{role_name,menu_key,allowed}]}` | `200` matrix terbaru |
+| `GET /api/audit` | Super admin | `limit`, `entity_type`, `entity_id` | `200` array audit terbaru |
+
+`super_admin` selalu memiliki semua menu dan tidak dapat diubah dari matrix.
+Perubahan role, lantai, kartu, dan settings dicatat ke `tbl_audit_log`.
 
 ## 3. Users
 
@@ -119,7 +131,7 @@ Catatan:
   tetap dipakai sebagai lapisan kedua supaya `employee_id`, `card_number`,
   `cards`, `is_master_card`, dan `floor` tidak pernah lolos.
 - `roleId` wajib UUID; nilai non-UUID ditolak `400` sebelum menyentuh DB.
-- Role yang tersedia: `admin`, `user`, dan `receptionist` (case-insensitive;
+- Role yang tersedia: `super_admin`, `admin`, `user`, dan `receptionist` (case-insensitive;
   JWT membawa bentuk upper-case). `receptionist` adalah role global yang boleh
   membuat booking atas nama karyawan lain, tetapi hanya untuk ruangan di
   lantainya sendiri; tanpa `floor` ia hanya bisa mencari lewat `?q=` dan tidak
@@ -195,8 +207,8 @@ Catatan penting:
 - Untuk single booking, `organizer` di body tidak menentukan pemilik; server
   memakai principal JWT.
 - `organizer_email` (opsional, hanya dibaca saat **create**) memindahkan
-  kepemilikan booking ke karyawan lain. Hanya principal dengan role `ADMIN`
-  atau `RECEPTIONIST` yang boleh mengisinya; role lain ditolak
+  kepemilikan booking ke karyawan lain. Hanya principal dengan role `ADMIN`,
+  `SUPER_ADMIN`, atau `RECEPTIONIST` yang boleh mengisinya; role lain ditolak
   `403 FORBIDDEN`. Email dinormalkan (trim + lower-case) dan harus milik akun
   `type='employee'` yang aktif; selain itu `400 INVALID_ORGANIZER`.
 - Booking atas nama tetap milik karyawan (`organizer_id` dan `organizer`), dan

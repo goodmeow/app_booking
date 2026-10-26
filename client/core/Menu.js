@@ -23,6 +23,7 @@ import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { useDetailUserQuery } from "../redux/services/users.js";
 import { useGetBrandingQuery, useGetPublicSettingsQuery } from "../redux/services/settings.js";
 import { brandAsset } from "./brand-assets.js";
+import { useMenuAccess } from "../auth/use-menu-access.js";
 
 const BrandLockup = () => {
   const { t } = useTranslation("common");
@@ -99,7 +100,7 @@ const Menu = () => {
   const mobile = useMediaQuery(theme.breakpoints.down("md"));
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const session = isAuthenticated();
-  const admin = session?.user?.role === "ADMIN";
+  const { can, canManage } = useMenuAccess();
   const { data: currentUser } = useDetailUserQuery(session?.user?._id, { skip: !session?.user?._id });
   const { data: publicSettings } = useGetPublicSettingsQuery();
   const { data: branding } = useGetBrandingQuery();
@@ -112,7 +113,8 @@ const Menu = () => {
   };
   const handleSignout = () => signout(() => history.push("/"));
   const navItems = [
-    ...(admin ? [{ to: "/app-management", label: t("nav.management") }, { to: "/report", label: t("nav.report") }] : []),
+    ...(canManage ? [{ to: "/app-management", label: t("nav.management") }] : []),
+    ...(can("report") ? [{ to: "/report", label: t("nav.report") }] : []),
     ...(!session && signupEnabled ? [{ to: "/signup", label: t("nav.signUp") }] : []),
     ...(!session ? [{ to: "/signin", label: t("nav.signIn") }] : []),
     ...(session ? [{ to: `/user/${session.user._id}`, label: t("nav.myProfile") }] : []),
@@ -156,9 +158,11 @@ const Menu = () => {
           </Box>
           <Divider />
           <List>
-            <ListItemButton component={Link} to="/" selected={location.pathname === "/"} onClick={closeDrawer}>
-              <ListItemText primary={t("nav.calendar")} />
-            </ListItemButton>
+            {can("calendar") ? (
+              <ListItemButton component={Link} to="/" selected={location.pathname === "/"} onClick={closeDrawer}>
+                <ListItemText primary={t("nav.calendar")} />
+              </ListItemButton>
+            ) : null}
             {navItems.map(({ to, label }) => (
               <ListItemButton key={to} component={Link} to={to} selected={location.pathname === to} onClick={closeDrawer}>
                 <ListItemText primary={label} />

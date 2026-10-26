@@ -10,11 +10,14 @@ export const createEmptyUserForm = () => ({
   master_card: false,
   must_change_password: false,
   floor: "",
+  floors: [],
   roleId: ROLE_IDS.USER,
 });
 
 // An empty or whitespace-only floor counts as not filled in.
-export const hasFloor = (user) => String(user?.floor ?? "").trim() !== "";
+export const hasFloor = (user) =>
+  (Array.isArray(user?.floors) && user.floors.some((floor) => String(floor ?? "").trim() !== ""))
+  || String(user?.floor ?? "").trim() !== "";
 
 export const EMPLOYEE_ID_MAX_LENGTH = 40;
 

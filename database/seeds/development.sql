@@ -3,6 +3,8 @@
 BEGIN;
 
 TRUNCATE TABLE
+  tbl_audit_log,
+  tbl_role_menu_access,
   tbl_kiosk_devices,
   tbl_user_cards,
   tbl_event_rooms,
@@ -20,9 +22,16 @@ TRUNCATE TABLE
 -- No demo account uses it by default; a receptionist is created through the CMS
 -- or by a regression test.
 INSERT INTO tbl_role (_id, role_name, is_deleted) VALUES
+  ('a1e5d7c9-2b64-4f38-9a10-7c3d5e8f6b21', 'super_admin', false),
   ('471ba030-c950-41f9-90da-4e0fe10426a6', 'admin', false),
   ('67e9500b-908a-497d-9d3b-54bc020700cb', 'user', false),
   ('3f6a9c2e-8b41-4d7a-9e52-6c0b8a1d4f73', 'receptionist', false);
+
+INSERT INTO tbl_role_menu_access (role_id, menu_key, allowed)
+SELECT r._id, m.menu_key,
+       lower(r.role_name) IN ('super_admin', 'admin') OR m.menu_key = 'calendar'
+FROM tbl_role r
+CROSS JOIN (VALUES ('calendar'), ('report'), ('users'), ('rooms'), ('devices'), ('settings')) AS m(menu_key);
 
 INSERT INTO tbl_users
   (_id, name, email, password, role_id, employee_id, is_deleted, type)

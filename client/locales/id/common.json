@@ -68,6 +68,7 @@
     "welcome": "Selamat datang, {{name}}"
   },
   "roles": {
+    "superAdmin": "Super Admin",
     "admin": "Admin",
     "user": "Pengguna",
     "receptionist": "Resepsionis"

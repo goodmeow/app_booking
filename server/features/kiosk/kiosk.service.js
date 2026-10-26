@@ -6,6 +6,7 @@ import path from "node:path";
 import config from "../../../config/config.js";
 import { withTransaction } from "../../db/pool.js";
 import { badRequest, conflict, forbidden, HttpError, notFound } from "../../lib/http-error.js";
+import { coversAllFloors, coversFloor, effectiveFloors } from "../../lib/floors.js";
 import { finishEventNow, markCheckedIn, releaseAbandonedRoomBookings } from "../events/event.repository.js";
 import { hasDoorCard } from "../auth/auth.repository.js";
 import { formatLocalTime, zonedParts, zonedPartsToDate } from "../events/event-time.js";
@@ -341,20 +342,20 @@ const clampMinutes = (value, fallback, min, max) => {
   return Math.min(max, Math.max(min, Math.round(minutes)));
 };
 
-// The kiosk card must belong to an active employee whose floor matches the room.
-// Used by instant booking and by scheduled booking for today.
+// The kiosk card must belong to an active employee whose floor list covers the
+// room. Used by instant booking and by scheduled booking for today.
 const resolveKioskEmployeeByCard = async (cardNumber, room) => {
   const card = String(cardNumber || "").trim();
   if (!card) throw badRequest("INVALID_CARD", "Card number is required");
   const employee = await findEmployeeByCard(card);
   if (!employee) throw badRequest("INVALID_CARD", "Card number not found");
-  const employeeFloor = String(employee.floor || "").trim();
+  const employeeFloors = effectiveFloors(employee);
   const roomFloor = String(room.floor || "").trim();
-  if (!employeeFloor) {
+  if (!employeeFloors.length) {
     throw new HttpError(403, "FLOOR_REQUIRED", "This card is not linked to a work floor. Ask an admin to set it in Management > Users.");
   }
-  if (employeeFloor.toLowerCase() !== "all" && employeeFloor !== roomFloor) {
-    throw new HttpError(403, "FLOOR_RESTRICTED", `This card is registered on floor ${employeeFloor}, but this room is on floor ${roomFloor}.`);
+  if (!coversAllFloors(employee) && !coversFloor(employee, roomFloor)) {
+    throw new HttpError(403, "FLOOR_RESTRICTED", `This card is registered on floor ${employeeFloors.join(", ")}, but this room is on floor ${roomFloor}.`);
   }
   return employee;
 };
@@ -479,7 +480,7 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
       end_date: window.end.toISOString(),
       attendee_email: room.email,
     }],
-    { _id: employee._id, email: employee.email, name: employee.name, role: "USER", floor: employee.floor }
+    { _id: employee._id, email: employee.email, name: employee.name, role: "USER", floor: employee.floor, floors: employee.floors }
   );
   const first = Array.isArray(created) ? created[0] : null;
   // An instant booking at the kiosk means the person is already in the room, so
@@ -513,7 +514,7 @@ export const bookKioskSlot = async ({ card_number: cardNumber, start, end }, roo
       end_date: slot.endDate.toISOString(),
       attendee_email: room.email,
     }],
-    { _id: employee._id, email: employee.email, name: employee.name, role: "USER", floor: employee.floor }
+    { _id: employee._id, email: employee.email, name: employee.name, role: "USER", floor: employee.floor, floors: employee.floors }
   );
   const first = Array.isArray(created) ? created[0] : null;
   if (first?.id && slot.startsNow) await markCheckedIn(first.id);

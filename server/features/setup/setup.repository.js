@@ -13,17 +13,17 @@ export const getSetupState = async (execute = query) => (await execute(
        SELECT 1
        FROM tbl_users u
        JOIN tbl_role r ON r._id = u.role_id
-       WHERE lower(r.role_name) = 'admin'
+       WHERE lower(r.role_name) IN ('admin', 'super_admin')
          AND u.is_deleted IS NOT TRUE
      ) AS has_admin`
 )).rows[0];
 
 // Transactions in the setup service pass their own client as `execute`, so the
 // helpers below never open a second connection.
-export const findAdminRoleId = async (execute = query) => (await execute(
+export const findSuperAdminRoleId = async (execute = query) => (await execute(
   `SELECT _id
    FROM tbl_role
-   WHERE lower(role_name) = 'admin'
+   WHERE lower(role_name) = 'super_admin'
      AND is_deleted IS NOT TRUE
    ORDER BY created_at
    LIMIT 1`

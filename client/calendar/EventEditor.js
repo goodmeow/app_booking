@@ -113,6 +113,7 @@ const EventEditor = ({
   sessionUserId,
   role,
   userFloor,
+  userFloors = [],
   isAdmin = false,
   users = [],
   rooms = [],
@@ -168,8 +169,8 @@ const EventEditor = ({
   // floor the calendar offered. Memoised so the conflict-effect dependencies
   // stay stable between renders.
   const availableRooms = useMemo(
-    () => roomsForRole(rooms, { role, floor: userFloor, isAdmin }),
-    [rooms, role, userFloor, isAdmin]
+    () => roomsForRole(rooms, { role, floor: userFloor, floors: userFloors, isAdmin }),
+    [rooms, role, userFloor, userFloors, isAdmin]
   );
   const floorRoomsEmpty = !editing && isReceptionistRole(role) && availableRooms.length === 0;
   // "Organizer on behalf" is a create-only field for the front desk and admins.
@@ -460,7 +461,6 @@ const EventEditor = ({
               ) : null}
               {floorRoomsEmpty ? <Alert severity="warning">{t("editor.floorRoomsEmpty")}</Alert> : null}
               <AttendeePicker
-                isAdmin={isAdmin}
                 users={users}
                 attendees={draft.attendees}
                 value={attendeeEmails}
