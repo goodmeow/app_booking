@@ -16,6 +16,7 @@ FORCE=0
 NO_NGINX=0
 BIND_HOST=""
 ORIGIN_OVERRIDE=""
+CORS_ORIGINS_VALUE=""
 PROXY_IP=""
 
 usage() {
@@ -29,8 +30,8 @@ Usage: sudo ./deploy/bootstrap.sh [--ip ADDRESS] [--port PORT] [--build-user USE
   --build-user  Non-root user that runs npm build (default: SUDO_USER)
   --no-nginx    Do not install/configure nginx on this host; use an external one
   --bind-host   API listen address (default: 127.0.0.1, or 0.0.0.0 with --no-nginx)
-  --origin URL  Required with --no-nginx: exact external origin for CORS
-                (e.g. http://roombooking.lan)
+  --origin URL  CORS origin list, comma-separated for domain + direct IP
+                (e.g. http://roombooking.lan,http://10.10.42.8)
   --proxy-ip    Required with --no-nginx: allow API port 9091 only from this IP
   --force       Replace /etc/360booking/app.env if it already exists
 
@@ -131,11 +132,16 @@ if [[ -n "$PROXY_IP" && "$NO_NGINX" != "1" ]]; then
 fi
 
 if [[ -n "$ORIGIN_OVERRIDE" ]]; then
-  ORIGIN_OVERRIDE="${ORIGIN_OVERRIDE%/}"
-  [[ "$ORIGIN_OVERRIDE" =~ ^https?://[^/]+$ ]] || {
-    echo "Invalid --origin: $ORIGIN_OVERRIDE (use scheme://host[:port], no path)." >&2; exit 1
-  }
-  PUBLIC_ORIGIN="$ORIGIN_OVERRIDE"
+  IFS=, read -ra ORIGIN_LIST <<< "$ORIGIN_OVERRIDE"
+  CORS_ORIGINS_VALUE=""
+  for origin in "${ORIGIN_LIST[@]}"; do
+    origin="${origin%/}"
+    [[ "$origin" =~ ^https?://[^/]+$ ]] || {
+      echo "Invalid --origin: $origin (use scheme://host[:port], no path)." >&2; exit 1
+    }
+    CORS_ORIGINS_VALUE="${CORS_ORIGINS_VALUE:+$CORS_ORIGINS_VALUE,}$origin"
+  done
+  PUBLIC_ORIGIN="${ORIGIN_LIST[0]%/}"
 else
   if [[ -z "$PUBLIC_IP" ]]; then
     # Pick one real LAN IPv4. Docker bridges and default-route WAN addresses are
@@ -174,6 +180,7 @@ else
   if [[ "$PUBLIC_PORT" == "80" ]]; then
     PUBLIC_ORIGIN="http://${PUBLIC_HOST}"
   fi
+  CORS_ORIGINS_VALUE="$PUBLIC_ORIGIN"
 fi
 
 if [[ -e "$ENV_FILE" && "$FORCE" != "1" ]]; then
@@ -221,7 +228,7 @@ KIOSK_JWT_AUDIENCE=360-scheduler-kiosk
 KIOSK_JWT_EXPIRY=15m
 KIOSK_REFRESH_DAYS=30
 
-CORS_ORIGINS=${PUBLIC_ORIGIN}
+CORS_ORIGINS=${CORS_ORIGINS_VALUE}
 
 APP_TIMEZONE=Asia/Jakarta
 MAX_BOOKING_DURATION_HOURS=24
