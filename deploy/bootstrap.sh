@@ -55,6 +55,37 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+
+is_ipv4() {
+  local ip="$1" o1 o2 o3 o4 octet
+  [[ "$ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || return 1
+  IFS=. read -r o1 o2 o3 o4 <<< "$ip"
+  for octet in "$o1" "$o2" "$o3" "$o4"; do
+    (( octet >= 0 && octet <= 255 )) || return 1
+  done
+}
+
+is_ipv6() {
+  [[ "$1" =~ ^[0-9A-Fa-f:]+$ ]]
+}
+
+is_ip_or_cidr() {
+  local value="$1" address prefix max
+  address="${value%%/*}"
+  if is_ipv4 "$address"; then
+    max=32
+  elif is_ipv6 "$address"; then
+    max=128
+  else
+    return 1
+  fi
+  if [[ "$value" == */* ]]; then
+    prefix="${value#*/}"
+    [[ "$prefix" =~ ^[0-9]{1,3}$ ]] || return 1
+    (( 10#$prefix <= max )) || return 1
+  fi
+}
+
 if [[ ${EUID} -ne 0 ]]; then
   echo "Run as root: sudo ./deploy/bootstrap.sh" >&2
   exit 1
@@ -71,12 +102,18 @@ id -u "$BUILD_USER" >/dev/null 2>&1 || { echo "Build user does not exist: $BUILD
 
 if [[ "$NO_NGINX" == "1" ]]; then
   BIND_HOST="${BIND_HOST:-0.0.0.0}"
+  is_ipv4 "$BIND_HOST" || is_ipv6 "$BIND_HOST" || {
+    echo "Invalid --bind-host: $BIND_HOST (use an IPv4/IPv6 address)." >&2; exit 1
+  }
   [[ "$BIND_HOST" != "127.0.0.1" ]] || {
     echo "External nginx cannot reach HOST=127.0.0.1; use --bind-host 0.0.0.0 or a LAN IP." >&2
     exit 1
   }
   [[ -n "$ORIGIN_OVERRIDE" ]] || { echo "--no-nginx requires --origin URL." >&2; exit 1; }
   [[ -n "$PROXY_IP" ]] || { echo "--no-nginx requires --proxy-ip ADDRESS." >&2; exit 1; }
+  is_ip_or_cidr "$PROXY_IP" || {
+    echo "Invalid --proxy-ip: $PROXY_IP (use an IP or CIDR)." >&2; exit 1
+  }
   if [[ "$PUBLIC_PORT" != "80" ]]; then
     echo "WARNING: --port is ignored in --no-nginx mode; CORS uses --origin." >&2
     PUBLIC_PORT=80
@@ -175,8 +212,6 @@ PGPORT=5432
 PGDATABASE=360booking
 PGUSER=360booking
 PGPASSWORD=${DB_PASSWORD}
-PG_SUPERUSER=postgres
-PG_SUPERUSER_PASSWORD=${SUPER_PASSWORD}
 
 JWT_SECRET=${JWT_SECRET}
 JWT_EXPIRY_TOKEN=1d
@@ -196,8 +231,16 @@ RECURRENCE_MAX_DAYS=366
 RECURRENCE_MAX_OCCURRENCES=200
 FLOOR_RESTRICTION=true
 EOF
-chown root:360booking "$ENV_FILE"
-chmod 640 "$ENV_FILE"
+chown root:root "$ENV_FILE"
+chmod 600 "$ENV_FILE"
+
+install -m 0600 /dev/null /etc/360booking/provision.env
+cat > /etc/360booking/provision.env <<EOF
+PG_SUPERUSER=postgres
+PG_SUPERUSER_PASSWORD=${SUPER_PASSWORD}
+EOF
+chown root:root /etc/360booking/provision.env
+chmod 600 /etc/360booking/provision.env
 
 log "3/7 Set postgres superuser password for provisioning"
 psql_super -c "ALTER ROLE postgres PASSWORD '${SUPER_PASSWORD}';"

@@ -30,8 +30,13 @@ Ikuti urutan di `deploy/README.md`:
 
 ```bash
 sudo ./deploy/01-install-prerequisites.sh
+sudo install -d -m 0750 /etc/360booking
 sudo cp deploy/app.env.example /etc/360booking/app.env
-sudo nano /etc/360booking/app.env          # ganti semua change-me
+sudo cp deploy/provision.env.example /etc/360booking/provision.env
+sudo chown root:root /etc/360booking/app.env /etc/360booking/provision.env
+sudo chmod 600 /etc/360booking/app.env /etc/360booking/provision.env
+sudo nano /etc/360booking/app.env          # runtime only
+sudo nano /etc/360booking/provision.env    # superuser/admin only
 sudo ./deploy/02-provision-database.sh     # role + DB + migrasi
 ./deploy/03-build.sh                       # npm ci && npm run build
 sudo ./deploy/04-install-app.sh            # /opt/360booking + systemd + nginx

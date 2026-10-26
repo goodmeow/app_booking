@@ -15,7 +15,7 @@ sudo ./deploy/bootstrap.sh
 Script akan:
 1. install Node/PostgreSQL/ufw (+ nginx, kecuali `--no-nginx`),
 2. generate password DB + `JWT_SECRET`,
-3. menulis `/etc/360booking/app.env` dengan origin `http://<ip>`,
+3. menulis `/etc/360booking/app.env` (runtime) + `provision.env` (root-only),
 4. membuat DB + migrasi + role,
 5. build client/server,
 6. install systemd (+ nginx, kecuali `--no-nginx`),
@@ -46,8 +46,13 @@ diakses dari mesin nginx. Jika nginx lokal masih aktif, hentikan dulu.
 
 ```bash
 sudo ./deploy/01-install-prerequisites.sh
-cp deploy/app.env.example /etc/360booking/app.env
+sudo install -d -m 0750 /etc/360booking
+sudo cp deploy/app.env.example /etc/360booking/app.env
+sudo cp deploy/provision.env.example /etc/360booking/provision.env
+sudo chown root:root /etc/360booking/app.env /etc/360booking/provision.env
+sudo chmod 600 /etc/360booking/app.env /etc/360booking/provision.env
 sudo nano /etc/360booking/app.env
+sudo nano /etc/360booking/provision.env
 sudo ./deploy/02-provision-database.sh
 ./deploy/03-build.sh
 sudo ./deploy/04-install-app.sh
