@@ -7,6 +7,12 @@ set -euo pipefail
 
 ENV_FILE="/etc/360booking/app.env"
 [[ -f "$ENV_FILE" ]] || { echo "$ENV_FILE does not exist." >&2; exit 1; }
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+SERVER_PORT="${SERVER_PORT:-9091}"
+[[ "$SERVER_PORT" =~ ^[0-9]+$ ]] && (( SERVER_PORT >= 1 && SERVER_PORT <= 65535 )) || {
+  echo "Invalid SERVER_PORT: $SERVER_PORT" >&2; exit 1
+}
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_ROOT="/opt/360booking"
@@ -34,6 +40,7 @@ systemctl daemon-reload
 systemctl enable --now 360booking-server.service
 
 install -m 0644 "$REPO_ROOT/deploy/nginx/360booking.conf" /etc/nginx/sites-available/360booking.conf
+sed -i "s/127.0.0.1:9091/127.0.0.1:${SERVER_PORT}/g" /etc/nginx/sites-available/360booking.conf
 ln -sf /etc/nginx/sites-available/360booking.conf /etc/nginx/sites-enabled/360booking.conf
 rm -f /etc/nginx/sites-enabled/default
 nginx -t

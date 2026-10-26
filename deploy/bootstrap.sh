@@ -45,7 +45,12 @@ fi
   echo "Invalid port: $PUBLIC_PORT" >&2; exit 1
 }
 if [[ -z "$PUBLIC_IP" ]]; then
-  PUBLIC_IP="$(hostname -I | awk '{print $1}')"
+  # Prefer the address that owns the default route; hostname -I can put a
+  # Docker bridge first on a multi-NIC host.
+  PUBLIC_IP="$(ip route get 1.1.1.1 2>/dev/null | awk '{for (i = 1; i <= NF; i++) if ($i == "src") { print $(i + 1); exit }}' || true)"
+  if [[ -z "$PUBLIC_IP" ]]; then
+    PUBLIC_IP="$(hostname -I | awk '{print $1}')"
+  fi
 fi
 [[ -n "$PUBLIC_IP" ]] || { echo "Cannot detect a public IP; pass --ip." >&2; exit 1; }
 PUBLIC_ORIGIN="http://${PUBLIC_IP}${PUBLIC_PORT:+:$PUBLIC_PORT}"
