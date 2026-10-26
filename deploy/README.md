@@ -32,7 +32,7 @@ Kalau nginx sudah ada di server lain:
 ```bash
 sudo ./deploy/bootstrap.sh \
   --no-nginx \
-  --proxy-ip 192.168.18.2 \
+  --proxy-ip 192.0.2.10 \
   --origin http://roombooking.lan
 ```
 
