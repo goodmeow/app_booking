@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
-import { Alert, Box, Button, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, IconButton, MenuItem, Stack, TextField, Tooltip, Typography } from "@mui/material";
 import AddIconModule from "@mui/icons-material/Add";
+import ClearIconModule from "@mui/icons-material/Clear";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import PasswordDialog from "../components/common/PasswordDialog.js";
@@ -29,6 +30,7 @@ import {
 import { useGetRoomsQuery } from "../redux/services/rooms.js";
 
 const AddIcon = resolveMuiIcon(AddIconModule);
+const ClearIcon = resolveMuiIcon(ClearIconModule);
 
 const UserManagementSection = () => {
   const { t } = useTranslation(["management", "common", "auth"]);
@@ -236,6 +238,17 @@ const UserManagementSection = () => {
               </MenuItem>
             ))}
           </TextField>
+          {roleFilter !== ROLE_FILTER_ALL ? (
+            <Tooltip title={t("users.roleClear")}>
+              <IconButton
+                aria-label={t("users.roleClear")}
+                size="small"
+                onClick={() => setRoleFilter(ROLE_FILTER_ALL)}
+              >
+                <ClearIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          ) : null}
         </Stack>
       ) : null}
       {hasLoadedUsers && users.length > 0 ? (
