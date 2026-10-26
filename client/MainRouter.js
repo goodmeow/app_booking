@@ -12,38 +12,65 @@ import VersionFooter from "./core/VersionFooter.js";
 import { LoadingState } from "./components/common/AsyncState.js";
 import ErrorBoundary from "./components/common/ErrorBoundary.js";
 import KioskApp from "./kiosk/KioskApp.js";
+import { MANAGEMENT_MENUS, useMenuAccess } from "./auth/use-menu-access.js";
+import { Alert, Typography } from "@mui/material";
 
 const AppManagement = React.lazy(() => import("./management/AppManagement.js"));
 const UserProfile = React.lazy(() => import("./profile/UserProfile.js"));
 const RoomUsageReport = React.lazy(() => import("./report/RoomUsageReport.js"));
 const MeetingCalendar = React.lazy(() => import("./calendar/MeetingCalendar.js"));
 
-const ProtectedRoute = ({ component: Component, adminOnly = false, ...rest }) => (
-  <Route
-    {...rest}
-    render={(props) => {
-      const session = isAuthenticated();
-      if (!session) return <Redirect to={{ pathname: "/signin", state: { from: props.location } }} />;
-      if (session.user.mustChangePassword) {
+const ProtectedRoute = ({ component: Component, anyOf, ...rest }) => {
+  const access = useMenuAccess();
+  return (
+    <Route
+      {...rest}
+      render={(props) => {
+        const session = isAuthenticated();
+        if (!session) return <Redirect to={{ pathname: "/signin", state: { from: props.location } }} />;
+        if (session.user.mustChangePassword) {
+          return (
+            <ProtectedShell>
+              <ForcePasswordChange />
+            </ProtectedShell>
+          );
+        }
+        if (anyOf && access.isLoading) {
+          return (
+            <ProtectedShell>
+              <LoadingState />
+            </ProtectedShell>
+          );
+        }
+        if (anyOf && !anyOf.some((menu) => access.can(menu))) return <Redirect to="/" />;
         return (
           <ProtectedShell>
-            <ForcePasswordChange />
+            <ErrorBoundary resetKey={`${props.location.pathname}${props.location.search}`}>
+              <React.Suspense fallback={<LoadingState />}>
+                <Component {...props} />
+              </React.Suspense>
+            </ErrorBoundary>
           </ProtectedShell>
         );
-      }
-      if (adminOnly && session.user.role !== "ADMIN") return <Redirect to="/" />;
-      return (
-        <ProtectedShell>
-          <ErrorBoundary resetKey={`${props.location.pathname}${props.location.search}`}>
-            <React.Suspense fallback={<LoadingState />}>
-              <Component {...props} />
-            </React.Suspense>
-          </ErrorBoundary>
-        </ProtectedShell>
-      );
-    }}
-  />
-);
+      }}
+    />
+  );
+};
+
+// The home route follows the matrix: calendar first, then the first menu the
+// role may open. A role with no menus gets a plain notice instead of a loop.
+const HomeRoute = () => {
+  const access = useMenuAccess();
+  if (access.isLoading) return <LoadingState />;
+  if (access.can("calendar")) return <MeetingCalendar />;
+  if (access.can("report")) return <Redirect to="/report" />;
+  if (access.canManage) return <Redirect to="/app-management" />;
+  return (
+    <Alert severity="warning" sx={{ m: 4 }}>
+      <Typography>{`This account has no menu access. Ask a super admin to open Management > Settings > User Role Management.`}</Typography>
+    </Alert>
+  );
+};
 
 const WebChrome = () => {
   const location = useLocation();
@@ -65,10 +92,10 @@ const WebRouter = () => (
         <Route path="/setup" component={SetupRoute} />
         <Route path="/signup" component={Signup} />
         <Route path="/signin" component={Signin} />
-        <ProtectedRoute path="/app-management" adminOnly component={AppManagement} />
-        <ProtectedRoute path="/report" adminOnly component={RoomUsageReport} />
+        <ProtectedRoute path="/app-management" anyOf={MANAGEMENT_MENUS} component={AppManagement} />
+        <ProtectedRoute path="/report" anyOf={["report"]} component={RoomUsageReport} />
         <ProtectedRoute path="/user/:userId" component={UserProfile} />
-        <ProtectedRoute exact path="/" component={MeetingCalendar} />
+        <ProtectedRoute exact path="/" component={HomeRoute} />
         <Route component={NotFound} />
       </Switch>
     </SetupGate>

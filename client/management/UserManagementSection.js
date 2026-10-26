@@ -11,10 +11,9 @@ import LocalizedDataGrid from "../components/common/LocalizedDataGrid.js";
 import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { isAuthenticated } from "../auth/auth-helper.js";
 import { getApiError } from "../domain/api-error.js";
-import { ROLE_OPTIONS } from "../domain/roles.js";
 import { hasFloor } from "./user-form.js";
 import { primaryCardNumber } from "./users/user-cards.js";
-import { filterUsers, ROLE_FILTER_ALL } from "./users/user-filters.js";
+import { filterUsers, ROLE_FILTER_ALL, ROLE_FILTER_OPTIONS } from "./users/user-filters.js";
 import UserFormDialog from "./users/UserFormDialog.js";
 import UserCardsDialog from "./users/UserCardsDialog.js";
 import UserImportDialog from "./users/UserImportDialog.js";
@@ -142,19 +141,10 @@ const UserManagementSection = () => {
     }
   };
 
-  const changeFloor = async (row, floor) => {
-    try {
-      await updateUser({ userId: row._id, floor }).unwrap();
-      showFeedback(t("users.floorUpdated"));
-    } catch (mutationError) {
-      showFeedback(getApiError(mutationError, t("users.updateError")), "error");
-    }
-  };
-
   const floorLabel = (value) => {
-    if (value === "all") return t("users.floorAll");
-    if (!value) return t("users.floorUnset");
-    return t("users.floorValue", { floor: value });
+    const floors = Array.isArray(value) ? value : (value ? [value] : []);
+    if (!floors.length) return t("users.floorUnset");
+    return floors.map((floor) => (floor === "all" ? t("users.floorAll") : t("users.floorValue", { floor }))).join(", ");
   };
 
   const toggleMissingFloorFilter = () => {
@@ -169,16 +159,14 @@ const UserManagementSection = () => {
 
   const columns = useMemo(() => buildUserColumns({
     t,
-    floorOptions,
     floorLabel,
     isUpdating,
-    changeFloor,
     toggleMasterCard,
     openEdit: formDialog.openEdit,
     openCards: cardsDialog.openCards,
     openPasswordDialog,
     openDeleteDialog,
-  }), [t, floorOptions, isUpdating, resetDelete, resetPassword]);
+  }), [t, floorLabel, isUpdating, resetDelete, resetPassword]);
 
   const hasLoadedUsers = !isLoading && (!isError || users.length > 0);
 
@@ -232,7 +220,7 @@ const UserManagementSection = () => {
             sx={{ minWidth: { xs: "100%", sm: 190 } }}
           >
             <MenuItem value={ROLE_FILTER_ALL}>{t("users.roleAll")}</MenuItem>
-            {ROLE_OPTIONS.map((role) => (
+            {ROLE_FILTER_OPTIONS.map((role) => (
               <MenuItem key={role.value} value={role.value}>
                 {t(`common:${role.labelKey}`)}
               </MenuItem>
@@ -274,6 +262,7 @@ const UserManagementSection = () => {
         detailError={formDialog.detailError}
         isDetailLoading={formDialog.isDetailLoading}
         isSaving={formDialog.isSaving}
+        isProtectedAccount={formDialog.isProtectedAccount}
         floorOptions={floorOptions}
         onClose={formDialog.closeForm}
         onSubmit={formDialog.submitForm}

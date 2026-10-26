@@ -11,7 +11,7 @@ import {
 import FormDialog from "../../components/common/FormDialog.js";
 import { LoadingState } from "../../components/common/AsyncState.js";
 import { getApiError } from "../../domain/api-error.js";
-import { ROLE_OPTIONS } from "../../domain/roles.js";
+import { ROLE_IDS, ROLE_LABELS, ROLE_OPTIONS } from "../../domain/roles.js";
 import { EMPLOYEE_ID_MAX_LENGTH, employeeIdErrorKey } from "../user-form.js";
 
 const UserFormDialog = ({
@@ -23,6 +23,7 @@ const UserFormDialog = ({
   detailError,
   isDetailLoading,
   isSaving,
+  isProtectedAccount = false,
   floorOptions,
   onClose,
   onSubmit,
@@ -70,11 +71,23 @@ const UserFormDialog = ({
             select
             label={t("users.floorGroup")}
             helperText={t("users.floorHelp")}
-            {...formField("floor")}
+            value={form.floors}
+            onChange={(event) => setForm((current) => ({
+              ...current,
+              floors: typeof event.target.value === "string" ? event.target.value.split(",") : event.target.value,
+            }))}
+            SelectProps={{
+              multiple: true,
+              renderValue: (selected) => selected.length
+                ? selected.map((floor) => (floor === "all" ? t("users.floorAll") : t("users.floorValue", { floor }))).join(", ")
+                : t("users.floorUnset"),
+            }}
           >
-            <MenuItem value="">{t("users.floorUnset")}</MenuItem>
             <MenuItem value="all">{t("users.floorAll")}</MenuItem>
             {floorOptions.map((floor) => (
+              <MenuItem key={floor} value={floor}>{t("users.floorValue", { floor })}</MenuItem>
+            ))}
+            {form.floors.filter((floor) => floor !== "all" && !floorOptions.includes(floor)).map((floor) => (
               <MenuItem key={floor} value={floor}>{t("users.floorValue", { floor })}</MenuItem>
             ))}
           </TextField>
@@ -101,7 +114,17 @@ const UserFormDialog = ({
             )}
             label={t("users.masterCard")}
           />
-          <TextField required select label={t("common:fields.role")} {...formField("roleId")}>
+          <TextField
+            required
+            select
+            label={t("common:fields.role")}
+            helperText={isProtectedAccount ? t("users.protectedRoleHelp") : undefined}
+            disabled={isProtectedAccount}
+            {...formField("roleId")}
+          >
+            {isProtectedAccount && form.roleId === ROLE_IDS.SUPER_ADMIN ? (
+              <MenuItem value={ROLE_IDS.SUPER_ADMIN}>{t(`common:${ROLE_LABELS[ROLE_IDS.SUPER_ADMIN]}`)}</MenuItem>
+            ) : null}
             {ROLE_OPTIONS.map((role) => (
               <MenuItem key={role.value} value={role.value}>{t(`common:${role.labelKey}`)}</MenuItem>
             ))}

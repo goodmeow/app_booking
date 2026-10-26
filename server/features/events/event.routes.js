@@ -1,9 +1,9 @@
 import express from "express";
-import { requireSignin } from "../../security/auth.middleware.js";
+import { menuAccess, requireSignin } from "../../security/auth.middleware.js";
 import { add, cancel, checkIn, create, details, earlyFinish, list, preview, removeAttendee, update } from "./event.controller.js";
 
 const router = express.Router();
-router.use(requireSignin);
+router.use(requireSignin, menuAccess("calendar"));
 router.get("/", list);
 router.post("/", create);
 router.put("/", update);

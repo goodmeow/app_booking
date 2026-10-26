@@ -112,13 +112,13 @@ export const insertEventParticipant = async (client, eventId, participant) => (a
   [eventId, participant.email, participant.userId || null, participant.roomId || null, participant.visitorEmail || null, Boolean(participant.visitorEmail)]
 )).rows[0];
 
-export const listEventsForPrincipal = async ({ principalId, role, roomId, rangeStart, rangeEnd, allEvents = false }) => (await query(
+export const listEventsForPrincipal = async ({ principalId, role, floors, roomId, rangeStart, rangeEnd, allEvents = false }) => (await query(
   `SELECT DISTINCT
      ${eventInstantColumns},
      split_part(btrim(organizer_account.name), ' ', 1) AS organizer_first_name,
      booked_by_account.name AS booked_by_name,
      (
-       $2 = 'ADMIN'
+       $2 IN ('ADMIN', 'SUPER_ADMIN')
        OR e.organizer_id = $1
        OR e.booked_by = $1
        OR EXISTS (
@@ -126,6 +126,21 @@ export const listEventsForPrincipal = async ({ principalId, role, roomId, rangeS
          WHERE access_detail.event_id = e._id
            AND access_detail.attendee_user_id = $1
            AND access_detail.is_deleted IS NOT TRUE
+       )
+       OR (
+         $7::text[] IS NOT NULL
+         AND EXISTS (
+           SELECT 1
+           FROM tbl_event_details floor_detail
+           JOIN tbl_users floor_room ON floor_room._id = floor_detail.room_id
+           WHERE floor_detail.event_id = e._id
+             AND floor_detail.is_deleted IS NOT TRUE
+             AND floor_room.type = 'room'
+             AND (
+               'all' = ANY($7::text[])
+               OR lower(btrim(floor_room.floor)) = ANY($7::text[])
+             )
+         )
        )
      ) AS can_view_details
    FROM tbl_events e
@@ -141,7 +156,7 @@ export const listEventsForPrincipal = async ({ principalId, role, roomId, rangeS
      AND (
        ($3::uuid IS NOT NULL AND room_booking.room_id = $3)
        OR ($3::uuid IS NULL AND (
-         ($6::boolean AND $2 = 'ADMIN')
+         ($6::boolean AND $2 IN ('ADMIN', 'SUPER_ADMIN'))
          OR e.organizer_id = $1
          OR e.booked_by = $1
          OR EXISTS (
@@ -153,7 +168,7 @@ export const listEventsForPrincipal = async ({ principalId, role, roomId, rangeS
        ))
      )
    ORDER BY start_at, e._id`,
-  [principalId, role, roomId || null, rangeStart, rangeEnd, allEvents]
+  [principalId, role, roomId || null, rangeStart, rangeEnd, allEvents, floors || null]
 )).rows;
 
 export const findEventAccess = async (eventId, principalId) => (await query(
@@ -164,7 +179,15 @@ export const findEventAccess = async (eventId, principalId) => (await query(
        WHERE d.event_id = e._id
          AND d.attendee_user_id = $2
          AND d.is_deleted IS NOT TRUE
-     ) AS is_attendee
+     ) AS is_attendee,
+     ARRAY(
+       SELECT DISTINCT lower(btrim(room.floor))
+       FROM tbl_event_details d
+       JOIN tbl_users room ON room._id = d.room_id
+       WHERE d.event_id = e._id
+         AND d.is_deleted IS NOT TRUE
+         AND room.type = 'room'
+     ) AS room_floors
    FROM tbl_events e
    WHERE e._id = $1
    LIMIT 1`,
@@ -368,6 +391,14 @@ export const eventCheckInContext = async (eventId, principalId, cardNumber) => (
          WHERE d.event_id = e._id AND d.attendee_user_id = $2 AND d.is_deleted IS NOT TRUE
        )
      ) AS is_related,
+     ARRAY(
+       SELECT DISTINCT lower(btrim(room.floor))
+       FROM tbl_event_details d
+       JOIN tbl_users room ON room._id = d.room_id
+       WHERE d.event_id = e._id
+         AND d.is_deleted IS NOT TRUE
+         AND room.type = 'room'
+     ) AS room_floors,
      (
        EXISTS (SELECT 1 FROM tbl_card_masters c WHERE lower(c.card_number) = lower($3))
        OR EXISTS (

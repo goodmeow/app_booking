@@ -9,6 +9,7 @@ const principalSelect = `
     u.password,
     u.type,
     u.floor,
+    u.floors,
     u.is_deleted,
     u.must_change_password,
     lower(r.role_name) AS role

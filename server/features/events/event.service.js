@@ -1,5 +1,7 @@
 import config from "../../../config/config.js";
 import { badRequest, conflict, forbidden, HttpError, notFound } from "../../lib/http-error.js";
+import { isAdminRole, isReceptionistRole } from "../../lib/roles.js";
+import { coversAllFloors, coversAnyFloor, effectiveFloors } from "../../lib/floors.js";
 import { addLocalDays, daysBetweenLocalDates, formatLocalTime, isValidLocalDate, parseInstant, zonedParts, zonedPartsToDate } from "./event-time.js";
 import { buildOccurrences } from "./recurrence.service.js";
 import {
@@ -133,9 +135,9 @@ const createPlan = async (body) => {
 const roomIdsFor = (participants) => participants.filter((item) => item.roomId).map((item) => item.roomId);
 
 // Roles allowed to create a booking for somebody else. A receptionist still
-// only reaches rooms on their own floor (see assertRoomFloorAccess), and an
+// only reaches rooms on their assigned floors (see assertRoomFloorAccess), and an
 // admin keeps every floor.
-const ORGANIZER_DELEGATE_ROLES = new Set(["ADMIN", "RECEPTIONIST"]);
+const ORGANIZER_DELEGATE_ROLES = new Set(["ADMIN", "SUPER_ADMIN", "RECEPTIONIST"]);
 
 // organizer_email is optional and only read when a booking is created. An empty
 // value means the principal books for themselves; that is the only path a plain
@@ -171,23 +173,23 @@ export const resolveOrganizer = async (requested, principal, findEmployee = find
   };
 };
 
-const FLOOR_EXEMPT_ROLES = new Set(["ADMIN"]);
-const normalizedFloor = (value) => String(value ?? "").trim();
+const FLOOR_EXEMPT_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
 
-// Non-admins may only book rooms on their own work floor.
+// Non-admins may only book rooms on their assigned floor list.
 const assertRoomFloorAccess = async (roomIds, principal) => {
   if (!config.floorRestriction || !roomIds.length || FLOOR_EXEMPT_ROLES.has(String(principal.role || "").toUpperCase())) return;
-  const floor = normalizedFloor(principal.floor);
-  if (!floor) {
+  const floors = effectiveFloors(principal);
+  if (!floors.length) {
     throw new HttpError(403, "FLOOR_REQUIRED", "Your account has no work floor yet. Ask an admin to set it in Management > Users.");
   }
   // The floor group "all" may book rooms on any floor.
-  if (floor.toLowerCase() === "all") return;
+  if (coversAllFloors(principal)) return;
   const rooms = await findRoomFloors(roomIds);
-  const outside = rooms.filter((room) => normalizedFloor(room.floor) !== floor);
+  const outside = rooms.filter((room) => !coversAnyFloor(principal, [room.floor]));
   if (outside.length) {
     const names = outside.map((room) => room.name).join(", ");
-    throw new HttpError(403, "FLOOR_RESTRICTED", `You can only book rooms on floor ${floor}. Rooms outside your floor: ${names}.`);
+    const allowed = floors.join(", ");
+    throw new HttpError(403, "FLOOR_RESTRICTED", `You can only book rooms on floor ${allowed}. Rooms outside your floor: ${names}.`);
   }
 };
 
@@ -213,7 +215,7 @@ export const createEvents = async (body, principal) => {
   // and keep admin corrections/test fixtures possible. Regular users still
   // cannot create a booking in the past.
   const startTime = new Date(plan.request.start).getTime();
-  if (String(principal?.role || "").toUpperCase() !== "ADMIN" && startTime < Date.now() - 2 * 60_000) {
+  if (!isAdminRole(principal?.role) && startTime < Date.now() - 2 * 60_000) {
     throw badRequest("START_IN_PAST", "Start time cannot be earlier than now");
   }
   const organizer = await resolveOrganizer(requestedOrganizer(plan.request.organizerEmail, principal), principal);
@@ -340,32 +342,40 @@ export const listEvents = async (queryParams, principal) => {
   const room = queryParams.rooms ? await findActiveRoom(queryParams.rooms) : null;
   if (queryParams.rooms && !room) throw notFound("Room not found");
   const range = calendarRange(queryParams.start, queryParams.end, config.appTimezone);
+  const floors = isReceptionistRole(principal.role) ? effectiveFloors(principal) : [];
   const rows = await listEventsForPrincipal({
     principalId: principal._id,
     role: principal.role,
+    floors,
     roomId: room?._id,
-    allEvents: queryParams.all === "true" && principal.role === "ADMIN",
+    allEvents: queryParams.all === "true" && isAdminRole(principal.role),
     ...range,
   });
   return rows.map(projectCalendarEvent);
 };
 
 // booked_by is the account that created the booking for somebody else. That
-// account keeps read and write access, so a receptionist can still correct the
-// booking they made; any other receptionist gets no access at all.
+// account keeps read and write access. A receptionist also covers every meeting
+// in a room on one of their floors, so the front desk can move bookings for
+// employees on that floor.
 const bookedByPrincipal = (event, principal) =>
   Boolean(event.booked_by) && String(event.booked_by) === String(principal._id);
 
+const receptionistCoversEventFloor = (event, principal) =>
+  isReceptionistRole(principal.role) && coversAnyFloor(principal, event.room_floors || []);
+
 export const canView = (event, principal) =>
-  principal.role === "ADMIN"
+  isAdminRole(principal.role)
   || String(event.organizer_id) === String(principal._id)
   || event.is_attendee
-  || bookedByPrincipal(event, principal);
+  || bookedByPrincipal(event, principal)
+  || receptionistCoversEventFloor(event, principal);
 
 export const canMutate = (event, principal) =>
-  principal.role === "ADMIN"
+  isAdminRole(principal.role)
   || String(event.organizer_id) === String(principal._id)
-  || bookedByPrincipal(event, principal);
+  || bookedByPrincipal(event, principal)
+  || receptionistCoversEventFloor(event, principal);
 
 export const getEventDetails = async (eventId, principal) => {
   const event = await findEventAccess(eventId, principal._id);
@@ -528,7 +538,7 @@ export const checkInEvent = async ({ event_id, card_number }, principal) => {
   if (!event_id || !card_number) throw badRequest("INVALID_CHECK_IN", "Event and card number are required");
   const context = await eventCheckInContext(event_id, principal._id, card_number);
   if (!context) throw notFound("Event not found");
-  if (principal.role !== "ADMIN" && !context.is_related) throw forbidden();
+  if (!isAdminRole(principal.role) && !context.is_related && !receptionistCoversEventFloor(context, principal)) throw forbidden();
   if (!context.card_allowed) throw forbidden("Card is not authorized");
   const now = Date.now();
   const opens = new Date(context.start_at).getTime() - Number(context.early_minutes || 0) * 60_000;

@@ -7,6 +7,8 @@ import "./services/events.js";
 import "./services/settings.js";
 import "./services/setup.js";
 import "./services/kiosk-devices.js";
+import "./services/access.js";
+import "./services/audit.js";
 
 const store = configureStore({
   reducer: {

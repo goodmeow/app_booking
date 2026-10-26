@@ -1,11 +1,10 @@
 import React from "react";
-import { Chip, IconButton, MenuItem, Stack, Switch, TextField, Tooltip } from "@mui/material";
+import { Chip, IconButton, Stack, Switch, Tooltip } from "@mui/material";
 import EditIconModule from "@mui/icons-material/Edit";
 import PasswordIconModule from "@mui/icons-material/Password";
 import DeleteIconModule from "@mui/icons-material/Delete";
 import CreditCardIconModule from "@mui/icons-material/CreditCard";
 import { resolveMuiIcon } from "../../components/common/resolve-mui-icon.js";
-import { hasFloor } from "../user-form.js";
 import { primaryCardNumber } from "./user-cards.js";
 import { roleLabel } from "./user-filters.js";
 
@@ -18,10 +17,8 @@ const CreditCardIcon = resolveMuiIcon(CreditCardIconModule);
 // the page itself stays readable. All behaviour arrives through `handlers`.
 export const buildUserColumns = ({
   t,
-  floorOptions,
   floorLabel,
   isUpdating,
-  changeFloor,
   toggleMasterCard,
   openEdit,
   openCards,
@@ -48,35 +45,27 @@ export const buildUserColumns = ({
     },
   },
   {
-    field: "floor",
+    field: "floors",
     headerName: t("users.floorGroup"),
-    minWidth: 170,
+    minWidth: 190,
     sortable: true,
     filterable: false,
-    valueGetter: ({ row }) => floorLabel(row.floor),
-    renderCell: ({ row }) => (
-      <TextField
-        select
-        size="small"
-        value={row.floor || ""}
-        onChange={(event) => void changeFloor(row, event.target.value)}
-        // An empty floor stops non-admins from booking: mark it clearly.
-        color={hasFloor(row) ? undefined : "warning"}
-        focused={hasFloor(row) ? undefined : true}
-        inputProps={{ "aria-label": t("users.floorAria", { name: row.name }) }}
-        SelectProps={{ displayEmpty: true }}
-        sx={{ minWidth: 140 }}
-      >
-        <MenuItem value="">{t("users.floorUnset")}</MenuItem>
-        <MenuItem value="all">{t("users.floorAll")}</MenuItem>
-        {floorOptions.map((floor) => (
-          <MenuItem key={floor} value={floor}>{t("users.floorValue", { floor })}</MenuItem>
-        ))}
-        {row.floor && row.floor !== "all" && !floorOptions.includes(row.floor) ? (
-          <MenuItem value={row.floor}>{t("users.floorValue", { floor: row.floor })}</MenuItem>
-        ) : null}
-      </TextField>
-    ),
+    valueGetter: ({ row }) => floorLabel(row.floors?.length ? row.floors : row.floor),
+    renderCell: ({ row }) => {
+      const floors = row.floors?.length ? row.floors : (row.floor ? [row.floor] : []);
+      return floors.length ? (
+        <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
+          {floors.map((floor) => (
+            <Chip
+              key={floor}
+              size="small"
+              color={floor === "all" ? "primary" : undefined}
+              label={floorLabel(floor)}
+            />
+          ))}
+        </Stack>
+      ) : <Chip size="small" color="warning" label={t("users.floorUnset")} />;
+    },
   },
   {
     field: "card_number",

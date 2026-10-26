@@ -2,6 +2,7 @@ import { query, withTransaction } from "../../db/pool.js";
 import { badRequest, conflict, forbidden } from "../../lib/http-error.js";
 import { findEmployeeByEmployeeId } from "../accounts/account.repository.js";
 import { createUser, editUser } from "./user.service.js";
+import { isAdminRole } from "../../lib/roles.js";
 
 const MAX_ROWS = 500;
 const DEFAULT_PASSWORD = "123456Ab";
@@ -23,15 +24,25 @@ const refuseLastAdminDemotion = async (execute, adminRoleId) => {
   }
 };
 
+// CSV import may assign the normal admin and front-desk roles, never the
+// protected super admin role created by /setup.
+const IMPORTABLE_ROLES = ["admin", "receptionist", "user"];
+
 const roleMap = async () => {
-  const rows = await query("SELECT _id, lower(role_name) AS name FROM tbl_role");
+  const rows = await query(
+    `SELECT _id, lower(role_name) AS name
+     FROM tbl_role
+     WHERE is_deleted IS NOT TRUE
+       AND lower(role_name) = ANY($1::text[])`,
+    [IMPORTABLE_ROLES]
+  );
   return new Map(rows.rows.map((row) => [row.name, row._id]));
 };
 
 const text = (value) => String(value ?? "").trim();
 
 export const importUsers = async ({ rows, mode = "skip" }, principal) => {
-  if (String(principal?.role || "").toUpperCase() !== "ADMIN") throw forbidden();
+  if (!isAdminRole(principal?.role)) throw forbidden();
   if (!Array.isArray(rows) || !rows.length) throw badRequest("INVALID_IMPORT", "The CSV has no data rows");
   if (rows.length > MAX_ROWS) throw badRequest("INVALID_IMPORT", `Maximum ${MAX_ROWS} rows per import`);
   if (!["skip", "overwrite"].includes(mode)) throw badRequest("INVALID_IMPORT", "Mode must be skip or overwrite");

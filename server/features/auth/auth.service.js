@@ -13,6 +13,9 @@ export const publicPrincipal = (principal) => ({
   username: principal.username || null,
   type: principal.type,
   floor: principal.floor || null,
+  floors: Array.isArray(principal.floors) && principal.floors.length
+    ? principal.floors
+    : (principal.floor ? [principal.floor] : []),
   role: String(principal.role || "user").toUpperCase(),
   mustChangePassword: principal.must_change_password === true,
 });

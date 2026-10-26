@@ -217,7 +217,7 @@ export const findKioskEventActionContext = async ({ eventId, roomId, cardNumber 
 // was reported lost keeps its row (status 'lost') and is ignored here, which is
 // what stops it from checking in or booking.
 export const findEmployeeByCard = async (cardNumber) => (await query(
-  `SELECT u._id, u.name, u.email, u.employee_id, u.floor, card.card_number
+  `SELECT u._id, u.name, u.email, u.employee_id, u.floor, u.floors, card.card_number
    FROM tbl_user_cards card
    JOIN tbl_users u ON u._id = card.user_id
    WHERE u.type = 'employee'

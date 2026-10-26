@@ -4,6 +4,7 @@ import { badRequest, HttpError, notFound } from "../../lib/http-error.js";
 import { isValidLocalDate, parseInstant } from "../events/event-time.js";
 import { findRoomById, insertAccount, listAvailableRooms, listRoomStatus, listRooms, roomUsageReport, softDeleteAccount, updateAccount } from "../accounts/account.repository.js";
 import { normalizedEmail, normalizedUsername, validatedPassword } from "../accounts/identity.validation.js";
+import { isAdminRole } from "../../lib/roles.js";
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 const validDateOnly = (value) => {
@@ -17,10 +18,10 @@ const mapIdentityError = (error) => {
   throw error;
 };
 
-export const getRooms = (filters, principal) => listRooms(filters, principal.role === "ADMIN");
+export const getRooms = (filters, principal) => listRooms(filters, isAdminRole(principal.role));
 
 export const getRoom = async (id, principal) => {
-  const room = await findRoomById(id, principal.role === "ADMIN");
+  const room = await findRoomById(id, isAdminRole(principal.role));
   if (!room) throw notFound("Room not found");
   return room;
 };

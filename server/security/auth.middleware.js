@@ -1,5 +1,7 @@
 import { forbidden, HttpError } from "../lib/http-error.js";
+import { isAdminRole, isSuperAdminRole } from "../lib/roles.js";
 import { verifyPrincipalToken } from "../features/auth/auth.service.js";
+import { roleAllowsMenu } from "../features/access/menu-access.repository.js";
 
 export const bearerToken = (authorization = "") => {
   const match = /^Bearer\s+(.+)$/i.exec(authorization);
@@ -34,11 +36,35 @@ const passwordChangeAllowed = (req) => {
 };
 
 export const adminOnly = (req, res, next) => {
-  if (req.auth?.role !== "ADMIN") return next(forbidden("Administrator access required"));
+  if (!isAdminRole(req.auth?.role)) return next(forbidden("Administrator access required"));
   next();
 };
 
+export const superAdminOnly = (req, res, next) => {
+  if (!isSuperAdminRole(req.auth?.role)) return next(forbidden("Super administrator access required"));
+  next();
+};
+
+// Menu access is the configurable layer on top of the role name. A super admin
+// bypasses the matrix; every other role needs the row allowed in Settings.
+export const menuAccess = (menuKey) => async (req, res, next) => {
+  try {
+    if (isSuperAdminRole(req.auth?.role) || await roleAllowsMenu(req.auth?.role, menuKey)) {
+      return next();
+    }
+    next(forbidden(`Menu access required: ${menuKey}`));
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const selfOrAdmin = (param = "userId") => (req, res, next) => {
-  if (req.auth?.role === "ADMIN" || String(req.auth?._id) === String(req.params[param])) return next();
+  if (isAdminRole(req.auth?.role) || String(req.auth?._id) === String(req.params[param])) return next();
   next(forbidden());
+};
+
+// Self-service stays open, but changing someone else needs the matching menu.
+export const selfOrMenu = (menuKey, param = "userId") => async (req, res, next) => {
+  if (String(req.auth?._id) === String(req.params[param])) return next();
+  return menuAccess(menuKey)(req, res, next);
 };

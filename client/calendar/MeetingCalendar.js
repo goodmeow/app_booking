@@ -15,7 +15,7 @@ import {
   uniqueCalendarEvents,
 } from "../domain/calendar.js";
 import { getApiError } from "../domain/api-error.js";
-import { canUseAllFloors, defaultScheduleModeForRole, roomsForRole } from "../domain/roles.js";
+import { canUseAllFloors, defaultScheduleModeForRole, isAdminRole, roomsForRole } from "../domain/roles.js";
 import { useGetEventsQuery } from "../redux/services/events.js";
 import { useGetRoomStatusQuery, useGetRoomsQuery } from "../redux/services/rooms.js";
 import { useGetPublicSettingsQuery } from "../redux/services/settings.js";
@@ -96,19 +96,20 @@ const MeetingCalendar = () => {
   );
   const roomQuery = useGetRoomsQuery();
   const roomStatusQuery = useGetRoomStatusQuery(undefined, { pollingInterval: 30_000 });
-  const isAdmin = session?.user?.role === "ADMIN";
+  const isAdmin = isAdminRole(session?.user?.role);
   // Only an admin loads the full employee directory; regular users search it
   // on demand from the attendee picker.
   const userQuery = useListUserQuery(undefined, { skip: !isAdmin });
   const userFloor = String(session?.user?.floor ?? "").trim();
+  const userFloors = session?.user?.floors || [];
   // The floor group "all" (or an admin) may view and book every floor.
-  const showAllFloors = canUseAllFloors({ role: session?.user?.role, floor: userFloor, isAdmin });
+  const showAllFloors = canUseAllFloors({ role: session?.user?.role, floor: userFloor, floors: userFloors, isAdmin });
   const allRooms = Array.isArray(roomQuery.data) ? roomQuery.data : [];
   // Everyone else sees only rooms on their own floor (the server still rejects
   // cross-floor bookings even if the UI is bypassed).
   const bookableRooms = useMemo(
-    () => roomsForRole(allRooms, { role: session?.user?.role, floor: userFloor, isAdmin }),
-    [allRooms, session?.user?.role, userFloor, isAdmin]
+    () => roomsForRole(allRooms, { role: session?.user?.role, floor: userFloor, floors: userFloors, isAdmin }),
+    [allRooms, session?.user?.role, userFloor, userFloors, isAdmin]
   );
   const roomStatus = useMemo(() => {
     const allowed = new Set(bookableRooms.map((room) => room._id));
@@ -185,7 +186,7 @@ const MeetingCalendar = () => {
 
   return (
     <Container maxWidth={false} sx={{ py: 3 }}>
-      {!showAllFloors && !userFloor ? <Alert severity="warning" sx={{ mb: 2 }}>{t("calendar.floorMissing")}</Alert> : null}
+      {!showAllFloors && !userFloor && !userFloors.length ? <Alert severity="warning" sx={{ mb: 2 }}>{t("calendar.floorMissing")}</Alert> : null}
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "340px minmax(0, 1fr)" }, gap: 2 }}>
         <Paper sx={{ p: 2 }}>
           <CalendarSidebar
@@ -193,8 +194,9 @@ const MeetingCalendar = () => {
             onDateChange={setSelectedDate}
             rooms={bookableRooms}
             floor={userFloor}
+            floors={userFloors}
             showAllFloors={showAllFloors}
-            showFloorSchedule={!showAllFloors && Boolean(userFloor)}
+            showFloorSchedule={!showAllFloors && Boolean(userFloor || userFloors.length)}
             isAdmin={isAdmin}
             showTabletStatus={isAdmin}
             roomStatus={roomStatus}
@@ -290,6 +292,7 @@ const MeetingCalendar = () => {
         sessionUserId={session.user._id}
         role={session.user.role}
         userFloor={userFloor}
+        userFloors={userFloors}
         isAdmin={isAdmin}
         users={Array.isArray(userQuery.data) ? userQuery.data : []}
         rooms={bookableRooms}
