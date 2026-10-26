@@ -1,6 +1,6 @@
 # Proses Bisnis RoomBooking
 
-Ringkasan aturan yang dijalankan kode saat ini (diperiksa 2026-10-24).
+Ringkasan aturan yang dijalankan kode saat ini (diperiksa 2026-10-26).
 Referensi teknis: [`architecture.md`](architecture.md),
 [`api-reference.md`](api-reference.md), dan [`erd.md`](erd.md).
 
@@ -10,8 +10,9 @@ Referensi teknis: [`architecture.md`](architecture.md),
 |---|---|---|
 | Login | Email **atau** username + password; hanya `type='employee'` dengan `role` yang boleh masuk | `auth.service.authenticateCredentials` |
 | Token | JWT HS256, `sub` = user id, `iss`/`aud` diperiksa, umur `JWT_EXPIRY_TOKEN` (default 1 hari) | `auth.service.signPrincipalToken` |
-| Peran | `role_name` di `tbl_role` diubah ke huruf besar (`ADMIN`/`USER`/`RECEPTIONIST`) | `auth.repository.principalSelect` |
-| Admin | Boleh melihat semua event, memesan lintas lantai, mengelola user/ruangan/kartu/settings/perangkat | `adminOnly`, `canView`, `FLOOR_EXEMPT_ROLES` |
+| Peran | `role_name` di `tbl_role` diubah ke huruf besar (`SUPER_ADMIN`/`ADMIN`/`RECEPTIONIST`/`USER`) | `auth.repository.principalSelect` |
+| Super Admin | Akun pertama `/setup`; semua menu tetap (melewati matrix), hanya ia yang boleh membuka matrix peran dan audit, serta memberi role `super_admin`; akun dilindungi (`is_protected`) | `superAdminOnly`, `assertAssignableRole`, `tbl_users.is_protected` |
+| Admin | Boleh melihat semua event, memesan lintas lantai, mengelola user/ruangan/kartu/settings/perangkat sesuai matrix menu | `menuAccess`, `canView`, `FLOOR_EXEMPT_ROLES` |
 | Resepsionis | Non-admin; boleh membuat booking **atas nama karyawan lain** (`organizer_email`) dan melihat/mengubah booking di ruangan pada lantai yang ia pegang (`tbl_users.floors`) | `POST /api/events`, `canView`, `canMutate`, `tbl_events.booked_by` |
 | User | Hanya event miliknya/event tempat ia peserta; hanya ruangan lantainya | `listEventsForPrincipal`, `assertRoomFloorAccess` |
 | Akun nonaktif | Dihapus (`is_deleted=true`), role dihapus, atau role kosong → request berikutnya `401` | `verifyPrincipalToken` |
@@ -21,12 +22,24 @@ Referensi teknis: [`architecture.md`](architecture.md),
 Tidak ada refresh token untuk CMS. Sesi berakhir saat JWT kedaluwarsa atau
 akun dinonaktifkan; pengguna harus login ulang.
 
+### 1.1 Matrix menu dan audit
+
+| Hal | Aturan | Sumber |
+|---|---|---|
+| Sumber kebenaran menu | `tbl_role_menu_access` (peran × menu) diisi Super Admin dari CMS; default migrasi 022: `admin` semua menu, `receptionist`/`user` hanya `calendar` | `menu-access.repository.js` |
+| Penegakan | `menuAccess(key)` pada rute; Super Admin melewati matrix | `auth.middleware.js` |
+| Perubahan matrix | `PUT /api/access/matrix`; baris `super_admin` ditolak `400 INVALID_MENU_ACCESS`, dan server tetap menulis semua menu untuk super admin | `menu-access.controller.js` |
+| Cache | 30 detik per peran di proses API, dibersihkan saat matrix disimpan | `roleAllowsMenu` |
+| Audit | `tbl_audit_log`: user (buat/ubah/hapus, role, lantai), kartu (tambah/status/master), reset sandi, settings & backup, master card, matrix akses | `writeAudit` |
+| Baca audit | `GET /api/audit` hanya Super Admin; maksimum 500 baris (`limit` default 100) | `audit.routes.js` |
+| Larangan | Tidak ada endpoint ubah/hapus audit; kartu disamarkan, nama pelaku disalin | `audit.repository.js` |
+
 ## 2. Siklus user
 
 | Tahap | Aturan |
 |---|---|
 | Buat | Admin mengisi `name, email, password, roleId` (UUID). Password 8–72 byte; bcrypt cost 12. `card_number` opsional, `master_card=true` hanya berlaku bila kartu diisi |
-| Ubah | Self boleh mengubah nama/email/username; `roleId`, `card_number`, dan `floor` hanya admin |
+| Ubah | Self boleh mengubah nama/email/username; `roleId`, `card_number`, `floor`, dan `floors` hanya admin |
 | Ganti sandi | Self wajib menyertakan `oldPassword`; admin boleh mengganti sandi user lain tanpa sandi lama; konfirmasi harus sama |
 | Hapus | Soft delete (`is_deleted=true`); kartu master milik user dicabut otomatis |
 | Kartu | Ganti nomor kartu → kartu lama dicabut dari `tbl_card_masters`; status master dipindah bila sebelumnya master |
@@ -123,7 +136,7 @@ yang sudah di-trim dan case-insensitive. Gunakan nilai yang konsisten (`1`, `2`,
 | Audit | Kolom `tbl_events.booked_by` mencatat user yang membuat booking |
 | Ruangan | Hanya ruangan pada lantai yang dipegang resepsionis; pilihan lantai lain tidak tersedia di CMS dan ditolak server |
 | Lintas lantai | Hanya untuk lantai yang ada di `floors` resepsionis. Karyawan yang butuh lantai lain meminta resepsionis **lantai tujuan** membuatkannya |
-| Ubah/batal | Resepsionis boleh mengubah booking di lantainya atau booking yang ia buat; admin penuh; user biasa tetap hanya booking sendiri |
+| Ubah/batal | Resepsionis boleh mengubah booking di semua lantainya atau booking yang ia buat; admin penuh; user biasa tetap hanya booking sendiri |
 
 Field ini hanya dipakai saat membuat booking (`create-only`); nilai yang
 dikirim pada update diabaikan.

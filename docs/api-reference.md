@@ -51,7 +51,7 @@ Catatan:
 ### 2.1 Setup awal (instalasi baru)
 
 Database baru tidak punya akun sama sekali, sehingga dua endpoint ini publik
-(tanpa JWT) dan hanya dipakai sampai admin pertama dibuat.
+(tanpa JWT) dan hanya dipakai sampai akun pertama (Super Admin) dibuat.
 
 | Method & path | Akses | Body | Sukses | Error penting |
 |---|---|---|---|---|
@@ -95,13 +95,13 @@ Perubahan role, lantai, kartu, dan settings dicatat ke `tbl_audit_log`.
 | Method & path | Akses | Body / query | Sukses | Error penting |
 |---|---|---|---|---|
 | `GET /api/users` | JWT user | `q` (khusus non-admin, minimal 2 karakter) | `200` array karyawan aktif (lihat catatan privasi); admin menerima `role_id` di setiap baris | `400 INVALID_QUERY` (q terlalu pendek), `401` |
-| `POST /api/users` | JWT admin | `{name, email, employee_id, password, roleId(UUID), username?, floor?, card_number?, master_card?, must_change_password?}` | `201` user + `cards[]` | `400 INVALID_USER/INVALID_EMAIL/INVALID_USERNAME/INVALID_PASSWORD/INVALID_EMPLOYEE_ID`, `403 FORBIDDEN`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS` |
+| `POST /api/users` | menu Pengguna | `{name, email, employee_id, password, roleId(UUID), username?, floors?, floor?, card_number?, master_card?, must_change_password?}` | `201` user + `cards[]` | `400 INVALID_USER/INVALID_EMAIL/INVALID_USERNAME/INVALID_PASSWORD/INVALID_EMPLOYEE_ID/INVALID_FLOOR`, `403 FORBIDDEN`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS` |
 | `PUT /api/users/change-password` | JWT user/admin | `{userId?, oldPassword?, newPassword, newPasswordConfirmation}` | `200 {message}`; ganti sendiri menghapus flag, reset admin menyalakannya | `400 INVALID_PASSWORD`, `403`, `404 NOT_FOUND` |
 | `GET /api/users/:userId` | JWT self/admin | – | `200` user + `cards[]` | `401`, `403`, `404` |
-| `PUT /api/users/:userId` | JWT self/admin | `{name?, email?, username?, employee_id?, must_change_password?, ...}`; `roleId`/`employee_id`/`card_number`/`floor`/`must_change_password` hanya admin | `200` user + `cards[]` | `400`, `403`, `404`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS` |
+| `PUT /api/users/:userId` | JWT self / menu Pengguna | `{name?, email?, username?, employee_id?, must_change_password?, ...}`; `roleId`/`employee_id`/`card_number`/`floor`/`floors`/`must_change_password` hanya admin | `200` user + `cards[]` | `400`, `403`, `404`, `409 IDENTITY_EXISTS/EMPLOYEE_ID_EXISTS` |
 | `DELETE /api/users/:userId` | JWT self/admin | – | `200` user dengan `is_deleted=true` | `401`, `403`, `404` |
-| `POST /api/users/:userId/cards` | JWT admin | `{card_number}` | `201 {id, card_number, status, lost_at}` | `400 INVALID_CARD`, `403`, `404`, `409 CARD_EXISTS/CARD_LIMIT` |
-| `PATCH /api/users/:userId/cards/:cardId` | JWT admin | `{status: "lost" \| "active"}` | `200 {id, card_number, status, lost_at}` | `400 INVALID_CARD_STATUS`, `403`, `404`, `409 CARD_ALREADY_LOST/CARD_ALREADY_ACTIVE/CARD_LIMIT` |
+| `POST /api/users/:userId/cards` | menu Pengguna | `{card_number}` | `201 {id, card_number, status, lost_at}` | `400 INVALID_CARD`, `403`, `404`, `409 CARD_EXISTS/CARD_LIMIT` |
+| `PATCH /api/users/:userId/cards/:cardId` | menu Pengguna | `{status: "lost" \| "active"}` | `200 {id, card_number, status, lost_at}` | `400 INVALID_CARD_STATUS`, `403`, `404`, `409 CARD_ALREADY_LOST/CARD_ALREADY_ACTIVE/CARD_LIMIT` |
 
 Catatan:
 - Respons tetap berupa array objek (tidak dibungkus `{data: ...}`).
@@ -109,11 +109,12 @@ Catatan:
   `role_id`, `is_master_card`, `cards[]`); parameter `q` diabaikan untuk admin.
   `role_id` ditambahkan agar kolom dan filter role di CMS tidak perlu memanggil
   endpoint lain (3.10.3).
-- Non-admin hanya melihat rekan **satu lantai** (`principal.floor`) dengan field
-  minimal `{_id, name, email, type}`; `employee_id`, `card_number`, `cards`,
+- Non-admin tanpa menu Pengguna hanya melihat rekan di **lantai yang ia pegang**
+  (`tbl_users.floors`, atau `floor` lama) dengan field minimal
+  `{_id, name, email, type}`; `employee_id`, `card_number`, `cards`,
   `is_master_card`, dan `floor` tidak pernah dikirim (`publicEmployee`).
-- Non-admin tanpa `floor` menerima `[]` (direktori tidak dibuka), kecuali memakai
-  pencarian. Floor `"all"` berarti seluruh direktori, tetap dengan field minimal.
+- Non-admin tanpa lantai menerima `[]` (direktori tidak dibuka), kecuali memakai
+  pencarian. Lantai `"all"` berarti seluruh direktori, tetap dengan field minimal.
 - Non-admin dengan `?q=` minimal 2 karakter: pencarian `contains`
   case-insensitive pada nama atau email, **lintas lantai**, maksimal 20 baris,
   field minimal. `q` kosong (`?q=`) diperlakukan seperti tanpa `q`; `q` satu
@@ -165,13 +166,13 @@ Ruangan adalah `tbl_users` dengan `type='room'` dan `role_id=NULL`.
 | Method & path | Akses | Body / query | Sukses | Error penting |
 |---|---|---|---|---|
 | `GET /api/rooms` | JWT user | `building`, `capacity`, `floor` (opsional) | `200` daftar ruangan | `401` |
-| `POST /api/rooms` | JWT admin | `{name, email, username?, password?, floor?, capacity?, building?, feature?}` | `201` akun ruangan | `400 INVALID_ROOM/INVALID_EMAIL/INVALID_USERNAME/INVALID_PASSWORD`, `409 IDENTITY_EXISTS` |
+| `POST /api/rooms` | menu Ruangan | `{name, email, username?, password?, floor?, capacity?, building?, feature?}` | `201` akun ruangan | `400 INVALID_ROOM/INVALID_EMAIL/INVALID_USERNAME/INVALID_PASSWORD`, `409 IDENTITY_EXISTS` |
 | `GET /api/rooms/available` | JWT user | `start_dates`, `end_dates` (ISO), `rooms` (email, opsional) | `200` ruangan bebas | `400 INVALID_RANGE/INVALID_TIME`, `401` |
-| `GET /api/rooms/usage-report` | JWT admin | `start`, `end` (`YYYY-MM-DD`) | `200` laporan pemakaian | `400 INVALID_RANGE`, `403` |
+| `GET /api/rooms/usage-report` | menu Laporan | `start`, `end` (`YYYY-MM-DD`) | `200` laporan pemakaian | `400 INVALID_RANGE`, `403` |
 | `GET /api/rooms/status` | JWT user | – | `200` status okupansi + tablet online | `401` |
 | `GET /api/rooms/:roomId` | JWT user | – | `200` ruangan | `401`, `404` |
-| `PUT /api/rooms/:roomId` | JWT admin | field ruangan parsial | `200` ruangan | `400`, `404`, `409` |
-| `DELETE /api/rooms/:roomId` | JWT admin | – | `200` ruangan ter-soft-delete | `401`, `403`, `404` |
+| `PUT /api/rooms/:roomId` | menu Ruangan | field ruangan parsial | `200` ruangan | `400`, `404`, `409` |
+| `DELETE /api/rooms/:roomId` | menu Ruangan | – | `200` ruangan ter-soft-delete | `401`, `403`, `404` |
 
 Menghapus ruangan juga mencabut semua perangkat kiosk aktif milik ruangan itu
 (`server/features/rooms/room.controller.js:18-25`), sehingga tablet harus
@@ -234,11 +235,11 @@ Catatan penting:
 |---|---|---|---|---|
 | `GET /api/settings/public` | Publik | – | `200 {self_signup_enabled}` | – |
 | `GET /api/settings` | JWT user | – | `200` objek settings atau `{}` | `401` |
-| `PUT /api/settings` | JWT admin | `{id, lock_timer, led_timer, table_input, not_checked_in_time_limit, time_of_event_start_soon, available_color, will_start_color, on_meeting_color, self_signup_enabled}` (semua wajib; boolean untuk `table_input`/`self_signup_enabled`) | `200 {status:"updated"}` | `400 INVALID_SETTINGS`, `404 NOT_FOUND` |
-| `GET /api/settings/card-master` | JWT admin | `card_number` (opsional) | `200` daftar kartu | `403` |
-| `POST /api/settings/card-master` | JWT admin | `{card_number}` | `201` kartu | `400 INVALID_CARD`, `409 CARD_EXISTS` |
-| `PUT /api/settings/card-master/:idCardMaster` | JWT admin | `{card_number}` | `200` kartu | `400 INVALID_CARD`, `404`, `409 CARD_EXISTS` |
-| `DELETE /api/settings/card-master/:idCardMaster` | JWT admin | – | `200 {status:"deleted"}` | `404` |
+| `PUT /api/settings` | menu Pengaturan | `{id, lock_timer, led_timer, table_input, not_checked_in_time_limit, time_of_event_start_soon, available_color, will_start_color, on_meeting_color, self_signup_enabled}` (semua wajib; boolean untuk `table_input`/`self_signup_enabled`) | `200 {status:"updated"}` | `400 INVALID_SETTINGS`, `404 NOT_FOUND` |
+| `GET /api/settings/card-master` | menu Pengaturan | `card_number` (opsional) | `200` daftar kartu | `403` |
+| `POST /api/settings/card-master` | menu Pengaturan | `{card_number}` | `201` kartu | `400 INVALID_CARD`, `409 CARD_EXISTS` |
+| `PUT /api/settings/card-master/:idCardMaster` | menu Pengaturan | `{card_number}` | `200` kartu | `400 INVALID_CARD`, `404`, `409 CARD_EXISTS` |
+| `DELETE /api/settings/card-master/:idCardMaster` | menu Pengaturan | – | `200 {status:"deleted"}` | `404` |
 
 `GET /api/settings/public` sengaja tanpa login dan hanya mengembalikan
 `self_signup_enabled`. `GET /api/settings` dapat diakses semua user yang login;
@@ -251,9 +252,9 @@ Catatan penting:
 |---|---|---|---|---|
 | `POST /api/kiosk/auth` | Publik | `{email\|username, password, deviceName?}` | `200 {token, refreshToken, room, device}` | `401 INVALID_KIOSK_CREDENTIALS`, `409 ROOM_ALREADY_PAIRED`, `429` |
 | `POST /api/kiosk/refresh` | Publik (refresh token) | `{refreshToken}` | `200` sesi baru (token + refresh berotasi) | `401 INVALID_KIOSK_REFRESH`, `429` |
-| `GET /api/kiosk/devices` | JWT admin | `roomId` (opsional) | `200` daftar perangkat | `401`, `403` |
-| `PATCH /api/kiosk/devices/:deviceId/capabilities` | JWT admin | `{nfcEnabled?, ledEnabled?, showSubject?}` minimal satu boolean | `200` perangkat | `400 INVALID_KIOSK_CAPABILITIES`, `404` |
-| `DELETE /api/kiosk/devices/:deviceId` | JWT admin | – | `200 {id,status:"revoked"}` | `401`, `403`, `404` |
+| `GET /api/kiosk/devices` | menu Perangkat | `roomId` (opsional) | `200` daftar perangkat | `401`, `403` |
+| `PATCH /api/kiosk/devices/:deviceId/capabilities` | menu Perangkat | `{nfcEnabled?, ledEnabled?, showSubject?}` minimal satu boolean | `200` perangkat | `400 INVALID_KIOSK_CAPABILITIES`, `404` |
+| `DELETE /api/kiosk/devices/:deviceId` | menu Perangkat | – | `200 {id,status:"revoked"}` | `401`, `403`, `404` |
 | `GET /api/kiosk/context` | Token kiosk | – | `200 {room, device, timezone, serverTime, cmsVersion, settings}` | `401 KIOSK_AUTH_REQUIRED/INVALID_KIOSK_TOKEN/INACTIVE_KIOSK_DEVICE` |
 | `GET /api/kiosk/schedule` | Token kiosk | `start`,`end` (`YYYYMMDD`) | `200` jadwal terproyeksi, termasuk `checkedInAt` (ISO atau `null`) | `400 INVALID_RANGE/INVALID_TIME`, `401` |
 | `DELETE /api/kiosk/device` | Token kiosk | – | `200 {id,status:"revoked"}` | `401`, `404` |
@@ -317,7 +318,7 @@ memakai fallback pemanggil atau `apiErrors.requestFailed`.
 | `INVALID_CARD` | 400 | `invalidCard` |
 | `INVALID_ROOM` | 400 | `invalidRoom` |
 | `INVALID_USER` | 400 | `invalidUser` |
-| `INVALID_SIGNUP`, `INVALID_EVENT`, `INVALID_ATTENDEE`, `INVALID_BOOKING_KIND`, `INVALID_SCOPE`, `INVALID_SETTINGS`, `INVALID_SETUP`, `ADMIN_ROLE_MISSING`, `INVALID_EMPLOYEE_ID` | 400 | `invalidRequest` |
+| `INVALID_SIGNUP`, `INVALID_EVENT`, `INVALID_ATTENDEE`, `INVALID_BOOKING_KIND`, `INVALID_SCOPE`, `INVALID_SETTINGS`, `INVALID_SETUP`, `SUPER_ADMIN_ROLE_MISSING`, `INVALID_EMPLOYEE_ID`, `INVALID_FLOOR` | 400 | `invalidRequest` |
 | `EMPLOYEE_ID_EXISTS` | 409 | `identityExists` |
 | `INVALID_VISITOR` | 400 | `invalidVisitor` |
 | `INVALID_TIME`, `INVALID_TIMEZONE`, `INVALID_LOCAL_TIME` | 400 | `invalidTime` |
@@ -338,7 +339,8 @@ memakai fallback pemanggil atau `apiErrors.requestFailed`.
 | `REQUEST_ERROR` | 4xx tanpa kode khusus | `requestFailed` |
 
 Kode yang **belum** punya kunci UI (akan tampil sebagai pesan generik):
-`FLOOR_REQUIRED`, `FLOOR_RESTRICTED`, `ROOM_ALREADY_PAIRED`, `NO_FREE_WINDOW`,
+`FLOOR_REQUIRED`, `FLOOR_RESTRICTED`, `PROTECTED_ACCOUNT`, `INVALID_MENU_ACCESS`,
+`ROOM_ALREADY_PAIRED`, `NO_FREE_WINDOW`,
 `NOT_CHECKED_IN`, `EXTEND_WINDOW`, `RANGE_TOO_LARGE`. APK kiosk menampilkan
 `payload.error` dari server, sedangkan CMS memakai fallback
 `apiErrors.requestFailed`.

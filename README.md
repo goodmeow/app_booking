@@ -42,7 +42,7 @@ terbaca setiap container dibuat ulang.
 
 Lalu:
 
-1. Buka **`/setup`** dan buat akun admin pertama. Entrypoint container sudah
+1. Buka **`/setup`** dan buat akun Super Admin pertama. Entrypoint container sudah
    menerapkan seluruh migrasi dan seed role, jadi form setup hanya muncul pada
    database yang belum punya admin. Setelah sukses form terkunci
    (`409 SETUP_COMPLETED`) dan CMS masuk otomatis.

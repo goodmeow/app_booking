@@ -1,7 +1,7 @@
 # Arsitektur RoomBooking
 
 Dokumen ini menjelaskan komponen, alur request, dan batas kepercayaan aplikasi
-**seperti kode saat ini** (diperiksa 2026-10-24). Versi acuan: CMS/API
+**seperti kode saat ini** (diperiksa 2026-10-26). Versi acuan: CMS/API
 `3.11.0` (Ver 3 Rev 12), APK kiosk `1.3.8` (code 19) — lihat
 [`VERSIONING.md`](VERSIONING.md).
 
@@ -100,7 +100,7 @@ sequenceDiagram
   A->>S: createEvents(body, principal)
   S->>S: normalizedCreate + validateHeader (durasi, timezone)
   S->>D: resolveParticipants (room & employee aktif)
-  S->>S: assertRoomFloorAccess (kecuali ADMIN)
+  S->>S: assertRoomFloorAccess (kecuali Admin/Super Admin)
   S->>S: buildOccurrences (bila recurring)
   S->>D: BEGIN
   S->>D: INSERT tbl_event_series (bila recurring)
@@ -197,6 +197,34 @@ sequenceDiagram
   (`client/redux/websocket.js` hanya mendengar `response:event`), sehingga
   perubahan settings belum otomatis menyegarkan halaman lain.
 
+### 3.5 Kontrol akses, lantai, dan audit
+
+Otorisasi berlapis, dari yang paling tetap ke yang paling mudah diubah:
+
+| Lapis | Diatur oleh | Efek |
+|---|---|---|
+| Peran | `tbl_role` (`super_admin`, `admin`, `receptionist`, `user`) | Menentukan cakupan data (semua event, lantai, event sendiri) |
+| Matrix menu | `tbl_role_menu_access` per peran × menu, disimpan Super Admin | `menuAccess(key)` menolak endpoint dengan `403`; navigasi CMS ikut menyembunyikan menu |
+| Lantai | `tbl_users.floors` (fallback `tbl_users.floor`) | `coversFloor`/`coversAnyFloor` membatasi ruangan; `all` = semua lantai |
+| Perlindungan akun | `tbl_users.is_protected` + role `super_admin` | Akun setup tidak bisa dihapus/diturunkan |
+
+- `superAdminOnly` menjaga `/api/access/matrix` (GET/PUT) dan `/api/audit`.
+  Super Admin melewati matrix dan selalu mendapat semua menu
+  (`GET /api/access/menus` mengembalikan seluruh `MENU_KEYS`).
+- `ADMIN` dan `SUPER_ADMIN` sama-sama dikecualikan dari aturan lantai
+  (`FLOOR_EXEMPT_ROLES`) dan sama-sama boleh memesan atas nama karyawan;
+  bedanya hanya matrix/audit dan hak menetapkan role Super Admin.
+- Resepsionis memakai `floors` untuk dua hal: ruangan yang boleh dipesan
+  (`assertRoomFloorAccess`) dan event yang boleh dilihat/diubah
+  (`receptionistCoversEventFloor` memakai `event.room_floors`).
+- `writeAudit` menulis `tbl_audit_log` di dalam transaksi yang sama dengan
+  perubahan (role, lantai, kartu, reset sandi, settings, master card, matrix).
+  Nomor kartu disamarkan; nama pelaku disalin agar riwayat tetap terbaca bila
+  akunnya dihapus. Tidak ada endpoint ubah/hapus audit.
+- Cache menu per peran berumur 30 detik di proses API; `saveMenuAccess`
+  membersihkannya, jadi proses lain (bila kelak scale-out) bisa tertinggal
+  maksimal 30 detik.
+
 ## 4. Zona waktu
 
 | Aspek | Perilaku saat ini |
@@ -219,7 +247,7 @@ generik agar aman bila `APP_TIMEZONE` diganti.
 | Kiosk, judul | Selalu `[NamaDepan, HH:mm - HH:mm]`; subjek tidak pernah masuk judul | `getKioskSchedule`, `server/features/kiosk/kiosk.service.js:226-250` |
 | Kiosk, `showSubject` | `false` → `subject` dan `organizerName` bernilai `null`; `true` → keduanya dikirim | kolom `tbl_kiosk_devices.show_subject` (default `true`, migrasi 011) |
 | Socket.io | Hanya `{type:"events:changed"}`, tanpa subjek/peserta | `emitEventInvalidation` |
-| HTTP detail event | Hanya admin, organizer, atau peserta terdaftar | `getEventDetails`, `server/features/events/event.service.js:299-307` |
+| HTTP detail event | Hanya Admin/Super Admin, organizer, peserta terdaftar, atau resepsionis yang memegang lantai ruangan | `getEventDetails`, `canView`, `server/features/events/event.service.js` |
 
 Pemilik meeting tetap melihat data lengkap di CMS karena ia organizer; kartu
 dan nomor kartu hanya dikembalikan ke admin (`publicEmployee`, migrasi

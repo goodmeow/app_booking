@@ -2,7 +2,7 @@
 
 Dokumen ini memetakan halaman-halaman web admin (CMS) beserta isi, API, dan
 lokasi kodenya. Versi yang didokumentasikan: CMS/API **3.11.0** (Ver 3 Rev 12).
-Terakhir diperbarui: 2026-10-25.
+Terakhir diperbarui: 2026-10-26.
 
 ## 1. Ringkasan teknis
 
@@ -32,8 +32,8 @@ Login demo: `admin@example.test` (password di `.env.demo`).
 /signin                Masuk                    (publik, tanpa header)
 /signup                Daftar                   (publik; hanya bila toggle self signup aktif)
 /setup                 Setup awal               (publik; hanya saat instalasi baru)
-/app-management        Manajemen Aplikasi        (ADMIN)
-/report                Laporan Pemakaian Ruangan (ADMIN)
+/app-management        Manajemen Aplikasi        (menu Manajemen)
+/report                Laporan Pemakaian Ruangan (menu Laporan)
 /kiosk  /kiosk/setup   Kiosk web (referensi)     (tanpa header CMS)
 *                      404 NotFound
 ```
@@ -121,34 +121,43 @@ sehingga tidak memakai header CMS.
 - API: `GET /api/events`, `GET /api/events/details`,
   `POST /api/events/preview`, `POST/PUT/DELETE /api/events`,
   `GET /api/rooms`, `GET /api/users/`.
-- **Aturan lantai:** karyawan hanya boleh memesan ruangan di **grup lantainya**
-  (`tbl_users.floor`). Nilai `all` berarti **semua lantai**. Server menolak
-  booking lintas lantai dengan `403 FLOOR_RESTRICTED`; akun tanpa lantai
-  mendapat `403 FLOOR_REQUIRED`. Admin dikecualikan. Di UI, daftar ruangan
-  pada sidebar dan pemilih lokasi editor difilter sesuai grup lantai user, dan
-  sidebar menampilkan keterangan lantai. Kiosk "Pesan sekarang" juga memeriksa
-  lantai pemilik kartu.
-- Grup lantai hanya bisa diubah **admin** (lewat tab Pengguna); user biasa tidak
-  bisa menaikkan haknya sendiri menjadi `all`.
+- **Aturan lantai:** karyawan hanya boleh memesan ruangan di **lantai yang
+  tercantum pada akunnya** (`tbl_users.floors`, daftar). Nilai `all` berarti
+  **semua lantai**. Server menolak booking lintas lantai dengan
+  `403 FLOOR_RESTRICTED`; akun tanpa daftar lantai (dan tanpa `floor` lama)
+  mendapat `403 FLOOR_REQUIRED`. Admin dan Super Admin dikecualikan. Di UI,
+  daftar ruangan pada sidebar dan pemilih lokasi editor difilter sesuai lantai
+  akun, dan sidebar menampilkan keterangan lantai. Kiosk "Pesan sekarang" juga
+  memeriksa lantai pemilik kartu.
+- **Lantai lama vs baru:** kolom lama `tbl_users.floor` (satu nilai) tetap
+  dibaca sebagai cadangan bila `floors` kosong. Saat admin menyimpan form,
+  nilai `floor` diturunkan otomatis dari daftar (`all` bila daftar memuat
+  `all`, selain itu lantai pertama) untuk kompatibilitas impor CSV.
+- **Resepsionis lintas lantai:** resepsionis melihat dan mengubah booking di
+  **semua lantai yang ia pegang**, bukan hanya booking yang ia buat sendiri
+  (`canView`/`canMutate` memakai `floors` akun). Karyawan tetap hanya melihat
+  event miliknya atau tempat ia peserta.
+- Grup lantai hanya bisa diubah lewat tab Pengguna (menu Pengguna); user biasa
+  tidak bisa menaikkan haknya sendiri menjadi `all`.
 
 ### 3.4 Profil Pengguna (`/user/:userId`) — `client/profile/UserProfile.js`
 - Detail akun, edit profil, ganti kata sandi, hapus akun.
 - API: `GET/PUT /api/users/:id`, `PUT /api/users/change-password`,
   `DELETE /api/users/:id`.
 
-### 3.5 Laporan Pemakaian Ruangan (`/report`, admin) — `client/report/RoomUsageReport.js`
+### 3.5 Laporan Pemakaian Ruangan (`/report`, menu Laporan) — `client/report/RoomUsageReport.js`
 - Rentang tanggal → rekap pemakaian per ruangan, dengan ekspor.
 - API: `GET /api/rooms/usage-report`.
 
-### 3.6 Manajemen Aplikasi (`/app-management`, admin) — `client/management/`
+### 3.6 Manajemen Aplikasi (`/app-management`, menu Manajemen) — `client/management/`
 Empat tab (`AppManagement.js`):
 
 | Tab | Isi | API |
 |---|---|---|
-| Pengguna (`UserManagementSection.js`, `users/`) | CRUD user **beserta akses kartunya**: pencarian **nama/email/employee ID**, kolom **Role** (chip) + filter role yang bisa digabung dengan filter lantai, kolom nomor kartu, tombol **kartu master**, **kolom grup lantai** (pilih **Semua lantai**, lantai tertentu, atau belum diatur), dan **role Admin/Resepsionis/Pengguna**; ganti sandi, hapus. Tabel setinggi viewport dengan pagination **25/50/100**. | `/api/users` |
+| Pengguna (`UserManagementSection.js`, `users/`) | CRUD user **beserta akses kartunya**: pencarian **nama/email/employee ID**, kolom **Role** (chip) + filter role yang bisa digabung dengan filter lantai (termasuk filter Super Admin), kolom nomor kartu, tombol **kartu master**, **kolom lantai** (chip per lantai: **Semua lantai**, satu/lebih lantai, atau chip peringatan "belum diatur"), dan **role Admin/Resepsionis/Pengguna**; ganti sandi, hapus. Tabel setinggi viewport dengan pagination **25/50/100**. | `/api/users` |
 | Ruangan (`RoomManagementSection.js`) | CRUD ruangan: nama, gedung, lantai, **kapasitas**, fitur, email, sandi. **Kolom Tablet: Online/Offline/Belum ada/Dicabut**, auto-refresh 15 s | `/api/rooms`, `/api/kiosk/devices` |
-| Perangkat Tablet (`KioskDeviceManagementSection.js`) | Daftar tablet: nama, ruangan, **Online/Offline/Dicabut/Kedaluwarsa**, switch **LED**, switch **Judul** (tampilkan/sembunyikan judul meeting — admin per perangkat), last seen, waktu pairing, cabut perangkat, tombol **Unduh APK Tablet** (tautan statik `/apk/kiosk-release.apk`, unduh saja). Auto-refresh 15 s | `/api/kiosk/devices`, `PATCH …/capabilities`, `DELETE …/:id` |
-| Pengaturan (`SettingsSection.js`, `settings-form.js`) | **Global settings**: timer check-in, jendela check-in, timer kunci kiosk, timer LED, input meja, dan toggle pendaftaran mandiri. Panel **Floor groups sudah dihapus**. | `/api/settings` |
+| Perangkat Tablet (`KioskDeviceManagementSection.js`) | Daftar tablet: nama, ruangan, **Online/Offline/Dicabut/Kedaluwarsa**, switch **LED**, switch **Judul** (tampilkan/sembunyikan judul meeting — admin per perangkat), last seen, waktu pairing, cabut perangkat, tombol **Unduh APK Tablet** (tautan statik `/apk/kiosk-release.apk`, unduh saja; halaman penjelas di `/apk/index.html`). Auto-refresh 15 s | `/api/kiosk/devices`, `PATCH …/capabilities`, `DELETE …/:id` |
+| Pengaturan (`SettingsSection.js`, `settings-form.js`) | **Global settings**: timer check-in, jendela check-in, timer kunci kiosk, timer LED, input meja, hari pertama minggu, dan toggle pendaftaran mandiri; di bawahnya **Global branding**, lalu **matrix peran** dan **log audit** yang hanya tampil untuk Super Admin. Panel **Floor groups sudah dihapus**. | `/api/settings`, `/api/access/*`, `/api/audit` |
 
 **Tab Pengguna (3.10.3).** Pencarian mencocokkan nama, email, dan employee ID
 (minimal satu karakter, case-insensitive). Filter role memakai chip role yang
@@ -174,9 +183,45 @@ settings (nilai yang dimuat + field yang diubah + `id`), sehingga field warna
 (`available_color`, `will_start_color`, `on_meeting_color`) dan
 `setup_completed` ikut terkirim apa adanya. Timer wajib bilangan bulat > 0.
 
+**Matrix peran (Super Admin).** Di bawah form Pengaturan, Super Admin melihat
+panel **Manajemen Peran Pengguna**: tabel peran (`super_admin`, `admin`,
+`receptionist`, `user`) × menu (`calendar`, `report`, `users`, `rooms`,
+`devices`, `settings`), lalu tombol **Simpan matriks**. Kotak baris
+`super_admin` terkunci dan selalu tercentang. Matrix dibaca dari
+`GET /api/access/matrix` dan disimpan lewat `PUT /api/access/matrix`; server
+menolak perubahan baris `super_admin`. Nilai default migrasi 022: `admin`
+semua menu, `receptionist` dan `user` hanya `calendar`. Menu yang dicabut
+berlaku di dua lapis: item navigasi/rute CMS hilang, dan endpoint terkait
+menolak `403` lewat middleware `menuAccess` — kalender (`/api/events`),
+laporan (`/api/rooms/usage-report`), pengguna (buat/ubah user, impor, kartu),
+ruangan (buat/ubah/hapus), perangkat (kelola/cabut), dan pengaturan (simpan
+settings, branding, backup). Endpoint baca yang bersifat self-service tetap
+terbuka (profil sendiri, daftar event yang diizinkan peran). Cache peran di
+server maksimal 30 detik dan dibersihkan saat matrix disimpan, jadi perubahan
+terasa pada permintaan berikutnya.
+
+**Log audit (Super Admin).** Panel **Log audit** menampilkan 100 entri
+terbaru dari `GET /api/audit` (terbaru di atas): waktu, pelaku, aksi, dan
+ringkasan nilai lama/baru. Yang dicatat server (`writeAudit`): pembuatan,
+perubahan, dan penghapusan pengguna (termasuk perubahan role dan lantai),
+kartu (tambah, hilang/aktif, master), reset kata sandi oleh admin, perubahan
+dan backup pengaturan, master card, serta perubahan matrix akses. Nama pelaku
+disalin saat kejadian sehingga riwayat tetap terbaca bila akunnya dihapus.
+Nomor kartu disamarkan (`****` + 4 digit terakhir). Login/logout, pembuatan
+meeting, dan check-in kiosk **tidak** masuk audit ini.
+
 Form **Pengguna** juga memiliki switch **Wajib ganti kata sandi** (bisa
 dicentang atau dimatikan). Bila aktif, pengguna harus mengganti password saat
 login berikutnya sebelum bisa memakai halaman lain.
+
+**Lantai kerja di form Pengguna.** Field **Lantai kerja** adalah dropdown
+*multiple*: pilih satu atau beberapa lantai, atau **Semua lantai**. Pilihan
+lantai berasal dari lantai ruangan yang sudah ada; lantai lama yang tidak lagi
+ada di master ruangan tetap ditampilkan agar tidak hilang diam-diam. Daftar
+kosong berarti akun belum punya lantai (aman untuk Admin/Super Admin, tetapi
+karyawan/resepsionis akan ditolak `403 FLOOR_REQUIRED` saat memesan). Server
+menerima `floors` (array, maks. 20 lantai, tiap lantai maks. 40 karakter) dan
+tetap menerima `floor` lama sebagai bentuk satu-nilai.
 
 **Toggle "Judul" per perangkat** (migrasi `011_kiosk_show_subject.sql`,
 kolom `tbl_kiosk_devices.show_subject`, default **tampil**): ketika aktif,
@@ -220,7 +265,7 @@ modal email + sandi ruangan.
 
 | Komponen | Fungsi |
 |---|---|
-| `core/Menu.js` | Header + drawer. Item: Kalender; Manajemen & Laporan (ADMIN saja); Profil; Masuk (Daftar hanya bila toggle self signup aktif) |
+| `core/Menu.js` | Header + drawer. Item mengikuti matrix peran: Kalender, Manajemen (bila salah satu menu manajemen aktif), Laporan, Profil, Masuk (Daftar hanya bila toggle self signup aktif) |
 | `core/ProtectedShell.js` | Menghubungkan Socket.io saat area login aktif |
 | `core/NotFound.js` | Halaman 404 |
 | `components/common/AsyncState.js` | State loading/error standar |
@@ -244,6 +289,13 @@ modal email + sandi ruangan.
 
 ## 6. Catatan perubahan terbaru
 
+- **2026-10-26 (tanpa naik versi, CMS tetap 3.11.0 / Ver 3 Rev 12)**:
+  role `super_admin` dari akun `/setup` (dilindungi, tidak bisa dihapus atau
+  diturunkan), matrix menu per peran di tab Pengaturan, `tbl_users.floors`
+  (multi-lantai) beserta akses resepsionis ke semua lantai yang dipegang,
+  log audit untuk role/lantai/kartu/pengaturan/akses, dan halaman unduh APK
+  `/apk/index.html` dengan paket `kiosk-release.apk` build tag
+  `1.3.8-19-85ca335`.
 - **3.10.4 (Ver 3 Rev 11)**: rentang minggu kalender kini Senin–Minggu,
   sejalan dengan `firstDay` FullCalendar (memperbaiki minggu kosong saat
   tanggal terpilih hari Minggu dan occurrence daily hari Minggu). Kalender

@@ -35,6 +35,20 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 - Perubahan 2026-10-26 (belum naik versi): role `super_admin` dari akun setup,
   matrix menu CMS per role, multi-lantai (`tbl_users.floors`), akses
   resepsionis per lantai, dan audit log untuk role/lantai/kartu/settings.
+  Endpoint baru: `GET /api/access/menus`, `GET/PUT /api/access/matrix`,
+  `GET /api/audit` (dua terakhir hanya Super Admin). Commit `bed9c86`
+  (fitur) + `e165ed7` (pengerasan reset sandi, audit, akses menu).
+  Docs dan deck training ikut diperbarui. Bukti setelah perubahan di checkout
+  build `/home/goodmeow/build/app_booking`: unit server **85/85**, client
+  **98/98**, regresi **92/92** (0 skip), parity prepare **2/2**, parity **8/8**,
+  `build:client` dan `build:server:check` lulus (2026-10-26).
+- Distribusi APK, 2026-10-26 (commit `05c6020`): rebuild `1.3.8` (19) build tag
+  `1.3.8-19-85ca335` — pill `TERSEDIA` 44 px, copy netral
+  "Siap digunakan / Belum ada jadwal berikutnya". Paket
+  `public/apk/kiosk-release.apk` 21.514.430 byte, SHA-256
+  `ad21fbd777aad4d8f40da55c5879b930b15bb2cb0acd989088127b09a75735ab`,
+  plus halaman unduh `public/apk/index.html` (`/apk/index.html`).
+  `versionName`/`versionCode` tidak berubah, hanya isi build.
 - Status UAT 2026-10-26: stack Docker Compose di VM Linux (CMS/API `8082`),
   setup admin + impor user bersih, tablet dipairing, akses pintu end-to-end
   terbukti (APK → validasi kartu API 200 → relay CH340 → klik relay fisik).

@@ -10,7 +10,10 @@ Rekonstruksi aplikasi booking ruangan 360Booking produksi: CMS web (admin +
 kalender), API + Socket.io, dan aplikasi kiosk tablet (repo `kioskapp`).
 Aturan produk terpenting:
 
-- Karyawan hanya memesan ruangan di lantai kerjanya (admin bebas).
+- Karyawan hanya memesan ruangan di lantai kerja yang tercantum di akunnya
+  (`tbl_users.floors`, boleh lebih dari satu; admin bebas).
+- Akun pertama dari `/setup` adalah **Super Admin** yang dilindungi dan
+  pemegang matrix menu per peran serta log audit.
 - Satu tablet aktif per ruangan; pairing dilakukan dari layar tablet.
 - Kiosk menampilkan `[nama depan, HH:mm - HH:mm]` untuk booking orang lain
   (privasi): subjek/desc/email hanya untuk pemilik atau admin.
@@ -65,8 +68,14 @@ tablet bila sesi kios ikut hilang.
    berguna untuk memastikan tablet dan server memakai rilis yang sama.
 5. Admin mengelola perangkat di CMS → Manajemen → Perangkat Tablet (LED,
    tampilkan judul, cabut perangkat, unduh APK). Pengaturan global (timer
-   check-in, timer kunci, LED, input meja, pendaftaran mandiri) ada di tab
-   **Pengaturan**; panel Floor groups sudah tidak ada.
+   check-in, timer kunci, LED, input meja, pendaftaran mandiri, hari pertama
+   minggu) ada di tab **Pengaturan**; panel Floor groups sudah tidak ada.
+   Di bagian bawah tab yang sama, **Super Admin** melihat **matrix menu per
+   peran** dan **log audit**.
+6. Update APK tablet: unduh dari `https://<domain>/apk/index.html` (atau tombol
+   Unduh APK Tablet). Versi saat ini `1.3.8` (19), build tag
+   `1.3.8-19-85ca335`; footer tablet menampilkan
+   `v1.3.8 (19) · CMS 3.11.0`.
 
 ## 5. Gate kualitas
 
@@ -82,7 +91,7 @@ butuh PostgreSQL disposable sehingga dijalankan manual/ops.
 
 Ikuti `deploy/README.md` urut: `01-install-prerequisites.sh` →
 `02-provision-database.sh` → `03-build.sh` → `04-install-app.sh` →
-`05-create-admin.sh` (atau buat admin pertama lewat `/setup`). HTTPS didukung
+`05-create-admin.sh` (atau buat akun Super Admin pertama lewat `/setup`). HTTPS didukung
 lewat env `HTTPS=true` + `TLS_CERT_PATH`/`TLS_KEY_PATH` atau reverse proxy
 (`TRUST_PROXY=true`).
 
@@ -93,8 +102,13 @@ dan `docs/operations-runbook.md` §2.5.
 
 ## 7. Sebelum go-live (jangan dilewat)
 
-- Isi `tbl_users.floor` semua akun karyawan produksi (kalau kosong, booking
-  ditolak dengan `FLOOR_REQUIRED` / 403).
+- Isi `tbl_users.floors` (atau `floor` lama) semua akun karyawan dan
+  resepsionis produksi (kalau kosong, booking ditolak dengan
+  `FLOOR_REQUIRED` / 403). Satu akun boleh memegang beberapa lantai.
+- Pastikan satu akun **Super Admin** aktif dan password-nya dipegang orang
+  yang bertanggung jawab; jangan pakai akun itu untuk operasional harian.
+- Periksa matrix menu per peran (Manajemen → Pengaturan → Manajemen Peran
+  Pengguna) sebelum menyerahkan akses ke staf.
 - Ganti semua `change-me` di `/etc/360booking/app.env`, set `CORS_ORIGINS`
   ke origin CMS yang sebenarnya.
 - Pastikan autostart + kiosk lock tablet (belum otomatis; lihat TODO Fase 12).

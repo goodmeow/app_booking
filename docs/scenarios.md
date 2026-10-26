@@ -201,8 +201,72 @@ curl -s -X POST "$API/events" \
        \"timezone\":\"Asia/Jakarta\",\"attendee_email\":\"room-two@room.com\"}]"
 ```
 
-Karyawan tanpa `floor` → `403 FLOOR_REQUIRED`; atur lewat
-`PUT /api/users/$USER_ID` dengan body `{"floor":"1"}` (admin).
+Karyawan tanpa `floor`/`floors` → `403 FLOOR_REQUIRED`; atur lewat
+`PUT /api/users/$USER_ID` dengan body `{"floors":["1"]}` (admin).
+
+### 6.1 Multi-lantai dan resepsionis
+
+`floors` adalah daftar; `floor` lama tetap diterima sebagai satu nilai.
+
+```bash
+# Akun memegang dua lantai: boleh ruangan lantai 1 dan 2, ditolak lantai 3
+curl -s -X PUT "$API/users/$USER_ID" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"floors":["1","2"]}'
+```
+
+| Kasus | Harapan |
+|---|---|
+| `{"floors":["1","2"]}` lalu booking room-two | `200` |
+| `{"floors":["1"]}` lalu booking room-two | `403 FLOOR_RESTRICTED` |
+| `{"floors":["all"]}` | semua ruangan boleh |
+| `{"floors":[]}` | `403 FLOOR_REQUIRED` saat booking |
+| `{"floors":["a","b", ... 21 nilai]}` | `400 INVALID_FLOOR` (maks. 20) |
+
+Resepsionis: booking milik karyawan di lantainya bisa diubah walau ia bukan
+pembuatnya (`booked_by` lain). Buka detail event dengan token resepsionis →
+`200`; dengan token karyawan lain di lantai berbeda → `403`.
+
+### 6.2 Matrix menu dan log audit
+
+Kedua endpoint hanya untuk Super Admin. **Akun demo `admin@example.test`
+adalah ADMIN biasa**, jadi promosikan dulu di database disposable (cara yang
+sama dipakai `server/tests/regression/access.test.js`), lalu login ulang:
+
+```sql
+UPDATE tbl_users
+SET role_id = (SELECT _id FROM tbl_role WHERE lower(role_name) = 'super_admin')
+WHERE email = 'admin@example.test';
+```
+
+Instalasi baru yang dibuat lewat `/setup` sudah otomatis Super Admin, jadi
+langkah di atas hanya untuk database demo.
+
+```bash
+SUPER_TOKEN=$(curl -s -X POST "$API/auth/signin" \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.test","password":"ParityTest123!"}' | token)
+
+curl -s -H "Authorization: Bearer $SUPER_TOKEN" "$API/access/menus"
+curl -s -H "Authorization: Bearer $SUPER_TOKEN" "$API/access/matrix"
+curl -s -H "Authorization: Bearer $SUPER_TOKEN" "$API/audit?limit=5"
+```
+
+| Kasus | Harapan |
+|---|---|
+| `GET /api/access/matrix` dengan token ADMIN (bukan Super Admin) | `403` |
+| `GET /api/audit` dengan token ADMIN | `403` |
+| `PUT /api/access/matrix` dengan baris `super_admin` | `400 INVALID_MENU_ACCESS` |
+| `PUT` matikan `calendar` untuk role `user`, lalu login user itu | menu kalender hilang; `GET /api/events` → `403` |
+| `PUT` matikan `users` untuk role `receptionist` | `POST /api/users` dengan token resepsionis → `403` |
+| Setelah ubah matrix | `GET /api/audit` memuat aksi `access.update` |
+| `PUT /api/users/$USER_ID` ubah `roleId`/`floors` | `GET /api/audit` memuat `user.update` dengan nilai lama/baru |
+| Reset sandi user lain oleh admin | entri `user.password.reset` |
+
+`PUT /api/access/matrix` menerima kiriman sebagian (hanya sel yang diubah),
+tetapi CMS selalu mengirim seluruh matriks. Kembalikan matrix ke nilai semula
+setelah uji (`calendar` untuk `user` tercentang) agar akun demo tetap bisa
+dipakai.
 
 ## 7. Kiosk: pairing
 
@@ -483,6 +547,9 @@ Alternatif paling bersih: `npm run demo` (reset DB) lalu pairing ulang.
 
 ## 18. Belum dapat diverifikasi
 
+- Skenario matrix di §6.2 memerlukan akun Super Admin. Database demo tidak
+  punya satu pun (admin demo berperan ADMIN), jadi promosi SQL di awal §6.2
+  wajib; `/setup` pada instalasi baru menghasilkan Super Admin otomatis.
 - Perintah `date -d` mengasumsikan GNU date (Linux/WSL), bukan macOS.
 - Skenario relay/NFC/LED memerlukan tablet dan kartu fisik; katalog ini hanya
   membuktikan sisi server.
