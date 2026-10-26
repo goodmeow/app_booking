@@ -169,7 +169,8 @@
     "passwordRule": "Kata sandi minimal 8 karakter.",
     "passwordTooShort": "Kata sandi terlalu pendek — minimal 8 karakter.",
     "mustChangePassword": "Wajib ganti kata sandi saat login berikutnya",
-    "mustChangePasswordHelp": "Pengguna harus membuat kata sandi baru sebelum memakai CMS."
+    "mustChangePasswordHelp": "Pengguna harus membuat kata sandi baru sebelum memakai CMS.",
+    "roleClear": "Hapus filter peran"
   },
   "settings": {
     "tab": "Pengaturan",

@@ -169,7 +169,8 @@
     "passwordRule": "Password must be at least 8 characters.",
     "passwordTooShort": "Password is too short — at least 8 characters are required.",
     "mustChangePassword": "Require password change at next login",
-    "mustChangePasswordHelp": "The user must set a new password before using the CMS."
+    "mustChangePasswordHelp": "The user must set a new password before using the CMS.",
+    "roleClear": "Clear role filter"
   },
   "settings": {
     "tab": "Settings",
