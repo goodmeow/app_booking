@@ -741,3 +741,30 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
 - [x] Commit: `db57d7a` (impor transaksi + floor), `99d0043` (guard tes
   tengah malam), kiosk `8277b93`.
 - [x] Commit perlindungan setup admin + migrasi 021 (`bfbb962`).
+
+## UAT Docker + akses pintu (2026-10-26)
+
+- [x] UAT berjalan sebagai stack **Docker Compose di VM Linux**; CMS/API di
+  port `8082`. Cek langsung: CMS root HTTP 200, `/api/health` 200,
+  `/apk/kiosk-release.apk` 200.
+- [x] Setup admin selesai dan impor user bersih di DB UAT.
+- [x] Satu akun meeting room dibuat; tablet dipairing ke server UAT.
+- [x] Akses pintu end-to-end di tablet: APK → `/api` validasi kartu 200 →
+  relay CH340 di tablet → klik relay fisik. CH340 juga terbukti lewat COM
+  Windows dan bridge `/dev/ttyUSB0` di WSL sebelumnya.
+- [x] Env UAT: CORS untuk host langsung + domain tujuan, JWT secret dan
+  password PostgreSQL app di-generate (nilai tidak dicatat di repo).
+- [x] APK dipakai: `1.3.8` (19), footer `v1.3.8 (19) · CMS 3.11.0`.
+- [x] Perubahan UI terakhir (tombol clear filter role) lulus `build:client`
+  + client 98/98; angka tes tetap: regresi 87/87 (0 skip), server unit 79/79,
+  parity prepare 2/2, parity 8/8, kiosk unit 21/21.
+- [x] Commit: `2c064dd` (opsi external nginx), `85f57dd` (argumen wajib
+  origin/proxy-ip), `e2abf77` (split/validasi secret), `8e1854d` (origin
+  list), `dabbfbb` (script deploy executable), `5ae6b0b` (clear filter role),
+  `febd049` (placeholder IP di docs).
+- [ ] DNS record + vhost nginx untuk `<uat-domain>` belum aktif; akses masih
+  lewat `http://<uat-host>:8082`.
+- [ ] UAT formal / training pengguna (pemilik produk).
+- [ ] Go-live produksi + tag rilis.
+- [ ] Opsional: NFC 7-byte, autostart/kiosk lock; 16 kartu placeholder RMH
+  ditunda.
