@@ -7,13 +7,18 @@
 set -euo pipefail
 
 ENV_FILE="/etc/360booking/app.env"
+PROVISION_FILE="/etc/360booking/provision.env"
 [[ -f "$ENV_FILE" ]] || { echo "$ENV_FILE does not exist. Copy it from deploy/app.env.example first." >&2; exit 1; }
 # shellcheck disable=SC1090
 source "$ENV_FILE"
+if [[ -f "$PROVISION_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$PROVISION_FILE"
+fi
 
 for var in PG_SUPERUSER_PASSWORD PGDATABASE PGUSER PGPASSWORD; do
   if [[ -z "${!var:-}" || "${!var}" == "change-me" ]]; then
-    echo "Variable $var is not set in $ENV_FILE." >&2
+    echo "Variable $var is not set in app.env or provision.env." >&2
     exit 1
   fi
 done
