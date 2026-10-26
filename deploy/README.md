@@ -36,10 +36,11 @@ sudo ./deploy/bootstrap.sh \
   --origin http://roombooking.lan
 ```
 
-API listen di `0.0.0.0:9091`; `--proxy-ip` membuka port 9091 hanya untuk
-nginx eksternal. Copy `build/client/` ke root nginx, lalu proxy `/api/` dan
-`/socket.io/` ke app server port 9091. Jangan pakai `--bind-host 127.0.0.1`
-untuk mode ini.
+`--origin` dan `--proxy-ip` **wajib** untuk mode ini. API listen di
+`0.0.0.0:9091`; `--proxy-ip` membuka port 9091 hanya untuk nginx eksternal.
+Copy `build/client/` ke root nginx, lalu proxy `/api/` dan `/socket.io/` ke
+app server port 9091. `--bind-host 127.0.0.1` ditolak karena tidak bisa
+diakses dari mesin nginx. Jika nginx lokal masih aktif, hentikan dulu.
 
 ## Urutan manual
 

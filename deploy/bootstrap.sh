@@ -29,8 +29,9 @@ Usage: sudo ./deploy/bootstrap.sh [--ip ADDRESS] [--port PORT] [--build-user USE
   --build-user  Non-root user that runs npm build (default: SUDO_USER)
   --no-nginx    Do not install/configure nginx on this host; use an external one
   --bind-host   API listen address (default: 127.0.0.1, or 0.0.0.0 with --no-nginx)
-  --origin URL  Exact external origin for CORS (e.g. http://roombooking.lan)
-  --proxy-ip    Allow API port 9091 only from this external-nginx IP
+  --origin URL  Required with --no-nginx: exact external origin for CORS
+                (e.g. http://roombooking.lan)
+  --proxy-ip    Required with --no-nginx: allow API port 9091 only from this IP
   --force       Replace /etc/360booking/app.env if it already exists
 
 Contoh external nginx:
@@ -70,11 +71,19 @@ id -u "$BUILD_USER" >/dev/null 2>&1 || { echo "Build user does not exist: $BUILD
 
 if [[ "$NO_NGINX" == "1" ]]; then
   BIND_HOST="${BIND_HOST:-0.0.0.0}"
+  [[ "$BIND_HOST" != "127.0.0.1" ]] || {
+    echo "External nginx cannot reach HOST=127.0.0.1; use --bind-host 0.0.0.0 or a LAN IP." >&2
+    exit 1
+  }
+  [[ -n "$ORIGIN_OVERRIDE" ]] || { echo "--no-nginx requires --origin URL." >&2; exit 1; }
+  [[ -n "$PROXY_IP" ]] || { echo "--no-nginx requires --proxy-ip ADDRESS." >&2; exit 1; }
   if [[ "$PUBLIC_PORT" != "80" ]]; then
-    echo "WARNING: --port is ignored in --no-nginx mode; the external nginx owns the public port." >&2
+    echo "WARNING: --port is ignored in --no-nginx mode; CORS uses --origin." >&2
+    PUBLIC_PORT=80
   fi
-  if [[ "$BIND_HOST" == "127.0.0.1" ]]; then
-    echo "WARNING: API listens on 127.0.0.1; an external nginx cannot reach it." >&2
+  if systemctl is-active --quiet nginx 2>/dev/null; then
+    echo "nginx is already active on this host; stop/disable it before --no-nginx." >&2
+    exit 1
   fi
 else
   [[ -z "$BIND_HOST" ]] || { echo "--bind-host requires --no-nginx." >&2; exit 1; }
@@ -128,10 +137,6 @@ else
   if [[ "$PUBLIC_PORT" == "80" ]]; then
     PUBLIC_ORIGIN="http://${PUBLIC_HOST}"
   fi
-fi
-
-if [[ "$NO_NGINX" == "1" && -z "$ORIGIN_OVERRIDE" ]]; then
-  echo "WARNING: CORS origin is ${PUBLIC_ORIGIN}; pass --origin if the external nginx uses another host." >&2
 fi
 
 if [[ -e "$ENV_FILE" && "$FORCE" != "1" ]]; then
