@@ -13,16 +13,33 @@ sudo ./deploy/bootstrap.sh
 ```
 
 Script akan:
-1. install Node/PostgreSQL/nginx/ufw,
+1. install Node/PostgreSQL/ufw (+ nginx, kecuali `--no-nginx`),
 2. generate password DB + `JWT_SECRET`,
 3. menulis `/etc/360booking/app.env` dengan origin `http://<ip>`,
 4. membuat DB + migrasi + role,
 5. build client/server,
-6. install systemd + nginx,
+6. install systemd (+ nginx, kecuali `--no-nginx`),
 7. mencetak URL `/setup`.
 
-Opsi: `--ip ADDRESS`, `--port PORT`, `--build-user USER`, `--force`.
+Opsi: `--ip ADDRESS`, `--port PORT`, `--build-user USER`, `--no-nginx`,
+`--bind-host ADDRESS`, `--origin URL`, `--proxy-ip ADDRESS`, `--force`.
 Admin pertama tetap dibuat lewat halaman `/setup`.
+
+### Tanpa nginx di app server
+
+Kalau nginx sudah ada di server lain:
+
+```bash
+sudo ./deploy/bootstrap.sh \
+  --no-nginx \
+  --proxy-ip 192.168.18.2 \
+  --origin http://roombooking.lan
+```
+
+API listen di `0.0.0.0:9091`; `--proxy-ip` membuka port 9091 hanya untuk
+nginx eksternal. Copy `build/client/` ke root nginx, lalu proxy `/api/` dan
+`/socket.io/` ke app server port 9091. Jangan pakai `--bind-host 127.0.0.1`
+untuk mode ini.
 
 ## Urutan manual
 
