@@ -31,12 +31,12 @@ Usage: sudo ./deploy/bootstrap.sh [--ip ADDRESS] [--port PORT] [--build-user USE
   --no-nginx    Do not install/configure nginx on this host; use an external one
   --bind-host   API listen address (default: 127.0.0.1, or 0.0.0.0 with --no-nginx)
   --origin URL  CORS origin list, comma-separated for domain + direct IP
-                (e.g. http://roombooking.lan,http://10.10.42.8)
+                (e.g. http://roombooking.lan,http://192.0.2.10)
   --proxy-ip    Required with --no-nginx: allow API port 9091 only from this IP
   --force       Replace /etc/360booking/app.env if it already exists
 
 Contoh external nginx:
-  sudo ./deploy/bootstrap.sh --no-nginx --proxy-ip 192.168.18.2 \
+  sudo ./deploy/bootstrap.sh --no-nginx --proxy-ip 192.0.2.10 \
     --origin http://roombooking.lan
 USAGE
 }

@@ -32,6 +32,11 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   regresi 87/87 (0 skip),
   parity prepare 2/2 dan parity 8/8 (dijalankan 2026-10-25). Lihat
   `docs/release-v3.11.0.md` untuk isi rilis dan risiko yang belum diuji.
+- Status UAT 2026-10-26: stack Docker Compose di VM Linux (CMS/API `8082`),
+  setup admin + impor user bersih, tablet dipairing, akses pintu end-to-end
+  terbukti (APK → validasi kartu API 200 → relay CH340 → klik relay fisik).
+  Domain `<uat-domain>` + vhost nginx belum aktif. Tidak ada perubahan versi
+  pada gelombang ini: CMS tetap `3.11.0` / Ver 3 Rev 12, APK tetap `1.3.8` (19).
 
 ## Riwayat
 
@@ -59,6 +64,11 @@ tanggal DD-MMM-YYYY, language chip di footer, navbar sticky, dan APK 1.3.7
   tombol Hapus untuk akun itu (UAT: ADMIN-001 terlindungi, delete 403).
   Commit: server `db57d7a` (impor transaksi + floor) + `bfbb962` (proteksi
   setup admin + LAST_ADMIN), test `99d0043`, APK `fbd48dc`, docs `af6a88b`.
+- Status UAT Docker, 2026-10-26 (tanpa naik versi): CMS/API di stack Docker
+  Compose VM Linux port `8082`; setup admin + impor user bersih; tablet
+  dipairing; akses pintu terbukti end-to-end lewat relay CH340. Angka tes
+  tetap regresi 87/87, client 98/98, server unit 79/79, kiosk 21/21, parity
+  8/8. Sisa: DNS + vhost `<uat-domain>`, training formal, go-live.
 
 ### Ver 1 - Rekonstruksi basis (selesai)
 Migrasi DB, server paritas 32 rute, CMS seluruh halaman utama, hardening

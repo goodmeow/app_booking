@@ -81,6 +81,11 @@ adalah APK yang dipasang di tablet Lt3 saat ini.
 - Docker memakai volume `backup-data` di `/backups`; cron host tidak dipakai.
 - APK 1.3.7 memakai icon launcher dari mark The Prasada.
 - Dokumentasi aktif memakai 8082; konfigurasi native tetap 80/443 + API 9091.
+- UAT berjalan sebagai stack **Docker Compose di VM Linux**; CMS/API `8082`
+  diakses langsung lewat `http://<uat-host>:8082` (CMS root, `/api/health`,
+  dan `/apk/kiosk-release.apk` balas HTTP 200). Env mengisi CORS untuk host
+  langsung + domain tujuan dengan JWT secret dan password DB di-generate.
+- Domain `<uat-domain>` dan vhost nginx belum aktif; akses domain menyusul.
 
 ## Bukti
 
@@ -96,13 +101,20 @@ adalah APK yang dipasang di tablet Lt3 saat ini.
 - Booking on-behalf `live 5`: organizer UAT Lt3, `booked_by` Resepsionis Lt5.
 - Backup dump + checksum diverifikasi di
   `/home/goodmeow/backups/360booking/`.
+- UAT Docker 2026-10-26: setup admin + impor user bersih, satu akun meeting
+  room dibuat, tablet dipairing. **Akses pintu end-to-end terbukti**: APK →
+  validasi kartu API 200 → relay CH340 di tablet → klik relay fisik. CH340
+  juga terbukti lewat COM Windows dan bridge `/dev/ttyUSB0` di WSL.
+- Perubahan UI terakhir (clear filter role) lulus `build:client` + client 98/98.
 
 ## Risiko / belum diuji
 
 - Regresi/parity sudah dijalankan; 2 tes regresi sengaja di-skip karena
   bergantung pada waktu dekat tengah malam (bukan kegagalan).
-- Relay CH340, NFC 7-byte, autostart/kiosk lock belum tersedia.
-- TLS/domain final dan host produksi belum dipasang.
+- Relay CH340 sudah terbukti end-to-end; NFC 7-byte dan autostart/kiosk lock
+  belum tersedia.
+- Domain `<uat-domain>` + vhost nginx/TLS final belum aktif; host produksi
+  belum dipasang. Saat ini akses lewat `http://<uat-host>:8082`.
 - Kiosk masih memakai aset branding build, bukan branding dinamis CMS.
 - Audit format tanggal untuk date-picker native/kiosk belum menyeluruh.
 
