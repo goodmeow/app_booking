@@ -18,9 +18,10 @@ usage() {
   cat <<'USAGE'
 Usage: sudo ./deploy/bootstrap.sh [--ip ADDRESS] [--port PORT] [--build-user USER] [--force]
 
-  --ip          Public IP written to CORS_ORIGINS (default: first hostname -I address)
+  --ip          LAN IP written to CORS_ORIGINS (default: single non-container
+                IPv4 interface; required on a multi-NIC host)
   --port        Public HTTP port (default: 80)
-  --build-user  Non-root user that runs npm build (default: SUDO_USER, else root)
+  --build-user  Non-root user that runs npm build (default: SUDO_USER)
   --force       Replace /etc/360booking/app.env if it already exists
 USAGE
 }
@@ -40,22 +41,51 @@ if [[ ${EUID} -ne 0 ]]; then
   echo "Run as root: sudo ./deploy/bootstrap.sh" >&2
   exit 1
 fi
+if [[ "$BUILD_USER" == "root" ]]; then
+  echo "Refusing to build as root; run with sudo as a normal user or pass --build-user USER." >&2
+  exit 1
+fi
+id -u "$BUILD_USER" >/dev/null 2>&1 || { echo "Build user does not exist: $BUILD_USER" >&2; exit 1; }
 
 [[ "$PUBLIC_PORT" =~ ^[0-9]+$ ]] && (( PUBLIC_PORT >= 1 && PUBLIC_PORT <= 65535 )) || {
   echo "Invalid port: $PUBLIC_PORT" >&2; exit 1
 }
 if [[ -z "$PUBLIC_IP" ]]; then
-  # Prefer the address that owns the default route; hostname -I can put a
-  # Docker bridge first on a multi-NIC host.
-  PUBLIC_IP="$(ip route get 1.1.1.1 2>/dev/null | awk '{for (i = 1; i <= NF; i++) if ($i == "src") { print $(i + 1); exit }}' || true)"
-  if [[ -z "$PUBLIC_IP" ]]; then
-    PUBLIC_IP="$(hostname -I | awk '{print $1}')"
+  # Pick one real LAN IPv4. Docker bridges and default-route WAN addresses are
+  # common on multi-NIC hosts, so more than one candidate requires --ip.
+  mapfile -t LAN_IPS < <(
+    ip -4 -o addr show scope global 2>/dev/null \
+      | awk '$2 !~ /^(lo|docker|br-|veth|virbr|tun|tap|tailscale|zt)/ { split($4, a, "/"); print a[1] }' \
+      | sort -u
+  )
+  if [[ ${#LAN_IPS[@]} -eq 1 ]]; then
+    PUBLIC_IP="${LAN_IPS[0]}"
+  elif [[ ${#LAN_IPS[@]} -gt 1 ]]; then
+    echo "Multiple LAN IPv4 addresses: ${LAN_IPS[*]}" >&2
+    echo "Choose the CMS/tablet address with --ip ADDRESS." >&2
+    exit 1
+  else
+    PUBLIC_IP="$(ip route get 1.1.1.1 2>/dev/null | awk '{for (i = 1; i <= NF; i++) if ($i == "src") { print $(i + 1); exit }}' || true)"
+    [[ -n "$PUBLIC_IP" ]] || PUBLIC_IP="$(hostname -I | awk '{print $1}')"
   fi
 fi
-[[ -n "$PUBLIC_IP" ]] || { echo "Cannot detect a public IP; pass --ip." >&2; exit 1; }
-PUBLIC_ORIGIN="http://${PUBLIC_IP}${PUBLIC_PORT:+:$PUBLIC_PORT}"
+[[ -n "$PUBLIC_IP" ]] || { echo "Cannot detect a LAN IP; pass --ip." >&2; exit 1; }
+
+# IPv6 needs brackets in an origin; a bare 2001:db8::1 is not a valid URL.
+if [[ "$PUBLIC_IP" == *:* ]]; then
+  [[ "$PUBLIC_IP" =~ ^[0-9A-Fa-f:]+$ ]] || { echo "Invalid IPv6 address: $PUBLIC_IP" >&2; exit 1; }
+  PUBLIC_HOST="[${PUBLIC_IP}]"
+else
+  [[ "$PUBLIC_IP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || { echo "Invalid IPv4 address: $PUBLIC_IP" >&2; exit 1; }
+  IFS=. read -r o1 o2 o3 o4 <<< "$PUBLIC_IP"
+  for octet in "$o1" "$o2" "$o3" "$o4"; do
+    (( octet >= 0 && octet <= 255 )) || { echo "Invalid IPv4 address: $PUBLIC_IP" >&2; exit 1; }
+  done
+  PUBLIC_HOST="$PUBLIC_IP"
+fi
+PUBLIC_ORIGIN="http://${PUBLIC_HOST}${PUBLIC_PORT:+:$PUBLIC_PORT}"
 if [[ "$PUBLIC_PORT" == "80" ]]; then
-  PUBLIC_ORIGIN="http://${PUBLIC_IP}"
+  PUBLIC_ORIGIN="http://${PUBLIC_HOST}"
 fi
 
 if [[ -e "$ENV_FILE" && "$FORCE" != "1" ]]; then

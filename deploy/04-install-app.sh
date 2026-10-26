@@ -56,3 +56,13 @@ else
   echo "The API is not healthy (HTTP ${http_code:-000}); check: journalctl -u 360booking-server -n 30"
   exit 1
 fi
+
+# /api/health is a liveness endpoint; it does not query PostgreSQL.
+if ! PGPASSWORD="${PGPASSWORD:-}" psql \
+  -h "${PGHOST:-127.0.0.1}" -p "${PGPORT:-5432}" \
+  -U "${PGUSER:?}" -d "${PGDATABASE:?}" \
+  -Atqc "SELECT 1" >/dev/null 2>&1; then
+  echo "Database check failed for ${PGUSER}@${PGHOST:-127.0.0.1}:${PGPORT:-5432}/${PGDATABASE}." >&2
+  exit 1
+fi
+echo "Database check OK."
