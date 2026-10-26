@@ -1,7 +1,7 @@
 # Alpine demo/test stack. Never reuse these credentials outside a local run.
 #
 # Build context is the repository root, so run from the repo root:
-#   docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d --build
+#   docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d --build
 
 services:
   db:
@@ -11,7 +11,9 @@ services:
       POSTGRES_USER: ${ALPINE_PGUSER:-booking}
       POSTGRES_PASSWORD: ${ALPINE_PGPASSWORD:-booking_alpine_local_only}
     volumes:
-      - alpine-db-data:/var/lib/postgresql/data
+      # Default: named Docker volume. Set ALPINE_DB_PATH=../../database/pgdata
+      # to keep the cluster inside the repo instead (Linux/ext4 only; gitignored).
+      - ${ALPINE_DB_PATH:-alpine-db-data}:/var/lib/postgresql/data
     healthcheck:
       test:
         - CMD-SHELL
@@ -51,7 +53,7 @@ services:
       SSR: "false"
       HTTPS: "false"
       TRUST_PROXY: "true"
-      CORS_ORIGINS: ${ALPINE_CORS_ORIGINS:-http://localhost:5100}
+      CORS_ORIGINS: ${ALPINE_CORS_ORIGINS:-http://localhost:8082}
       APP_TIMEZONE: Asia/Jakarta
       MAX_BOOKING_DURATION_HOURS: "168"
       MAX_CALENDAR_RANGE_DAYS: "366"

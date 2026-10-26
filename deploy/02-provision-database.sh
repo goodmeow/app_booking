@@ -48,4 +48,20 @@ for migration in "$REPO_ROOT"/database/migrations/*.sql; do
   psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PG_SUPERUSER" -d "$PGDATABASE" -f "$migration" >/dev/null
 done
 
+# Migrations run as the superuser, so the objects belong to postgres. The API
+# runs as the limited PGUSER; grant it runtime access and keep the grants for
+# tables created by future migrations.
+"${PSQL[@]}" -d "$PGDATABASE" -v app_role="$PGUSER" <<'SQL'
+GRANT USAGE ON SCHEMA public TO :"app_role";
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO :"app_role";
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO :"app_role";
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO :"app_role";
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  GRANT ALL PRIVILEGES ON TABLES TO :"app_role";
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  GRANT ALL PRIVILEGES ON SEQUENCES TO :"app_role";
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  GRANT EXECUTE ON FUNCTIONS TO :"app_role";
+SQL
+
 echo "Database $PGDATABASE is ready for role $PGUSER."

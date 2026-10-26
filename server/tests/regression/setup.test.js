@@ -75,12 +75,30 @@ test("a fresh database creates the first admin once and then locks setup", async
         u.floor,
         u.must_change_password,
         u.is_deleted,
+        u.is_protected,
         r.role_name
       FROM tbl_users u
       JOIN tbl_role r ON r._id = u.role_id
       WHERE u.email = '${BOOTSTRAP_EMAIL}';
     `);
-    assert.equal(account, `employee|${BOOTSTRAP_EMPLOYEE_ID}||f|f|admin`);
+    assert.equal(account, `employee|${BOOTSTRAP_EMPLOYEE_ID}||f|f|t|admin`);
+
+    const login = await apiRequest(targets.reconstructed, "/api/auth/signin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: BOOTSTRAP_EMAIL, password: BOOTSTRAP_PASSWORD }),
+    });
+    assert.equal(login.status, 200);
+    const deletion = await apiRequest(targets.reconstructed, `/api/users/${created.body.user._id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${login.body.token}` },
+    });
+    assert.equal(deletion.status, 403);
+    assert.equal(deletion.body.code, "PROTECTED_ACCOUNT");
+    assert.equal(
+      await queryParityDatabase(`SELECT is_deleted FROM tbl_users WHERE email = '${BOOTSTRAP_EMAIL}';`),
+      "f"
+    );
 
     // No password or hash leaves the API, and the database stores a bcrypt hash.
     assert.equal(created.body.user.password, undefined);

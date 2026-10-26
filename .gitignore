@@ -12,9 +12,13 @@ node_modules/
 
 # Local data exports, dumps and backups: they carry personal data
 *.local.*
+docs/tablet-room-logins.local.md
 *.dump
 *.bak
 backups/
+
+# PostgreSQL data directory if the Docker stack uses a repo bind mount.
+database/pgdata/
 
 # Reconstructed build output. Existing dist is preserved as baseline via force-add.
 coverage/

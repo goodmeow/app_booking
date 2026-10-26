@@ -30,7 +30,7 @@ Kolom:
 | `name` | ya | nama tampilan |
 | `email` | ya | harus unik |
 | `role` | tidak | `user` (default), `receptionist`, `admin` |
-| `floor` | tidak | lantai kerja; kosong = tanpa lantai |
+| `floor` | tidak | lantai kerja; sel kosong = tanpa lantai; kolom tidak ada = floor lama dipertahankan |
 | `card_number` | tidak | satu kartu per baris; ditambahkan ke akun |
 
 CSV mendukung tanda kutip, koma di dalam field, dan CRLF.
@@ -46,6 +46,12 @@ Jika `employee_id` sudah ada:
 - `card_number` ditambahkan bila diisi;
 - **password lama tidak diubah**;
 - kartu lama tidak dihapus.
+
+Setiap baris overwrite berjalan dalam satu transaksi. Bila `card_number`
+bentrok dengan akun lain, seluruh perubahan profil baris itu dibatalkan
+(rollback), sehingga tidak ada nama/email/role yang terlanjur berubah.
+Admin aktif terakhir tidak boleh diturunkan rolenya lewat import: baris
+ditolak `LAST_ADMIN`.
 
 Jika `employee_id` belum ada, akun baru dibuat.
 
@@ -72,6 +78,7 @@ Kesalahan per baris ditampilkan di dialog (maksimal 5 pertama), termasuk:
 - `EMPLOYEE_ID_EXISTS`
 - `CARD_EXISTS`
 - `CARD_LIMIT`
+- `LAST_ADMIN`
 - role tidak dikenal
 
 Baris yang gagal tidak membatalkan baris lain.

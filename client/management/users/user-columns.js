@@ -146,16 +146,18 @@ export const buildUserColumns = ({
             <PasswordIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-        <Tooltip title={t("users.deleteTooltip")}>
-          <IconButton
-            aria-label={t("users.deleteAria", { name: row.name })}
-            size="small"
-            color="error"
-            onClick={() => openDeleteDialog(row)}
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
+        {row.is_protected ? null : (
+          <Tooltip title={t("users.deleteTooltip")}>
+            <IconButton
+              aria-label={t("users.deleteAria", { name: row.name })}
+              size="small"
+              color="error"
+              onClick={() => openDeleteDialog(row)}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
       </Stack>
     ),
   },

@@ -19,18 +19,18 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 - CMS + API: **Ver 3 Rev 12**, `package.json` `3.11.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.3.7 / versionCode 18`. Footer kios menampilkan
-  versi APK + **versi CMS** (`v1.3.7 (18) · CMS 3.11.0`), bukan “perangkat …”.
+- APK kiosk: `versionName 1.3.8 / versionCode 19`. Footer kios menampilkan
+  versi APK + **versi CMS** (`v1.3.8 (19) · CMS 3.11.0`), bukan “perangkat …”.
   Tombol **Finish** tersembunyi di balik 5 tap pill **IN USE**, **+15 menit**
   wajib kartu organizer/peserta/master (diverifikasi server), tombol
   until-next hanya muncul bila ada jadwal berikutnya, dan siklus
   `/context` + `/schedule` dicoba 3× sebelum status `OFFLINE`.
   Bahasa ID/EN tetap memakai `res/values` + `values-en`; panel AVAILABLE
   tidak meluber dan tombol **Pilih waktu** tetap ada.
-- Rev 12 masih terbuka: patch perbaikan UAT 3.10.4 + fitur/UX 3.11.0 / APK 1.3.7 sudah lulus
-  unit server 79/79, unit kiosk 21/21, client 96/96 (dijalankan ulang
-  2026-10-25). Regresi dan parity **belum** dijalankan untuk gelombang ini,
-  jadi jangan menyebut angkanya sampai ada bukti baru. Lihat
+- Rev 12 masih terbuka: patch perbaikan UAT 3.10.4 + fitur/UX 3.11.0 / APK 1.3.8
+  sudah lulus unit server 79/79, unit kiosk 21/21, client 98/98,
+  regresi 87/87 (0 skip),
+  parity prepare 2/2 dan parity 8/8 (dijalankan 2026-10-25). Lihat
   `docs/release-v3.11.0.md` untuk isi rilis dan risiko yang belum diuji.
 
 ## Riwayat
@@ -41,6 +41,24 @@ dengan scroll, pengaturan hari pertama minggu, validasi start/end, format
 tanggal DD-MMM-YYYY, language chip di footer, navbar sticky, dan APK 1.3.7
 (hint Finish early, judul STARTING SOON, copy kartu per aksi). Detail:
 `docs/release-v3.11.0.md`.
+
+- Patch APK `1.3.8` (19), 2026-10-25: hint kartu kini menyebut
+  organizer/peserta/master untuk check-in dan **+15 menit** (selaras aturan
+  server), dan five-tap **Finish** sebelum jam mulai benar-benar membuka
+  tombol saat jam mulai — tidak perlu five-tap kedua. Dipasang di tablet Lt3,
+  footer `v1.3.8 (19) · CMS 3.11.0`; distribusi
+  `public/apk/kiosk-release.apk` (21.513.747 byte, SHA-256
+  `255c95755d606a2ab2cf90696e72f8f415b572a9fc78e2c114238e4788a025b0`).
+- Patch server: impor CSV
+  overwrite transaksional per baris sehingga konflik kartu membatalkan
+  perubahan profil; kolom `floor` yang tidak ada mempertahankan lantai lama
+  sedangkan sel kosong menghapusnya; impor menolak menurunkan admin aktif
+  terakhir (`409 LAST_ADMIN`). Migrasi `021_protect_setup_admin.sql`
+  menambah `tbl_users.is_protected`: akun admin hasil `/setup` dilindungi,
+  `DELETE` mengembalikan `403 PROTECTED_ACCOUNT`, dan CMS menyembunyikan
+  tombol Hapus untuk akun itu (UAT: ADMIN-001 terlindungi, delete 403).
+  Commit: server `db57d7a` (impor transaksi + floor) + `bfbb962` (proteksi
+  setup admin + LAST_ADMIN), test `99d0043`, APK `fbd48dc`, docs `af6a88b`.
 
 ### Ver 1 - Rekonstruksi basis (selesai)
 Migrasi DB, server paritas 32 rute, CMS seluruh halaman utama, hardening

@@ -41,7 +41,7 @@ const masterCardFlag = `EXISTS (
 
 export const listEmployees = async () => (await query(
   `SELECT u._id, u.name, u.email, u.username, u.employee_id, u.role_id, u.type, u.floor,
-          u.must_change_password,
+          u.must_change_password, u.is_protected,
           ${masterCardFlag},
           ${userCardColumns}
    FROM tbl_users u
@@ -113,6 +113,16 @@ export const findAccountById = async (id, type, execute = query) => (await execu
   [id, type || null]
 )).rows[0] || null;
 
+export const isProtectedAccount = async (id, execute = query) => (await execute(
+  `SELECT is_protected
+   FROM tbl_users
+   WHERE _id = $1
+     AND type = 'employee'
+     AND is_deleted IS NOT TRUE
+   LIMIT 1`,
+  [id]
+)).rows[0]?.is_protected === true;
+
 export const findEmployeeByEmployeeId = async (employeeId, execute = query) => (await execute(
   `SELECT ${safeColumns}, ${masterCardFlag}, ${userCardColumns}
    FROM tbl_users u
@@ -155,7 +165,7 @@ export const insertAccount = async ({ name, email, username, password, roleId, e
   [name, email, username || null, password || null, roleId || null, employeeId || null, type, floor || null, capacity || null, building || null, feature || null, Boolean(mustChangePassword)]
 )).rows[0];
 
-export const updateAccount = async (id, values, type) => (await query(
+export const updateAccount = async (id, values, type, execute = query) => (await execute(
   `UPDATE tbl_users
    SET name = COALESCE($2, name),
        email = COALESCE(lower($3), email),

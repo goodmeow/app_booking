@@ -3,7 +3,7 @@
 Panduan menjalankan, merawat, dan memulihkan RoomBooking. Sumber utama
 deploy tetap [`../deploy/README.md`](../deploy/README.md); dokumen ini
 melengkapi bagian operasional yang belum tercakup di sana. Versi acuan:
-CMS/API `3.11.0`, APK kiosk `1.3.7` (code 18).
+CMS/API `3.11.0`, APK kiosk `1.3.8` (code 19).
 
 Semua contoh memakai placeholder `<ip-server>` / `<domain>`; jangan menulis
 IP atau kredensial nyata ke repo.
@@ -129,10 +129,16 @@ Stack uji/produksi kecil: `deploy/docker/compose.alpine.yaml` menjalankan
 (web SPA + proxy `/api` + `/socket.io`). Build context harus root repo.
 
 ```bash
-docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
+# Sekali saja: buat env lokal, lalu isi origin CMS/tablet.
+cp deploy/docker/.env.example deploy/docker/.env
+
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
   up -d --build
-docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
 ```
+
+Simpan `ALPINE_CORS_ORIGINS` dan `ALPINE_DB_PATH` di `deploy/docker/.env`
+supaya tetap terbaca setiap `up`/rebuild.
 
 | Service | Host | Container |
 |---|---|---|
@@ -146,9 +152,10 @@ docker compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
 - Instalasi baru: `GET /api/setup/status` → `{"required":true}`, buka
   `http://localhost:8082/setup`, buat admin pertama; panggilan berikutnya
   `409 SETUP_COMPLETED` (§2.1).
-- Backup volume DB: lihat `deploy/docker/README.md` (arsip volume
-  `roombooking-alpine_alpine-db-data`). Jangan pakai default password/secret
-  contoh di produksi.
+- Backup DB Docker: lihat `deploy/docker/README.md`. Gunakan `pg_dump`/CMS
+  Backup untuk named volume maupun `database/pgdata`; jangan menyalin folder
+  PostgreSQL yang sedang hidup. Jangan pakai default password/secret contoh di
+  produksi.
 - Setelah go-live, impor fresh install tetap memakai §5.3 (event historis
   tidak dimigrasikan).
 
@@ -189,7 +196,7 @@ Urutan yang sudah terbukti (README “Setelah restart mesin”):
 2. Pastikan stack Docker aktif; Nginx mempublikasikan **8082** langsung
    (tanpa forwarder Python).
 3. Bila CMS/tablet tidak bisa diakses:
-   - cek `docker compose ... ps` dan listener `8082`;
+   - cek `docker-compose ... ps` dan listener `8082`;
    - cek firewall Windows untuk TCP 8082;
    - portproxy hanya diperlukan bila WSL memakai NAT, bukan mirrored network.
 4. Verifikasi tablet benar-benar lewat LAN: lihat koneksi masuk ke port 8082
@@ -507,7 +514,7 @@ lagi memicu langkah ini karena memakai database `360booking_parity_test`.
 
 Verifikasi versi setelah pairing: footer kiosk menampilkan
 `v<versi APK> (<versionCode>) · CMS <versi server>` (contoh
-`v1.3.7 (18) · CMS 3.11.0`), bukan lagi “perangkat …”. Bila bagian `CMS`
+`v1.3.8 (19) · CMS 3.11.0`), bukan lagi “perangkat …”. Bila bagian `CMS`
 kosong/`unknown`, tablet belum berhasil memuat `/api/kiosk/context` versi
 terbaru — cek koneksi dan pastikan server sudah di-restart dengan build baru.
 Tombol **Finish** sengaja tersembunyi; muncul setelah **5 tap** pada pill
@@ -551,7 +558,7 @@ konfigurasi kiosk; token lama akan ditolak.
 | Kiosk `409 ROOM_ALREADY_PAIRED` | daftar perangkat | cabut perangkat lama, pairing ulang |
 | Kiosk offline | `last_seen_at`, jaringan, URL server | cek portproxy/forwarder, DNS/TLS; tablet mencoba 3× sebelum `OFFLINE` |
 | Kiosk menolak +15 menit | kartu yang di-tap | gunakan kartu organizer/peserta/master; server menolak kartu lain (`403`) |
-| Tombol Selesai tidak ada | desain 1.3.7 | tap pill **IN USE** 5× untuk membuka **Finish**; sebelum jam mulai muncul “Tombol Selesai aktif pukul HH:MM” |
+| Tombol Selesai tidak ada | desain 1.3.7+ | tap pill **IN USE** 5× untuk membuka **Finish**; sebelum jam mulai muncul “Tombol Selesai aktif pukul HH:MM”, di 1.3.8 tombol langsung terbuka saat jam mulai |
 | “No time left today” | jam server dan `APP_TIMEZONE` | periksa zona waktu dan meeting berikutnya |
 | Laporan kosong | rentang tanggal dan `checked_in` | laporan hanya menghitung booking aktif |
 

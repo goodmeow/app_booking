@@ -19,15 +19,19 @@ const minutesLeftToday = () => {
   return 23 * 60 + 59 - minutesOfDay;
 };
 
-const slotSkipReason = minutesLeftToday() < MIDNIGHT_SAFETY_MINUTES + 10
-  ? "not enough time left today for a valid slot (test near midnight)"
-  : false;
-
 // The shared free slot for the create/overlap pair; fixed once so the
 // overlap test reuses the exact same instants. It starts well after the
 // "within two minutes" scenario, so the two do not overlap.
 const SLOT_START_MINUTES = 70;
-const SLOT_DURATION_MINUTES = Math.max(5, Math.min(30, minutesLeftToday() - MIDNIGHT_SAFETY_MINUTES - SLOT_START_MINUTES));
+const MIN_SLOT_DURATION_MINUTES = 5;
+const SLOT_DURATION_MINUTES = Math.max(MIN_SLOT_DURATION_MINUTES, Math.min(30, minutesLeftToday() - MIDNIGHT_SAFETY_MINUTES - SLOT_START_MINUTES));
+
+// The slot must start and still fit its minimum duration before the safety
+// margin, otherwise it would land after midnight and be rejected.
+const slotSkipReason = minutesLeftToday() < SLOT_START_MINUTES + MIN_SLOT_DURATION_MINUTES + MIDNIGHT_SAFETY_MINUTES
+  ? "not enough time left today for a valid slot (test near midnight)"
+  : false;
+
 const slotFrom = (minutes) => fromNow(minutes);
 const slotStart = slotFrom(SLOT_START_MINUTES);
 const slotEnd = fromNow(SLOT_START_MINUTES + SLOT_DURATION_MINUTES);

@@ -8,6 +8,8 @@ if [[ ${EUID} -ne 0 ]]; then
   exit 1
 fi
 
+SKIP_NGINX="${SKIP_NGINX:-0}"
+
 apt-get update
 apt-get install -y ca-certificates curl gnupg
 
@@ -18,15 +20,23 @@ if ! command -v node >/dev/null 2>&1; then
 fi
 node --version
 
-# PostgreSQL 14 + nginx from the distro repository.
-apt-get install -y postgresql-14 postgresql-14-postgis-3 nginx acl
-systemctl enable --now postgresql nginx
+# PostgreSQL 14 + nginx from the distro repository. External-nginx mode still
+# installs PostgreSQL but leaves the host's web server alone.
+if [[ "$SKIP_NGINX" == "1" ]]; then
+  apt-get install -y postgresql-14 postgresql-14-postgis-3 acl
+  systemctl enable --now postgresql
+else
+  apt-get install -y postgresql-14 postgresql-14-postgis-3 nginx acl
+  systemctl enable --now postgresql nginx
+fi
 
 # UFW: allow only the inbound ports that are needed. The kiosk/CMS only need 22 + 80/443.
 apt-get install -y ufw
 ufw allow OpenSSH
-ufw allow 80/tcp
-ufw allow 443/tcp
+if [[ "$SKIP_NGINX" != "1" ]]; then
+  ufw allow 80/tcp
+  ufw allow 443/tcp
+fi
 yes | ufw enable
 ufw status
 
