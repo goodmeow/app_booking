@@ -40,7 +40,7 @@ sudo nano /etc/360booking/provision.env    # superuser/admin only
 sudo ./deploy/02-provision-database.sh     # role + DB + migrasi
 ./deploy/03-build.sh                       # npm ci && npm run build
 sudo ./deploy/04-install-app.sh            # /opt/360booking + systemd + nginx
-# buka https://<host>/setup dan buat admin pertama (lihat §2.1)
+# buka https://<host>/setup dan buat akun Super Admin pertama (lihat §2.1)
 # atau, bila halaman setup tidak dipakai: sudo ./deploy/05-create-admin.sh
 ```
 
@@ -48,49 +48,58 @@ sudo ./deploy/04-install-app.sh            # /opt/360booking + systemd + nginx
 `build/client`, `build/server/server.bundle.cjs`, `package.json`, dan
 `package-lock.json` di root repo host target.
 
-### 2.1 Admin pertama lewat `/setup` (instalasi baru)
+### 2.1 Akun Super Admin pertama lewat `/setup` (instalasi baru)
 
 Database hasil `02-provision-database.sh` belum punya akun. Halaman `/setup`
-CMS membuat admin pertama tanpa perlu JWT:
+CMS membuat akun pertama tanpa perlu JWT:
 
 1. Pastikan service hidup dan `GET /api/setup/status` mengembalikan
    `{"required":true}`.
 2. Buka `https://<host>/setup`, isi nama, email, password (8–72 byte), dan
    employee ID (opsional, default `ADMIN-001`).
-3. `POST /api/setup` membuat akun role `admin` (`type=employee`, password
-   bcrypt cost 12, tanpa paksa ganti password), mengisi baris
-   `tbl_app_settings` default bila belum ada, lalu menulis
+3. `POST /api/setup` membuat akun role **`super_admin`** (`type=employee`,
+   password bcrypt cost 12, tanpa paksa ganti password, `is_protected=true`),
+   mengisi baris `tbl_app_settings` default bila belum ada, lalu menulis
    `setup_completed=true`. Semuanya dalam satu transaksi.
 4. Setelah sukses, `GET /api/setup/status` menjadi `{"required":false}` dan
    `POST /api/setup` selalu `409 SETUP_COMPLETED`. Login di CMS memakai akun
-   tersebut, lalu lanjut impor user (§5.3).
-5. Jika `POST /api/setup` menjawab `400 ADMIN_ROLE_MISSING`, isi role lebih
-   dulu (§2.2) lalu ulangi.
+   tersebut, lalu buat akun Admin/Resepsionis untuk operasional harian.
+5. Jika `POST /api/setup` menjawab `400 SUPER_ADMIN_ROLE_MISSING`, jalankan
+   migrasi (role `super_admin` diisi migrasi 022) lalu ulangi.
 
 Akun yang dibuat lewat `/setup` tidak memakai `must_change_password`, karena
-password dipilih sendiri oleh operator. Jangan mengaktifkan `/setup` untuk
-database yang sudah berisi user: status membaca `setup_completed` dan
-keberadaan admin aktif, sehingga endpoint tetap menolak `409`.
+password dipilih sendiri oleh operator. Akun ini **dilindungi**: tombol Hapus
+tidak ada, `DELETE /api/users/:id` menjawab `403 PROTECTED_ACCOUNT`, dan
+role-nya tidak bisa diturunkan — termasuk oleh Admin lain. Jangan mengaktifkan
+`/setup` untuk database yang sudah berisi user: status membaca
+`setup_completed` dan keberadaan akun admin/super admin, sehingga endpoint tetap menolak
+`409`.
 
 `deploy/05-create-admin.sh` tetap tersedia sebagai jalur alternatif (mis. bila
 halaman setup tidak dapat diakses). Jalankan salah satu, jangan keduanya.
+Skrip itu memasang role `admin` hardcoded, sehingga **tidak** menghasilkan
+Super Admin; setelah login, promosikan akun tersebut lewat database bila
+matrix menu dan log audit perlu dipakai.
 
 ### 2.2 Jebakan: `tbl_role` kosong pada database baru
 
-`02-provision-database.sh` hanya menjalankan migrasi. Migrasi **tidak**
-mengisi `tbl_role`, sedangkan `05-create-admin.sh` memakai `role_id` admin
-hardcoded dan `tbl_users.role_id` punya FK ke `tbl_role`. Pada database yang
-benar-benar baru, langkah 05 dapat gagal karena role belum ada. Verifikasi:
+`02-provision-database.sh` hanya menjalankan migrasi. Migrasi 022 mengisi role
+`super_admin`, dan seed demo mengisi `admin`/`user`/`receptionist`, tetapi
+`05-create-admin.sh` memakai `role_id` admin hardcoded dengan FK ke
+`tbl_role`. Pada database yang benar-benar baru, langkah 05 dapat gagal bila
+role admin belum ada. Verifikasi:
 
 ```sql
-SELECT count(*) FROM tbl_role;  -- harus 2 sebelum 05
+SELECT role_name FROM tbl_role ORDER BY role_name;
 ```
 
-Bila kosong, isi lebih dulu (id sama dengan seed demo):
+Bila role belum lengkap, isi lebih dulu (id sama dengan seed demo):
 
 ```sql
 INSERT INTO tbl_role (_id, role_name, is_deleted) VALUES
+  ('a1e5d7c9-2b64-4f38-9a10-7c3d5e8f6b21', 'super_admin', false),
   ('471ba030-c950-41f9-90da-4e0fe10426a6', 'admin', false),
+  ('3f6a9c2e-8b41-4d7a-9e52-6c0b8a1d4f73', 'receptionist', false),
   ('67e9500b-908a-497d-9d3b-54bc020700cb', 'user',  false)
 ON CONFLICT (_id) DO NOTHING;
 ```
@@ -155,7 +164,7 @@ supaya tetap terbaca setiap `up`/rebuild.
   menerapkan migrasi yang belum tercatat (urut nama file) dan men-seed role
   `admin`/`user`/`receptionist`. Restart container aman (idempoten).
 - Instalasi baru: `GET /api/setup/status` → `{"required":true}`, buka
-  `http://localhost:8082/setup`, buat admin pertama; panggilan berikutnya
+  `http://localhost:8082/setup`, buat akun Super Admin pertama; panggilan berikutnya
   `409 SETUP_COMPLETED` (§2.1).
 - Backup DB Docker: lihat `deploy/docker/README.md`. Gunakan `pg_dump`/CMS
   Backup untuk named volume maupun `database/pgdata`; jangan menyalin folder
@@ -339,7 +348,7 @@ Urutan fresh yang benar:
 | 7 | Karyawan + kartu | `import-bjb-users.mjs --fresh` | 238 + 198 |
 | 8 | Password | fase `passwords` | no-op (create sudah set default) |
 
-Langkah 4 wajib lebih dulu dari impor: setelah admin pertama ada,
+Langkah 4 wajib lebih dulu dari impor: setelah akun pertama ada,
 `setup_completed` menjadi `true` sehingga halaman `/setup` tertutup, dan
 akun admin yang dipakai mengimpor tidak perlu dibuat manual di SQL.
 
@@ -529,6 +538,40 @@ organizer/peserta/master yang diverifikasi server.
 Catatan: `npm run demo:accounts` **tidak** memulihkan perangkat kiosk; pairing
 harus dilakukan ulang setelah reset DB.
 
+### 7.1 Update APK tablet dari halaman `/apk`
+
+Halaman unduh statis ada di `public/apk/index.html` → URL
+`https://<domain>/apk/index.html` (file APK: `/apk/kiosk-release.apk`).
+Tombol **Unduh APK Tablet** di CMS → Manajemen → Perangkat Tablet menunjuk ke
+file yang sama.
+
+1. Pastikan versi file sesuai rilis yang diumumkan: footer tablet harus
+   menampilkan `v1.3.8 (19) · CMS 3.11.0` setelah update. Versi saat ini
+   adalah rebuild `1.3.8` build tag `1.3.8-19-85ca335`.
+2. Unduh APK dari server sendiri (jangan dari chat/email), lalu pasang di
+   tablet (buka file, izinkan instalasi sekali).
+3. Buka aplikasi kiosk, cek footer versi dan status **Online** di tab
+   Perangkat Tablet.
+4. Bila perangkat tidak lagi aktif (dicabut/kedaluwarsa >30 hari), pairing
+   ulang lewat §7.
+
+Untuk mengganti paket distribusi:
+
+1. Build release di repo `kioskapp`, salin `app-release.apk` menjadi
+   `public/apk/kiosk-release.apk`.
+2. Perbarui teks versi di `public/apk/index.html` dan tambahkan satu baris
+   riwayat (tanggal, `versionName`/`versionCode`, build tag, ukuran, SHA-256)
+   di `public/apk/README.md`.
+3. `npm run build` agar salinan di `build/client/apk/` ikut, lalu deploy.
+4. Verifikasi: `curl -sI https://<domain>/apk/kiosk-release.apk` → `200` dan
+   `Content-Length` sama dengan ukuran file; cocokkan SHA-256 dengan catatan
+   rilis.
+
+```bash
+sha256sum public/apk/kiosk-release.apk
+curl -sI https://<domain>/apk/kiosk-release.apk | head -5
+```
+
 ## 8. Rotasi JWT
 
 `JWT_SECRET` menandatangani token CMS dan kiosk. Rotasi dilakukan bila secret
@@ -558,8 +601,11 @@ konfigurasi kiosk; token lama akan ditolak.
 |---|---|---|
 | CMS 502 | `systemctl status 360booking-server`, `journalctl` | restart service; cek DB |
 | Login 401 semua user | `JWT_SECRET` berubah? akun `is_deleted`? role kosong? | perbaiki env/akun, login ulang |
-| Booking 403 `FLOOR_REQUIRED` | `tbl_users.floor` akun | isi lantai di Manajemen → Users |
-| Booking 403 `FLOOR_RESTRICTED` | lantai akun vs ruangan | pilih ruangan yang benar atau ubah lantai (admin) |
+| Booking 403 `FLOOR_REQUIRED` | `tbl_users.floors` (dan `floor` lama) akun | isi lantai di Manajemen → Users (bisa lebih dari satu) |
+| Booking 403 `FLOOR_RESTRICTED` | lantai akun vs lantai ruangan | tambahkan lantai akun atau pilih ruangan yang benar |
+| Menu hilang / 403 `Menu access required` | matrix peran di Manajemen → Pengaturan | Super Admin membuka menu yang dicabut (cache ±30 detik) |
+| Matrix atau Log audit 403 | role akun | hanya `super_admin`; akun setup dilindungi, jangan diturunkan |
+| `DELETE` user 403 `PROTECTED_ACCOUNT` | akun setup | akun Super Admin memang tidak bisa dihapus |
 | Kiosk `409 ROOM_ALREADY_PAIRED` | daftar perangkat | cabut perangkat lama, pairing ulang |
 | Kiosk offline | `last_seen_at`, jaringan, URL server | cek portproxy/forwarder, DNS/TLS; tablet mencoba 3× sebelum `OFFLINE` |
 | Kiosk menolak +15 menit | kartu yang di-tap | gunakan kartu organizer/peserta/master; server menolak kartu lain (`403`) |

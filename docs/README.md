@@ -5,21 +5,21 @@ Peta seluruh dokumentasi proyek. Mulai dari
 dari [`../README.md`](../README.md) untuk instalasi cepat.
 
 Versi acuan dokumen: CMS/API **3.11.0** (Ver 3 Rev 12), APK kiosk **1.3.8**
-(versionCode 19). Setiap perubahan versi dicatat di
-[`VERSIONING.md`](VERSIONING.md).
+(versionCode 19, build tag `1.3.8-19-85ca335`). Setiap perubahan versi dicatat
+di [`VERSIONING.md`](VERSIONING.md).
 
 ## Untuk product champion dan operator
 
 | Dokumen | Isi |
 |---|---|
-| [`product-champion.md`](product-champion.md) | Alur harian, skenario umum, batas wewenang, dan jalur eskalasi |
+| [`product-champion.md`](product-champion.md) | Alur harian, skenario umum, batas wewenang per peran, dan jalur eskalasi |
 | [`business-processes.md`](business-processes.md) | Aturan bisnis lengkap yang dijalankan kode (peran, lantai, kartu, rekurensi, kiosk) |
 | [`operations-runbook.md`](operations-runbook.md) | Deploy pertama, restart, backup/restore, impor data, re-pair tablet, insiden |
 | [`backup-restore.md`](backup-restore.md) | Prosedur backup, verifikasi restore, restore produksi Docker/native, rollback |
-| [`CMS.md`](CMS.md) | Peta halaman CMS, tombol, dan alur tiap layar |
+| [`CMS.md`](CMS.md) | Peta halaman CMS, tombol, dan alur tiap layar (termasuk matrix peran dan log audit) |
 | [`user-import.md`](user-import.md) | Bulk import user dari CSV: employee_id sebagai master key, skip/overwrite, kartu |
 | [`scenarios.md`](scenarios.md) | Katalog skenario uji manual end-to-end |
-| [`training/RoomBooking-Panduan-CMS-Tablet.pptx`](training/RoomBooking-Panduan-CMS-Tablet.pptx) | Deck 16 slide: panduan CMS + tablet, screenshot UI |
+| [`training/RoomBooking-Panduan-CMS-Tablet.pptx`](training/RoomBooking-Panduan-CMS-Tablet.pptx) | Deck 22 slide: panduan CMS + tablet (termasuk Super Admin, multi-lantai, audit, update APK) |
 
 ## Untuk developer
 
@@ -52,7 +52,7 @@ Versi acuan dokumen: CMS/API **3.11.0** (Ver 3 Rev 12), APK kiosk **1.3.8**
 | [`../database/scripts/README.md`](../database/scripts/README.md) | Skrip backup, restore, reset, preflight, dan impor |
 | [`../deploy/README.md`](../deploy/README.md) | Deploy Ubuntu 22.04 lewat `deploy/01`…`05` |
 | [`../deploy/docker/README.md`](../deploy/docker/README.md) | Stack Docker Alpine (`node:20-alpine`, `postgres:16-alpine`, `nginx:alpine`) |
-| [`../public/apk/README.md`](../public/apk/README.md) | Riwayat APK yang ditebar di `/apk/kiosk-release.apk` |
+| [`../public/apk/README.md`](../public/apk/README.md) | Riwayat APK yang ditebar di `/apk/kiosk-release.apk`; halaman unduh `/apk/index.html` |
 
 ## Catatan proyek
 

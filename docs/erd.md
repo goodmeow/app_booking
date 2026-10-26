@@ -162,16 +162,18 @@ Constraint/index penting (`005_phase9_identity.sql`, `009_room_role_separation.s
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | `_id` | uuid PK | ID peran |
-| `role_name` | varchar | `admin` / `user` / `receptionist` (dibandingkan case-insensitive) |
+| `role_name` | varchar | `super_admin` / `admin` / `user` / `receptionist` (dibandingkan case-insensitive) |
 | `is_deleted` | boolean | Tidak dipakai untuk otorisasi saat ini |
 
 Seed demo memakai UUID tetap: admin `471ba030-c950-41f9-90da-4e0fe10426a6`,
 user `67e9500b-908a-497d-9d3b-54bc020700cb`, receptionist
 `3f6a9c2e-8b41-4d7a-9e52-6c0b8a1d4f73` (migrasi 015 dan `development.sql`).
 
-`receptionist` adalah role global (bukan per lantai). Yang membatasi wilayah
-kerjanya adalah `tbl_users.floor` pada akunnya: server hanya mengizinkan
-ruangan di lantai itu, sama seperti aturan lantai karyawan biasa.
+`super_admin` dibuat migrasi 022 dan diberikan ke akun `/setup`; akun itu
+dilindungi (`is_protected`). `receptionist` adalah role global (bukan per
+lantai). Wilayah kerjanya dibatasi `tbl_users.floors` pada akunnya (daftar;
+`floor` lama hanya cadangan): server hanya mengizinkan ruangan di lantai yang
+ia pegang, juga untuk melihat/mengubah booking.
 
 ### 2.3 `tbl_events`
 
@@ -333,7 +335,7 @@ Satu baris konfigurasi operasional; server selalu mengambil baris pertama
 `PUT /api/settings` mengirim seluruh baris (bukan patch); CMS memuat baris lalu
 mengganti field yang diedit. Panel **Floor groups** tidak lagi ada di UI, tetapi
 tidak ada kolom khusus untuknya di tabel ini—panel lama hanya membaca
-`tbl_users.floor` dan `tbl_rooms` untuk tampilan.
+`tbl_users.floors` (atau `floor` lama) dan `tbl_rooms` untuk tampilan.
 
 ### 2.10 `tbl_rooms` (legacy)
 

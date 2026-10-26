@@ -12,8 +12,9 @@ Versi acuan: CMS/API **3.11.0**, APK kiosk **1.3.8 (19)**.
 
 | Peran | Boleh | Tidak boleh |
 |---|---|---|
-| **Admin** | Semua lantai, semua event; kelola user, ruangan, kartu, pengaturan, perangkat tablet, laporan | — |
-| **Resepsionis** | Memesan **atas nama karyawan lain**, hanya untuk ruangan di lantainya sendiri; melihat/mengubah booking yang ia buat | Memesan lintas lantai, mengelola user/kartu |
+| **Super Admin** | Semua menu (tetap), semua lantai; mengatur **matrix menu per peran** dan membaca **log audit**; bisa menetapkan role Super Admin | Dihapus atau diturunkan role-nya (akun dilindungi) |
+| **Admin** | Semua lantai, semua event; kelola user, ruangan, kartu, pengaturan, perangkat tablet, laporan | Mengubah matrix menu, membaca log audit, mengubah akun Super Admin |
+| **Resepsionis** | Memesan **atas nama karyawan lain**; melihat dan mengubah booking di **semua lantai yang ia pegang** (`floors`), bukan hanya booking yang ia buat | Memesan di luar lantainya, mengelola user/kartu |
 | **Karyawan** | Memesan ruangan di lantai kerjanya, event miliknya/undangannya, ganti sandi sendiri | Memesan lantai lain, melihat detail event orang lain |
 | **Akun ruangan** | Login kiosk tablet saja | Masuk CMS |
 
@@ -26,17 +27,25 @@ akun admin untuk keperluan ini.
 Urutan yang aman, jangan diacak:
 
 1. Buka `http://<ip-server>:8082/setup` (stack Docker) atau
-   `https://<domain>/setup`, buat akun admin pertama. Setelah sukses form
-   terkunci (`409 SETUP_COMPLETED`) dan CMS masuk otomatis ke kalender.
-2. Login, lalu **ganti kata sandi admin** dan simpan di tempat aman.
+   `https://<domain>/setup`, buat akun pertama. Akun itu otomatis berperan
+   **Super Admin** dan dilindungi (tidak bisa dihapus/diturunkan). Setelah
+   sukses form terkunci (`409 SETUP_COMPLETED`) dan CMS masuk otomatis ke
+   kalender.
+2. Login, lalu **ganti kata sandi Super Admin** dan simpan di tempat aman.
+   Buat akun **Admin** dan **Resepsionis** untuk pemakaian harian — jangan
+   pakai akun Super Admin untuk operasional.
 3. Isi master data: **ruangan** (nama, lantai, kapasitas, email ruangan),
-   **user** (nama, email, employee ID/NIK, role, lantai), **kartu** per user.
+   **user** (nama, email, employee ID/NIK, role, **lantai kerja — bisa lebih
+   dari satu**), **kartu** per user.
 4. Cek **Manajemen → Pengaturan**: `self_signup_enabled` (default mati), timer
    check-in (`time_of_event_start_soon`, `not_checked_in_time_limit`), timer
-   kunci, timer LED, input meja.
-5. Pasangkan tablet per ruangan dari layar tablet (URL server, email ruangan,
-   sandi) — satu tablet aktif per ruangan.
-6. Uji satu booking, satu check-in kartu, satu buka pintu, dan satu laporan.
+   kunci, timer LED, input meja, hari pertama minggu.
+5. Selama masih Super Admin, atur **matrix peran** di bagian bawah Pengaturan
+   (lihat §3.6) dan cek **Log audit** kosong/terisi wajar.
+6. Pasangkan tablet per ruangan dari layar tablet (URL server, email ruangan,
+   sandi) — satu tablet aktif per ruangan. APK terbaru diunduh dari
+   `https://<domain>/apk/index.html`.
+7. Uji satu booking, satu check-in kartu, satu buka pintu, dan satu laporan.
 
 Event historis dari sistem lama **tidak dimigrasikan**; instalasi baru mulai
 dari kalender kosong. Itu keputusan yang disepakati, bukan bug.
@@ -56,8 +65,8 @@ dari kalender kosong. Itu keputusan yang disepakati, bukan bug.
 
 1. **Add Meeting** → isi field **"Pesan untuk karyawan"** dengan nama/email
    karyawan (autocomplete).
-2. Pilih ruangan di lantai resepsionis; pilihan ruangan lantai lain tidak
-   muncul.
+2. Pilih ruangan di salah satu lantai yang dipegang resepsionis; pilihan
+   ruangan lantai lain tidak muncul.
 3. Simpan. Organizer tetap karyawan tersebut; CMS menampilkan **"Dipesan
    oleh"** untuk audit.
 
@@ -92,10 +101,74 @@ tunduk aturan lantai kartu.
   Pengguna. Untuk akun bersama operasional, matikan; untuk akun pribadi,
   biarkan menyala.
 
+### 3.6 Lantai kerja (bisa lebih dari satu)
+
+Satu akun bisa memegang beberapa lantai — misalnya resepsionis gedung yang
+melayani lantai 1, 3, dan 5, atau staf yang memang lintas lantai.
+
+1. Manajemen → **Pengguna** → Tambah/Edit Pengguna.
+2. Di **Lantai kerja**, pilih satu atau beberapa lantai, atau **Semua
+   lantai**. Daftar lantai berasal dari lantai ruangan yang sudah dibuat.
+3. Simpan. Kolom **Lantai** menampilkan satu chip per lantai; akun tanpa
+   lantai diberi chip peringatan "belum diatur".
+4. Dampaknya: pilihan ruangan di kalender mengikuti lantai akun, dan
+   resepsionis bisa melihat/mengubah booking di semua lantainya. Karyawan
+   tanpa lantai akan ditolak `403 FLOOR_REQUIRED` saat memesan.
+
+Data lama tetap aman: akun yang sebelumnya hanya punya satu nilai lantai tetap
+terbaca. Saat form disimpan, daftar lantai menjadi acuan dan nilai tunggal
+lama ikut diperbarui.
+
+### 3.7 Matrix menu per peran (Super Admin)
+
+1. Login sebagai **Super Admin** → Manajemen → tab **Pengaturan**.
+2. Gulir ke bawah ke **Manajemen Peran Pengguna**.
+3. Centang menu yang boleh dibuka untuk Admin, Resepsionis, dan Pengguna:
+   Kalender, Laporan, Pengguna, Ruangan, Perangkat, Pengaturan.
+4. Klik **Simpan matriks**. Perubahan berlaku pada permintaan berikutnya.
+
+Yang perlu diketahui:
+
+- Baris Super Admin terkunci penuh — jangan berharap bisa mencabutnya.
+- Matrix juga menutup API, bukan hanya tampilan: peran tanpa menu Pengguna
+  tidak bisa membuat/mengubah user, peran tanpa Kalender ditolak di semua
+  endpoint `/api/events`.
+- Minimal sisakan satu akun Super Admin yang aktif. Kalau akun Super Admin
+  terkunci, pemulihan hanya lewat akses database (tim teknis).
+- Perubahan matrix tercatat di log audit sebagai **Akses peran diubah**.
+
+### 3.8 Log audit
+
+Super Admin membuka **Pengaturan → Log audit**: 100 entri terbaru, terbaru di
+atas, berisi waktu, pelaku, aksi, dan ringkasan nilai lama/baru.
+
+| Tercatat | Tidak tercatat |
+|---|---|
+| Buat/ubah/hapus pengguna (termasuk role & lantai), kartu (tambah, hilang/aktif, master), reset sandi oleh admin, pengaturan & backup, master card, matrix akses | Login/logout, pembuatan meeting, check-in kiosk, buka pintu |
+
+Nomor kartu disamarkan (hanya 4 digit terakhir). Audit tidak bisa diubah atau
+dihapus dari CMS; untuk investigasi mendalam, tim teknis membaca
+`tbl_audit_log` langsung dari database.
+
+### 3.9 Update APK tablet
+
+1. Unduh dari `https://<domain>/apk/index.html` (tombol **Download APK**) atau
+   tombol **Unduh APK Tablet** di tab Perangkat Tablet.
+2. Pindahkan file ke tablet, buka, dan izinkan instalasi (izinkan sekali dari
+   browser/file manager).
+3. Buka aplikasi kiosk; cek footer `v1.3.8 (19) · CMS 3.11.0`.
+4. Cek status **Online** di tab Perangkat Tablet. Bila perangkat sudah tidak
+   aktif, pairing ulang dari layar setup tablet.
+5. Catat versi yang dipasang di buku serah terima; satu tablet bisa berbeda
+   versi dari tablet lain, jadi sebutkan nomor versi saat melapor masalah.
+
 ## 4. Batas wewenang product champion
 
 Boleh dilakukan sendiri: membuat/mengubah user, ruangan, kartu, pengaturan,
 booking, mencabut perangkat tablet, mengunduh APK, membaca laporan.
+
+Khusus **Super Admin**: mengubah matrix menu per peran dan membaca log audit.
+Jangan membagikan akun Super Admin; pemegangnya sebaiknya satu orang/IT.
 
 Wajib melibatkan tim teknis: `docker compose down -v`, `npm run demo` pada
 mesin yang dipakai bersama, restore database, impor massal (`--apply`),
@@ -103,18 +176,22 @@ mengubah `JWT_SECRET`/env produksi, rotasi sertifikat, dan pembersihan data.
 
 ## 5. Bukti dan angka yang boleh dikutip
 
-Angka uji terakhir yang tercatat untuk 3.10.3: unit **79/79**, client
-**92/92**, regresi **83/83**, parity **8/8** (2026-10-24). Kutip angkanya
-beserta tanggal; jangan menjanjikan angka baru tanpa menjalankan suite.
+Angka uji terbaru yang **tercatat** ada di
+[`VERSIONING.md`](VERSIONING.md) bagian "Posisi saat ini". Kutip angkanya
+beserta tanggalnya; jangan menjanjikan angka baru tanpa menjalankan suite.
+Kalau ragu, sebut commit/tanggal bukti, bukan angka.
 
 ## 6. Kapan memanggil tim teknis
 
 | Gejala | Cek cepat | Eskalasi bila |
 |---|---|---|
 | Tidak bisa login | domain email lengkap, akun aktif, role terisi | semua akun gagal → kemungkinan `JWT_SECRET`/server |
+| Menu hilang setelah diubah | matrix peran di Pengaturan | perlu Super Admin membuka kembali menunya |
+| 403 padahal tombol terlihat | menu peran baru dicabut (±30 detik cache) | minta Super Admin cek matrix |
+| 403 pada Log audit / matrix | akun bukan Super Admin | pakai akun Super Admin |
 | `/setup` putih atau form terkunci | status `GET /api/setup/status` | `required=false` padahal belum ada admin → cek DB |
-| Error 403 `FLOOR_REQUIRED` | lantai user kosong | perlu isi massal lantai |
-| Error 403 `FLOOR_RESTRICTED` | lantai user vs ruangan | pemetaan lantai HR belum selesai |
+| Error 403 `FLOOR_REQUIRED` | lantai user kosong | perlu isi lantai (bisa massal lewat impor) |
+| Error 403 `FLOOR_RESTRICTED` | lantai user vs ruangan | tambahkan lantai akun atau pilih ruangan yang benar |
 | Tablet `OFFLINE` | kabel/jaringan, URL server di layar setup | server sehat tapi tablet tetap offline |
 | Tablet menolak pairing | `409 ROOM_ALREADY_PAIRED` | perlu cabut perangkat lama (admin) |
 | NFC tidak terbaca | kartu 4-byte, posisi tap | kartu 7-byte (belum didukung) atau reader rusak |

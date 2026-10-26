@@ -768,3 +768,33 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
 - [ ] Go-live produksi + tag rilis.
 - [ ] Opsional: NFC 7-byte, autostart/kiosk lock; 16 kartu placeholder RMH
   ditunda.
+
+## Akses per peran, multi-lantai, audit, dan halaman APK (2026-10-26)
+
+- [x] Role `super_admin` untuk akun `/setup` (migrasi `022_role_menu_access.sql`):
+  akun dilindungi (`is_protected`, delete `403 PROTECTED_ACCOUNT`, role tidak
+  bisa diturunkan), selalu memegang semua menu. Commit `bed9c86` + `e165ed7`.
+- [x] Matrix menu per peran di Manajemen → Pengaturan:
+  `GET /api/access/menus`, `GET/PUT /api/access/matrix` (Super Admin saja),
+  cache 30 detik, perubahan dicatat sebagai `access.update`.
+- [x] Multi-lantai `tbl_users.floors` (migrasi `023_user_floors.sql`) dengan
+  fallback `floor` lama; form Pengguna memilih beberapa lantai atau `all`.
+- [x] Resepsionis memakai `floors` untuk ruangan yang boleh dipesan sekaligus
+  event yang boleh dilihat/diubah; kiosk memakai lantai pemilik kartu.
+- [x] Audit log `tbl_audit_log` (migrasi `024_audit_log.sql`) untuk user,
+  role/lantai, kartu, reset sandi, settings, master card, dan matrix;
+  `GET /api/audit` hanya Super Admin. Nomor kartu disamarkan.
+- [x] Halaman unduh APK `public/apk/index.html` + paket rebuild `1.3.8` (19)
+  build tag `1.3.8-19-85ca335`, SHA-256 `ad21fbd7…735ab`. Commit `05c6020`.
+- [x] Docs disinkronkan: `CMS.md`, `architecture.md`, `business-processes.md`,
+  `api-reference.md`, `product-champion.md`, `scenarios.md`,
+  `operations-runbook.md`, `handover/START-HERE.md`, `project-status.md`,
+  `README.md` (docs), `VERSIONING.md`.
+- [x] Deck training diperluas 17 → 22 slide (Super Admin, matrix peran,
+  multi-lantai, log audit, update APK) dan versi APK di sampul/penutup
+  diperbarui ke `1.3.8 (19)`.
+- [ ] Angka suite untuk commit akses belum lengkap. Bukti baru: `npm run test:client`
+  98/98 lulus (2026-10-26, checkout `/mnt/e/rea-vault/app_booking`). Suite unit
+  server tidak bisa dijalankan di checkout itu (dependency `dotenv`/`bcrypt`
+  tidak ada di `node_modules`); regresi/parity belum dijalankan. Angka Rev 12
+  di `docs/VERSIONING.md` tetap acuan terakhir yang tercatat.
