@@ -25,7 +25,8 @@ cp "$REPO_ROOT/package.json" "$REPO_ROOT/package-lock.json" "$APP_ROOT/"
 chown -R 360booking:360booking "$APP_ROOT"
 
 # Runtime-only dependencies (the Webpack bundle excludes node_modules).
-npm ci --omit=dev --prefix "$APP_ROOT" 2>/dev/null
+# Install as the service user so dependency lifecycle scripts never run as root.
+runuser -u 360booking -- env HOME=/home/360booking npm ci --omit=dev --prefix "$APP_ROOT" 2>/dev/null
 chown -R 360booking:360booking "$APP_ROOT/node_modules"
 
 install -m 0644 "$REPO_ROOT/deploy/systemd/360booking-server.service" /etc/systemd/system/
@@ -42,9 +43,9 @@ systemctl status 360booking-server.service --no-pager | head -6
 sync
 # Health endpoint for probes: /api/health without a token.
 http_code="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:${SERVER_PORT:-9091}/api/health || true)"
-if [[ "$http_code" != "000" ]]; then
-  echo "API hidup (respons $http_code)."
+if [[ "$http_code" == "200" ]]; then
+  echo "API hidup (respons 200)."
 else
-  echo "The API is not responding yet; check: journalctl -u 360booking-server -n 30"
+  echo "The API is not healthy (HTTP ${http_code:-000}); check: journalctl -u 360booking-server -n 30"
   exit 1
 fi
