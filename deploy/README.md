@@ -80,7 +80,7 @@ butuh inbound 22/80/443 ke server.
 
 Aktifkan dua-duanya bila memakai TLS di nginx:
 
-- `TRUST_PROXY=true` di `app.env` (parsing `X-Forwarded-*`).
+- `TRUST_PROXY=1` di `app.env` (satu hop nginx; pakai 2 bila ada nginx eksternal).
 - `CORS_ORIGINS=https://<domain>` (tanpa wildcard).
 
 Atau bila tanpa reverse proxy, set `HTTPS=true` + `TLS_CERT_PATH` +

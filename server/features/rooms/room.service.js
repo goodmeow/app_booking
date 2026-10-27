@@ -5,6 +5,7 @@ import { isValidLocalDate, parseInstant } from "../events/event-time.js";
 import { findRoomById, insertAccount, listAvailableRooms, listRoomStatus, listRooms, roomUsageReport, softDeleteAccount, updateAccount } from "../accounts/account.repository.js";
 import { normalizedEmail, normalizedUsername, validatedPassword } from "../accounts/identity.validation.js";
 import { isAdminRole } from "../../lib/roles.js";
+import { coversAllFloors, effectiveFloors } from "../../lib/floors.js";
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 const validDateOnly = (value) => {
@@ -87,19 +88,32 @@ export const getRoomUsage = ({ start, end }) => {
   if (!validDateOnly(start) || !validDateOnly(end) || start > end) {
     throw badRequest("INVALID_RANGE", "Valid start and end dates are required");
   }
+  const days = Math.round(
+    (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000
+  ) + 1;
+  if (days > config.maxCalendarRangeDays) {
+    throw badRequest("RANGE_TOO_LARGE", `Room usage range cannot exceed ${config.maxCalendarRangeDays} days`);
+  }
   return roomUsageReport({ start, end, timezone: config.appTimezone });
 };
 
-export const getRoomStatus = async () => (await listRoomStatus()).map((row) => ({
-  id: row._id,
-  name: row.name,
-  floor: row.floor,
-  capacity: row.capacity,
-  building: row.building,
-  occupied: Boolean(row.event_id),
-  organizerFirstName: row.organizer_first_name || null,
-  start: row.start_at,
-  end: row.end_at,
-  checkedIn: Boolean(row.checked_in),
-  tabletOnline: Boolean(row.tablet_online),
-}));
+export const getRoomStatus = async (principal) => {
+  const rows = await listRoomStatus();
+  const allFloors = isAdminRole(principal?.role) || coversAllFloors(principal);
+  const allowed = new Set(effectiveFloors(principal));
+  return rows
+    .filter((row) => allFloors || allowed.has(String(row.floor ?? "").trim().toLowerCase()))
+    .map((row) => ({
+      id: row._id,
+      name: row.name,
+      floor: row.floor,
+      capacity: row.capacity,
+      building: row.building,
+      occupied: Boolean(row.event_id),
+      organizerFirstName: row.organizer_first_name || null,
+      start: row.start_at,
+      end: row.end_at,
+      checkedIn: Boolean(row.checked_in),
+      tabletOnline: Boolean(row.tablet_online),
+    }));
+};

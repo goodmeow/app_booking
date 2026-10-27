@@ -227,3 +227,20 @@ test("inactive accounts are rejected even when their JWT is still valid", async 
   const response = await apiRequest(targets.reconstructed, "/api/users", { headers: bearer("viewer") });
   assert.equal(response.status, 401);
 });
+
+test("room status respects the caller's floor scope", async () => {
+  await queryParityDatabase(
+    `UPDATE tbl_users SET floor = '9', floors = ARRAY['9'] WHERE _id = '${identities.user._id}';`
+  );
+  const userStatus = await apiRequest(targets.reconstructed, "/api/rooms/status", {
+    headers: bearer("user"),
+  });
+  assert.equal(userStatus.status, 200);
+  assert.deepEqual(userStatus.body, []);
+
+  const adminStatus = await apiRequest(targets.reconstructed, "/api/rooms/status", {
+    headers: bearer("admin"),
+  });
+  assert.equal(adminStatus.status, 200);
+  assert.ok(adminStatus.body.length > 0);
+});

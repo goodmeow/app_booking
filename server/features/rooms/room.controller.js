@@ -19,4 +19,4 @@ export const remove = run(async (req, res) => {
   res.json(room);
 });
 export const usage = run(async (req, res) => res.json(await getRoomUsage(req.query)));
-export const status = run(async (req, res) => res.json(await getRoomStatus()));
+export const status = run(async (req, res) => res.json(await getRoomStatus(req.auth)));

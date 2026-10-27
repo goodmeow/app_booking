@@ -536,16 +536,19 @@ export const cancelEvent = async (eventId, scope, principal) => {
 
 export const checkInEvent = async ({ event_id, card_number }, principal) => {
   if (!event_id || !card_number) throw badRequest("INVALID_CHECK_IN", "Event and card number are required");
-  const context = await eventCheckInContext(event_id, principal._id, card_number);
-  if (!context) throw notFound("Event not found");
-  if (!isAdminRole(principal.role) && !context.is_related && !receptionistCoversEventFloor(context, principal)) throw forbidden();
-  if (!context.card_allowed) throw forbidden("Card is not authorized");
-  const now = Date.now();
-  const opens = new Date(context.start_at).getTime() - Number(context.early_minutes || 0) * 60_000;
-  const closes = new Date(context.start_at).getTime() + Number(context.late_minutes || 0) * 60_000;
-  if (now < opens || now >= closes) throw new HttpError(409, "CHECK_IN_WINDOW", "Event is outside its check-in window");
-  if (context.checked_in) throw conflict("ALREADY_CHECKED_IN", "Event is already checked in");
-  return markCheckedIn(event_id);
+  return transaction(async (client) => {
+    const execute = (text, values) => client.query(text, values);
+    const context = await eventCheckInContext(event_id, principal._id, card_number, execute);
+    if (!context) throw notFound("Event not found");
+    if (!isAdminRole(principal.role) && !context.is_related && !receptionistCoversEventFloor(context, principal)) throw forbidden();
+    if (!context.card_allowed) throw forbidden("Card is not authorized");
+    const now = Date.now();
+    const opens = new Date(context.start_at).getTime() - Number(context.early_minutes || 0) * 60_000;
+    const closes = new Date(context.start_at).getTime() + Number(context.late_minutes || 0) * 60_000;
+    if (now < opens || now >= closes) throw new HttpError(409, "CHECK_IN_WINDOW", "Event is outside its check-in window");
+    if (context.checked_in) throw conflict("ALREADY_CHECKED_IN", "Event is already checked in");
+    return markCheckedIn(event_id, execute);
+  });
 };
 
 export const earlyFinishEvent = async (eventId, principal) => {

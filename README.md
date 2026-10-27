@@ -27,8 +27,10 @@ cd app_booking
 
 # jalankan dari root repo (build context harus root)
 # Jika host memakai plugin Compose v2, ganti `docker-compose` dengan `docker compose`.
-# Sekali saja: isi ALPINE_CORS_ORIGINS dengan http://<ip-server>:8082.
+# Sekali saja: buat env dengan CORS + dua secret acak.
 cp deploy/docker/.env.example deploy/docker/.env
+# Edit ALPINE_CORS_ORIGINS, ALPINE_PGPASSWORD, dan ALPINE_JWT_SECRET.
+# Contoh generator: openssl rand -hex 24 / openssl rand -hex 48.
 
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
   up -d --build
@@ -36,9 +38,9 @@ docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine \
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine ps
 ```
 
-Buka `http://<ip-server>:8082`. Isi `ALPINE_CORS_ORIGINS` di
-`deploy/docker/.env` (bukan hanya `export` di satu terminal), supaya tetap
-terbaca setiap container dibuat ulang.
+Buka `http://<ip-server>:8082`. Isi `ALPINE_CORS_ORIGINS` dan kedua secret
+(`ALPINE_PGPASSWORD`, `ALPINE_JWT_SECRET`) di `deploy/docker/.env` — jangan
+hanya `export` di satu terminal. Compose sekarang menolak start tanpa secret.
 
 Lalu:
 

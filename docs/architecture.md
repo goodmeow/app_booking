@@ -262,7 +262,7 @@ hardening 2026-10-23).
 | Statik | Vite dev server | `/opt/360booking/client` + fallback SPA |
 | Database | Container `360booking-postgres-test`, `127.0.0.1:54320` | PostgreSQL lokal `:5432` |
 | CORS | `CORS_ORIGINS` diisi `.env.demo` + origin LAN dari `.env.local` | `CORS_ORIGINS=https://<domain>` (tanpa wildcard) |
-| Trust proxy | kosong/false | `TRUST_PROXY=true` |
+| Trust proxy | kosong/false | `TRUST_PROXY=1` (satu hop nginx) |
 | Realtime | Vite mem-proxy WebSocket | nginx `Upgrade`/`Connection` + timeout 7 hari |
 
 Catatan: di dev, `GET /api/health` tetap tanpa autentikasi sehingga dapat

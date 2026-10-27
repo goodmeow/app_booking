@@ -69,7 +69,7 @@ metrik otomatis.
 - UAT lintas lantai dan multi-room; data kartu UAT.
 - Angka uji akhir 2026-10-26 di checkout build `/home/goodmeow/build/app_booking`:
   unit server **85/85**, unit kiosk **21/21**, client **98/98**, regresi
-  **92/92** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
+  **95/95** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
   dan `build:server:check` lulus. Perubahan UI terakhir juga lulus client
   98/98.
 - Deploy native satu perintah: `deploy/bootstrap.sh` (IP + HTTP + 80);
@@ -108,7 +108,7 @@ metrik otomatis.
 - [x] Deck training 22 slide (CMS + tablet + screenshot) masuk docs.
 - [x] Client 98/98, server unit 85/85, kiosk unit 21/21, typecheck kiosk
   bersih (2026-10-26).
-- [x] Regression 92/92 (0 skip) dan parity 8/8 sudah lulus (2026-10-26).
+- [x] Regression 95/95 (0 skip) dan parity 8/8 sudah lulus (2026-10-26).
 
 ## Sisa pekerjaan kita
 

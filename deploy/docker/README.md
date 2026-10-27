@@ -9,8 +9,9 @@ Jalankan dari root repo (build context harus root agar `package-lock.json`,
 `client/`, `server/`, dan `database/migrations/` ikut):
 
 ```bash
-# Sekali saja: buat env lokal, lalu isi origin CMS/tablet.
+# Sekali saja: buat env lokal, lalu isi origin CMS/tablet dan dua secret.
 cp deploy/docker/.env.example deploy/docker/.env
+# ALPINE_PGPASSWORD, ALPINE_JWT_SECRET wajib diisi.
 
 # validasi compose
 docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine config
@@ -57,8 +58,8 @@ ini di produksi. Override lewat shell env:
 | --- | --- |
 | `ALPINE_PGDATABASE` | `360booking` |
 | `ALPINE_PGUSER` | `booking` |
-| `ALPINE_PGPASSWORD` | `booking_alpine_local_only` |
-| `ALPINE_JWT_SECRET` | secret uji >= 32 karakter |
+| `ALPINE_PGPASSWORD` | wajib; tanpa default |
+| `ALPINE_JWT_SECRET` | wajib; minimal 32 karakter |
 | `ALPINE_CORS_ORIGINS` | `http://localhost:8082` |
 | `ALPINE_DB_PATH` | `alpine-db-data` (named volume) |
 

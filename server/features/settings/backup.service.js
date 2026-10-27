@@ -83,13 +83,20 @@ export const runBackup = async ({ force = false } = {}) => {
 };
 
 export const startBackupScheduler = () => {
+  let lastAttemptAt = 0;
+  const retryCooldownMs = 5 * 60_000;
   const tick = async () => {
     try {
       const settings = await getSettings();
       if (!settings?.backup_enabled || RUNNING.current) return;
       const now = new Date();
       if (localTime(now) < settings.backup_time) return;
-      if (settings.backup_last_at && dateKey(new Date(settings.backup_last_at)) === dateKey(now)) return;
+      const succeededToday = settings.backup_last_at
+        && dateKey(new Date(settings.backup_last_at)) === dateKey(now)
+        && String(settings.backup_last_status || "").startsWith("ok");
+      if (succeededToday) return;
+      if (Date.now() - lastAttemptAt < retryCooldownMs) return;
+      lastAttemptAt = Date.now();
       await runBackup();
     } catch (error) {
       console.error("backup schedule failed", error.message);

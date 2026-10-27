@@ -65,6 +65,33 @@ test("a room can only have one active tablet at a time", async () => {
   assert.equal(second.body.code, "ROOM_ALREADY_PAIRED");
 });
 
+test("concurrent pairing cannot create two active tablets for one room", async () => {
+  const created = await apiRequest(targets.reconstructed, "/api/rooms", {
+    method: "POST",
+    headers: bearer("admin"),
+    body: JSON.stringify({
+      name: "Concurrent Pairing Room",
+      email: "concurrent-pairing@room.test",
+      floor: "9",
+      password: "RoomTablet123!",
+    }),
+  });
+  assert.equal(created.status, 201);
+
+  const attempt = () => apiRequest(targets.reconstructed, "/api/kiosk/auth", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: "concurrent-pairing@room.test",
+      password: "RoomTablet123!",
+      deviceName: "Concurrent Tablet",
+    }),
+  });
+  const results = await Promise.all([attempt(), attempt()]);
+  assert.deepEqual(results.map((result) => result.status).sort(), [200, 409]);
+  assert.equal(results.find((result) => result.status === 409).body.code, "ROOM_ALREADY_PAIRED");
+});
+
 test("kiosk door accepts master and employee cards but not unknown cards", async () => {
   const attempt = (card_number) => apiRequest(targets.reconstructed, "/api/kiosk/door-open", {
     method: "POST",
@@ -269,7 +296,8 @@ test("kiosk context and schedule are bound to one room with a safe projection", 
   const context = await apiRequest(targets.reconstructed, "/api/kiosk/context", { headers: kioskHeaders() });
   assert.equal(context.status, 200);
   assert.equal(context.body.room._id, identities.room._id);
-  assert.ok(context.body.settings.available_color);
+  assert.equal(context.body.settings.timeOfEventStartSoon, 10);
+  assert.equal(Object.hasOwn(context.body.settings, "backup_path"), false);
 
   const schedule = await apiRequest(
     targets.reconstructed,

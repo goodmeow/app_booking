@@ -146,19 +146,25 @@ export const provisionKioskDevice = async ({ login, password, deviceName }) => {
   const room = await authenticateKioskCredentials(login, password);
   // A room may only have one active tablet. Re-pairing must go through revoking the
   // old device in the CMS so it cannot be taken over.
-  const existing = await findActiveKioskDeviceForRoom(room._id);
-  if (existing) {
-    throw conflict(
-      "ROOM_ALREADY_PAIRED",
-      "This room already has an active tablet. Revoke the old device in the CMS (Tablet Devices) before pairing again."
-    );
-  }
   const refreshToken = newRefreshToken();
-  const device = await createKioskDevice({
-    roomId: room._id,
-    name: cleanDeviceName(deviceName, room),
-    refreshTokenHash: hashRefreshToken(refreshToken),
-    refreshExpiresAt: refreshExpiry(),
+  const device = await withTransaction(async (client) => {
+    const execute = (text, values) => client.query(text, values);
+    // Pairing is check-then-insert. Serialise it per room so two tablets
+    // cannot both pass the "no active device" check.
+    await execute("SELECT pg_advisory_xact_lock(hashtext($1))", [`kiosk-room:${room._id}`]);
+    const existing = await findActiveKioskDeviceForRoom(room._id, execute);
+    if (existing) {
+      throw conflict(
+        "ROOM_ALREADY_PAIRED",
+        "This room already has an active tablet. Revoke the old device in the CMS (Tablet Devices) before pairing again."
+      );
+    }
+    return createKioskDevice({
+      roomId: room._id,
+      name: cleanDeviceName(deviceName, room),
+      refreshTokenHash: hashRefreshToken(refreshToken),
+      refreshExpiresAt: refreshExpiry(),
+    }, execute);
   });
   return kioskSession(device, refreshToken);
 };
@@ -203,16 +209,23 @@ export const verifyKioskToken = async (token) => {
   return { ...room, kind: "kiosk", roomId: room._id, deviceId: device.device_id, device: publicKioskDevice(device) };
 };
 
-export const getKioskContext = async (room) => ({
-  room: publicKioskRoom(room),
-  device: room.device,
-  timezone: config.appTimezone,
-  // The tablet's internal clock often drifts; the tablet uses this time to calibrate
-  // the clock it displays every time it connects successfully.
-  serverTime: new Date().toISOString(),
-  cmsVersion: CMS_VERSION,
-  settings: (await getSettings()) || {},
-});
+export const getKioskContext = async (room) => {
+  const settings = await getSettings();
+  return {
+    room: publicKioskRoom(room),
+    device: room.device,
+    timezone: config.appTimezone,
+    // The tablet's internal clock often drifts; the tablet uses this time to calibrate
+    // the clock it displays every time it connects successfully.
+    serverTime: new Date().toISOString(),
+    cmsVersion: CMS_VERSION,
+    // Only expose the timer the kiosk uses. The full settings row contains
+    // backup and operational fields the tablet never needs.
+    settings: {
+      timeOfEventStartSoon: Number(settings?.time_of_event_start_soon ?? 10),
+    },
+  };
+};
 
 export const authorizeKioskDoor = async (cardNumber, room) => {
   const value = String(cardNumber ?? "").trim();
@@ -331,7 +344,7 @@ export const finishKioskEvent = async ({ event_id: eventId, card_number: cardNum
   });
 };
 
-// Release no-show bookings before reading the schedule or creating an instant booking.
+// Release no-show bookings before reading the schedule or creating a booking.
 const maybeReleaseAbandonedBookings = async () => {
   await releaseAbandonedRoomBookings().catch(() => {});
 };

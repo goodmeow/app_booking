@@ -14,7 +14,7 @@ const kioskDeviceColumns = `
   u.floor, u.capacity, u.building, u.feature, u.is_deleted AS room_deleted
 `;
 
-export const createKioskDevice = async ({ roomId, name, refreshTokenHash, refreshExpiresAt }) => (await query(
+export const createKioskDevice = async ({ roomId, name, refreshTokenHash, refreshExpiresAt }, execute = query) => (await execute(
   `WITH inserted AS (
      INSERT INTO tbl_kiosk_devices
        (room_id, name, refresh_token_hash, refresh_expires_at, last_seen_at)
@@ -271,7 +271,7 @@ export const touchKioskDevice = async (deviceId) => {
   );
 };
 
-export const findActiveKioskDeviceForRoom = async (roomId) => (await query(
+export const findActiveKioskDeviceForRoom = async (roomId, execute = query) => (await execute(
   `SELECT _id, name, last_seen_at
    FROM tbl_kiosk_devices
    WHERE room_id = $1

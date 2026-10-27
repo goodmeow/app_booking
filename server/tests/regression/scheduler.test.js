@@ -183,6 +183,16 @@ test("room usage clips multi-day duration to report boundaries", async () => {
   assert.ok(room.list_meeting.some((meeting) => meeting.id === created.body[0].id));
 });
 
+test("room usage report rejects a range larger than the calendar cap", async () => {
+  const response = await apiRequest(
+    targets.reconstructed,
+    "/api/rooms/usage-report?start=2000-01-01&end=2100-01-01",
+    { headers: bearer("admin") }
+  );
+  assert.equal(response.status, 400);
+  assert.equal(response.body.code, "RANGE_TOO_LARGE");
+});
+
 test("room availability uses the same containing-overlap rule", async () => {
   const response = await apiRequest(
     targets.reconstructed,
