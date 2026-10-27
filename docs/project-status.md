@@ -12,7 +12,7 @@ metrik otomatis.
 | URL UAT Docker | `http://<uat-host>:8082` (LAN langsung, belum lewat domain) |
 | Domain baru | `<uat-domain>` — DNS + vhost nginx **belum aktif** |
 | Database | `360booking` (PostgreSQL di stack Docker UAT) |
-| Commit app | `3.12.0` (bump) + `104b4f9` + `d92d8e1` + `05c6020` + `e165ed7` + `bed9c86` + `febd049` + `5ae6b0b` + `dabbfbb` + `8e1854d` + `e2abf77` + `85f57dd` + `2c064dd` |
+| Commit app | `4b4b117` + `3.12.0` (bump) + `104b4f9` + `d92d8e1` + `05c6020` + `e165ed7` + `bed9c86` + `febd049` + `5ae6b0b` + `dabbfbb` + `8e1854d` + `e2abf77` + `85f57dd` + `2c064dd` |
 | Commit dasar app | `bfbb962` + `db57d7a` + `99d0043` |
 | Commit kiosk | `3b79432` (APK 1.4.1 build tag `1.4.1-22-3b79432`) |
 | Commit clean | snapshot `clean` terbaru (sinkron dengan master) |
