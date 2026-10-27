@@ -7,8 +7,8 @@ pengerasan security setelah UAT Docker.
 |---|---|---|
 | CMS/API | `3.12.0` | `package.json` + `package-lock.json` |
 | Riwayat versi | Ver 3 Rev 13 | `docs/VERSIONING.md` |
-| APK kiosk | `1.4.1`, code `22` | `kioskapp/android/app/build.gradle` |
-| APK distribusi | `1.4.1` | `public/apk/kiosk-release.apk` + `public/apk/README.md` |
+| APK kiosk | `1.4.2`, code `23` | `kioskapp/android/app/build.gradle` |
+| APK distribusi | `1.4.2` | `public/apk/kiosk-release.apk` + `public/apk/README.md` |
 
 ## Fitur
 
@@ -18,8 +18,9 @@ pengerasan security setelah UAT Docker.
   kiosk mengikuti daftar lantai.
 - Resepsionis melihat/mengubah booking di semua lantai yang dipegang.
 - Audit log untuk role, lantai, kartu, pengaturan, reset sandi, dan matrix.
-- Kiosk 1.4.1: pill `TERSEDIA` 44 px, copy netral, context timer yang aman,
-  tombol aksi layar kuning tidak lagi menabrak teks di atasnya,
+- Kiosk 1.4.2: pill `TERSEDIA` 44 px, copy netral, context timer yang aman,
+  tombol aksi layar kuning tidak lagi menabrak teks di atasnya, tombol update
+  tersedia di menu tablet (ketuk jam lima kali),
   pengecekan update semi-otomatis dari `/apk/latest.json`, dan resepsionis
   dapat membatalkan meeting karyawan di lantai aksesnya.
 
@@ -47,12 +48,12 @@ build server   OK
 ```
 
 UAT remote: health/CMS/APK page HTTP 200. APK SHA-256
-`e82d5416a066d84d325e670ba525bb42ca0a1cdeb92fc7829385bd89dc5deac2`.
+`f6334d85fe927a90bd142b467cbaa9e178ed523647ffde692aa09b129c66ca79`.
 
 ## Checklist rilis
 
 - [ ] `package.json` + `package-lock.json` sama-sama `3.12.0`.
-- [ ] APK `1.4.1` (22) terpasang/terdistribusi.
+- [ ] APK `1.4.2` (23) terpasang/terdistribusi.
 - [ ] Regression, parity, dan smoke UAT lulus.
 - [ ] Backup + restore test sebelum go-live.
 - [ ] DNS/TLS/nginx produksi aktif.

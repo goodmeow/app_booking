@@ -104,6 +104,12 @@ Riwayat isi paket:
   menabrak teks di atasnya. Paket distribusi 21.521.483 byte, SHA-256
   `e82d5416a066d84d325e670ba525bb42ca0a1cdeb92fc7829385bd89dc5deac2`.
 
+- 2026-10-27: naik 1.4.2 (versionCode 23)—build tag
+  `1.4.2-23-2bfdbff`. Tombol update dipindah ke menu tablet (ketuk jam
+  lima kali) bersama ganti bahasa dan ganti ruangan; tombol kuning tetap
+  tersedia di footer. Paket distribusi 21.521.724 byte, SHA-256
+  `f6334d85fe927a90bd142b467cbaa9e178ed523647ffde692aa09b129c66ca79`.
+
 ## Manifest update
 
 `latest.json` dibaca kiosk 1.4.0+ setiap 6 jam. Setiap rilis APK, isi:
