@@ -12,23 +12,29 @@ metrik otomatis.
 | URL UAT Docker | `http://<uat-host>:8082` (LAN langsung, belum lewat domain) |
 | Domain baru | `<uat-domain>` — DNS + vhost nginx **belum aktif** |
 | Database | `360booking` (PostgreSQL di stack Docker UAT) |
-| Commit app | `d92d8e1` (kepala) + `05c6020` + `e165ed7` + `bed9c86` + `febd049` + `5ae6b0b` + `dabbfbb` + `8e1854d` + `e2abf77` + `85f57dd` + `2c064dd` |
+| Commit app | `30571f6` (kepala) + `d92d8e1` + `05c6020` + `e165ed7` + `bed9c86` + `febd049` + `5ae6b0b` + `dabbfbb` + `8e1854d` + `e2abf77` + `85f57dd` + `2c064dd` |
 | Commit dasar app | `bfbb962` + `db57d7a` + `99d0043` |
 | Commit kiosk | `85ca335` (APK 1.3.8 build tag `1.3.8-19-85ca335`) |
-| Commit clean | `573f45d` (snapshot master; docs/training terbaru) |
+| Commit clean | `eb0b26e` (snapshot master; docs/training terbaru) |
 | Commit artefak REA | `f266e33` (`app_360booking`) |
 
-## Kesiapan produksi — ≈91%
+## Posisi kesiapan
+
+- **Kesiapan UAT — ≈91%**: aplikasi, APK, server UAT, akses pintu, dan
+  training sudah jalan. Sisa UAT formal dan hardware opsional.
+- **Kesiapan produksi — ≈84%**: belum siap promote apa adanya. Blocker utama
+  ada di domain/TLS, environment produksi, backup off-host, signing APK, dan
+  pembersihan data UAT.
 
 | Aspek | Bobot | Skor | Catatan |
 |---|---:|---:|---|
 | Software/fitur | 25% | 99% | Core, kiosk, branding, backup, kalender, akses per peran selesai |
-| Data/migrasi | 20% | 92% | Setup admin + impor user bersih di DB UAT; floor HR belum final |
-| Infrastruktur | 15% | 92% | Docker Compose UAT current + health 200; domain/nginx produksi pending |
-| Keamanan | 15% | 92% | Reset sandi dibatasi menu + proteksi Super Admin, audit transaksional, env server dipertahankan; TLS akhir pending |
-| Backup/monitoring | 10% | 80% | Backup + restore test sukses; off-host/alert di luar scope |
-| UAT/training | 8% | 92% | UAT Docker current, pairing + akses pintu terbukti, deck training 22 slide |
-| Hardware | 7% | 70% | CH340 relay terbukti end-to-end; NFC 7-byte + autostart belum |
+| Data/migrasi | 20% | 88% | DB UAT bersih untuk UAT; data produksi + kepastian floor HR belum final |
+| Infrastruktur | 15% | 75% | UAT current + health 200; domain/TLS/nginx produksi belum aktif |
+| Keamanan | 15% | 78% | Reset sandi/audit/menu hardened; TLS, signing produksi, dan hardening host belum |
+| Backup/monitoring | 10% | 65% | Backup + restore lokal lulus; off-host copy + alert belum |
+| UAT/training | 8% | 92% | UAT Docker + deck 22 slide; UAT formal pengguna belum |
+| Hardware | 7% | 70% | CH340 relay terbukti; NFC 7-byte + autostart belum |
 
 ## Sudah selesai
 
@@ -106,11 +112,23 @@ metrik otomatis.
 
 ## Sisa pekerjaan kita
 
-Tidak ada blocker aplikasi yang tersisa. Sisa pekerjaan ada di sisi deploy
-(domain + nginx), training formal, dan hardware opsional:
+Tidak ada blocker aplikasi yang tersisa. Promote produksi masih tertahan di
+sisi deployment dan operasi:
 
-- [ ] DNS record + vhost nginx untuk `<uat-domain>`; selama ini akses lewat
-  `http://<uat-host>:8082` langsung.
+### Blocker produksi
+
+- [ ] DNS record + vhost nginx + TLS untuk `<uat-domain>`.
+- [ ] Environment produksi terpisah: `.env` baru, JWT/DB password strong,
+  volume DB produksi, dan `FLOOR_RESTRICTION=true`.
+- [ ] Backup off-host + restore test di environment produksi.
+- [ ] Bersihkan data UAT (akun/event/kartu test), rotasi akun admin/Super Admin,
+  dan paksa ganti password.
+- [ ] APK signing produksi atau keputusan resmi tetap memakai debug cert untuk
+  sideload internal; naikkan versi/tag rilis.
+- [ ] Monitoring, log rotation, dan rollback plan.
+
+### Setelah blocker
+
 - [ ] UAT formal / training pengguna (pemilik produk).
 - [ ] Go-live produksi + tag rilis.
 - [ ] Hardware opsional: NFC 7-byte, autostart/kiosk lock.
