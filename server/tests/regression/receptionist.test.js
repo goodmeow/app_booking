@@ -13,9 +13,15 @@ const roomThreeId = "30000000-0000-4000-8000-000000000003";
 let server;
 let receptionistId;
 let receptionistToken;
+let floorTwoToken;
 
 const receptionistBearer = () => ({
   Authorization: `Bearer ${receptionistToken}`,
+  "Content-Type": "application/json",
+});
+
+const floorTwoBearer = () => ({
+  Authorization: `Bearer ${floorTwoToken}`,
   "Content-Type": "application/json",
 });
 
@@ -73,6 +79,32 @@ before(async () => {
   assert.equal(signin.status, 200);
   assert.equal(signin.body.user.role, "RECEPTIONIST");
   receptionistToken = signin.body.token;
+
+  const userRoleId = await queryParityDatabase(
+    "SELECT _id FROM tbl_role WHERE lower(role_name) = 'user';"
+  );
+  const floorUser = await apiRequest(targets.reconstructed, "/api/users/", {
+    method: "POST",
+    headers: bearer("admin"),
+    body: JSON.stringify({
+      name: "Floor Two Employee",
+      email: "employee.floor2@example.test",
+      username: "employee-floor2",
+      employee_id: "EMP-FLOOR2",
+      password: RECEPTIONIST_PASSWORD,
+      floor: "2",
+      roleId: userRoleId,
+    }),
+  });
+  assert.equal(floorUser.status, 201);
+
+  const floorSignin = await apiRequest(targets.reconstructed, "/api/auth/signin", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "employee.floor2@example.test", password: RECEPTIONIST_PASSWORD }),
+  });
+  assert.equal(floorSignin.status, 200);
+  floorTwoToken = floorSignin.body.token;
 });
 
 after(() => stopServer(server));
@@ -227,4 +259,44 @@ test("a plain employee cannot name another organizer", async () => {
   });
   assert.equal(response.status, 403);
   assert.equal(response.body.code, "FORBIDDEN");
+});
+
+test("a receptionist may cancel an employee self-booking on their floor", async () => {
+  const created = await apiRequest(targets.reconstructed, "/api/events", {
+    method: "POST",
+    headers: floorTwoBearer(),
+    body: bookingBody({
+      roomId: roomTwoId,
+      start: "2031-07-07T01:00:00.000Z",
+      end: "2031-07-07T02:00:00.000Z",
+      subject: "Rapat mandiri lantai dua",
+    }),
+  });
+  assert.equal(created.status, 200);
+  const eventId = created.body.occurrences[0].id;
+
+  const list = await apiRequest(
+    targets.reconstructed,
+    "/api/events?start=20310707&end=20310707",
+    { headers: receptionistBearer() }
+  );
+  assert.equal(list.status, 200);
+  const booking = list.body.find((event) => event.id === eventId);
+  assert.ok(booking, "the receptionist must see the floor booking");
+  assert.equal(booking.can_mutate, true);
+
+  const canceled = await apiRequest(
+    targets.reconstructed,
+    `/api/events/${eventId}?scope=occurrence`,
+    { method: "DELETE", headers: receptionistBearer() }
+  );
+  assert.equal(canceled.status, 200);
+
+  const after = await apiRequest(
+    targets.reconstructed,
+    "/api/events?start=20310707&end=20310707",
+    { headers: receptionistBearer() }
+  );
+  assert.equal(after.status, 200);
+  assert.equal(after.body.some((event) => event.id === eventId), false);
 });

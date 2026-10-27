@@ -203,3 +203,16 @@ test("lets the organizer and the receptionist who booked manage a meeting", () =
   );
   assert.equal(canManageBooking(), false);
 });
+
+test("uses the server can_mutate flag for floor-wide receptionist access", () => {
+  const session = { sessionEmail: "rina@contoh.id", sessionUserId: "u-receptionist" };
+  assert.equal(
+    canManageBooking({ event: { organizer: "budi@contoh.id", can_mutate: true }, ...session }),
+    true
+  );
+  assert.equal(
+    canManageBooking({ event: { organizer: "rina@contoh.id", can_mutate: false }, ...session }),
+    false
+  );
+  assert.equal(calendarEventFromApi({ id: "event-3", can_mutate: true }).can_mutate, true);
+});

@@ -142,7 +142,15 @@ export const listEventsForPrincipal = async ({ principalId, role, floors, roomId
              )
          )
        )
-     ) AS can_view_details
+     ) AS can_view_details,
+     ARRAY(
+       SELECT DISTINCT lower(btrim(floor_room.floor))
+       FROM tbl_event_details floor_detail
+       JOIN tbl_users floor_room ON floor_room._id = floor_detail.room_id
+       WHERE floor_detail.event_id = e._id
+         AND floor_detail.is_deleted IS NOT TRUE
+         AND floor_room.type = 'room'
+     ) AS room_floors
    FROM tbl_events e
    JOIN tbl_users organizer_account ON organizer_account._id = e.organizer_id
    LEFT JOIN tbl_users booked_by_account ON booked_by_account._id = e.booked_by

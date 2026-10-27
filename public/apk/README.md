@@ -98,6 +98,12 @@ Riwayat isi paket:
   Paket distribusi 21.521.436 byte, SHA-256
   `f240ae3d5f6bf67b552789e40e46206d6fc7d55afd32c8474a2a246f7a64c8b5`.
 
+- 2026-10-27: naik 1.4.1 (versionCode 22)—build tag
+  `1.4.1-22-3b79432`. Memperbaiki layar kuning *upcoming*: judul dan angka
+  countdown diperkecil serta jarak tombol aksi ditambah agar tombol tidak
+  menabrak teks di atasnya. Paket distribusi 21.521.483 byte, SHA-256
+  `e82d5416a066d84d325e670ba525bb42ca0a1cdeb92fc7829385bd89dc5deac2`.
+
 ## Manifest update
 
 `latest.json` dibaca kiosk 1.4.0+ setiap 6 jam. Setiap rilis APK, isi:

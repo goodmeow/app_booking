@@ -19,13 +19,18 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 - CMS + API: **Ver 3 Rev 13**, `package.json` `3.12.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.4.0 / versionCode 21`, build tag
-  `1.4.0-21-a269e73`. Footer kios menampilkan versi APK + **versi CMS**
-  (`v1.4.0 (21) · CMS 3.12.0`). Build membawa pill `TERSEDIA` 44 px, copy
+- APK kiosk: `versionName 1.4.1 / versionCode 22`, build tag
+  `1.4.1-22-3b79432`. Footer kios menampilkan versi APK + **versi CMS**
+  (`v1.4.1 (22) · CMS 3.12.0`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
-  signature diverifikasi, lalu installer Android dibuka.
+  signature diverifikasi, lalu installer Android dibuka. Layar kuning
+  *upcoming* memakai judul dan countdown lebih ringkas plus jarak tombol aksi,
+  sehingga tombol tidak menabrak teks di atasnya. Resepsionis dapat
+  membatalkan/mengubah meeting karyawan di lantai yang menjadi aksesnya; CMS
+  memakai flag `can_mutate` dari server agar tombol Edit/Batalkan konsisten
+  dengan izin backend.
 - Ver 3 Rev 13 mencakup matrix menu per role, `super_admin` dari akun setup,
   multi-lantai (`tbl_users.floors`), akses resepsionis per lantai, audit log,
   dan pengerasan security: rate-limit proxy, reset sandi, pairing kiosk,
@@ -46,7 +51,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 ### Ver 3 Rev 13 - 2026-10-27 (rilis saat ini)
 Matrix menu, super admin, multi-lantai, audit, dan hardening security.
-APK 1.4.0 (21), build tag `1.4.0-21-a269e73`.
+APK 1.4.1 (22), build tag `1.4.1-22-3b79432`.
 
 ### Ver 3 Rev 12 - 2026-10-25 (rilis sebelumnya)
 Branding global (upload icon/logo/favicon/nama/judul tab), kalender 24 jam
