@@ -38,11 +38,14 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 - Bukti 2026-10-27 di checkout build `/home/goodmeow/build/app_booking`:
   unit server **85/85**, unit kiosk **21/21**, client **98/98**, regresi
   **95/95** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
-  dan `build:server:check` lulus.
-- Distribusi APK, 2026-10-27 (commit `a269e73`): paket
-  `public/apk/kiosk-release.apk` 21.521.436 byte, SHA-256
-  `f240ae3d5f6bf67b552789e40e46206d6fc7d55afd32c8474a2a246f7a64c8b5`,
+  dan `build:server:check` lulus. Unit izin event **9/9**, kontrak kalender
+  **14/14** setelah perubahan `can_mutate`.
+- Distribusi APK, 2026-10-27 (commit `3b79432`): paket
+  `public/apk/kiosk-release.apk` 21.521.483 byte, SHA-256
+  `e82d5416a066d84d325e670ba525bb42ca0a1cdeb92fc7829385bd89dc5deac2`,
   plus halaman unduh `public/apk/index.html` (`/apk/index.html`).
+  Sebelumnya 1.4.0 (21) 21.521.436 byte, SHA-256
+  `f240ae3d5f6bf67b552789e40e46206d6fc7d55afd32c8474a2a246f7a64c8b5`.
 - Status UAT remote 2026-10-27: CMS/APK current aktif; `/api/health`, CMS
   root, `/apk/index.html`, dan APK balas HTTP 200. `TRUST_PROXY=1`,
   `FLOOR_RESTRICTION=true`; database UAT dipertahankan.
