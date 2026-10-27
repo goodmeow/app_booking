@@ -4,8 +4,8 @@ Peta seluruh dokumentasi proyek. Mulai dari
 [`handover/START-HERE.md`](handover/START-HERE.md) bila baru bergabung, atau
 dari [`../README.md`](../README.md) untuk instalasi cepat.
 
-Versi acuan dokumen: CMS/API **3.11.0** (Ver 3 Rev 12), APK kiosk **1.3.8**
-(versionCode 19, build tag `1.3.8-19-85ca335`). Setiap perubahan versi dicatat
+Versi acuan dokumen: CMS/API **3.12.0** (Ver 3 Rev 13), APK kiosk **1.3.9**
+(versionCode 20, build tag `1.3.9-20-f7c5d22`). Setiap perubahan versi dicatat
 di [`VERSIONING.md`](VERSIONING.md).
 
 ## Untuk product champion dan operator
@@ -37,7 +37,7 @@ di [`VERSIONING.md`](VERSIONING.md).
 |---|---|
 | [`project-status.md`](project-status.md) | Status kesiapan, blocker, dan prioritas go-live |
 | [`VERSIONING.md`](VERSIONING.md) | Skema `Ver.Rev`, posisi versi saat ini, riwayat tiap Rev |
-| [`release-v3.11.0.md`](release-v3.11.0.md) | Catatan rilis Ver 3 Rev 12 + checklist sebelum tag |
+| [`release-v3.12.0.md`](release-v3.12.0.md) | Catatan rilis Ver 3 Rev 13 + checklist sebelum tag |
 | [`release-v3.10.4.md`](release-v3.10.4.md) | Catatan rilis Ver 3 Rev 11 |
 | [`release-v3.10.3.md`](release-v3.10.3.md) | Catatan rilis Ver 3 Rev 10 (riwayat) |
 | [`baseline/README.md`](baseline/README.md) | Baseline rekonstruksi (runtime, checksum artefak `dist/`) |

@@ -84,3 +84,9 @@ Riwayat isi paket:
   tersedia; state kosong memakai copy netral **Siap digunakan / Belum ada
   jadwal berikutnya**. Paket distribusi 21.514.430 byte, SHA-256
   `ad21fbd777aad4d8f40da55c5879b930b15bb2cb0acd989088127b09a75735ab`.
+
+- 2026-10-27: naik 1.3.9 (versionCode 20)—build tag
+  `1.3.9-20-f7c5d22`, membawa pill `TERSEDIA` 44 px, copy netral
+  **Siap digunakan / Belum ada jadwal berikutnya**, dan penyesuaian context
+  kiosk. Paket distribusi 21.514.450 byte, SHA-256
+  `521a200ec31da71f69d4ed2528fef0340546f54cdafc55ef241aa10eca33275f`.

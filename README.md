@@ -9,8 +9,8 @@ Express dan Socket.io, **PostgreSQL** sebagai basis data, dan **tablet kiosk**
 Tablet menampilkan status ruangan hari itu, menerima check-in, perpanjangan,
 pemesanan mendadak, dan membuka pintu lewat kartu NFC.
 
-Versi saat ini: CMS/API **3.11.0** (Ver 3 Rev 12) · APK kiosk **1.3.8**
-(versionCode 19). Riwayat lengkap ada di [`docs/VERSIONING.md`](docs/VERSIONING.md).
+Versi saat ini: CMS/API **3.12.0** (Ver 3 Rev 13) · APK kiosk **1.3.9**
+(versionCode 20). Riwayat lengkap ada di [`docs/VERSIONING.md`](docs/VERSIONING.md).
 
 - Baru bergabung? Mulai dari [`docs/handover/START-HERE.md`](docs/handover/START-HERE.md).
 - Mencari dokumen tertentu? Lihat index [`docs/README.md`](docs/README.md).
@@ -70,8 +70,8 @@ jangan dicampur.
    kartu per user.
 3. Periksa **Manajemen → Pengaturan**: pendaftaran mandiri (default mati),
    timer check-in, timer kunci, timer LED, input meja.
-4. Cek tablet: layar menampilkan jadwal hari ini, versi `v1.3.8 (19) · CMS
-   3.11.0` di footer.
+4. Cek tablet: layar menampilkan jadwal hari ini, versi `v1.3.9 (20) · CMS
+   3.12.0` di footer.
 5. Uji satu booking, satu check-in kartu, satu buka pintu, dan satu laporan
    pemakaian ruangan.
 
@@ -174,7 +174,7 @@ Tabel insiden yang lebih lengkap: [`docs/operations-runbook.md`](docs/operations
 | [`docs/operations-runbook.md`](docs/operations-runbook.md) | Instalasi, env, systemd, nginx, TLS, backup, impor |
 | [`docs/erd.md`](docs/erd.md) | ERD dan kamus data |
 | [`docs/VERSIONING.md`](docs/VERSIONING.md) | Skema versi dan riwayat Rev |
-| [`docs/release-v3.11.0.md`](docs/release-v3.11.0.md) | Catatan rilis 3.11.0 + checklist tag |
+| [`docs/release-v3.12.0.md`](docs/release-v3.12.0.md) | Catatan rilis 3.12.0 + checklist tag |
 | [`docs/release-v3.10.4.md`](docs/release-v3.10.4.md) | Catatan rilis 3.10.4 |
 | [`docs/release-v3.10.3.md`](docs/release-v3.10.3.md) | Catatan rilis 3.10.3 (riwayat) |
 | [`database/README.md`](database/README.md) | Migrasi, seed, dan batas aman database uji |
