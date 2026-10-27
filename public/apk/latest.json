@@ -1,0 +1,8 @@
+{
+  "versionCode": 21,
+  "versionName": "1.4.0",
+  "url": "/apk/kiosk-release.apk",
+  "sha256": "f240ae3d5f6bf67b552789e40e46206d6fc7d55afd32c8474a2a246f7a64c8b5",
+  "mandatory": false,
+  "notes": "Semi-auto update: cek versi, unduh APK, verifikasi checksum dan signature."
+}

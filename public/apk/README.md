@@ -90,3 +90,28 @@ Riwayat isi paket:
   **Siap digunakan / Belum ada jadwal berikutnya**, dan penyesuaian context
   kiosk. Paket distribusi 21.514.450 byte, SHA-256
   `521a200ec31da71f69d4ed2528fef0340546f54cdafc55ef241aa10eca33275f`.
+
+- 2026-10-27: naik 1.4.0 (versionCode 21)—build tag
+  `1.4.0-21-a269e73`. Menambahkan pengecekan update semi-otomatis:
+  kiosk membaca `/apk/latest.json`, membandingkan `versionCode`, mengunduh
+  APK, memverifikasi SHA-256 + signature, lalu membuka installer Android.
+  Paket distribusi 21.521.436 byte, SHA-256
+  `f240ae3d5f6bf67b552789e40e46206d6fc7d55afd32c8474a2a246f7a64c8b5`.
+
+## Manifest update
+
+`latest.json` dibaca kiosk 1.4.0+ setiap 6 jam. Setiap rilis APK, isi:
+
+```json
+{
+  "versionCode": 22,
+  "versionName": "1.4.1",
+  "url": "/apk/kiosk-release.apk",
+  "sha256": "<sha256 paket>",
+  "mandatory": false,
+  "notes": "..."
+}
+```
+
+`versionCode` harus naik. Kiosk memverifikasi SHA-256 dan signature APK
+sebelum membuka installer.
