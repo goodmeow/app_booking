@@ -54,6 +54,11 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   terbukti (APK → validasi kartu API 200 → relay CH340 → klik relay fisik).
   Domain `<uat-domain>` + vhost nginx belum aktif. Tidak ada perubahan versi
   pada gelombang ini: CMS tetap `3.11.0` / Ver 3 Rev 12, APK tetap `1.3.8` (19).
+- Status UAT remote 2026-10-27: CMS/APK current sudah aktif di server UAT;
+  `/api/health`, CMS root, `/apk/index.html`, dan APK balas HTTP 200. Insiden
+  password DB setelah `.env` tertimpa sudah diperbaiki (reset role, env baru,
+  volume dipertahankan); permission tree dinormalkan dan deploy script tidak
+  lagi menimpa `.env`.
 
 ## Riwayat
 
