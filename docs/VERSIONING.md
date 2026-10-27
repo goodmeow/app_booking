@@ -15,54 +15,38 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
-## Posisi saat ini (Ver 3 Rev 12)
+## Posisi saat ini (Ver 3 Rev 13)
 
-- CMS + API: **Ver 3 Rev 12**, `package.json` `3.11.0`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 13**, `package.json` `3.12.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.3.8 / versionCode 19`. Footer kios menampilkan
-  versi APK + **versi CMS** (`v1.3.8 (19) · CMS 3.11.0`), bukan “perangkat …”.
-  Tombol **Finish** tersembunyi di balik 5 tap pill **IN USE**, **+15 menit**
-  wajib kartu organizer/peserta/master (diverifikasi server), tombol
-  until-next hanya muncul bila ada jadwal berikutnya, dan siklus
-  `/context` + `/schedule` dicoba 3× sebelum status `OFFLINE`.
-  Bahasa ID/EN tetap memakai `res/values` + `values-en`; panel AVAILABLE
-  tidak meluber dan tombol **Pilih waktu** tetap ada.
-- Rev 12 masih terbuka: patch perbaikan UAT 3.10.4 + fitur/UX 3.11.0 / APK 1.3.8
-  sudah lulus unit server 85/85, unit kiosk 21/21, client 98/98,
-  regresi 95/95 (0 skip),
-  parity prepare 2/2 dan parity 8/8. Lihat
-  `docs/release-v3.11.0.md` untuk isi rilis dan risiko yang belum diuji.
-- Perubahan 2026-10-26 (belum naik versi): role `super_admin` dari akun setup,
-  matrix menu CMS per role, multi-lantai (`tbl_users.floors`), akses
-  resepsionis per lantai, dan audit log untuk role/lantai/kartu/settings.
-  Endpoint baru: `GET /api/access/menus`, `GET/PUT /api/access/matrix`,
-  `GET /api/audit` (dua terakhir hanya Super Admin). Commit `bed9c86`
-  (fitur) + `e165ed7` (pengerasan reset sandi, audit, akses menu).
-  Docs dan deck training ikut diperbarui. Bukti setelah perubahan di checkout
-  build `/home/goodmeow/build/app_booking`: unit server **85/85**, client
-  **98/98**, regresi **95/95** (0 skip), parity prepare **2/2**, parity **8/8**,
-  `build:client` dan `build:server:check` lulus (2026-10-26).
-- Distribusi APK, 2026-10-26 (commit `05c6020`): rebuild `1.3.8` (19) build tag
-  `1.3.8-19-85ca335` — pill `TERSEDIA` 44 px, copy netral
-  "Siap digunakan / Belum ada jadwal berikutnya". Paket
-  `public/apk/kiosk-release.apk` 21.514.430 byte, SHA-256
-  `ad21fbd777aad4d8f40da55c5879b930b15bb2cb0acd989088127b09a75735ab`,
+- APK kiosk: `versionName 1.3.9 / versionCode 20`, build tag
+  `1.3.9-20-f7c5d22`. Footer kios menampilkan versi APK + **versi CMS**
+  (`v1.3.9 (20) · CMS 3.12.0`). Build membawa pill `TERSEDIA` 44 px, copy
+  netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
+  yang aman.
+- Ver 3 Rev 13 mencakup matrix menu per role, `super_admin` dari akun setup,
+  multi-lantai (`tbl_users.floors`), akses resepsionis per lantai, audit log,
+  dan pengerasan security: rate-limit proxy, reset sandi, pairing kiosk,
+  backup retry, auto-release, serta filter status ruangan per floor.
+- Bukti 2026-10-27 di checkout build `/home/goodmeow/build/app_booking`:
+  unit server **85/85**, unit kiosk **21/21**, client **98/98**, regresi
+  **95/95** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
+  dan `build:server:check` lulus.
+- Distribusi APK, 2026-10-27 (commit `f7c5d22`): paket
+  `public/apk/kiosk-release.apk` 21.514.450 byte, SHA-256
+  `521a200ec31da71f69d4ed2528fef0340546f54cdafc55ef241aa10eca33275f`,
   plus halaman unduh `public/apk/index.html` (`/apk/index.html`).
-  `versionName`/`versionCode` tidak berubah, hanya isi build.
-- Status UAT 2026-10-26: stack Docker Compose di VM Linux (CMS/API `8082`),
-  setup admin + impor user bersih, tablet dipairing, akses pintu end-to-end
-  terbukti (APK → validasi kartu API 200 → relay CH340 → klik relay fisik).
-  Domain `<uat-domain>` + vhost nginx belum aktif. Tidak ada perubahan versi
-  pada gelombang ini: CMS tetap `3.11.0` / Ver 3 Rev 12, APK tetap `1.3.8` (19).
-- Status UAT remote 2026-10-27: CMS/APK current sudah aktif di server UAT;
-  `/api/health`, CMS root, `/apk/index.html`, dan APK balas HTTP 200. Insiden
-  password DB setelah `.env` tertimpa sudah diperbaiki (reset role, env baru,
-  volume dipertahankan); permission tree dinormalkan dan deploy script tidak
-  lagi menimpa `.env`.
+- Status UAT remote 2026-10-27: CMS/APK current aktif; `/api/health`, CMS
+  root, `/apk/index.html`, dan APK balas HTTP 200. `TRUST_PROXY=1`,
+  `FLOOR_RESTRICTION=true`; database UAT dipertahankan.
 
 ## Riwayat
 
-### Ver 3 Rev 12 - 2026-10-25 (rilis saat ini)
+### Ver 3 Rev 13 - 2026-10-27 (rilis saat ini)
+Matrix menu, super admin, multi-lantai, audit, dan hardening security.
+APK 1.3.9 (20), build tag `1.3.9-20-f7c5d22`.
+
+### Ver 3 Rev 12 - 2026-10-25 (rilis sebelumnya)
 Branding global (upload icon/logo/favicon/nama/judul tab), kalender 24 jam
 dengan scroll, pengaturan hari pertama minggu, validasi start/end, format
 tanggal DD-MMM-YYYY, language chip di footer, navbar sticky, dan APK 1.3.7
