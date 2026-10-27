@@ -115,3 +115,16 @@ Riwayat isi paket:
 
 `versionCode` harus naik. Kiosk memverifikasi SHA-256 dan signature APK
 sebelum membuka installer.
+
+## RustDesk remote support
+
+Halaman APK juga menyediakan RustDesk untuk akses tablet dari jauh:
+
+- Berkas: `public/apk/rustdesk-armv7.apk`
+- Versi: RustDesk 1.5.0, ARMv7 signed
+- Ukuran: 27.213.962 byte
+- SHA-256: `14e0bbccfca1bce9ea03350ad95b763064bda2481a36312420403f6cb1e0f71a`
+- Sumber resmi: <https://github.com/rustdesk/rustdesk/releases/tag/1.5.0>
+
+RK3288 adalah ARM 32-bit, jadi gunakan ARMv7. Ganti berkas ini bila versi
+RustDesk dinaikkan, lalu perbarui teks versi di `index.html` dan hash di atas.
