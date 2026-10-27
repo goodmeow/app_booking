@@ -19,11 +19,13 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 - CMS + API: **Ver 3 Rev 13**, `package.json` `3.12.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.3.9 / versionCode 20`, build tag
-  `1.3.9-20-f7c5d22`. Footer kios menampilkan versi APK + **versi CMS**
-  (`v1.3.9 (20) · CMS 3.12.0`). Build membawa pill `TERSEDIA` 44 px, copy
+- APK kiosk: `versionName 1.4.0 / versionCode 21`, build tag
+  `1.4.0-21-a269e73`. Footer kios menampilkan versi APK + **versi CMS**
+  (`v1.4.0 (21) · CMS 3.12.0`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
-  yang aman.
+  yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
+  lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
+  signature diverifikasi, lalu installer Android dibuka.
 - Ver 3 Rev 13 mencakup matrix menu per role, `super_admin` dari akun setup,
   multi-lantai (`tbl_users.floors`), akses resepsionis per lantai, audit log,
   dan pengerasan security: rate-limit proxy, reset sandi, pairing kiosk,
@@ -32,9 +34,9 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   unit server **85/85**, unit kiosk **21/21**, client **98/98**, regresi
   **95/95** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
   dan `build:server:check` lulus.
-- Distribusi APK, 2026-10-27 (commit `f7c5d22`): paket
-  `public/apk/kiosk-release.apk` 21.514.450 byte, SHA-256
-  `521a200ec31da71f69d4ed2528fef0340546f54cdafc55ef241aa10eca33275f`,
+- Distribusi APK, 2026-10-27 (commit `a269e73`): paket
+  `public/apk/kiosk-release.apk` 21.521.436 byte, SHA-256
+  `f240ae3d5f6bf67b552789e40e46206d6fc7d55afd32c8474a2a246f7a64c8b5`,
   plus halaman unduh `public/apk/index.html` (`/apk/index.html`).
 - Status UAT remote 2026-10-27: CMS/APK current aktif; `/api/health`, CMS
   root, `/apk/index.html`, dan APK balas HTTP 200. `TRUST_PROXY=1`,
@@ -44,7 +46,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 ### Ver 3 Rev 13 - 2026-10-27 (rilis saat ini)
 Matrix menu, super admin, multi-lantai, audit, dan hardening security.
-APK 1.3.9 (20), build tag `1.3.9-20-f7c5d22`.
+APK 1.4.0 (21), build tag `1.4.0-21-a269e73`.
 
 ### Ver 3 Rev 12 - 2026-10-25 (rilis sebelumnya)
 Branding global (upload icon/logo/favicon/nama/judul tab), kalender 24 jam

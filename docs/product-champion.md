@@ -6,7 +6,7 @@ memanggil tim teknis. Aturan yang mengikat tetap
 [`business-processes.md`](business-processes.md); dokumen ini menjelaskan
 _apa yang harus dilakukan_, bukan detail kode.
 
-Versi acuan: CMS/API **3.12.0**, APK kiosk **1.3.9 (20)**.
+Versi acuan: CMS/API **3.12.0**, APK kiosk **1.4.0 (21)**.
 
 ## 1. Peran dan wewenang
 
@@ -156,7 +156,7 @@ dihapus dari CMS; untuk investigasi mendalam, tim teknis membaca
    tombol **Unduh APK Tablet** di tab Perangkat Tablet.
 2. Pindahkan file ke tablet, buka, dan izinkan instalasi (izinkan sekali dari
    browser/file manager).
-3. Buka aplikasi kiosk; cek footer `v1.3.9 (20) · CMS 3.12.0`.
+3. Buka aplikasi kiosk; cek footer `v1.4.0 (21) · CMS 3.12.0`.
 4. Cek status **Online** di tab Perangkat Tablet. Bila perangkat sudah tidak
    aktif, pairing ulang dari layar setup tablet.
 5. Catat versi yang dipasang di buku serah terima; satu tablet bisa berbeda

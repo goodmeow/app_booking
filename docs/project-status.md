@@ -8,13 +8,13 @@ metrik otomatis.
 | Item | Nilai |
 |---|---|
 | CMS/API | **3.12.0** (Ver 3 Rev 13) |
-| APK kiosk | **1.3.9 (20)** |
+| APK kiosk | **1.4.0 (21)** |
 | URL UAT Docker | `http://<uat-host>:8082` (LAN langsung, belum lewat domain) |
 | Domain baru | `<uat-domain>` — DNS + vhost nginx **belum aktif** |
 | Database | `360booking` (PostgreSQL di stack Docker UAT) |
 | Commit app | `3.12.0` (bump) + `104b4f9` + `d92d8e1` + `05c6020` + `e165ed7` + `bed9c86` + `febd049` + `5ae6b0b` + `dabbfbb` + `8e1854d` + `e2abf77` + `85f57dd` + `2c064dd` |
 | Commit dasar app | `bfbb962` + `db57d7a` + `99d0043` |
-| Commit kiosk | `f7c5d22` (APK 1.3.9 build tag `1.3.9-20-f7c5d22`) |
+| Commit kiosk | `a269e73` (APK 1.4.0 build tag `1.4.0-21-a269e73`) |
 | Commit clean | snapshot `clean` terbaru (sinkron dengan master) |
 | Commit artefak REA | `f266e33` (`app_360booking`) |
 
@@ -38,14 +38,16 @@ metrik otomatis.
 
 ## Sudah selesai
 
-- CMS/API 3.12.0, APK 1.3.9, branding upload, week start, backup settings.
+- CMS/API 3.12.0, APK 1.4.0, branding upload, week start, backup settings.
+- **Update APK semi-otomatis**: kiosk cek `/apk/latest.json` tiap 6 jam,
+  download + verifikasi SHA-256/signature, lalu buka installer Android.
 - **Akses per peran**: akun `/setup` menjadi `super_admin` (dilindungi),
   matrix menu per peran di Manajemen → Pengaturan, `tbl_users.floors` untuk
   multi-lantai, resepsionis melihat/mengubah booking di semua lantai yang
   dipegang, dan log audit untuk role/lantai/kartu/pengaturan/akses
   (endpoint `/api/access/*` dan `/api/audit` hanya untuk Super Admin).
 - **Distribusi APK**: halaman `/apk/index.html` + `kiosk-release.apk` current
-  (build tag `1.3.9-20-f7c5d22`, 21.514.450 byte, SHA-256 `521a200e…275f`);
+  (build tag `1.4.0-21-a269e73`, 21.521.436 byte, SHA-256 `f240ae3d…c8b5`);
   copy kiosk netral "Siap digunakan / Belum ada jadwal berikutnya".
 - **UAT berjalan sebagai stack Docker Compose di VM Linux**: CMS/API di port
   `8082`; CMS root, `/api/health`, dan `/apk/index.html` balas HTTP 200.
@@ -91,14 +93,14 @@ metrik otomatis.
 - [x] UAT Docker Compose di VM Linux: CMS root HTTP 200, `/api/health` 200,
   `/apk/kiosk-release.apk` 200 (port 8082).
 - [x] Setup admin + impor user bersih di DB UAT; akun meeting room dibuat.
-- [x] Tablet dipairing ke server UAT, footer `v1.3.9 (20) · CMS 3.12.0`.
+- [x] Tablet dipairing ke server UAT, footer `v1.4.0 (21) · CMS 3.12.0`.
 - [x] Akses pintu end-to-end: APK → `/api` validasi kartu 200 → CH340 relay
   di tablet → klik relay fisik.
 - [x] Akses per peran: `super_admin` dari `/setup`, matrix menu per peran,
   multi-lantai (`tbl_users.floors`), resepsionis lintas lantai, log audit.
   Commit `bed9c86` + `e165ed7`.
-- [x] Halaman unduh APK `/apk/index.html` + paket `1.3.9` rebuild
-  (build tag `1.3.9-20-f7c5d22`). Commit halaman APK `05c6020`; bump `f7c5d22`.
+- [x] Halaman unduh APK `/apk/index.html` + paket `1.4.0` rebuild
+  (build tag `1.4.0-21-a269e73`). Commit halaman APK `05c6020`; bump `a269e73`.
 - [x] Update server UAT remote ke CMS/APK current (2026-10-27); health 200,
   APK checksum sama dengan build lokal.
 - [x] Dokumentasi + deck training 22 slide (commit `d92d8e1`); deck disalin
