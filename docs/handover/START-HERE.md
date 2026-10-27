@@ -93,7 +93,7 @@ Ikuti `deploy/README.md` urut: `01-install-prerequisites.sh` →
 `02-provision-database.sh` → `03-build.sh` → `04-install-app.sh` →
 `05-create-admin.sh` (atau buat akun Super Admin pertama lewat `/setup`). HTTPS didukung
 lewat env `HTTPS=true` + `TLS_CERT_PATH`/`TLS_KEY_PATH` atau reverse proxy
-(`TRUST_PROXY=true`).
+(`TRUST_PROXY=1`, satu hop nginx).
 
 Alternatif Docker: `deploy/docker/compose.alpine.yaml`
 (`node:20-alpine` + `postgres:16-alpine` + `nginx:alpine`), entrypoint

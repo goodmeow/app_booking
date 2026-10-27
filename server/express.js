@@ -1,6 +1,5 @@
 import express from "express";
 import bodyParser from "body-parser";
-import cookieParser from "cookie-parser";
 import compression from "compression";
 import cors from "cors";
 import helmet from "helmet";
@@ -13,7 +12,6 @@ app.set("trust proxy", config.trustProxy);
 
 app.use(bodyParser.json({ limit: "1mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "1mb" }));
-app.use(cookieParser());
 app.use(compression());
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(requestTelemetry);

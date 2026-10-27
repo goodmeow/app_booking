@@ -379,7 +379,7 @@ export const findParticipantEvent = async (detailId) => (await query(
   [detailId]
 )).rows[0] || null;
 
-export const eventCheckInContext = async (eventId, principalId, cardNumber) => (await query(
+export const eventCheckInContext = async (eventId, principalId, cardNumber, execute = query) => (await execute(
   `SELECT
      ${eventInstantColumns},
      s.time_of_event_start_soon AS early_minutes,
@@ -411,7 +411,8 @@ export const eventCheckInContext = async (eventId, principalId, cardNumber) => (
      ) AS card_allowed
    FROM tbl_events e
    CROSS JOIN LATERAL (SELECT * FROM tbl_app_settings ORDER BY created_at LIMIT 1) s
-   WHERE e._id = $1 AND e.is_cancel IS NOT TRUE`,
+   WHERE e._id = $1 AND e.is_cancel IS NOT TRUE
+   FOR UPDATE OF e`,
   [eventId, principalId, cardNumber]
 )).rows[0] || null;
 
@@ -452,16 +453,22 @@ export const releaseAbandonedRoomBookings = async (execute = query) => {
        ORDER BY created_at
        LIMIT 1
      ),
-     abandoned AS (
-       UPDATE tbl_event_rooms room_booking
-       SET active = false
-       FROM tbl_events event, settings setting
-       WHERE room_booking.event_id = event._id
-         AND room_booking.active
-         AND event.checked_in IS NULL
+     expired AS (
+       SELECT event._id
+       FROM tbl_events event
+       CROSS JOIN settings setting
+       WHERE event.checked_in IS NULL
          AND event.is_cancel IS NOT TRUE
          AND now() >= (event.start_date AT TIME ZONE event.timezone)
            + make_interval(mins => setting.limit_minutes)
+       FOR UPDATE OF event SKIP LOCKED
+     ),
+     abandoned AS (
+       UPDATE tbl_event_rooms room_booking
+       SET active = false
+       FROM expired
+       WHERE room_booking.event_id = expired._id
+         AND room_booking.active
        RETURNING room_booking.event_id
      )
      SELECT DISTINCT event_id FROM abandoned`,

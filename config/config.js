@@ -57,12 +57,6 @@ const config = {
     password: env.PGPASSWORD,
     port: env.PGPORT,
   },
-  redis: {
-    host: env.REDIS_HOST || "localhost",
-    port: env.REDIS_PORT || 6379,
-    key: env.REDIS_KEY || "",
-    db: env.REDIS_DB || 0,
-  },
 };
 
 export const validateRuntimeConfig = () => {

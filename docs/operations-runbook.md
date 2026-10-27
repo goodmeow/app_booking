@@ -114,7 +114,7 @@ produksi.
 | `NODE_ENV` | `production` | Memilih `.env.production` bila ada |
 | `HOST` | `127.0.0.1` | API hanya loopback di belakang nginx |
 | `PORT` / `SERVER_PORT` | `8081` / `9091` | `PORT` hanya dipakai mode SSR/client |
-| `TRUST_PROXY` | `true` | Wajib di belakang nginx agar `req.ip` benar |
+| `TRUST_PROXY` | `1` | Satu hop nginx; `2` bila ada nginx eksternal |
 | `CORS_ORIGINS` | `https://<domain>` | Tanpa wildcard; origin lain → `403 CORS_ORIGIN` |
 | `HTTPS` | `false` bila TLS di nginx | `true` hanya bila Node memegang TLS |
 | `TLS_CERT_PATH` / `TLS_KEY_PATH` | – | Wajib bila `HTTPS=true` |
@@ -129,7 +129,7 @@ Dua pilihan, jangan dicampur:
 
 1. **TLS di nginx (disarankan)** — pasang sertifikat di blok `listen 443`
    (`deploy/nginx/360booking.conf` masih dikomentari), set
-   `TRUST_PROXY=true` dan `CORS_ORIGINS=https://<domain>`.
+   `TRUST_PROXY=1` dan `CORS_ORIGINS=https://<domain>`.
 2. **TLS di Node** — `HTTPS=true`, `TLS_CERT_PATH`, `TLS_KEY_PATH`, buka
    port 9091 di firewall, dan tablet diarahkan langsung ke port itu.
 

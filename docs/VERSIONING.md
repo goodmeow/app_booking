@@ -29,7 +29,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   tidak meluber dan tombol **Pilih waktu** tetap ada.
 - Rev 12 masih terbuka: patch perbaikan UAT 3.10.4 + fitur/UX 3.11.0 / APK 1.3.8
   sudah lulus unit server 85/85, unit kiosk 21/21, client 98/98,
-  regresi 92/92 (0 skip),
+  regresi 95/95 (0 skip),
   parity prepare 2/2 dan parity 8/8. Lihat
   `docs/release-v3.11.0.md` untuk isi rilis dan risiko yang belum diuji.
 - Perubahan 2026-10-26 (belum naik versi): role `super_admin` dari akun setup,
@@ -40,7 +40,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   (fitur) + `e165ed7` (pengerasan reset sandi, audit, akses menu).
   Docs dan deck training ikut diperbarui. Bukti setelah perubahan di checkout
   build `/home/goodmeow/build/app_booking`: unit server **85/85**, client
-  **98/98**, regresi **92/92** (0 skip), parity prepare **2/2**, parity **8/8**,
+  **98/98**, regresi **95/95** (0 skip), parity prepare **2/2**, parity **8/8**,
   `build:client` dan `build:server:check` lulus (2026-10-26).
 - Distribusi APK, 2026-10-26 (commit `05c6020`): rebuild `1.3.8` (19) build tag
   `1.3.8-19-85ca335` — pill `TERSEDIA` 44 px, copy netral
