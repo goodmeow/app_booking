@@ -299,7 +299,7 @@ export const calendarRange = (start, end, timezone) => {
   };
 };
 
-const projectCalendarEvent = (row) => {
+const projectCalendarEvent = (row, principal) => {
   if (!row.can_view_details) {
     const firstName = row.organizer_first_name || "Booked";
     return {
@@ -335,6 +335,7 @@ const projectCalendarEvent = (row) => {
     series_id: row.series_id,
     occurrence_index: row.occurrence_index,
     can_view_details: true,
+    can_mutate: canMutate(row, principal),
   };
 };
 
@@ -351,7 +352,7 @@ export const listEvents = async (queryParams, principal) => {
     allEvents: queryParams.all === "true" && isAdminRole(principal.role),
     ...range,
   });
-  return rows.map(projectCalendarEvent);
+  return rows.map((row) => projectCalendarEvent(row, principal));
 };
 
 // booked_by is the account that created the booking for somebody else. That

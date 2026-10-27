@@ -164,6 +164,7 @@ export const calendarEventFromApi = (event) => ({
   late_threshold: eventValue(event, "late_threshold"),
   ...(eventValue(event, "visibility") === undefined ? {} : { visibility: eventValue(event, "visibility") }),
   ...(eventValue(event, "can_view_details") === undefined ? {} : { can_view_details: eventValue(event, "can_view_details") }),
+  ...(eventValue(event, "can_mutate") === undefined ? {} : { can_mutate: eventValue(event, "can_mutate") }),
   ...(eventValue(event, "organizer_first_name") === undefined ? {} : { organizer_first_name: eventValue(event, "organizer_first_name") }),
   ...(eventValue(event, "timezone") === undefined ? {} : { timezone: eventValue(event, "timezone") }),
   ...(eventValue(event, "series_id") === undefined ? {} : { series_id: eventValue(event, "series_id") }),
@@ -176,6 +177,10 @@ export const calendarEventFromApi = (event) => ({
 // the receptionist who placed it must still be able to edit or cancel it.
 export const canManageBooking = ({ event, sessionEmail, sessionUserId, isAdmin = false } = {}) => {
   if (isAdmin) return true;
+  // The server decides floor-wide receptionist access; the client must not
+  // re-derive it from event data that does not include room floors.
+  const serverCanMutate = eventValue(event, "can_mutate");
+  if (serverCanMutate !== undefined) return Boolean(serverCanMutate);
   const organizer = String(eventValue(event, "organizer") ?? "").trim().toLowerCase();
   const ownEmail = String(sessionEmail ?? "").trim().toLowerCase();
   if (organizer && ownEmail && organizer === ownEmail) return true;
