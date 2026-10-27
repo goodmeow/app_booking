@@ -1,8 +1,8 @@
 {
-  "versionCode": 22,
-  "versionName": "1.4.1",
+  "versionCode": 23,
+  "versionName": "1.4.2",
   "url": "/apk/kiosk-release.apk",
-  "sha256": "e82d5416a066d84d325e670ba525bb42ca0a1cdeb92fc7829385bd89dc5deac2",
+  "sha256": "f6334d85fe927a90bd142b467cbaa9e178ed523647ffde692aa09b129c66ca79",
   "mandatory": false,
-  "notes": "Perbaikan jarak tombol aksi layar kuning agar tidak menabrak teks di atasnya."
+  "notes": "Menu tablet sekarang punya tombol update; layar kuning juga lebih rapi."
 }
