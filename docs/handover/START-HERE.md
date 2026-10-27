@@ -49,7 +49,7 @@ tablet bila sesi kios ikut hilang.
 | Database | `database/migrations/` (urut), seed disposable di `database/seeds/` |
 | Test | `server/tests/unit|parity|regression`, `client/tests` |
 | Deploy Ubuntu 22.04 | `deploy/` (lihat `deploy/README.md`) |
-| Versi & riwayat | `docs/VERSIONING.md`, `package.json` (`3.12.0` = Ver 3 Rev 13), APK kiosk `1.4.2` (code 23) |
+| Versi & riwayat | `docs/VERSIONING.md`, `package.json` (`3.12.0` = Ver 3 Rev 13), APK kiosk `1.4.3` (code 24) |
 
 ## 4. Alur kiosk singkat
 
@@ -64,7 +64,7 @@ tablet bila sesi kios ikut hilang.
    - **Sampai HH:MM** hanya muncul bila masih ada meeting berikutnya hari itu;
    - **Finish/Selesai** disembunyikan; muncul setelah **5 tap** pada pill
      **IN USE** (easter egg operator).
-4. Footer kios menampilkan versi APK + versi CMS (`v1.4.2 (23) · CMS 3.12.0`),
+4. Footer kios menampilkan versi APK + versi CMS (`v1.4.3 (24) · CMS 3.12.0`),
    berguna untuk memastikan tablet dan server memakai rilis yang sama.
 5. Admin mengelola perangkat di CMS → Manajemen → Perangkat Tablet (LED,
    tampilkan judul, cabut perangkat, unduh APK). Pengaturan global (timer
@@ -73,9 +73,9 @@ tablet bila sesi kios ikut hilang.
    Di bagian bawah tab yang sama, **Super Admin** melihat **matrix menu per
    peran** dan **log audit**.
 6. Update APK tablet: unduh dari `https://<domain>/apk/index.html` (atau tombol
-   Unduh APK Tablet). Versi saat ini `1.4.2` (23), build tag
-   `1.4.2-23-2bfdbff`; footer tablet menampilkan
-   `v1.4.2 (23) · CMS 3.12.0`.
+   Unduh APK Tablet). Versi saat ini `1.4.3` (24), build tag
+   `1.4.3-24-c131edb`; footer tablet menampilkan
+   `v1.4.3 (24) · CMS 3.12.0`.
 
 ## 5. Gate kualitas
 
