@@ -7,7 +7,7 @@ metrik otomatis.
 
 | Item | Nilai |
 |---|---|
-| CMS/API | **3.12.0** (Ver 3 Rev 13) |
+| CMS/API | **3.12.1** (Ver 3 Rev 13) |
 | APK kiosk | **1.4.4 (25)** |
 | URL UAT Docker | `http://<uat-host>:8082` (LAN langsung, belum lewat domain) |
 | Domain baru | `<uat-domain>` — DNS + vhost nginx **belum aktif** |
@@ -38,7 +38,7 @@ metrik otomatis.
 
 ## Sudah selesai
 
-- CMS/API 3.12.0, APK 1.4.4, branding upload, week start, backup settings.
+- CMS/API 3.12.1, APK 1.4.4, branding upload, week start, backup settings.
 - **Resepsionis**: tombol Edit/Batalkan mengikuti flag `can_mutate`; meeting
   karyawan di lantai akses resepsionis bisa dibatalkan.
 - **Update APK semi-otomatis**: kiosk cek `/apk/latest.json` tiap 6 jam,

@@ -1,7 +1,7 @@
 # CMS / Web Admin `app_booking` — breakdown halaman
 
 Dokumen ini memetakan halaman-halaman web admin (CMS) beserta isi, API, dan
-lokasi kodenya. Versi yang didokumentasikan: CMS/API **3.12.0** (Ver 3 Rev 13).
+lokasi kodenya. Versi yang didokumentasikan: CMS/API **3.12.1** (Ver 3 Rev 13).
 Terakhir diperbarui: 2026-10-26.
 
 ## 1. Ringkasan teknis

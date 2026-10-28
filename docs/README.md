@@ -4,7 +4,7 @@ Peta seluruh dokumentasi proyek. Mulai dari
 [`handover/START-HERE.md`](handover/START-HERE.md) bila baru bergabung, atau
 dari [`../README.md`](../README.md) untuk instalasi cepat.
 
-Versi acuan dokumen: CMS/API **3.12.0** (Ver 3 Rev 13), APK kiosk **1.4.4**
+Versi acuan dokumen: CMS/API **3.12.1** (Ver 3 Rev 13), APK kiosk **1.4.4**
 (versionCode 25, build tag `1.4.4-25-04c7d80`). Setiap perubahan versi dicatat
 di [`VERSIONING.md`](VERSIONING.md).
 
