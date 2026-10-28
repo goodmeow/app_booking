@@ -296,5 +296,19 @@
     "tooLarge": "Image size must be 512 KB or less.",
     "resetDone": "Image reset to default.",
     "loading": "Loading branding..."
+  },
+  "about": {
+    "tab": "About",
+    "title": "About RoomBooking",
+    "intro": "RoomBooking is a meeting-room booking system for The Prasada. This page lists the direct third-party libraries bundled with the CMS/API and the kiosk APK.",
+    "note": "Third-party libraries remain under their respective licenses. Open a source link for the full license text and copyright notice.",
+    "cmsLibraries": "CMS/API libraries",
+    "kioskLibraries": "Kiosk APK libraries",
+    "library": "Library",
+    "version": "Version",
+    "license": "License",
+    "source": "Source",
+    "openSource": "Open source",
+    "copyright": "© 2026 The Prasada. RoomBooking is an internal application."
   }
 }

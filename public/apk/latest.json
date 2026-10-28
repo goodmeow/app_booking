@@ -1,8 +1,8 @@
 {
-  "versionCode": 24,
-  "versionName": "1.4.3",
+  "versionCode": 25,
+  "versionName": "1.4.4",
   "url": "/apk/kiosk-release.apk",
-  "sha256": "ada4af2e380eca7c45b6bd8cc75f319d1a9a0f886f5bc8c09c457f65e8d3d1af",
+  "sha256": "a0e4b9693fbfd2805700f9075f972fb8682f38398548999624fe7f94ce4a2c8c",
   "mandatory": false,
-  "notes": "Menu tablet punya tombol Cek update/Perbarui; layar kuning lebih rapi."
+  "notes": "Menambahkan halaman Tentang & Lisensi di menu tablet."
 }

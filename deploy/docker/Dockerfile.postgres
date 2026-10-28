@@ -1,0 +1,16 @@
+# PostgreSQL 16 with a gosu binary rebuilt with a patched Go standard library.
+# The official Alpine image still ships gosu 1.19 built with Go 1.24.6, which
+# carries CVE-2025-68121 and related stdlib fixes in 2026 scans.
+FROM golang:1.26.10-alpine AS gosu-build
+
+RUN apk add --no-cache git
+# Pin the upstream release commit instead of the mutable 1.19 tag.
+RUN git clone https://github.com/tianon/gosu /src \
+  && cd /src \
+  && git checkout 6456aaa0f3c854d199d0f037f068eb97515b7513 \
+  && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /gosu .
+
+FROM postgres:16.15-alpine
+
+COPY --from=gosu-build /gosu /usr/local/bin/gosu
+RUN chmod 0755 /usr/local/bin/gosu

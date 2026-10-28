@@ -5,7 +5,10 @@
 
 services:
   db:
-    image: postgres:16-alpine
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.postgres
+    image: roombooking-postgres:16.15-gosu1.19
     environment:
       POSTGRES_DB: ${ALPINE_PGDATABASE:-360booking}
       POSTGRES_USER: ${ALPINE_PGUSER:-booking}

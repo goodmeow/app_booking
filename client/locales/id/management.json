@@ -296,5 +296,19 @@
     "tooLarge": "Ukuran gambar maksimal 512 KB.",
     "resetDone": "Gambar dikembalikan ke default.",
     "loading": "Memuat branding..."
+  },
+  "about": {
+    "tab": "Tentang",
+    "title": "Tentang RoomBooking",
+    "intro": "RoomBooking adalah sistem pemesanan ruang meeting untuk The Prasada. Halaman ini mencantumkan pustaka pihak ketiga langsung yang dipakai CMS/API dan APK kiosk.",
+    "note": "Pustaka pihak ketiga tetap memakai lisensinya masing-masing. Buka tautan sumber untuk teks lisensi dan pemberitahuan hak cipta lengkap.",
+    "cmsLibraries": "Pustaka CMS/API",
+    "kioskLibraries": "Pustaka APK kiosk",
+    "library": "Pustaka",
+    "version": "Versi",
+    "license": "Lisensi",
+    "source": "Sumber",
+    "openSource": "Sumber terbuka",
+    "copyright": "© 2026 The Prasada. RoomBooking adalah aplikasi internal."
   }
 }

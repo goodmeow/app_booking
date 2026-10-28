@@ -8,7 +8,7 @@ name: 360booking
 
 services:
   postgres-test:
-    image: postgres:14-alpine
+    image: postgres:16-alpine
     container_name: 360booking-postgres-test
     environment:
       POSTGRES_DB: ${BOOKING_TEST_DB:-360booking_reconstruction_test}
@@ -24,8 +24,8 @@ services:
       timeout: 3s
       retries: 15
     volumes:
-      - booking-postgres-test-data:/var/lib/postgresql/data
+      - booking-postgres-test-data-16:/var/lib/postgresql/data
     restart: unless-stopped
 
 volumes:
-  booking-postgres-test-data:
+  booking-postgres-test-data-16:

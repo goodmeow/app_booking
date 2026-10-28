@@ -1,0 +1,51 @@
+// Direct runtime libraries and bundled fonts. Transitive dependencies are
+// covered by their parent packages; the source link is kept for the full text.
+export const KIOSK_APP_VERSION = "1.4.4 (25)";
+
+export const CMS_LIBRARIES = [
+  { name: "@emotion/react", version: "11.14.0", license: "MIT", url: "https://github.com/emotion-js/emotion" },
+  { name: "@emotion/styled", version: "11.14.1", license: "MIT", url: "https://github.com/emotion-js/emotion" },
+  { name: "@fullcalendar/bootstrap5", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/bootstrap5" },
+  { name: "@fullcalendar/core", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io" },
+  { name: "@fullcalendar/daygrid", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/month-view" },
+  { name: "@fullcalendar/interaction", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/editable" },
+  { name: "@fullcalendar/react", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/react" },
+  { name: "@fullcalendar/timegrid", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/timegrid-view" },
+  { name: "@mui/icons-material", version: "5.18.0", license: "MIT", url: "https://mui.com/material-ui/material-icons/" },
+  { name: "@mui/material", version: "5.18.0", license: "MIT", url: "https://mui.com/material-ui/" },
+  { name: "@mui/x-data-grid", version: "6.20.4", license: "MIT", url: "https://mui.com/x/react-data-grid/" },
+  { name: "@mui/x-date-pickers", version: "6.20.2", license: "MIT", url: "https://mui.com/x/react-date-pickers/" },
+  { name: "@reduxjs/toolkit", version: "1.9.7", license: "MIT", url: "https://redux-toolkit.js.org" },
+  { name: "bcrypt", version: "6.0.0", license: "MIT", url: "https://github.com/kelektiv/node.bcrypt.js" },
+  { name: "body-parser", version: "1.20.9", license: "MIT", url: "https://github.com/expressjs/body-parser" },
+  { name: "bootstrap", version: "5.3.8", license: "MIT", url: "https://getbootstrap.com" },
+  { name: "compression", version: "1.8.2", license: "MIT", url: "https://github.com/expressjs/compression" },
+  { name: "cors", version: "2.8.6", license: "MIT", url: "https://github.com/expressjs/cors" },
+  { name: "dayjs", version: "1.11.21", license: "MIT", url: "https://day.js.org" },
+  { name: "dotenv", version: "16.6.1", license: "BSD-2-Clause", url: "https://github.com/motdotla/dotenv" },
+  { name: "exceljs", version: "4.4.0", license: "MIT", url: "https://github.com/exceljs/exceljs" },
+  { name: "express", version: "4.22.3", license: "MIT", url: "https://expressjs.com" },
+  { name: "helmet", version: "7.2.0", license: "MIT", url: "https://helmetjs.github.io" },
+  { name: "i18next", version: "26.3.6", license: "MIT", url: "https://www.i18next.com" },
+  { name: "jsonwebtoken", version: "9.0.3", license: "MIT", url: "https://github.com/auth0/node-jsonwebtoken" },
+  { name: "pg", version: "8.22.0", license: "MIT", url: "https://github.com/brianc/node-postgres" },
+  { name: "react", version: "17.0.2", license: "MIT", url: "https://react.dev" },
+  { name: "react-dom", version: "17.0.2", license: "MIT", url: "https://react.dev" },
+  { name: "react-i18next", version: "17.0.10", license: "MIT", url: "https://github.com/i18next/react-i18next" },
+  { name: "react-redux", version: "8.1.3", license: "MIT", url: "https://github.com/reduxjs/react-redux" },
+  { name: "react-router", version: "5.3.4", license: "MIT", url: "https://reactrouter.com" },
+  { name: "react-router-dom", version: "5.3.4", license: "MIT", url: "https://reactrouter.com" },
+  { name: "socket.io", version: "4.8.3", license: "MIT", url: "https://socket.io" },
+  { name: "socket.io-client", version: "4.8.3", license: "MIT", url: "https://socket.io" },
+  { name: "Inter", version: "bundled", license: "OFL-1.1", url: "https://github.com/rsms/inter" },
+  { name: "Public Sans", version: "bundled", license: "OFL-1.1", url: "https://github.com/uswds/public-sans" },
+  { name: "Source Serif 4", version: "bundled", license: "OFL-1.1", url: "https://github.com/adobe-fonts/source-serif" },
+];
+
+export const KIOSK_LIBRARIES = [
+  { name: "@react-native-async-storage/async-storage", version: "1.21.0", license: "MIT", url: "https://github.com/react-native-async-storage/async-storage" },
+  { name: "react", version: "18.2.0", license: "MIT", url: "https://react.dev" },
+  { name: "react-native", version: "0.73.11", license: "MIT", url: "https://reactnative.dev" },
+  { name: "Public Sans", version: "bundled", license: "OFL-1.1", url: "https://github.com/uswds/public-sans" },
+  { name: "Source Serif 4", version: "bundled", license: "OFL-1.1", url: "https://github.com/adobe-fonts/source-serif" },
+];

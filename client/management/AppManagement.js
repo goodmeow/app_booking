@@ -6,6 +6,7 @@ import RoomManagementSection from "./RoomManagementSection.js";
 import UserManagementSection from "./UserManagementSection.js";
 import KioskDeviceManagementSection from "./KioskDeviceManagementSection.js";
 import SettingsSection from "./SettingsSection.js";
+import AboutSection from "./AboutSection.js";
 import { useMenuAccess } from "../auth/use-menu-access.js";
 
 const AppManagement = () => {
@@ -19,8 +20,9 @@ const AppManagement = () => {
     { value: "rooms", menu: "rooms", label: t("rooms.title"), content: <RoomManagementSection /> },
     { value: "devices", menu: "devices", label: t("devices.title"), content: <KioskDeviceManagementSection /> },
     { value: "settings", menu: "settings", label: t("settings.tab"), content: <SettingsSection /> },
+    { value: "about", menu: null, label: t("about.tab"), content: <AboutSection /> },
   ];
-  const sections = allSections.filter((item) => can(item.menu));
+  const sections = allSections.filter((item) => !item.menu || can(item.menu));
   const visibleValues = sections.map((item) => item.value).join(",");
   useEffect(() => {
     if (!sections.some((item) => item.value === section)) setSection(sections[0]?.value || "");
