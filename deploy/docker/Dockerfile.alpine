@@ -6,7 +6,7 @@
 #
 # Build context is the repository root (see deploy/docker/compose.alpine.yaml).
 
-FROM node:20-alpine AS build
+FROM node:22.23.4-alpine AS build
 
 # bcrypt has an install script; Alpine/musl may need to compile it.
 RUN apk add --no-cache python3 make g++ libstdc++
@@ -21,7 +21,7 @@ RUN npm run build \
   && npm prune --omit=dev --no-audit --no-fund
 
 
-FROM node:20-alpine AS app
+FROM node:22.23.4-alpine AS app
 
 # psql/pg_isready drive the entrypoint migrations; tini forwards signals.
 RUN apk add --no-cache postgresql16-client tini libstdc++
@@ -40,6 +40,10 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 RUN mkdir -p /backups && chown node:node /backups
 
+# The server never runs npm. Remove the CLI and its bundled dependency tree so
+# the runtime image does not ship packages it cannot use.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+
 USER node
 
 EXPOSE 9091
@@ -47,7 +51,11 @@ EXPOSE 9091
 ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/entrypoint.sh"]
 
 
-FROM nginx:1.27-alpine AS web
+FROM nginx:1.31.8-alpine AS web
+
+# Pick up the Alpine security fixes that landed after this nginx image tag was
+# published (brotli and curl at the time of the scan).
+RUN apk upgrade --no-cache
 
 COPY deploy/docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/build/client /usr/share/nginx/html
