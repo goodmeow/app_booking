@@ -357,7 +357,8 @@ export const listEvents = async (queryParams, principal) => {
   const room = queryParams.rooms ? await findActiveRoom(queryParams.rooms) : null;
   if (queryParams.rooms && !room) throw notFound("Room not found");
   const range = calendarRange(queryParams.start, queryParams.end, config.appTimezone);
-  const floors = isReceptionistRole(principal.role) ? effectiveFloors(principal) : [];
+  const floorSchedule = isReceptionistRole(principal.role) || queryParams.floor === "true";
+  const floors = floorSchedule ? effectiveFloors(principal) : [];
   const rows = await listEventsForPrincipal({
     principalId: principal._id,
     role: principal.role,
