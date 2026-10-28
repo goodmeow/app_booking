@@ -141,7 +141,7 @@ sehingga tidak memakai header CMS.
   tidak bisa menaikkan haknya sendiri menjadi `all`.
 
 ### 3.4 Profil Pengguna (`/user/:userId`) — `client/profile/UserProfile.js`
-- Detail akun, edit profil, ganti kata sandi, hapus akun.
+- Detail akun, edit profil, dan ganti kata sandi.
 - API: `GET/PUT /api/users/:id`, `PUT /api/users/change-password`,
   `DELETE /api/users/:id`.
 

@@ -64,7 +64,7 @@ const MeetingCalendar = () => {
   const roomStatusQuery = useGetRoomStatusQuery(undefined, { pollingInterval: 30_000 });
   const isAdmin = isAdminRole(session?.user?.role);
   const floorQuery = useGetEventsQuery(
-    { start: range.start, end: range.end, ...(isAdmin ? { all: true } : {}) },
+    { start: range.start, end: range.end, floor: true, ...(isAdmin ? { all: true } : {}) },
     { skip: !floorMode }
   );
   const { can: canMenu } = useMenuAccess();
