@@ -68,22 +68,6 @@ export const calendarEventFilters = ({ email, roomEmail, range, all = false }) =
   end: range.end,
 });
 
-// The floor schedule is assembled from one query per room, so a meeting that
-// books several rooms on the same floor arrives more than once.
-export const uniqueCalendarEvents = (groups = []) => {
-  const seen = new Set();
-  const events = [];
-  for (const group of groups) {
-    for (const event of Array.isArray(group) ? group : []) {
-      const key = String(event?.id ?? `${event?.start}-${event?.title}`);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      events.push(event);
-    }
-  }
-  return events;
-};
-
 export const defaultEventRange = (value, now = new Date()) => {
   const selected = asDate(value);
   const current = asDate(now);

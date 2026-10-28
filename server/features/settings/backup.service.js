@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdir, readdir, stat, unlink } from "node:fs/promises";
+import { mkdir, readdir, rename, stat, unlink } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import config from "../../../config/config.js";
@@ -41,28 +41,34 @@ const markResult = async (status) => query(
 
 export const runBackup = async ({ force = false } = {}) => {
   if (RUNNING.current) throw badRequest("BACKUP_RUNNING", "A backup is already running");
-  const settings = await getSettings();
-  if (!settings) throw badRequest("BACKUP_SETTINGS_MISSING", "Backup settings are not available");
-  if (!force && !settings.backup_enabled) throw badRequest("BACKUP_DISABLED", "Backup is disabled");
-
-  const directory = safeDirectory(settings.backup_path);
-  await mkdir(directory, { recursive: true });
-  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
-  const filename = `${(config.pgConn.database || "360booking")}-${stamp}.dump`;
-  const target = path.join(directory, filename);
-  const env = {
-    ...process.env,
-    PGHOST: config.pgConn.host,
-    PGPORT: String(config.pgConn.port || 5432),
-    PGDATABASE: config.pgConn.database,
-    PGUSER: config.pgConn.user,
-    PGPASSWORD: config.pgConn.password,
-  };
-
+  // Reserve the slot before the first await: two requests must not both pass
+  // the check and start pg_dump together.
   RUNNING.current = true;
+  let part = null;
   try {
-    await execFileAsync("pg_dump", ["--format=custom", "--file", target], { env, timeout: 15 * 60_000 });
-    await execFileAsync("pg_restore", ["--list", target], { env, timeout: 60_000 });
+    const settings = await getSettings();
+    if (!settings) throw badRequest("BACKUP_SETTINGS_MISSING", "Backup settings are not available");
+    if (!force && !settings.backup_enabled) throw badRequest("BACKUP_DISABLED", "Backup is disabled");
+
+    const directory = safeDirectory(settings.backup_path);
+    await mkdir(directory, { recursive: true });
+    const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
+    const filename = `${(config.pgConn.database || "360booking")}-${stamp}.dump`;
+    const target = path.join(directory, filename);
+    part = `${target}.part`;
+    const env = {
+      ...process.env,
+      PGHOST: config.pgConn.host,
+      PGPORT: String(config.pgConn.port || 5432),
+      PGDATABASE: config.pgConn.database,
+      PGUSER: config.pgConn.user,
+      PGPASSWORD: config.pgConn.password,
+    };
+
+    await execFileAsync("pg_dump", ["--format=custom", "--file", part], { env, timeout: 15 * 60_000 });
+    await execFileAsync("pg_restore", ["--list", part], { env, timeout: 60_000 });
+    await rename(part, target);
+    part = null;
     const info = await stat(target);
     const days = Math.max(1, Math.min(365, Number(settings.backup_retention_days) || 14));
     const cutoff = Date.now() - days * 24 * 60 * 60_000;
@@ -75,6 +81,7 @@ export const runBackup = async ({ force = false } = {}) => {
     await markResult(`ok ${filename} ${info.size} bytes`);
     return { filename, path: target, bytes: info.size };
   } catch (error) {
+    if (part) await unlink(part).catch(() => {});
     await markResult(`error ${error.message}`.slice(0, 500));
     throw error;
   } finally {

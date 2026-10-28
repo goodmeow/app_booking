@@ -244,3 +244,30 @@ test("room status respects the caller's floor scope", async () => {
   assert.equal(adminStatus.status, 200);
   assert.ok(adminStatus.body.length > 0);
 });
+
+test("only an admin may delete another account and an admin cannot delete itself", async () => {
+  const ownAsUser = await apiRequest(
+    targets.reconstructed,
+    `/api/users/${identities.user._id}`,
+    { method: "DELETE", headers: bearer("user") }
+  );
+  assert.equal(ownAsUser.status, 403);
+
+  const otherAsUser = await apiRequest(
+    targets.reconstructed,
+    `/api/users/${identities.viewer._id}`,
+    { method: "DELETE", headers: bearer("user") }
+  );
+  assert.equal(otherAsUser.status, 403);
+
+  const ownAsAdmin = await apiRequest(
+    targets.reconstructed,
+    `/api/users/${identities.admin._id}`,
+    { method: "DELETE", headers: bearer("admin") }
+  );
+  assert.equal(ownAsAdmin.status, 403);
+  assert.equal(
+    await queryParityDatabase(`SELECT is_deleted FROM tbl_users WHERE _id = '${identities.admin._id}';`),
+    "f"
+  );
+});

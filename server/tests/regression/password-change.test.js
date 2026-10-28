@@ -77,9 +77,11 @@ test("first login is blocked until the default password is replaced", async () =
     }),
   });
   assert.equal(changed.status, 200);
+  assert.ok(changed.body.token, "a self password change must return a replacement token");
 
-  // The same token becomes usable immediately, and the flag is cleared.
-  const allowed = await apiRequest(targets.reconstructed, "/api/users", { headers: { Authorization: `Bearer ${token}` } });
+  const oldToken = await apiRequest(targets.reconstructed, "/api/users", { headers: { Authorization: `Bearer ${token}` } });
+  assert.equal(oldToken.status, 401);
+  const allowed = await apiRequest(targets.reconstructed, "/api/users", { headers: { Authorization: `Bearer ${changed.body.token}` } });
   assert.equal(allowed.status, 200);
   assert.equal(
     String(await queryParityDatabase(`SELECT must_change_password FROM tbl_users WHERE _id = '${employee._id}';`)),

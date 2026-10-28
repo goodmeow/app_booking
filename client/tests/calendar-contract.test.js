@@ -16,7 +16,6 @@ import {
   formatMeetingTimeRange,
   navigateCalendarDate,
   spansMultipleCalendarDays,
-  uniqueCalendarEvents,
 } from "../domain/calendar.js";
 
 test("builds a Monday-first event query range that matches the calendar grid", () => {
@@ -40,13 +39,6 @@ test("accepts any configured first day of the week", () => {
   assert.deepEqual(calendarWeekRange(wednesday, 1), { start: "20300114", end: "20300120" });
   assert.deepEqual(calendarWeekRange(wednesday, 6), { start: "20300112", end: "20300118" });
   assert.deepEqual(calendarRangeForView(wednesday, "timeGridWeek", 0), { start: "20300113", end: "20300119" });
-});
-
-test("merges one query per room without duplicating a multi-room meeting", () => {
-  const event = { id: "event-1", title: "Planning", start: "2030-01-15T09:00:00.000Z" };
-  const other = { id: "event-2", title: "Review", start: "2030-01-16T09:00:00.000Z" };
-  assert.deepEqual(uniqueCalendarEvents([[event], [event, other], undefined]), [event, other]);
-  assert.deepEqual(uniqueCalendarEvents([]), []);
 });
 
 test("builds Day, Week, and Agenda ranges for controlled calendar views", () => {

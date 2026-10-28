@@ -112,7 +112,7 @@ Catatan:
 - Non-admin tanpa menu Pengguna hanya melihat rekan di **lantai yang ia pegang**
   (`tbl_users.floors`, atau `floor` lama) dengan field minimal
   `{_id, name, email, type}`; `employee_id`, `card_number`, `cards`,
-  `is_master_card`, dan `floor` tidak pernah dikirim (`publicEmployee`).
+  `is_master_card`, dan `floor` tidak pernah dikirim (proyeksi whitelist).
 - Non-admin tanpa lantai menerima `[]` (direktori tidak dibuka), kecuali memakai
   pencarian. Lantai `"all"` berarti seluruh direktori, tetap dengan field minimal.
 - Non-admin dengan `?q=` minimal 2 karakter: pencarian `contains`
@@ -128,7 +128,7 @@ Catatan:
   `409 EMPLOYEE_ID_EXISTS`.
   Saat edit, field ini opsional; bila dikirim tidak boleh kosong (ID tidak bisa
   dihapus) dan tetap tunduk pada aturan unik yang sama.
-- Repository direktori hanya memilih `_id,name,email,type`; `publicEmployee`
+- Repository direktori hanya memilih `_id,name,email,type`; proyeksi whitelist
   tetap dipakai sebagai lapisan kedua supaya `employee_id`, `card_number`,
   `cards`, `is_master_card`, dan `floor` tidak pernah lolos.
 - `roleId` wajib UUID; nilai non-UUID ditolak `400` sebelum menyentuh DB.

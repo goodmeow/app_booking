@@ -34,6 +34,10 @@ import {
 } from "./event.repository.js";
 
 const unique = (values) => [...new Set(values.filter(Boolean).map(String))];
+// A 1 MB JSON body can otherwise carry thousands of IDs and turn one booking
+// into millions of inserts across a recurrence.
+export const MAX_BOOKING_PARTICIPANTS = 100;
+export const MAX_BOOKING_ROOMS = 10;
 const validScope = (scope) => {
   if (scope == null || scope === "") return "occurrence";
   if (!['occurrence', 'following', 'series'].includes(scope)) throw badRequest("INVALID_SCOPE", "Scope must be occurrence, following, or series");
@@ -118,6 +122,12 @@ const resolveParticipants = async (request, { requireRoom = true } = {}) => {
 
 const createPlan = async (body) => {
   const request = normalizedCreate(body);
+  const participantCount = request.legacy
+    ? request.attendeeEmails.length
+    : request.attendeeIds.length + request.visitorEmails.length;
+  if (participantCount > MAX_BOOKING_PARTICIPANTS) {
+    throw badRequest("TOO_MANY_PARTICIPANTS", `A booking can have at most ${MAX_BOOKING_PARTICIPANTS} participants`);
+  }
   if (!['single', 'recurring'].includes(request.bookingKind)) {
     throw badRequest("INVALID_BOOKING_KIND", "Booking kind must be single or recurring");
   }
@@ -126,6 +136,9 @@ const createPlan = async (body) => {
   }
   const header = validateHeader(request);
   const participants = await resolveParticipants(request);
+  if (roomIdsFor(participants).length > MAX_BOOKING_ROOMS) {
+    throw badRequest("TOO_MANY_ROOMS", `A booking can use at most ${MAX_BOOKING_ROOMS} rooms`);
+  }
   const occurrencePlan = request.bookingKind === "recurring"
     ? buildOccurrences({ ...request, ...header })
     : { rule: null, occurrences: [{ index: 0, start: header.start, end: header.end }] };
@@ -193,8 +206,9 @@ const assertRoomFloorAccess = async (roomIds, principal) => {
   }
 };
 
-export const previewEvents = async (body) => {
+export const previewEvents = async (body, principal) => {
   const plan = await createPlan(body);
+  await assertRoomFloorAccess(roomIdsFor(plan.participants), principal);
   const conflicts = await findRoomConflicts(roomIdsFor(plan.participants), plan.occurrences);
   const total = conflicts.length;
   return {

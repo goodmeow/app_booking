@@ -59,9 +59,16 @@ const config = {
   },
 };
 
+const placeholderSecret = /<[^>]+>|change[-_ ]?me|your[_-]?secret/i;
+
+export const isPlaceholderSecret = (value) => placeholderSecret.test(String(value || ""));
+
 export const validateRuntimeConfig = () => {
-  if (!config.jwtSecret || config.jwtSecret.length < 32 || /^(change-me|your[_-]?secret)/i.test(config.jwtSecret)) {
+  if (!config.jwtSecret || config.jwtSecret.length < 32 || isPlaceholderSecret(config.jwtSecret)) {
     throw new Error("JWT_SECRET must be a non-placeholder secret of at least 32 characters");
+  }
+  if (config.pgConn.password && isPlaceholderSecret(config.pgConn.password)) {
+    throw new Error("PGPASSWORD must not use an example placeholder");
   }
   if (config.isHttps && (!config.tlsCertPath || !config.tlsKeyPath)) {
     throw new Error("TLS_CERT_PATH and TLS_KEY_PATH are required when HTTPS=true");

@@ -22,6 +22,8 @@ import {
 } from "../accounts/account.repository.js";
 import { normalizedEmail, normalizedUsername, validatedPassword } from "../accounts/identity.validation.js";
 import { revokeRoomKioskDevices } from "../kiosk/kiosk.repository.js";
+import { findActivePrincipalById } from "../auth/auth.repository.js";
+import { publicPrincipal, signPrincipalToken } from "../auth/auth.service.js";
 import { isAdminRole, isSuperAdminRole } from "../../lib/roles.js";
 import { effectiveFloors } from "../../lib/floors.js";
 import { writeAudit } from "../audit/audit.repository.js";
@@ -150,6 +152,9 @@ export const addUserCard = async (userId, cardNumber, { execute, principal } = {
   }
   const user = await findAccountById(userId, "employee", execute);
   if (!user) throw notFound("User not found");
+  // Serialise card-slot decisions for one user. Without this, two concurrent
+  // "add card" requests both read one active card and both insert.
+  await execute("SELECT pg_advisory_xact_lock(hashtext($1))", [`user-cards:${userId}`]);
   const cards = await listUserCards(userId, execute);
   if (activeCardLimitReached(cards)) {
     throw conflict("CARD_LIMIT", `A user can hold at most ${ACTIVE_CARD_LIMIT} active cards`);
@@ -209,6 +214,7 @@ export const reactivateUserCard = async (userId, cardId, principal, { execute } 
       execute: (text, values) => client.query(text, values),
     }));
   }
+  await execute("SELECT pg_advisory_xact_lock(hashtext($1))", [`user-cards:${userId}`]);
   const existing = await findUserCard(userId, cardId, execute);
   if (!existing) throw notFound("Card not found");
   if (existing.status === "active") {
@@ -232,10 +238,6 @@ export const reactivateUserCard = async (userId, cardId, principal, { execute } 
   return active;
 };
 
-// The card number is a credential (check-in, finish, instant booking, door).
-// Only admins may see the whole profile; other users only need the name list.
-export const publicEmployee = ({ card_number, is_master_card, floor, employee_id, cards, must_change_password, ...rest }) => rest;
-
 // employee_id is HR data for the admin list. The account owner still sees their
 // own cards, because those are their door and kiosk credentials.
 export const visibleAccount = (user, _principal, { manageUsers = false } = {}) => {
@@ -250,8 +252,8 @@ export const visibleAccount = (user, _principal, { manageUsers = false } = {}) =
 const DIRECTORY_QUERY_MIN_LENGTH = 2;
 const DIRECTORY_SEARCH_LIMIT = 20;
 
-// The directory projection is a whitelist instead of the publicEmployee
-// blacklist: a column added to the table later stays private by default.
+// The directory projection is a whitelist: a column added to the table later
+// stays private by default.
 export const directoryEmployee = ({ _id, name, email, type }) => ({ _id, name, email, type });
 
 const normalizedDirectorySearch = (value) => {
@@ -482,12 +484,12 @@ export const changeUserPassword = async (body, principal) => {
     }
   }
 
-  if (!isAdminRole(principal.role)) {
+  if (changingOwnPassword) {
     const valid = body.oldPassword && account.password && await bcrypt.compare(String(body.oldPassword), account.password);
     if (!valid) throw badRequest("INVALID_PASSWORD", "Current password is incorrect");
   }
   const passwordHash = await bcrypt.hash(newPassword, 12);
-  return withTransaction(async (client) => {
+  const revokedDevices = await withTransaction(async (client) => {
     const execute = (text, values) => client.query(text, values);
     // An admin reset creates a known password, so the owner must replace it.
     // Changing your own password clears the flag.
@@ -503,6 +505,15 @@ export const changeUserPassword = async (body, principal) => {
     }
     return account.type === "room" ? revokeRoomKioskDevices(targetId, principal._id, execute) : [];
   });
+  // A self-change invalidates the old JWT, so hand the caller a replacement.
+  // An admin reset leaves the target user to sign in with the temporary password.
+  if (!changingOwnPassword) return { revokedDevices, token: null, user: null };
+  const updated = await findActivePrincipalById(targetId);
+  return {
+    revokedDevices,
+    token: updated ? signPrincipalToken(updated) : null,
+    user: updated ? publicPrincipal(updated) : null,
+  };
 };
 
 export const deleteUser = async (id, principal, { execute } = {}) => {
@@ -515,6 +526,8 @@ export const deleteUser = async (id, principal, { execute } = {}) => {
   if (await isProtectedAccount(id, execute)) {
     throw new HttpError(403, "PROTECTED_ACCOUNT", "The setup admin cannot be deleted");
   }
+  if (!isAdminRole(principal?.role)) throw forbidden("Only an admin may delete a user");
+  if (String(id) === String(principal?._id)) throw forbidden("You cannot delete your own account");
   const cards = await listUserCards(id, execute);
   const before = await findAccountById(id, "employee", execute);
   const user = await softDeleteAccount(id, "employee", execute);

@@ -37,7 +37,7 @@ const ForcePasswordChange = () => {
       return;
     }
     try {
-      await changePassword({
+      const result = await changePassword({
         oldPassword: current,
         newPassword: next,
         newPasswordConfirmation: confirmation,
@@ -45,7 +45,8 @@ const ForcePasswordChange = () => {
       const persist = Boolean(window.localStorage?.getItem("jwt"));
       const updated = {
         ...session,
-        user: { ...session.user, mustChangePassword: false },
+        ...(result.token ? { token: result.token } : {}),
+        user: result.user || { ...session.user, mustChangePassword: false },
       };
       authenticate(updated, () => window.location.assign("/"), persist);
     } catch (reason) {

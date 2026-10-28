@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Alert, Box, Button, Container, LinearProgress, Paper, Stack, Typography, useMediaQuery } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
@@ -12,7 +12,6 @@ import {
   defaultEventRange,
   DEFAULT_WEEK_START_DAY,
   navigateCalendarDate,
-  uniqueCalendarEvents,
 } from "../domain/calendar.js";
 import { getApiError } from "../domain/api-error.js";
 import { canUseAllFloors, defaultScheduleModeForRole, isAdminRole, roomsForRole } from "../domain/roles.js";
@@ -27,37 +26,6 @@ import EventEditor from "./EventEditor.js";
 import EventDetailsDrawer from "./EventDetailsDrawer.js";
 import MeetingWeek from "./MeetingWeek.js";
 
-// The API answers one room per query, so the floor schedule is assembled from
-// one query per room on that floor. The server still applies its privacy
-// projection, which means a colleague's meeting arrives as a busy block.
-const RoomEventsLoader = ({ roomEmail, range, refreshToken, onResult }) => {
-  const query = useGetEventsQuery(calendarEventFilters({ roomEmail, range }));
-  const refetchRoomEvents = query.refetch;
-  const roomEvents = query.data;
-  const roomFetching = query.isFetching;
-  const roomFailed = query.isError;
-  const handledRefreshToken = useRef(refreshToken);
-
-  useEffect(() => {
-    onResult(roomEmail, {
-      rangeKey: `${range.start}-${range.end}`,
-      events: Array.isArray(roomEvents) ? roomEvents : [],
-      isFetching: roomFetching,
-      isError: roomFailed,
-    });
-  }, [roomEmail, range.start, range.end, roomEvents, roomFetching, roomFailed, onResult]);
-
-  // The manual refresh button asks every room loader to refetch once; the
-  // mounted loader must not refetch again on its own first render.
-  useEffect(() => {
-    if (refreshToken === handledRefreshToken.current) return;
-    handledRefreshToken.current = refreshToken;
-    refetchRoomEvents();
-  }, [refreshToken, refetchRoomEvents]);
-
-  return null;
-};
-
 const MeetingCalendar = () => {
   const { t } = useTranslation(["calendar", "common"]);
   const session = isAuthenticated();
@@ -67,8 +35,6 @@ const MeetingCalendar = () => {
   const [calendarView, setCalendarView] = useState(isNarrow ? "agenda" : "timeGridWeek");
   const [scheduleMode, setScheduleMode] = useState(defaultScheduleModeForRole(session?.user?.role));
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [floorResults, setFloorResults] = useState({});
-  const [refreshToken, setRefreshToken] = useState(0);
   const [editor, setEditor] = useState({ open: false, event: null, start: null, end: null });
   const [details, setDetails] = useState(null);
 
@@ -90,7 +56,6 @@ const MeetingCalendar = () => {
     () => calendarRangeForView(selectedDate, calendarView, weekStartsOn),
     [selectedDate, calendarView, weekStartsOn]
   );
-  const rangeKey = `${range.start}-${range.end}`;
   const singleQuery = useGetEventsQuery(
     calendarEventFilters({ email: session.user.email, roomEmail: activeRoom?.email, range, all: scheduleMode === "all" }),
     { skip: floorMode || (scheduleMode === "room" && !activeRoom) }
@@ -98,6 +63,10 @@ const MeetingCalendar = () => {
   const roomQuery = useGetRoomsQuery();
   const roomStatusQuery = useGetRoomStatusQuery(undefined, { pollingInterval: 30_000 });
   const isAdmin = isAdminRole(session?.user?.role);
+  const floorQuery = useGetEventsQuery(
+    { start: range.start, end: range.end, ...(isAdmin ? { all: true } : {}) },
+    { skip: !floorMode }
+  );
   const { can: canMenu } = useMenuAccess();
   const canListAllUsers = canMenu("users");
   // Only a Users-menu role loads the full employee directory; everyone else
@@ -119,28 +88,9 @@ const MeetingCalendar = () => {
     return (Array.isArray(roomStatusQuery.data) ? roomStatusQuery.data : []).filter((room) => allowed.has(room.id));
   }, [bookableRooms, roomStatusQuery.data]);
 
-  const currentFloorResult = useCallback((room) => {
-    const result = floorResults[room.email];
-    return result?.rangeKey === rangeKey ? result : undefined;
-  }, [floorResults, rangeKey]);
-
-  const recordFloorResult = useCallback((roomEmail, result) => {
-    setFloorResults((current) => (current[roomEmail] === result ? current : { ...current, [roomEmail]: result }));
-  }, []);
-
-  const floorEvents = useMemo(
-    () => uniqueCalendarEvents(bookableRooms.map((room) => currentFloorResult(room)?.events)),
-    [bookableRooms, currentFloorResult]
-  );
-  // Before a room reports its first answer there is no result yet, so the
-  // aggregated view still counts as loading.
-  const floorFetching = floorMode && bookableRooms.some((room) => {
-    const result = currentFloorResult(room);
-    return !result || result.isFetching;
-  });
-  const floorFailed = floorMode
-    && bookableRooms.length > 0
-    && bookableRooms.every((room) => currentFloorResult(room)?.isError);
+  const floorEvents = Array.isArray(floorQuery.data) ? floorQuery.data : [];
+  const floorFetching = floorMode && floorQuery.isFetching;
+  const floorFailed = floorMode && floorQuery.isError;
 
   const events = floorMode ? floorEvents : (Array.isArray(singleQuery.data) ? singleQuery.data : []);
   const hasEvents = events.length > 0;
@@ -150,12 +100,17 @@ const MeetingCalendar = () => {
   const eventRefreshing = eventFetching && hasEvents;
   const canLoadEvents = floorMode || !(scheduleMode === "room" && !activeRoom);
 
+  const visibleRoomIds = useMemo(
+    () => (floorMode || scheduleMode === "all")
+      ? bookableRooms.map((room) => room._id).filter(Boolean)
+      : (activeRoom?._id ? [activeRoom._id] : []),
+    [floorMode, scheduleMode, bookableRooms, activeRoom?._id]
+  );
+
   useEffect(() => {
-    const roomId = activeRoom?._id;
-    if (!roomId) return undefined;
-    dispatch(wsJoinRoom(roomId));
-    return () => { dispatch(wsLeaveRoom(roomId)); };
-  }, [dispatch, activeRoom?._id]);
+    visibleRoomIds.forEach((roomId) => dispatch(wsJoinRoom(roomId)));
+    return () => visibleRoomIds.forEach((roomId) => dispatch(wsLeaveRoom(roomId)));
+  }, [dispatch, visibleRoomIds]);
 
   const openNewEvent = (start, end) => setEditor({ open: true, event: null, start, end });
   const addEvent = () => {
@@ -181,7 +136,7 @@ const MeetingCalendar = () => {
 
   const refreshEvents = () => {
     if (floorMode) {
-      setRefreshToken((current) => current + 1);
+      floorQuery.refetch();
       return;
     }
     singleQuery.refetch();
@@ -227,21 +182,10 @@ const MeetingCalendar = () => {
           {userQuery.isError ? (
             <ErrorState message={getApiError(userQuery.error, t("calendar.usersLoadError"))} busy={userQuery.isFetching} onAction={() => userQuery.refetch()} />
           ) : null}
-          {floorMode
-            ? bookableRooms.map((room) => (
-              <RoomEventsLoader
-                key={room.email}
-                roomEmail={room.email}
-                range={range}
-                refreshToken={refreshToken}
-                onResult={recordFloorResult}
-              />
-            ))
-            : null}
           {eventInitialLoading ? <LoadingState label={t("calendar.loading")} /> : null}
           {eventError ? (
             <ErrorState
-              message={getApiError(floorMode ? undefined : singleQuery.error, t("calendar.loadError"))}
+              message={getApiError(floorMode ? floorQuery.error : singleQuery.error, t("calendar.loadError"))}
               busy={eventFetching}
               onAction={refreshEvents}
             />
