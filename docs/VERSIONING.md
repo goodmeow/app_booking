@@ -19,9 +19,9 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 - CMS + API: **Ver 3 Rev 13**, `package.json` `3.12.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.4.3 / versionCode 24`, build tag
-  `1.4.3-24-c131edb`. Footer kios menampilkan versi APK + **versi CMS**
-  (`v1.4.3 (24) · CMS 3.12.0`). Build membawa pill `TERSEDIA` 44 px, copy
+- APK kiosk: `versionName 1.4.4 / versionCode 25`, build tag
+  `1.4.4-25-04c7d80`. Footer kios menampilkan versi APK + **versi CMS**
+  (`v1.4.4 (25) · CMS 3.12.0`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
@@ -32,7 +32,9 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   memakai flag `can_mutate` dari server agar tombol Edit/Batalkan konsisten
   dengan izin backend. Menu tablet (ketuk jam lima kali) punya tombol
   **Cek update**; bila manifest lebih baru, tombol berubah menjadi kuning
-  **Perbarui**.
+  **Perbarui**. Di sampingnya ada tombol **Tentang** yang membuka versi
+  aplikasi, versi CMS, dan lisensi pustaka APK. Di sampingnya ada tombol **Tentang** yang membuka versi
+  aplikasi, versi CMS, dan lisensi pustaka APK.
 - Ver 3 Rev 13 mencakup matrix menu per role, `super_admin` dari akun setup,
   multi-lantai (`tbl_users.floors`), akses resepsionis per lantai, audit log,
   dan pengerasan security: rate-limit proxy, reset sandi, pairing kiosk,
@@ -42,9 +44,9 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   **95/95** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
   dan `build:server:check` lulus. Unit izin event **9/9**, kontrak kalender
   **14/14** setelah perubahan `can_mutate`.
-- Distribusi APK, 2026-10-27 (commit `c131edb`): paket
-  `public/apk/kiosk-release.apk` 21.523.929 byte, SHA-256
-  `ada4af2e380eca7c45b6bd8cc75f319d1a9a0f886f5bc8c09c457f65e8d3d1af`,
+- Distribusi APK, 2026-10-28 (commit `04c7d80`): paket
+  `public/apk/kiosk-release.apk` 21.530.390 byte, SHA-256
+  `a0e4b9693fbfd2805700f9075f972fb8682f38398548999624fe7f94ce4a2c8c`,
   plus halaman unduh `public/apk/index.html` (`/apk/index.html`).
   Sebelumnya 1.4.2 (23) 21.521.724 byte, 1.4.1 (22) 21.521.483 byte,
   1.4.0 (21) 21.521.436 byte.
@@ -54,9 +56,9 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 ## Riwayat
 
-### Ver 3 Rev 13 - 2026-10-27 (rilis saat ini)
-Matrix menu, super admin, multi-lantai, audit, dan hardening security.
-APK 1.4.3 (24), build tag `1.4.3-24-c131edb`.
+### Ver 3 Rev 13 - 2026-10-28 (rilis saat ini)
+Matrix menu, super admin, multi-lantai, audit, hardening security, dan halaman
+Tentang & Lisensi. APK 1.4.4 (25), build tag `1.4.4-25-04c7d80`.
 
 ### Ver 3 Rev 12 - 2026-10-25 (rilis sebelumnya)
 Branding global (upload icon/logo/favicon/nama/judul tab), kalender 24 jam

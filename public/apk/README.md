@@ -117,6 +117,12 @@ Riwayat isi paket:
   21.523.929 byte, SHA-256
   `ada4af2e380eca7c45b6bd8cc75f319d1a9a0f886f5bc8c09c457f65e8d3d1af`.
 
+- 2026-10-28: naik 1.4.4 (versionCode 25)—build tag
+  `1.4.4-25-04c7d80`. Menambahkan tombol **Tentang** di samping tombol update
+  pada menu tablet, berisi versi aplikasi, versi CMS, dan daftar lisensi
+  pustaka APK. Paket distribusi 21.530.390 byte, SHA-256
+  `a0e4b9693fbfd2805700f9075f972fb8682f38398548999624fe7f94ce4a2c8c`.
+
 ## Manifest update
 
 `latest.json` dibaca kiosk 1.4.0+ setiap 6 jam. Setiap rilis APK, isi:
