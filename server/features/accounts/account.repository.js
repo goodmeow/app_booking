@@ -1,4 +1,5 @@
 import { query } from "../../db/pool.js";
+import { isUuid } from "../../lib/uuid.js";
 
 const safeColumns = `
   u._id, u.name, u.email, u.username, u.role_id, u.employee_id,
@@ -99,15 +100,20 @@ export const listRooms = async ({ building, capacity, floor } = {}, privileged =
   [building || null, capacity || null, floor || null]
 )).rows;
 
-export const findRoomById = async (id, privileged = false) => (await query(
-  `SELECT ${privileged ? managedRoomColumns : publicRoomColumns}
-   FROM tbl_users u
-   WHERE u._id = $1 AND u.type = 'room' AND u.is_deleted IS NOT TRUE
-   LIMIT 1`,
-  [id]
-)).rows[0] || null;
+export const findRoomById = async (id, privileged = false) => {
+  if (!isUuid(id)) return null;
+  return (await query(
+    `SELECT ${privileged ? managedRoomColumns : publicRoomColumns}
+     FROM tbl_users u
+     WHERE u._id = $1 AND u.type = 'room' AND u.is_deleted IS NOT TRUE
+     LIMIT 1`,
+    [id]
+  )).rows[0] || null;
+};
 
-export const findAccountById = async (id, type, execute = query) => (await execute(
+export const findAccountById = async (id, type, execute = query) => {
+  if (!isUuid(id)) return null;
+  return (await execute(
   `SELECT ${safeColumns}, ${masterCardFlag}, ${userCardColumns}
    FROM tbl_users u
    WHERE u._id = $1
@@ -116,6 +122,7 @@ export const findAccountById = async (id, type, execute = query) => (await execu
    LIMIT 1`,
   [id, type || null]
 )).rows[0] || null;
+};
 
 export const findRoleNameById = async (roleId, execute = query) => (await execute(
   `SELECT lower(role_name) AS role_name
@@ -146,15 +153,18 @@ export const findEmployeeByEmployeeId = async (employeeId, execute = query) => (
   [employeeId]
 )).rows[0] || null;
 
-export const findAccountWithPassword = async (id) => (await query(
-  `SELECT u._id, u.name, u.password, u.type, u.is_deleted,
-          lower(r.role_name) AS role
-   FROM tbl_users u
-   LEFT JOIN tbl_role r ON r._id = u.role_id
-   WHERE u._id = $1
-   LIMIT 1`,
-  [id]
-)).rows[0] || null;
+export const findAccountWithPassword = async (id) => {
+  if (!isUuid(id)) return null;
+  return (await query(
+    `SELECT u._id, u.name, u.password, u.type, u.is_deleted,
+            lower(r.role_name) AS role
+     FROM tbl_users u
+     LEFT JOIN tbl_role r ON r._id = u.role_id
+     WHERE u._id = $1
+     LIMIT 1`,
+    [id]
+  )).rows[0] || null;
+};
 
 export const setMasterCard = async (cardNumber, enabled, principalId, execute = query) => {
   const value = String(cardNumber || "").trim();
@@ -182,7 +192,9 @@ export const insertAccount = async ({ name, email, username, password, roleId, e
   [name, email, username || null, password || null, roleId || null, employeeId || null, type, floor || null, floors || [], capacity || null, building || null, feature || null, Boolean(mustChangePassword)]
 )).rows[0];
 
-export const updateAccount = async (id, values, type, execute = query) => (await execute(
+export const updateAccount = async (id, values, type, execute = query) => {
+  if (!isUuid(id)) return null;
+  return (await execute(
   `UPDATE tbl_users
    SET name = COALESCE($2, name),
        email = COALESCE(lower($3), email),
@@ -215,6 +227,7 @@ export const updateAccount = async (id, values, type, execute = query) => (await
     type,
   ]
 )).rows[0] || null;
+};
 
 export const listUserCards = async (userId, execute = query) => (await execute(
   `SELECT _id AS id, card_number, status, lost_at, created_at
@@ -266,18 +279,22 @@ export const updatePassword = async (id, password, execute = query, mustChangePa
   `UPDATE tbl_users
    SET password = $2,
        must_change_password = $3,
+       token_version = token_version + 1,
        updated_at = now()
    WHERE _id = $1 AND is_deleted IS NOT TRUE
    RETURNING _id`,
   [id, password, mustChangePassword]
 )).rowCount === 1;
 
-export const softDeleteAccount = async (id, type, execute = query) => (await execute(
-  `UPDATE tbl_users SET is_deleted = true, updated_at = now()
-   WHERE _id = $1 AND type = $2 AND is_deleted IS NOT TRUE
-   RETURNING _id, name, email, type`,
-  [id, type]
-)).rows[0] || null;
+export const softDeleteAccount = async (id, type, execute = query) => {
+  if (!isUuid(id)) return null;
+  return (await execute(
+    `UPDATE tbl_users SET is_deleted = true, updated_at = now()
+     WHERE _id = $1 AND type = $2 AND is_deleted IS NOT TRUE
+     RETURNING _id, name, email, type`,
+    [id, type]
+  )).rows[0] || null;
+};
 
 export const listAvailableRooms = async ({ start, end, roomEmail }) => (await query(
   `SELECT u._id, u.name, u.email

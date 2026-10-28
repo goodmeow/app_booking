@@ -14,5 +14,5 @@ router.post("/:userId/cards", menuAccess("users"), addCard);
 router.patch("/:userId/cards/:cardId", menuAccess("users"), updateCardStatus);
 router.get("/:userId", selfOrMenu("users"), read);
 router.put("/:userId", selfOrMenu("users"), update);
-router.delete("/:userId", selfOrMenu("users"), remove);
+router.delete("/:userId", menuAccess("users"), remove);
 export default router;

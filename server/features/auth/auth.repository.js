@@ -12,6 +12,7 @@ const principalSelect = `
     u.floors,
     u.is_deleted,
     u.must_change_password,
+    u.token_version,
     lower(r.role_name) AS role
   FROM tbl_users u
   LEFT JOIN tbl_role r ON r._id = u.role_id AND r.is_deleted IS NOT TRUE
@@ -52,16 +53,6 @@ export const createEmployeeAccount = async ({ name, email, username, password })
   );
   if (!result.rows[0]) throw new Error("Default user role is not configured");
   return result.rows[0];
-};
-
-export const hasMasterCard = async (cardNumber) => {
-  const result = await query(
-    `SELECT 1 FROM tbl_card_masters
-     WHERE lower(card_number) = lower($1)
-     LIMIT 1`,
-    [cardNumber]
-  );
-  return result.rowCount > 0;
 };
 
 export const hasDoorCard = async (cardNumber) => {

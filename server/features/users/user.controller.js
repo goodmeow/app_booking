@@ -56,9 +56,12 @@ export const updateCardStatus = run(async (req, res) => {
 });
 
 export const changePassword = run(async (req, res) => {
-  const revokedDevices = await changeUserPassword(req.body, req.auth);
-  for (const device of revokedDevices) {
+  const result = await changeUserPassword(req.body, req.auth);
+  for (const device of result.revokedDevices) {
     req.io?.of("/").in(`device:${device.device_id}`).disconnectSockets(true);
   }
-  res.json({ message: "Password successfully changed" });
+  res.json({
+    message: "Password successfully changed",
+    ...(result.token ? { token: result.token, user: result.user } : {}),
+  });
 });

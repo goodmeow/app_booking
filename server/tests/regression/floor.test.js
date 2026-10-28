@@ -97,3 +97,13 @@ test("the kiosk rejects an instant booking when the card is not from the room's 
   assert.equal(instant.status, 403);
   assert.equal(instant.body.code, "FLOOR_RESTRICTED");
 });
+
+test("preview also rejects a room outside the caller's floor", async () => {
+  const response = await apiRequest(targets.reconstructed, "/api/events/preview", {
+    method: "POST",
+    headers: bearer("user"),
+    body: meetingBody("room-two@room.com", "2031-06-02T13:00:00.000Z", "2031-06-02T14:00:00.000Z"),
+  });
+  assert.equal(response.status, 403);
+  assert.equal(response.body.code, "FLOOR_RESTRICTED");
+});

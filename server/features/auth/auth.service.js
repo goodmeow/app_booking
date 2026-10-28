@@ -34,7 +34,12 @@ export const authenticateCredentials = async (login, password) => {
 };
 
 export const signPrincipalToken = (principal) => jwt.sign(
-  { email: principal.email, name: principal.name, role: String(principal.role).toUpperCase() },
+  {
+    email: principal.email,
+    name: principal.name,
+    role: String(principal.role).toUpperCase(),
+    ver: Number(principal.token_version || 1),
+  },
   config.jwtSecret,
   {
     algorithm: "HS256",
@@ -58,6 +63,9 @@ export const verifyPrincipalToken = async (token) => {
   }
   const principal = await findActivePrincipalById(claims.sub || claims._id);
   if (!principal || !principal.role) throw new HttpError(401, "INACTIVE_PRINCIPAL", "Authentication required");
+  if (Number(claims.ver || 1) !== Number(principal.token_version || 1)) {
+    throw new HttpError(401, "INVALID_TOKEN", "Authentication required");
+  }
   return publicPrincipal(principal);
 };
 

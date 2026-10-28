@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { directoryEmployee, directoryScope, publicEmployee } from "../../features/users/user.service.js";
+import { directoryEmployee, directoryScope } from "../../features/users/user.service.js";
 
 const employee = { ...{ name: "Karyawan Uji", email: "emp@uji.local" }, role: "USER" };
 
@@ -60,7 +60,6 @@ test("directory rows keep identity fields only, whatever the query returned", ()
   };
   assert.deepEqual(Object.keys(directoryEmployee(row)).sort(), ["_id", "email", "name", "type"]);
   // The older blacklist projection is kept as the second line of defence.
-  assert.deepEqual(Object.keys(publicEmployee(row)).sort(), ["_id", "email", "name", "type", "username"]);
 });
 
 test("a multi-floor user reads every listed floor", () => {

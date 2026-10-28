@@ -12,6 +12,7 @@ import { hasDoorCard } from "../auth/auth.repository.js";
 import { formatLocalTime, zonedParts, zonedPartsToDate } from "../events/event-time.js";
 import { calendarRange, createEvents } from "../events/event.service.js";
 import { getSettings } from "../settings/setting.repository.js";
+import { isUuid } from "../../lib/uuid.js";
 import {
   createKioskDevice,
   extendKioskRoomEvent,
@@ -311,7 +312,7 @@ export const getKioskSchedule = async (query, room) => {
 };
 
 const kioskActionContext = async ({ eventId, cardNumber, room }, execute) => {
-  if (!eventId || !cardNumber) throw badRequest("INVALID_KIOSK_ACTION", "Event and card number are required");
+  if (!isUuid(eventId) || !cardNumber) throw badRequest("INVALID_KIOSK_ACTION", "Event and card number are required");
   const context = await findKioskEventActionContext({ eventId, roomId: room._id, cardNumber }, execute);
   if (!context) throw notFound("Event not found for this room");
   if (!context.card_allowed) throw forbidden("Card is not authorized for this meeting");
@@ -426,7 +427,7 @@ export const extendKioskEvent = async ({ event_id: eventId, minutes, card_number
 };
 
 export const completeKioskEvent = async ({ event_id: eventId }, room) => {
-  if (!eventId) throw badRequest("INVALID_KIOSK_ACTION", "Event is required");
+  if (!isUuid(eventId)) throw badRequest("INVALID_KIOSK_ACTION", "Event is required");
   return withTransaction(async (client) => {
     const execute = (text, values) => client.query(text, values);
     const context = await findKioskRoomEvent({ eventId, roomId: room._id }, execute);

@@ -141,14 +141,6 @@ export const findKioskRoomByLogin = async (login) => (await query(
   [String(login || "").trim()]
 )).rows[0] || null;
 
-export const findActiveKioskRoomById = async (id) => (await query(
-  `SELECT ${kioskRoomColumns}
-   FROM tbl_users u
-   WHERE u._id = $1 AND u.type = 'room' AND u.is_deleted IS NOT TRUE
-   LIMIT 1`,
-  [id]
-)).rows[0] || null;
-
 export const listKioskScheduleRows = async ({ roomId, rangeStart, rangeEnd }) => (await query(
   `SELECT
      e._id,

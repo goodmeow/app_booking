@@ -1,6 +1,5 @@
 import React from "react";
 import { Avatar, Box, Button, Divider, Stack, Typography } from "@mui/material";
-import DeleteIconModule from "@mui/icons-material/Delete";
 import EditIconModule from "@mui/icons-material/Edit";
 import LockResetIconModule from "@mui/icons-material/LockReset";
 import PersonIconModule from "@mui/icons-material/Person";
@@ -9,14 +8,13 @@ import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { formatJoinedDate } from "../domain/profile.js";
 import { normalizeLanguage } from "../i18n/languages.js";
 
-const DeleteIcon = resolveMuiIcon(DeleteIconModule);
 const EditIcon = resolveMuiIcon(EditIconModule);
 const LockResetIcon = resolveMuiIcon(LockResetIconModule);
 const PersonIcon = resolveMuiIcon(PersonIconModule);
 
 // Read-only identity card: avatar, name, e-mail, joined date, and the account
 // actions that are only offered to the profile owner.
-const ProfileSummaryCard = ({ user, isOwner, onEdit, onChangePassword, onDelete }) => {
+const ProfileSummaryCard = ({ user, isOwner, onEdit, onChangePassword }) => {
   const { i18n, t } = useTranslation(["auth", "common"]);
   const language = normalizeLanguage(i18n.resolvedLanguage || i18n.language);
 
@@ -40,9 +38,6 @@ const ProfileSummaryCard = ({ user, isOwner, onEdit, onChangePassword, onDelete 
           </Button>
           <Button fullWidth variant="outlined" startIcon={<LockResetIcon />} onClick={onChangePassword}>
             {t("common:actions.changePassword")}
-          </Button>
-          <Button fullWidth color="error" variant="outlined" startIcon={<DeleteIcon />} onClick={onDelete}>
-            {t("common:actions.delete")}
           </Button>
         </Stack>
       ) : null}

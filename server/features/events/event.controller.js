@@ -27,7 +27,7 @@ const run = (handler) => async (req, res, next) => {
 
 export const list = run(async (req, res) => res.json(await listEvents(req.query, req.auth)));
 export const details = run(async (req, res) => res.json(await getEventDetails(req.query.event_id, req.auth)));
-export const preview = run(async (req, res) => res.json(await previewEvents(req.body)));
+export const preview = run(async (req, res) => res.json(await previewEvents(req.body, req.auth)));
 export const create = run(async (req, res) => {
   const result = await createEvents(req.body, req.auth);
   notify(req, await findEventAudience(eventIdsFrom(result)));

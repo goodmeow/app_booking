@@ -250,7 +250,7 @@ generik agar aman bila `APP_TIMEZONE` diganti.
 | HTTP detail event | Hanya Admin/Super Admin, organizer, peserta terdaftar, atau resepsionis yang memegang lantai ruangan | `getEventDetails`, `canView`, `server/features/events/event.service.js` |
 
 Pemilik meeting tetap melihat data lengkap di CMS karena ia organizer; kartu
-dan nomor kartu hanya dikembalikan ke admin (`publicEmployee`, migrasi
+dan nomor kartu hanya dikembalikan ke admin (proyeksi whitelist, migrasi
 hardening 2026-10-23).
 
 ## 6. Dev vs produksi

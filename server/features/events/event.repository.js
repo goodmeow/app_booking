@@ -1,4 +1,5 @@
 import { query, withTransaction } from "../../db/pool.js";
+import { isUuid } from "../../lib/uuid.js";
 
 const eventInstantColumns = `
   e._id,
@@ -173,13 +174,30 @@ export const listEventsForPrincipal = async ({ principalId, role, floors, roomId
              AND personal_detail.attendee_user_id = $1
              AND personal_detail.is_deleted IS NOT TRUE
          )
+         OR (
+           $7::text[] IS NOT NULL
+           AND EXISTS (
+             SELECT 1
+             FROM tbl_event_details floor_detail
+             JOIN tbl_users floor_room ON floor_room._id = floor_detail.room_id
+             WHERE floor_detail.event_id = e._id
+               AND floor_detail.is_deleted IS NOT TRUE
+               AND floor_room.type = 'room'
+               AND (
+                 'all' = ANY($7::text[])
+                 OR lower(btrim(floor_room.floor)) = ANY($7::text[])
+               )
+           )
+         )
        ))
      )
    ORDER BY start_at, e._id`,
   [principalId, role, roomId || null, rangeStart, rangeEnd, allEvents, floors || null]
 )).rows;
 
-export const findEventAccess = async (eventId, principalId) => (await query(
+export const findEventAccess = async (eventId, principalId) => {
+  if (!isUuid(eventId)) return null;
+  return (await query(
   `SELECT
      ${eventInstantColumns},
      EXISTS (
@@ -201,6 +219,7 @@ export const findEventAccess = async (eventId, principalId) => (await query(
    LIMIT 1`,
   [eventId, principalId]
 )).rows[0] || null;
+};
 
 export const listEventParticipants = async (eventId, client = { query }) => (await client.query(
   `SELECT
@@ -218,7 +237,7 @@ export const listEventParticipants = async (eventId, client = { query }) => (awa
 )).rows;
 
 export const findEventAudience = async (eventIds) => {
-  const ids = [...new Set((eventIds || []).filter(Boolean).map(String))];
+  const ids = [...new Set((eventIds || []).filter(isUuid).map(String))];
   if (!ids.length) return [];
   return (await query(
     `SELECT DISTINCT audience.kind, audience.id
@@ -243,7 +262,9 @@ export const findEventAudience = async (eventIds) => {
   )).rows;
 };
 
-export const findMutationAudience = async (eventId, scope = "occurrence") => (await query(
+export const findMutationAudience = async (eventId, scope = "occurrence") => {
+  if (!isUuid(eventId)) return [];
+  return (await query(
   `WITH pivot AS (
      SELECT
        _id,
@@ -280,11 +301,15 @@ export const findMutationAudience = async (eventId, scope = "occurrence") => (aw
    WHERE id IS NOT NULL`,
   [eventId, scope || "occurrence"]
 )).rows;
+};
 
-export const findDetailEventId = async (detailId) => (await query(
-  `SELECT event_id FROM tbl_event_details WHERE _id = $1 LIMIT 1`,
-  [detailId]
-)).rows[0]?.event_id || null;
+export const findDetailEventId = async (detailId) => {
+  if (!isUuid(detailId)) return null;
+  return (await query(
+    `SELECT event_id FROM tbl_event_details WHERE _id = $1 LIMIT 1`,
+    [detailId]
+  )).rows[0]?.event_id || null;
+};
 
 export const findRoomConflicts = async (roomIds, occurrences) => {
   if (!roomIds.length || !occurrences.length) return [];
@@ -379,15 +404,20 @@ export const deleteParticipantById = async (client, detailId) => (await client.q
   [detailId]
 )).rows[0] || null;
 
-export const findParticipantEvent = async (detailId) => (await query(
-  `SELECT e._id, e.organizer_id, e.booked_by
-   FROM tbl_event_details d
-   JOIN tbl_events e ON e._id = d.event_id
-   WHERE d._id = $1`,
-  [detailId]
-)).rows[0] || null;
+export const findParticipantEvent = async (detailId) => {
+  if (!isUuid(detailId)) return null;
+  return (await query(
+    `SELECT e._id, e.organizer_id, e.booked_by
+     FROM tbl_event_details d
+     JOIN tbl_events e ON e._id = d.event_id
+     WHERE d._id = $1`,
+    [detailId]
+  )).rows[0] || null;
+};
 
-export const eventCheckInContext = async (eventId, principalId, cardNumber, execute = query) => (await execute(
+export const eventCheckInContext = async (eventId, principalId, cardNumber, execute = query) => {
+  if (!isUuid(eventId)) return null;
+  return (await execute(
   `SELECT
      ${eventInstantColumns},
      s.time_of_event_start_soon AS early_minutes,
@@ -423,6 +453,7 @@ export const eventCheckInContext = async (eventId, principalId, cardNumber, exec
    FOR UPDATE OF e`,
   [eventId, principalId, cardNumber]
 )).rows[0] || null;
+};
 
 export const markCheckedIn = async (eventId, execute = query) => (await execute(
   `UPDATE tbl_events SET checked_in = now(), updated_at = now()
