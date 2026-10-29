@@ -16,7 +16,6 @@ import { authenticate, signin } from "./auth-helper.js";
 import { useGetPublicSettingsQuery } from "../redux/services/settings.js";
 import { useGetBrandingQuery } from "../redux/services/settings.js";
 import { brandAsset } from "../core/brand-assets.js";
-import LanguageSwitcher from "../components/common/LanguageSwitcher.js";
 import { useThemeMode } from "../theme-mode.js";
 
 const HELPDESK_EMAIL = "helpdesk@integrasolution.id";
@@ -64,7 +63,7 @@ const Signin = () => {
   return (
     <div
       style={{
-        minHeight: "100%",
+        flex: 1,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -84,7 +83,6 @@ const Signin = () => {
           marginBottom: 12,
         }}
       >
-        <LanguageSwitcher />
         <Button
           type="text"
           icon={mode === "dark" ? <SunOutlined /> : <MoonOutlined />}

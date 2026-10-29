@@ -89,7 +89,7 @@ const WebChrome = () => {
 
 const WebRouter = () => (
   <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-    <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+    <div style={{ flex: 1, minHeight: 0, overflow: "auto", display: "flex", flexDirection: "column" }}>
       <WebChrome />
       <SetupGate>
         <Switch>

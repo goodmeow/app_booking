@@ -16,7 +16,6 @@ import { buildSetupPayload, validateSetupForm } from "../domain/setup.js";
 import { useSubmitSetupMutation } from "../redux/services/setup.js";
 import { useGetBrandingQuery } from "../redux/services/settings.js";
 import { brandAsset } from "../core/brand-assets.js";
-import LanguageSwitcher from "../components/common/LanguageSwitcher.js";
 import { useThemeMode } from "../theme-mode.js";
 
 const InitialSetup = () => {
@@ -61,7 +60,7 @@ const InitialSetup = () => {
   return (
     <div
       style={{
-        minHeight: "100%",
+        flex: 1,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -81,7 +80,6 @@ const InitialSetup = () => {
           marginBottom: 12,
         }}
       >
-        <LanguageSwitcher />
         <Button
           type="text"
           icon={mode === "dark" ? <SunOutlined /> : <MoonOutlined />}
