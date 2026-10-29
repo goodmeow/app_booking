@@ -64,8 +64,8 @@ const safeDecode = (value) => {
   }
 };
 
-const EditorField = ({ label, help, children }) => (
-  <Form.Item label={label} help={help} style={{ marginBottom: 0 }}>
+const EditorField = ({ label, help, required = false, children }) => (
+  <Form.Item label={label} help={help} required={required} style={{ marginBottom: 0 }}>
     {children}
   </Form.Item>
 );
@@ -453,7 +453,7 @@ const EventEditor = ({
               htmlType="submit"
               form="event-editor-form"
               loading={saving}
-              disabled={floorRoomsEmpty || (editing && (details.isFetching || details.isError))}
+              disabled={!location || floorRoomsEmpty || (editing && (details.isFetching || details.isError))}
             >
               {t("common:actions.save")}
             </Button>
@@ -702,7 +702,7 @@ const EventEditor = ({
                 </EditorField>
               ) : null}
 
-              <EditorField label={t("editor.location")}>
+              <EditorField label={t("editor.location")} required>
                 <Select
                   showSearch
                   allowClear
@@ -725,6 +725,8 @@ const EventEditor = ({
                     );
                   }}
                   disabled={fieldDisabled || floorRoomsEmpty}
+                  aria-required="true"
+                  placeholder={t("editor.location")}
                   style={{ width: "100%" }}
                 />
               </EditorField>
