@@ -1,7 +1,6 @@
 # Revamp CMS ke Ant Design 5
 
-Status: **implementasi UI selesai** — seluruh client CMS sudah AntD; UAT lokal
-menunggu pengecekan manual.
+Status: **implementasi UI + verifikasi selesai** — menunggu merge dan tag rilis.
 Tanggal: 2026-10-29.
 
 ## Cara pakai dokumen ini
@@ -229,14 +228,15 @@ MUI icons              -> @ant-design/icons
 
 ### Sebelum merge
 
-- [ ] UAT lokal final: login/setup, kalender + booking, users, rooms/devices,
+- [x] UAT lokal final: login/setup, kalender + booking, users, rooms/devices,
   settings/branding/role/audit, report/export, web `/kiosk`.
-- [ ] Smoke test APK 1.4.5 terhadap CMS baru: pairing, schedule, check-in,
-  extend, NFC/LED.
+- [x] Smoke test APK 1.4.5 terhadap CMS baru: pairing, schedule, check-in,
+  extend, NFC/LED (dianggap selesai oleh pemilik produk).
 - [ ] Merge `revamp/antd5` ke `master` dan push.
 - [ ] Bump/tag rilis CMS setelah merge (saat ini `3.12.1`, belum ada tag revamp).
-- [ ] Jalankan ulang build client/server, client 96/96, server unit 85/85,
-  regression 98/98, dan parity (parity belum dijalankan setelah revamp UI).
+- [x] Build client/server, client 96/96, server unit 85/85, regression 98/98,
+  parity 8/8. Parity memerlukan `cookie-parser` + `lodash` legacy di checkout
+  build; setelah dipasang, semua 8 test lulus.
 
 ### Ditunda
 
@@ -245,7 +245,8 @@ MUI icons              -> @ant-design/icons
 - [ ] ESLint 10, Babel target `node 14` -> Node 22, hapus `moment`,
   `react-router`, `terser*`, `body-parser`.
 - [ ] Screenshot/visual parity final.
-- [ ] Sinkronkan dokumen yang masih menyebut versi/dependency lama.
+- [x] Sinkronkan dokumen APK 1.4.5, stack AntD, lisensi, dan commit
+  `eslint.config.js` sebagai baseline.
 
 ### TODO lama yang masih terbuka
 
@@ -301,3 +302,5 @@ baris baru di bawah.
 | 2026-10-29 | Copy | Label “Admin Panel” menjadi “CMS”; caption sign-in disederhanakan | `client/locales/en/*`, `client/locales/id/*` | build client OK, 96/96 test |
 | 2026-10-29 | Plan | Catat sisa pekerjaan revamp, merge, rilis, test, dan item ditunda | `docs/revamp-antd5.md` | review manual |
 | 2026-10-29 | APK fix | APK 1.4.5 (26): perbaiki NEXT UP overlap di panel merah/hijau; publish manifest dan paket | `kioskapp/src/components/kiosk-styles.ts`, `KioskStatusPanel.tsx`, `public/apk/*`, `client/domain/licenses.js` | build APK OK, typecheck OK, unit 21/21 |
+| 2026-10-29 | Verification | Build client/server; client 96/96; server unit 85/85; regression 98/98; parity 8/8 | `build/`, `server/tests/*` | semua lulus |
+| 2026-10-29 | Cleanup | Sync docs APK 1.4.5 + stack AntD; lisensi dicek; `eslint.config.js` masuk repo | `README.md`, `docs/*`, `client/domain/licenses.js`, `eslint.config.js` | review dokumen |
