@@ -13,8 +13,7 @@ import { LockOutlined, MailOutlined, MoonOutlined, SunOutlined } from "@ant-desi
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, Link } from "react-router-dom";
 import { authenticate, signin } from "./auth-helper.js";
-import { useGetPublicSettingsQuery } from "../redux/services/settings.js";
-import { useGetBrandingQuery } from "../redux/services/settings.js";
+import { useGetBrandingQuery, useGetPublicSettingsQuery } from "../redux/services/settings.js";
 import { brandAsset } from "../core/brand-assets.js";
 import { useThemeMode } from "../theme-mode.js";
 

@@ -16,20 +16,15 @@ const trustProxy = !env.TRUST_PROXY || env.TRUST_PROXY === "false"
       ? Number(env.TRUST_PROXY)
       : env.TRUST_PROXY;
 const baseUrl = `${env.HTTPS === "true" ? "https" : "http"}://${host}:${clientPort}`;
-const serverBaseUrl = `${env.HTTPS === "true" ? "https" : "http"}://${host}:${serverPort}`;
 const corsOrigins = (env.CORS_ORIGINS || baseUrl || "http://localhost:3000")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
 const config = {
-  isProduction: nodeEnv === "production",
   ssrMode: env.SSR === "true",
   port: clientPort,
   serverPort,
-  base: env.BASE,
-  baseUrl: baseUrl || "http://localhost:3000",
-  serverBaseUrl: serverBaseUrl || "http://localhost:5000",
   isHttps: env.HTTPS === "true",
   jwtSecret: env.JWT_SECRET,
   jwtExpiry: env.JWT_EXPIRY_TOKEN || "1d",

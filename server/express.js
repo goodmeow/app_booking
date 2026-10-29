@@ -1,5 +1,4 @@
 import express from "express";
-import bodyParser from "body-parser";
 import compression from "compression";
 import cors from "cors";
 import helmet from "helmet";
@@ -10,8 +9,8 @@ import { requestTelemetry } from "./middleware/request-telemetry.js";
 const app = express();
 app.set("trust proxy", config.trustProxy);
 
-app.use(bodyParser.json({ limit: "1mb" }));
-app.use(bodyParser.urlencoded({ extended: true, limit: "1mb" }));
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 // A request without a body must reach the controllers as an empty object, not
 // as undefined; otherwise the first property read becomes a 500 instead of a
 // normal validation error.

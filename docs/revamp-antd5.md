@@ -110,10 +110,10 @@ FullCalendar tetap v6, tetapi pindah dari `themeSystem="bootstrap5"` ke
 | Package | Alasan |
 |---|---|
 | `moment` | Tidak ada referensi di client/server |
-| `react-router` | Direct dependency redundant; kode hanya memakai `react-router-dom` |
-| `terser` | Tidak diimpor langsung |
-| `terser-webpack-plugin` | Diimpor di `webpack.config.cjs`, tetapi tidak dipakai (`minimize: false`) |
-| `body-parser` | Redundant; Express 4 punya `express.json()` dan `express.urlencoded()` |
+| `react-router` | Sudah dihapus; kode hanya memakai `react-router-dom` |
+| `terser` | Sudah dihapus; tidak diimpor langsung |
+| `terser-webpack-plugin` | Sudah dihapus; `minimize: false` |
+| `body-parser` | Sudah dihapus; Express 4 memakai `express.json()`/`express.urlencoded()` |
 | `bootstrap` | Hanya dipakai FullCalendar |
 | `@fullcalendar/bootstrap5` | Diganti theme standard |
 
@@ -242,8 +242,7 @@ MUI icons              -> @ant-design/icons
 
 - [ ] Bulk atomic grant/revoke master card — butuh endpoint baru.
 - [ ] Upgrade React Native tetap ditunda; APK saat ini 1.4.5.
-- [ ] ESLint 10, Babel target `node 14` -> Node 22, hapus `moment`,
-  `react-router`, `terser*`, `body-parser`.
+- [ ] ESLint 10, Babel target `node 14` -> Node 22, hapus `moment`.
 - [ ] Screenshot/visual parity final.
 - [x] Sinkronkan dokumen APK 1.4.5, stack AntD, lisensi, dan commit
   `eslint.config.js` sebagai baseline.

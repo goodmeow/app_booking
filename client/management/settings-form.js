@@ -1,5 +1,5 @@
 // The settings row mixes numeric timers with booleans. The form edits them as
-// strings (MUI text fields) and this module converts back to the server shape.
+// strings (Ant Design inputs) and this module converts back to the server shape.
 
 export const SETTINGS_NUMBER_FIELDS = [
   "not_checked_in_time_limit",
