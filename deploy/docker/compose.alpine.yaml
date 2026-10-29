@@ -50,6 +50,7 @@ services:
       KIOSK_JWT_AUDIENCE: 360-scheduler-kiosk
       KIOSK_JWT_EXPIRY: 15m
       KIOSK_REFRESH_DAYS: "30"
+      AUDIT_RETENTION_DAYS: "365"
       HOST: 0.0.0.0
       PORT: "8182"
       SERVER_PORT: "9091"

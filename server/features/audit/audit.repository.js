@@ -30,6 +30,12 @@ export const writeAudit = async ({
   );
 };
 
+export const deleteExpiredAudit = async (retentionDays = 365) => (await query(
+  `DELETE FROM tbl_audit_log
+   WHERE created_at < now() - make_interval(days => $1::int)`,
+  [retentionDays]
+)).rowCount;
+
 export const listAudit = async ({ limit = 100, entityType = null, entityId = null } = {}) => (await query(
   `SELECT _id, actor_id, actor_name, action, entity_type, entity_id,
           old_values, new_values, created_at

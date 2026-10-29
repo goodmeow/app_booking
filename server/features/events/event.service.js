@@ -24,6 +24,7 @@ import {
   finishEventNow,
   insertEvent,
   insertEventParticipant,
+  insertEventParticipants,
   insertSeries,
   listEventParticipants,
   listEventsForPrincipal,
@@ -266,10 +267,7 @@ export const createEvents = async (body, principal) => {
           seriesId: series?._id,
           occurrenceIndex: series ? occurrence.index : null,
         });
-        const participants = [];
-        for (const participant of plan.participants) {
-          participants.push(await insertEventParticipant(client, event._id, participant));
-        }
+        const participants = await insertEventParticipants(client, event._id, plan.participants);
         rows.push({ event, participants });
       }
       return { series, rows };
@@ -506,7 +504,7 @@ export const updateEvents = async (body, principal) => {
           timezone,
           isException: Boolean(target.series_id) && scope !== "series",
         });
-        for (const participant of participants) await insertEventParticipant(client, target._id, participant);
+        await insertEventParticipants(client, target._id, participants);
         updated.push({
           id: event._id,
           title: event.subject,

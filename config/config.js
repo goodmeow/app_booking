@@ -38,6 +38,7 @@ const config = {
   kioskJwtAudience: env.KIOSK_JWT_AUDIENCE || "360-scheduler-kiosk",
   kioskJwtExpiry: env.KIOSK_JWT_EXPIRY || "15m",
   kioskRefreshDays: Number(env.KIOSK_REFRESH_DAYS || 30),
+  auditRetentionDays: Number(env.AUDIT_RETENTION_DAYS || 365),
   corsOrigins,
   trustProxy,
   tlsCertPath: env.TLS_CERT_PATH,
@@ -95,6 +96,9 @@ export const validateRuntimeConfig = () => {
   }
   if (!Number.isInteger(config.kioskRefreshDays) || config.kioskRefreshDays <= 0) {
     throw new Error("KIOSK_REFRESH_DAYS must be a positive integer");
+  }
+  if (!Number.isInteger(config.auditRetentionDays) || config.auditRetentionDays <= 0) {
+    throw new Error("AUDIT_RETENTION_DAYS must be a positive integer");
   }
   return config;
 };
