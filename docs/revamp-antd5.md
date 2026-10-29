@@ -1,6 +1,6 @@
 # Revamp CMS ke Ant Design 5
 
-Status: **rencana, belum dieksekusi**.
+Status: **in progress** — fondasi dan pilot User Management selesai.
 Tanggal: 2026-10-29.
 
 ## Cara pakai dokumen ini
@@ -243,3 +243,6 @@ baris baru di bawah.
 | 2026-10-29 | Plan | Aturan pencatatan perubahan untuk agent | `docs/revamp-antd5.md`, `AGENTS.md` | review manual |
 | 2026-10-29 | Plan | Batas scope: APK stays 1.4.4 (25), tanpa update APK/RN | `docs/revamp-antd5.md` | review manual |
 | 2026-10-29 | Plan | Revamp hanya UI CMS; backend/API/socket/DB/auth/APK tidak berubah | `docs/revamp-antd5.md` | review manual |
+| 2026-10-29 | Fondasi | Tambah AntD 5 + icons; ConfigProvider, theme token, locale; hapus Bootstrap dan theme FullCalendar bootstrap5 | `package.json`, `package-lock.json`, `client/App.js`, `client/theme.js`, `client/entry-client.js`, `client/calendar/MeetingWeek.js` | build client OK |
+| 2026-10-29 | Fondasi | Migrasi komponen umum: FormDialog, ConfirmDialog, PasswordDialog, AsyncState, FeedbackSnackbar | `client/components/common/*` | build client OK |
+| 2026-10-29 | Pilot | Migrasi User Management: table, filter, form, import, cards, password, delete | `client/management/UserManagementSection.js`, `client/management/users/*` | 98/98 test client, build OK, UAT lokal sehat |

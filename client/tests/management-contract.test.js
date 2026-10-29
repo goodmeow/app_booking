@@ -126,12 +126,12 @@ test("user grid and service expose employee ID and card management", () => {
   const section = fs.readFileSync(new URL("../management/UserManagementSection.js", import.meta.url), "utf8");
   const dialog = fs.readFileSync(new URL("../management/users/UserCardsDialog.js", import.meta.url), "utf8");
 
-  assert.match(userColumns, /field: "employee_id"/);
+  assert.match(userColumns, /dataIndex: "employee_id"/);
   assert.ok(
-    userColumns.indexOf('field: "email"') < userColumns.indexOf('field: "employee_id"'),
+    userColumns.indexOf('dataIndex: "email"') < userColumns.indexOf('dataIndex: "employee_id"'),
     "employee ID column follows email"
   );
-  assert.match(userColumns, /field: "employee_id",[\s\S]{0,120}minWidth: 130/);
+  assert.match(userColumns, /dataIndex: "employee_id",[\s\S]{0,120}width: 140/);
 
   assert.match(service, /users\/\$\{userId\}\/cards/);
   assert.match(service, /method: "PATCH"/);
@@ -201,9 +201,9 @@ test("admin shell uses tabs, hides technical ID columns, and merges cards into u
   assert.match(appManagement, /value: "devices"/);
   // Card access is merged into the Users tab (it has the master card flag), not a tab of its own.
   assert.doesNotMatch(appManagement, /value: "cards"/);
-  assert.match(userColumns, /field: "card_number"/);
-  assert.match(userColumns, /field: "is_master_card"/);
-  assert.doesNotMatch(userColumns, /field: "_id"/);
+  assert.match(userColumns, /dataIndex: "card_number"/);
+  assert.match(userColumns, /dataIndex: "is_master_card"/);
+  assert.doesNotMatch(userColumns, /dataIndex: "_id"/);
   assert.match(roomColumns, /field: "name"/);
   assert.doesNotMatch(rooms, /field: "_id"/);
   assert.doesNotMatch(roomColumns, /field: "_id"/);

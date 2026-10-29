@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
-import bootstrap5Plugin from "@fullcalendar/bootstrap5";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -143,11 +142,11 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", weekSta
         <Box sx={{ maxHeight: "calc(100vh - 360px)", minHeight: 320, overflow: "auto", pr: 0.5 }}>
         <FullCalendar
       ref={calendarRef}
-      plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, bootstrap5Plugin]}
+      plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
       locale={calendarLocales[calendarLocale] || calendarLocale}
       // The grid and the event query must agree on the first day of the week.
       firstDay={weekStartsOn}
-      themeSystem="bootstrap5"
+      themeSystem="standard"
       nowIndicator
       headerToolbar={{ left: "title", right: "" }}
       buttonText={{

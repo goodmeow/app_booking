@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, Button, Chip, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Button, Input, Space, Tag, Typography } from "antd";
 import FormDialog from "../../components/common/FormDialog.js";
 import { CARD_ACTIVE_LIMIT } from "./user-cards.js";
 
@@ -32,36 +32,36 @@ const UserCardsDialog = ({
     onClose={onClose}
     onSubmit={onAddCard}
   >
-    <Stack spacing={2} sx={{ mt: 1 }}>
-      <Typography variant="body2" color="text.secondary">
+    <Space direction="vertical" size="middle" style={{ width: "100%", marginTop: 8 }}>
+      <Typography.Text type="secondary">
         {t("users.cardsActiveCount", { count: activeCount, max: CARD_ACTIVE_LIMIT })}
-      </Typography>
-      {formError ? <Alert severity="error">{formError}</Alert> : null}
+      </Typography.Text>
+      {formError ? <Alert type="error" showIcon message={formError} /> : null}
       {cards.length === 0 ? (
-        <Typography color="text.secondary">{t("users.cardNoCards")}</Typography>
+        <Typography.Text type="secondary">{t("users.cardNoCards")}</Typography.Text>
       ) : (
-        <Stack spacing={1}>
+        <Space direction="vertical" size="small" style={{ width: "100%" }}>
           {cards.map((card) => (
-            <Stack
+            <Space
               key={card.id}
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              spacing={1}
-              sx={{ px: 1.5, py: 1, borderRadius: 1, bgcolor: "background.default" }}
+              align="center"
+              style={{
+                width: "100%",
+                justifyContent: "space-between",
+                padding: "8px 12px",
+                borderRadius: 8,
+                background: "#11151B",
+              }}
             >
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="body2">{card.card_number}</Typography>
-                <Chip
-                  size="small"
-                  label={t(card.status === "active" ? "users.cardActive" : "users.cardLost")}
-                  color={card.status === "active" ? "success" : "default"}
-                />
-              </Stack>
+              <Space size={8}>
+                <Typography.Text>{card.card_number}</Typography.Text>
+                <Tag color={card.status === "active" ? "green" : undefined}>
+                  {t(card.status === "active" ? "users.cardActive" : "users.cardLost")}
+                </Tag>
+              </Space>
               {card.status === "active" ? (
                 <Button
                   size="small"
-                  color="warning"
                   disabled={isMarkingLost || isReactivating}
                   aria-label={t("users.cardMarkLostAria", { number: card.card_number })}
                   onClick={() => onMarkLost(card)}
@@ -71,7 +71,7 @@ const UserCardsDialog = ({
               ) : (
                 <Button
                   size="small"
-                  color="success"
+                  type="primary"
                   disabled={isReactivating || isMarkingLost || limitReached}
                   aria-label={t("users.cardReactivateAria", { number: card.card_number })}
                   onClick={() => onReactivate(card)}
@@ -79,20 +79,22 @@ const UserCardsDialog = ({
                   {t("users.cardReactivate")}
                 </Button>
               )}
-            </Stack>
+            </Space>
           ))}
-        </Stack>
+        </Space>
       )}
-      <TextField
-        fullWidth
-        label={t("users.cardNumber")}
-        placeholder={t("users.cardAddPlaceholder")}
-        helperText={limitReached ? t("users.cardLimit") : undefined}
-        disabled={limitReached}
-        value={cardNumber}
-        onChange={(event) => setCardNumber(event.target.value)}
-      />
-    </Stack>
+      <div>
+        <Input
+          placeholder={t("users.cardAddPlaceholder")}
+          disabled={limitReached}
+          value={cardNumber}
+          onChange={(event) => setCardNumber(event.target.value)}
+        />
+        {limitReached ? (
+          <Typography.Text type="secondary">{t("users.cardLimit")}</Typography.Text>
+        ) : null}
+      </div>
+    </Space>
   </FormDialog>
 );
 
