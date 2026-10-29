@@ -141,7 +141,7 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", weekSta
       {view === "agenda" ? (
         <MeetingAgenda events={events} locale={browserLocale} onEventClick={onEventClick} />
       ) : (
-        <div style={{ maxHeight: "calc(100vh - 360px)", minHeight: 320, overflow: "auto", paddingRight: 4 }}>
+        <div style={{ height: "calc(100vh - 360px)", minHeight: 320 }}>
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -175,11 +175,12 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", weekSta
             slotMaxTime="24:00:00"
             slotDuration="00:30:00"
             slotLabelInterval="01:00"
-            scrollTime={`${String(Math.max(0, Math.min(23, new Date().getHours() - 1))).padStart(2, "0")}:00:00`}
-            scrollTimeReset={false}
+            scrollTime={`${String(Math.max(0, Math.min(23, new Date().getHours()))).padStart(2, "0")}:00:00`}
+            scrollTimeReset
             allDaySlot={false}
-            expandRows
-            height={1440}
+            height="100%"
+            contentHeight={1440}
+            stickyHeaderDates
             eventMinHeight={36}
             slotEventOverlap={false}
             displayEventTime={false}
