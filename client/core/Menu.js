@@ -19,7 +19,7 @@ const BrandLockup = () => {
   return (
     <Link
       to="/"
-      style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", color: "inherit" }}
+      style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", color: "inherit", flexShrink: 0 }}
     >
       <img
         src={brandAsset(branding, "mark")}
@@ -71,7 +71,7 @@ const Menu = () => {
   const history = useHistory();
   const location = useLocation();
   const screens = Grid.useBreakpoint();
-  const mobile = !screens.md;
+  const mobile = !screens.lg;
   const { mode: themeMode, toggle: toggleTheme } = useThemeMode();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const session = isAuthenticated();
@@ -119,7 +119,7 @@ const Menu = () => {
           zIndex: 1000,
           display: "flex",
           alignItems: "center",
-          gap: 16,
+          gap: 24,
           padding: "0 24px",
           background: "#0C1014",
           borderBottom: "1px solid rgba(235,244,240,0.10)",
@@ -128,12 +128,12 @@ const Menu = () => {
         <BrandLockup />
         {!mobile ? (
           <>
-            <Space size={4} style={{ flex: 1, marginLeft: 16 }}>
+            <Space size={4} style={{ flex: 1, minWidth: 0, marginLeft: 8, overflow: "hidden" }}>
               {primaryItems.map(({ to, label }) => (
                 <MenuLink key={to} to={to}>{label}</MenuLink>
               ))}
             </Space>
-            <Space size={4}>
+            <Space size={4} style={{ marginLeft: 16, flexShrink: 0 }}>
               {secondaryItems.map(({ to, label }) => (
                 <MenuLink key={to} to={to}>{label}</MenuLink>
               ))}
@@ -150,7 +150,14 @@ const Menu = () => {
                   <Button
                     type="text"
                     aria-label={t("nav.accountMenu", { name: displayName })}
-                    style={{ color: "#EDF2F6", paddingInline: 8 }}
+                    style={{
+                      color: "#EDF2F6",
+                      height: 40,
+                      marginLeft: 4,
+                      paddingInline: 12,
+                      borderRadius: 999,
+                      background: "rgba(255,255,255,0.06)",
+                    }}
                   >
                     <Space size={8}>
                       <Avatar
@@ -158,7 +165,7 @@ const Menu = () => {
                         icon={<UserOutlined />}
                         style={{ background: "#2FB46A", color: "#0A1F14" }}
                       />
-                      {screens.lg ? (
+                      {screens.xl ? (
                         <span
                           style={{
                             maxWidth: 160,
