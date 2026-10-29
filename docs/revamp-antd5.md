@@ -225,6 +225,35 @@ MUI icons              -> @ant-design/icons
 - Kalender tetap bisa create/edit/cancel booking.
 - APK kiosk tidak berubah.
 
+## Sisa pekerjaan
+
+### Sebelum merge
+
+- [ ] UAT lokal final: login/setup, kalender + booking, users, rooms/devices,
+  settings/branding/role/audit, report/export, web `/kiosk`.
+- [ ] Smoke test APK 1.4.4 terhadap CMS baru: pairing, schedule, check-in,
+  extend, NFC/LED.
+- [ ] Merge `revamp/antd5` ke `master` dan push.
+- [ ] Bump/tag rilis CMS setelah merge (saat ini `3.12.1`, belum ada tag revamp).
+- [ ] Jalankan ulang build client/server, client 96/96, server unit 85/85,
+  regression 98/98, dan parity (parity belum dijalankan setelah revamp UI).
+
+### Ditunda
+
+- [ ] Bulk atomic grant/revoke master card — butuh endpoint baru.
+- [ ] Upgrade React Native / APK — APK tetap 1.4.4.
+- [ ] ESLint 10, Babel target `node 14` -> Node 22, hapus `moment`,
+  `react-router`, `terser*`, `body-parser`.
+- [ ] Screenshot/visual parity final.
+- [ ] Sinkronkan dokumen yang masih menyebut versi/dependency lama.
+
+### TODO lama yang masih terbuka
+
+- [ ] Usability test 5 first-time users.
+- [ ] Tag reconstructed baseline.
+- [ ] Relay fisik, NFC 7-byte, autostart/kiosk lock.
+- [ ] UAT formal, DNS/vhost, go-live produksi.
+
 ## Risiko
 
 - Reset Bootstrap vs AntD.
@@ -268,3 +297,4 @@ baris baru di bawah.
 | 2026-10-29 | Auth layout | Hapus language switcher ganda di halaman auth; form sign-in/setup fill dan center; footer tetap terlihat | `client/auth/Signin.js`, `client/auth/InitialSetup.js`, `client/MainRouter.js` | build client OK, 96/96 test |
 | 2026-10-29 | Layout | Footer selalu terlihat: WebRouter jadi flex column, konten scroll di tengah, footer flex-shrink 0 | `client/MainRouter.js`, `client/core/VersionFooter.js`, `client/auth/*` | build client OK, 96/96 test |
 | 2026-10-29 | Copy | Label “Admin Panel” menjadi “CMS”; caption sign-in disederhanakan | `client/locales/en/*`, `client/locales/id/*` | build client OK, 96/96 test |
+| 2026-10-29 | Plan | Catat sisa pekerjaan revamp, merge, rilis, test, dan item ditunda | `docs/revamp-antd5.md` | review manual |
