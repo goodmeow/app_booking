@@ -55,6 +55,9 @@ export const API_ERROR_KEYS = {
 
 export const getApiError = (error, fallback, translate = i18n.t.bind(i18n)) => {
   const code = error?.data?.code || error?.code;
+  // The server message carries the actual 200/366 limit; the generic
+  // translation does not help the user correct the form.
+  if (code === "RECURRENCE_LIMIT" && error?.data?.error) return error.data.error;
   const translationKey = API_ERROR_KEYS[code];
   if (translationKey) return translate(`common:${translationKey}`);
   if (code) return fallback || translate("common:apiErrors.requestFailed");

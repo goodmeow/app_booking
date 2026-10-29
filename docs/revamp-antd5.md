@@ -311,6 +311,6 @@ baris baru di bawah.
 | 2026-10-29 | Plan | Catat sisa pekerjaan revamp, merge, rilis, test, dan item ditunda | `docs/revamp-antd5.md` | review manual |
 | 2026-10-29 | APK fix | APK 1.4.5 (26): perbaiki NEXT UP overlap di panel merah/hijau; publish manifest dan paket | `kioskapp/src/components/kiosk-styles.ts`, `KioskStatusPanel.tsx`, `public/apk/*`, `client/domain/licenses.js` | build APK OK, typecheck OK, unit 21/21 |
 | 2026-10-29 | Audit fix | Proteksi super admin, validasi ID/payload, floor detail hanya resepsionis, pilih tablet aktif, error auto-release | `server/features/*`, `client/management/rooms/*`, tests | 97/97 client, 85/85 unit, 105/105 regresi, parity 8/8 |
-| 2026-10-29 | Verification | Build client/server; client 97/97; server unit 85/85; regression 105/105; parity 8/8 | `build/`, `server/tests/*` | semua lulus |
+| 2026-10-29 | Verification | Build client/server; client 99/99; server unit 85/85; regression 105/105; parity 8/8 | `build/`, `server/tests/*` | semua lulus |
 | 2026-10-29 | Cleanup | Sync docs APK 1.4.5 + stack AntD; lisensi dicek; `eslint.config.js` masuk repo | `README.md`, `docs/*`, `client/domain/licenses.js`, `eslint.config.js` | review dokumen |
 | 2026-10-29 | Docs sync | Selaraskan distribusi APK di `VERSIONING.md` ke paket 1.4.5 (26) `941a537` dan hapus kalimat **Tentang** ganda | `docs/VERSIONING.md` | `git diff --check` bersih |

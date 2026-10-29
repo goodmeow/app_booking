@@ -39,7 +39,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   dan pengerasan security: rate-limit proxy, reset sandi, pairing kiosk,
   backup retry, auto-release, serta filter status ruangan per floor.
 - Bukti 2026-10-29 di checkout build `/home/goodmeow/build/app_booking`:
-  unit server **85/85**, unit kiosk **21/21**, client **97/97**, regresi
+  unit server **85/85**, unit kiosk **21/21**, client **99/99**, regresi
   **105/105** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
   dan `build:server:check` lulus. Unit izin event **9/9**, kontrak kalender
   **14/14** setelah perubahan `can_mutate`.

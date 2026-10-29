@@ -104,7 +104,9 @@ const waitFor = async (label, probe, timeoutMs = 15_000) => {
   while (Date.now() < deadline) {
     try {
       if (await probe()) return;
-    } catch {}
+    } catch {
+      // The probe may fail until the process finishes starting.
+    }
     await new Promise((resolve) => setTimeout(resolve, 150));
   }
   throw new Error(`${label} readiness timeout`);
@@ -183,7 +185,11 @@ function signalProcessTree(rootPid, signal) {
   };
   collect(rootPid);
   for (const pid of targets) {
-    try { process.kill(pid, signal); } catch {}
+    try {
+      process.kill(pid, signal);
+    } catch {
+      // A child may already have exited between ps and kill.
+    }
   }
 }
 

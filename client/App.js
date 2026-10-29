@@ -13,10 +13,14 @@ import "antd/dist/reset.css";
 const THEME_STORAGE_KEY = "cms-theme";
 
 const readInitialTheme = () => {
-  if (typeof window === "undefined") return "dark";
-  const saved = window.localStorage?.getItem(THEME_STORAGE_KEY);
-  if (saved === "light" || saved === "dark") return saved;
-  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  try {
+    if (typeof window === "undefined") return "dark";
+    const saved = window.localStorage?.getItem(THEME_STORAGE_KEY);
+    if (saved === "light" || saved === "dark") return saved;
+    return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  } catch {
+    return "dark";
+  }
 };
 
 const App = () => {
@@ -28,7 +32,11 @@ const App = () => {
 
   useEffect(() => {
     document.documentElement.dataset.theme = themeMode;
-    window.localStorage?.setItem(THEME_STORAGE_KEY, themeMode);
+    try {
+      window.localStorage?.setItem(THEME_STORAGE_KEY, themeMode);
+    } catch {
+      // Theme preference is optional; blocked storage must not break the UI.
+    }
   }, [themeMode]);
 
   const themeContext = useMemo(() => ({

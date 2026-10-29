@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { signin, signout, signup } from "../auth/auth-helper.js";
+import { clearStoredSession, isAuthenticated, readStoredSession, signin, signout, signup } from "../auth/auth-helper.js";
 import i18n from "../i18n/index.js";
 
 test("auth errors prefer localized stable codes over server text", async () => {
@@ -34,6 +34,30 @@ test("auth errors prefer localized stable codes over server text", async () => {
   } finally {
     await i18n.changeLanguage(originalLanguage);
     globalThis.fetch = originalFetch;
+  }
+});
+
+test("blocked browser storage is treated as no session", () => {
+  const originalWindow = globalThis.window;
+  const originalSessionStorage = globalThis.sessionStorage;
+  const originalLocalStorage = globalThis.localStorage;
+  const blocked = {
+    getItem: () => { throw new Error("blocked"); },
+    setItem: () => { throw new Error("blocked"); },
+    removeItem: () => { throw new Error("blocked"); },
+  };
+
+  globalThis.window = { sessionStorage: blocked, localStorage: blocked };
+  globalThis.sessionStorage = blocked;
+  globalThis.localStorage = blocked;
+  try {
+    assert.equal(readStoredSession(), null);
+    assert.equal(isAuthenticated(), false);
+    assert.doesNotThrow(() => clearStoredSession());
+  } finally {
+    globalThis.window = originalWindow;
+    globalThis.sessionStorage = originalSessionStorage;
+    globalThis.localStorage = originalLocalStorage;
   }
 });
 

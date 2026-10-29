@@ -11,6 +11,8 @@ const XLSX_EXTENSION = /(?:\.xlsx)+$/i;
 
 export const sanitizeWorksheetName = (value) => {
   const name = String(value)
+    // The control-character range is intentional: worksheet names reject them.
+    // eslint-disable-next-line no-control-regex, no-useless-escape
     .replace(/[\u0000-\u001f\u007f*?:\\/\[\]]/g, "")
     .trim()
     .replace(/^'+|'+$/g, "")
@@ -20,6 +22,8 @@ export const sanitizeWorksheetName = (value) => {
 
 export const sanitizeWorkbookFilename = (value) => {
   const basename = String(value)
+    // The control-character range is intentional: filenames reject them.
+    // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u001f\u007f<>:"/\\|?*]/g, "")
     .trim()
     .replace(XLSX_EXTENSION, "")

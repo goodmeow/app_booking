@@ -8,11 +8,13 @@ const safeColumns = `
 `;
 
 const publicRoomColumns = `
-  u._id, u.name, u.email, u.username, u.type,
+  u._id, u.name, u.email, u.type,
   u.floor, u.capacity, u.building, u.feature
 `;
 
-const managedRoomColumns = `${publicRoomColumns}, u.role_id`;
+// Kiosk login usernames stay in the admin projection only; ordinary users do
+// not need them to choose a room.
+const managedRoomColumns = `${publicRoomColumns}, u.username, u.role_id`;
 
 // Every card of a user, including the lost ones. Cards are a credential, so a
 // query must ask for this column explicitly and the directory projections below

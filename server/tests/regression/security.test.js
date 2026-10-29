@@ -158,7 +158,7 @@ test("room discovery never exposes card or account internals", async () => {
   assert.equal(response.status, 200);
   assert.ok(response.body.length > 0);
   for (const room of response.body) {
-    for (const field of ["card_number", "password", "role_id", "is_deleted", "created_at", "updated_at"]) {
+    for (const field of ["card_number", "password", "username", "role_id", "is_deleted", "created_at", "updated_at"]) {
       assert.equal(Object.hasOwn(room, field), false, field);
     }
   }

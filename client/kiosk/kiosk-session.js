@@ -1,10 +1,20 @@
 const kioskSessionKey = "kiosk_jwt";
 
-const browserStorage = () => typeof window === "undefined" ? null : window.localStorage;
+const browserStorage = () => {
+  try {
+    return typeof window === "undefined" ? null : window.localStorage;
+  } catch {
+    return null;
+  }
+};
 
 export const saveKioskSession = (session, storage = browserStorage()) => {
   if (!storage) return;
-  storage.setItem(kioskSessionKey, JSON.stringify(session));
+  try {
+    storage.setItem(kioskSessionKey, JSON.stringify(session));
+  } catch {
+    // Kiosk can keep the in-memory session for this tab.
+  }
 };
 
 export const readKioskSession = (storage = browserStorage(), now = Date.now()) => {
@@ -18,10 +28,12 @@ export const readKioskSession = (storage = browserStorage(), now = Date.now()) =
     }
     return session;
   } catch {
-    storage.removeItem(kioskSessionKey);
+    try { storage.removeItem(kioskSessionKey); } catch { /* storage unavailable */ }
     return null;
   }
 };
 
-export const clearKioskSession = (storage = browserStorage()) => storage?.removeItem(kioskSessionKey);
+export const clearKioskSession = (storage = browserStorage()) => {
+  try { storage?.removeItem(kioskSessionKey); } catch { /* storage unavailable */ }
+};
 export { kioskSessionKey };

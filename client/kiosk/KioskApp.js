@@ -179,15 +179,12 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
     if (!refreshPromise.current) {
       refreshPromise.current = refreshKioskSession(latestSession.current.refreshToken)
         .then(async (nextSession) => {
-          if (!mounted.current) {
-            try { await deprovisionKiosk(nextSession.token); } catch {}
-            const error = new Error(t("errors.deprovisioned"));
-            error.status = 401;
-            throw error;
-          }
           latestSession.current = nextSession;
           saveKioskSession(nextSession);
-          onSessionUpdate(nextSession);
+          // A refresh can finish while the page is reloading. Keep the new
+          // session; deprovisioning here would revoke the tablet we just
+          // refreshed and force an unnecessary re-pair.
+          if (mounted.current) onSessionUpdate(nextSession);
           return nextSession;
         })
         .finally(() => { refreshPromise.current = null; });
@@ -562,7 +559,9 @@ const KioskApp = ({ forceProvision = false }) => {
       try {
         const refreshed = await refreshKioskSession(target.refreshToken);
         await deprovisionKiosk(refreshed.token);
-      } catch {}
+      } catch {
+        // The device is already unreachable or revoked.
+      }
     }
   }, []);
 

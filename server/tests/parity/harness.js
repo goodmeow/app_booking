@@ -166,7 +166,9 @@ export async function startServer(target) {
     try {
       const response = await fetch(url);
       if (response.status === 200) return child;
-    } catch {}
+    } catch {
+      // The server may still be starting; retry until the deadline.
+    }
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
@@ -196,7 +198,9 @@ export async function apiRequest(target, pathname, options = {}) {
   let body = text;
   try {
     body = text ? JSON.parse(text) : null;
-  } catch {}
+  } catch {
+    // Keep the raw text for a non-JSON error response.
+  }
   return {
     status: response.status,
     body,

@@ -170,6 +170,10 @@ test("normalizes RTK Query and Error messages", () => {
     getApiError({ data: { code: "FORBIDDEN", error: "Forbidden" } }, undefined, translate),
     "Not allowed"
   );
+  assert.equal(
+    getApiError({ data: { code: "RECURRENCE_LIMIT", error: "Recurrence cannot exceed 200 occurrences" } }, undefined, translate),
+    "Recurrence cannot exceed 200 occurrences"
+  );
   assert.equal(getApiError({ data: { error: "Database rejected request" } }), "Database rejected request");
   assert.equal(getApiError(new Error("Network failed")), "Network failed");
   assert.equal(getApiError(null, "Fallback"), "Fallback");
