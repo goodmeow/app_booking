@@ -1,23 +1,73 @@
 import React from "react";
-import { Button, Space, Switch, Tag, Tooltip } from "antd";
+import { Button, Dropdown, Space, Tag, Tooltip, Typography } from "antd";
 import {
   CreditCardOutlined,
   DeleteOutlined,
   EditOutlined,
   KeyOutlined,
+  MoreOutlined,
 } from "@ant-design/icons";
 import { primaryCardNumber } from "./user-cards.js";
 import { roleLabel } from "./user-filters.js";
 
 const textSorter = (left, right) => String(left ?? "").localeCompare(String(right ?? ""));
 
+export const UserActions = ({
+  row,
+  t,
+  openEdit,
+  openCards,
+  openPasswordDialog,
+  openDeleteDialog,
+}) => {
+  const items = [
+    { key: "cards", icon: <CreditCardOutlined />, label: t("users.cardsTooltip") },
+    { key: "password", icon: <KeyOutlined />, label: t("users.passwordTooltip") },
+    ...(row.is_protected ? [] : [
+      { type: "divider" },
+      { key: "delete", danger: true, icon: <DeleteOutlined />, label: t("users.deleteTooltip") },
+    ]),
+  ];
+
+  return (
+    <Space size={2}>
+      <Tooltip title={t("users.editTooltip")}>
+        <Button
+          type="text"
+          size="small"
+          icon={<EditOutlined />}
+          aria-label={t("users.editAria", { name: row.name })}
+          onClick={() => openEdit(row)}
+        />
+      </Tooltip>
+      <Dropdown
+        trigger={["click"]}
+        menu={{
+          items,
+          onClick: ({ key, domEvent }) => {
+            domEvent?.stopPropagation();
+            if (key === "cards") openCards(row);
+            if (key === "password") openPasswordDialog(row);
+            if (key === "delete") openDeleteDialog(row);
+          },
+        }}
+      >
+        <Button
+          type="text"
+          size="small"
+          icon={<MoreOutlined />}
+          aria-label={t("users.moreActions", { name: row.name })}
+        />
+      </Dropdown>
+    </Space>
+  );
+};
+
 // Column definitions for the Users table, kept out of the section component so
 // the page itself stays readable. All behaviour arrives through `handlers`.
 export const buildUserColumns = ({
   t,
   floorLabel,
-  isUpdating,
-  toggleMasterCard,
   openEdit,
   openCards,
   openPasswordDialog,
@@ -27,22 +77,18 @@ export const buildUserColumns = ({
     title: t("common:fields.name"),
     dataIndex: "name",
     key: "name",
-    width: 180,
+    width: 320,
     sorter: (left, right) => textSorter(left.name, right.name),
-  },
-  {
-    title: t("common:fields.email"),
-    dataIndex: "email",
-    key: "email",
-    width: 230,
-    sorter: (left, right) => textSorter(left.email, right.email),
-  },
-  {
-    title: t("users.employeeId"),
-    dataIndex: "employee_id",
-    key: "employee_id",
-    width: 140,
-    render: (value) => value || "",
+    render: (_, row) => (
+      <div>
+        <Typography.Text strong>{row.name}</Typography.Text>
+        <div>
+          <Typography.Text type="secondary">
+            {[row.email, row.employee_id].filter(Boolean).join(" · ")}
+          </Typography.Text>
+        </div>
+      </div>
+    ),
   },
   {
     title: t("common:fields.role"),
@@ -80,78 +126,28 @@ export const buildUserColumns = ({
     width: 170,
     render: (_, row) => {
       const cardNumber = primaryCardNumber(row);
-      return cardNumber ? <span>{cardNumber}</span> : <Tag>{t("users.cardMissing")}</Tag>;
-    },
-  },
-  {
-    title: t("users.masterCard"),
-    dataIndex: "is_master_card",
-    key: "is_master_card",
-    width: 140,
-    render: (_, row) => {
-      const cardNumber = primaryCardNumber(row);
-      const help = cardNumber ? t("users.masterCardHelp") : t("users.masterCardNeedsCard");
+      if (!cardNumber) return <Tag>{t("users.cardMissing")}</Tag>;
       return (
-        <Tooltip title={help}>
-          <span>
-            <Switch
-              size="small"
-              checked={Boolean(row.is_master_card)}
-              disabled={!cardNumber || isUpdating}
-              aria-label={t("users.masterCardAria", { name: row.name })}
-              onChange={(checked) => void toggleMasterCard(row, checked)}
-            />
-          </span>
-        </Tooltip>
+        <Space size={4} wrap>
+          <span>{cardNumber}</span>
+          {row.is_master_card ? <Tag color="gold">{t("users.masterCard")}</Tag> : null}
+        </Space>
       );
     },
   },
   {
     title: t("common:fields.action"),
     key: "actions",
-    width: 170,
+    width: 100,
     render: (_, row) => (
-      <Space size={2}>
-        <Tooltip title={t("users.editTooltip")}>
-          <Button
-            type="text"
-            size="small"
-            icon={<EditOutlined />}
-            aria-label={t("users.editAria", { name: row.name })}
-            onClick={() => openEdit(row)}
-          />
-        </Tooltip>
-        <Tooltip title={t("users.cardsTooltip")}>
-          <Button
-            type="text"
-            size="small"
-            icon={<CreditCardOutlined />}
-            aria-label={t("users.cardsAria", { name: row.name })}
-            onClick={() => openCards(row)}
-          />
-        </Tooltip>
-        <Tooltip title={t("users.passwordTooltip")}>
-          <Button
-            type="text"
-            size="small"
-            icon={<KeyOutlined />}
-            aria-label={t("users.passwordAria", { name: row.name })}
-            onClick={() => openPasswordDialog(row)}
-          />
-        </Tooltip>
-        {row.is_protected ? null : (
-          <Tooltip title={t("users.deleteTooltip")}>
-            <Button
-              type="text"
-              danger
-              size="small"
-              icon={<DeleteOutlined />}
-              aria-label={t("users.deleteAria", { name: row.name })}
-              onClick={() => openDeleteDialog(row)}
-            />
-          </Tooltip>
-        )}
-      </Space>
+      <UserActions
+        row={row}
+        t={t}
+        openEdit={openEdit}
+        openCards={openCards}
+        openPasswordDialog={openPasswordDialog}
+        openDeleteDialog={openDeleteDialog}
+      />
     ),
   },
 ];

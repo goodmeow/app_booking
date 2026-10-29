@@ -126,12 +126,12 @@ test("user grid and service expose employee ID and card management", () => {
   const section = fs.readFileSync(new URL("../management/UserManagementSection.js", import.meta.url), "utf8");
   const dialog = fs.readFileSync(new URL("../management/users/UserCardsDialog.js", import.meta.url), "utf8");
 
-  assert.match(userColumns, /dataIndex: "employee_id"/);
-  assert.ok(
-    userColumns.indexOf('dataIndex: "email"') < userColumns.indexOf('dataIndex: "employee_id"'),
-    "employee ID column follows email"
-  );
-  assert.match(userColumns, /dataIndex: "employee_id",[\s\S]{0,120}width: 140/);
+  // Identity, e-mail, and employee ID share one readable cell instead of
+  // separate technical columns.
+  assert.match(userColumns, /row\.employee_id/);
+  assert.match(userColumns, /row\.email/);
+  assert.doesNotMatch(userColumns, /dataIndex: "employee_id"/);
+  assert.doesNotMatch(userColumns, /dataIndex: "email"/);
 
   assert.match(service, /users\/\$\{userId\}\/cards/);
   assert.match(service, /method: "PATCH"/);
@@ -199,10 +199,11 @@ test("admin shell uses tabs, hides technical ID columns, and merges cards into u
   assert.match(appManagement, /value: "users"/);
   assert.match(appManagement, /value: "rooms"/);
   assert.match(appManagement, /value: "devices"/);
-  // Card access is merged into the Users tab (it has the master card flag), not a tab of its own.
+  // Card access is merged into the Users tab, not a tab of its own. The master
+  // flag lives in the edit/card dialogs, not as a one-click table toggle.
   assert.doesNotMatch(appManagement, /value: "cards"/);
   assert.match(userColumns, /dataIndex: "card_number"/);
-  assert.match(userColumns, /dataIndex: "is_master_card"/);
+  assert.doesNotMatch(userColumns, /dataIndex: "is_master_card"/);
   assert.doesNotMatch(userColumns, /dataIndex: "_id"/);
   assert.match(roomColumns, /dataIndex: "name"/);
   assert.doesNotMatch(rooms, /field: "_id"/);

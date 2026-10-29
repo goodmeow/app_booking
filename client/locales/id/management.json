@@ -171,7 +171,11 @@
     "mustChangePassword": "Wajib ganti kata sandi saat login berikutnya",
     "mustChangePasswordHelp": "Pengguna harus membuat kata sandi baru sebelum memakai CMS.",
     "roleClear": "Hapus filter peran",
-    "protectedRoleHelp": "Akun setup selalu memakai peran Super Admin."
+    "protectedRoleHelp": "Akun setup selalu memakai peran Super Admin.",
+    "summary": "{{count}} pengguna · {{missing}} tanpa lantai",
+    "floorFilter": "Filter lantai",
+    "floorAllFilters": "Semua lantai",
+    "moreActions": "Aksi lainnya"
   },
   "settings": {
     "tab": "Pengaturan",

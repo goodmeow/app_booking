@@ -171,7 +171,11 @@
     "mustChangePassword": "Require password change at next login",
     "mustChangePasswordHelp": "The user must set a new password before using the CMS.",
     "roleClear": "Clear role filter",
-    "protectedRoleHelp": "The setup account keeps the Super Admin role."
+    "protectedRoleHelp": "The setup account keeps the Super Admin role.",
+    "summary": "{{count}} users · {{missing}} without floor",
+    "floorFilter": "Filter floor",
+    "floorAllFilters": "All floors",
+    "moreActions": "More actions"
   },
   "settings": {
     "tab": "Settings",
