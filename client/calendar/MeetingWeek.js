@@ -3,7 +3,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import { Alert, Button, Card, Divider, Space, Typography, theme } from "antd";
+import { Button, Card, Divider, Empty, Space, Tag, Typography } from "antd";
 import enGbLocale from "@fullcalendar/core/locales/en-gb.js";
 import idLocale from "@fullcalendar/core/locales/id.js";
 import { useTranslation } from "react-i18next";
@@ -55,56 +55,98 @@ const CalendarControls = ({ view, onToday, onPrevious, onNext, onViewChange }) =
   );
 };
 
-const MeetingAgenda = ({ events, locale, onEventClick }) => {
+const agendaDayKey = (value) => {
+  const date = new Date(value);
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+};
+
+const agendaDayLabel = (value, locale) => new Intl.DateTimeFormat(locale, {
+  weekday: "long",
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+}).format(new Date(value));
+
+const agendaRangeLabel = (selectedDate, locale) => {
+  const start = new Date(selectedDate || new Date());
+  const end = new Date(selectedDate || new Date());
+  end.setDate(end.getDate() + 6);
+  const formatter = new Intl.DateTimeFormat(locale, { day: "2-digit", month: "short", year: "numeric" });
+  return `${formatter.format(start)} – ${formatter.format(end)}`;
+};
+
+const MeetingAgenda = ({ events, selectedDate, locale, onEventClick }) => {
   const { t } = useTranslation("calendar");
-  const { token } = theme.useToken();
   const sorted = [...events].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-  if (!sorted.length) return <Alert type="info" showIcon message={t("calendar.noMeetings")} />;
+  const groups = [];
+  for (const event of sorted) {
+    const key = agendaDayKey(event.start);
+    const current = groups[groups.length - 1];
+    if (!current || current.key !== key) {
+      groups.push({ key, date: event.start, events: [event] });
+    } else {
+      current.events.push(event);
+    }
+  }
+  const todayKey = agendaDayKey(new Date());
+
   return (
     <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-      {sorted.map((event) => {
-        const busy = isBusyProjection(event);
-        const title = event.title || t("calendar.untitled");
-        const cues = cueLinesFor(event, locale, t);
-        return (
-          <Card
-            key={`${event.id}-${event.start}`}
-            size="small"
-            hoverable={!busy}
-            onClick={busy ? undefined : () => onEventClick?.(event)}
-            style={{
-              cursor: busy ? "default" : "pointer",
-              borderColor: busy ? undefined : token.colorPrimary,
-              opacity: busy ? 0.85 : 1,
-            }}
-          >
-            <Typography.Text type="secondary">
-              {formatMeetingDateCue(event.start, event.end, locale)}
-            </Typography.Text>
-            <Space wrap size="small">
-              <Typography.Text strong style={{ minWidth: 110, display: "inline-block" }}>
-                {busy ? title : formatMeetingTimeRange(event.start, event.end, locale)}
-              </Typography.Text>
-              {!busy ? (
-                <>
-                  <Divider type="vertical" />
-                  <Typography.Text>{title}</Typography.Text>
-                </>
-              ) : null}
-            </Space>
-            {cues.map((cue) => (
-              <Typography.Text key={cue} type="secondary" style={{ display: "block" }}>
-                {cue}
-              </Typography.Text>
-            ))}
-            {event.checked_in ? (
-              <Typography.Text type="success" style={{ display: "block" }}>
-                ✓ {t("calendar.checkedIn")}
-              </Typography.Text>
-            ) : null}
-          </Card>
-        );
-      })}
+      <Typography.Text type="secondary">{agendaRangeLabel(selectedDate, locale)}</Typography.Text>
+      {!groups.length ? (
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("calendar.noMeetings")} />
+      ) : groups.map((group) => (
+        <section key={group.key}>
+          <Space align="center" size={8}>
+            <Typography.Title level={5} style={{ margin: 0 }}>
+              {agendaDayLabel(group.date, locale)}
+            </Typography.Title>
+            {group.key === todayKey ? <Tag color="green">{t("calendar.today")}</Tag> : null}
+          </Space>
+          <Divider style={{ margin: "8px 0 12px" }} />
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            {group.events.map((event) => {
+              const busy = isBusyProjection(event);
+              const title = event.title || t("calendar.untitled");
+              const cues = cueLinesFor(event, locale, t);
+              const multiDay = calendarEventCueFlags(event).multiDay;
+              return (
+                <Card
+                  key={`${event.id}-${event.start}`}
+                  size="small"
+                  hoverable={!busy}
+                  onClick={busy ? undefined : () => onEventClick?.(event)}
+                  style={{ cursor: busy ? "default" : "pointer", opacity: busy ? 0.85 : 1 }}
+                >
+                  {multiDay ? (
+                    <Typography.Text type="secondary" style={{ display: "block", marginBottom: 4 }}>
+                      {formatMeetingDateCue(event.start, event.end, locale)}
+                    </Typography.Text>
+                  ) : null}
+                  <Space wrap size="small" align="baseline">
+                    {!busy ? (
+                      <Typography.Text strong style={{ minWidth: 110, display: "inline-block" }}>
+                        {formatMeetingTimeRange(event.start, event.end, locale)}
+                      </Typography.Text>
+                    ) : null}
+                    <Typography.Text strong={busy}>{title}</Typography.Text>
+                  </Space>
+                  {cues.map((cue) => (
+                    <Typography.Text key={cue} type="secondary" style={{ display: "block" }}>
+                      {cue}
+                    </Typography.Text>
+                  ))}
+                  {event.checked_in ? (
+                    <Typography.Text type="success" style={{ display: "block" }}>
+                      ✓ {t("calendar.checkedIn")}
+                    </Typography.Text>
+                  ) : null}
+                </Card>
+              );
+            })}
+          </Space>
+        </section>
+      ))}
     </Space>
   );
 };
@@ -139,7 +181,7 @@ const MeetingWeek = ({ events = [], selectedDate, view = "timeGridWeek", weekSta
         onViewChange={onViewChange}
       />
       {view === "agenda" ? (
-        <MeetingAgenda events={events} locale={browserLocale} onEventClick={onEventClick} />
+        <MeetingAgenda events={events} selectedDate={selectedDate} locale={browserLocale} onEventClick={onEventClick} />
       ) : (
         <div style={{ height: "calc(100vh - 360px)", minHeight: 320 }}>
           <FullCalendar
