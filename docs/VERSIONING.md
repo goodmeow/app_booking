@@ -40,7 +40,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   backup retry, auto-release, serta filter status ruangan per floor.
 - Bukti 2026-10-29 di checkout build `/home/goodmeow/build/app_booking`:
   unit server **85/85**, unit kiosk **21/21**, client **97/97**, regresi
-  **98/98** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
+  **105/105** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
   dan `build:server:check` lulus. Unit izin event **9/9**, kontrak kalender
   **14/14** setelah perubahan `can_mutate`.
 - Distribusi APK, 2026-10-29 (commit `941a537`): paket
