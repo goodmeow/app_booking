@@ -12,8 +12,8 @@ metrik otomatis.
 | URL UAT Docker | `http://<uat-host>:8082` (LAN langsung, belum lewat domain) |
 | Domain baru | `<uat-domain>` — DNS + vhost nginx **belum aktif** |
 | Database | `360booking` (PostgreSQL di stack Docker UAT) |
-| Commit app | `4b4b117` + `3.12.0` (bump) + `104b4f9` + `d92d8e1` + `05c6020` + `e165ed7` + `bed9c86` + `febd049` + `5ae6b0b` + `dabbfbb` + `8e1854d` + `e2abf77` + `85f57dd` + `2c064dd` |
-| Commit dasar app | `bfbb962` + `db57d7a` + `99d0043` |
+| Commit app | `69fc547` + `3.12.0` (bump) + `ec6baac` + `5509fe8` + `c43be28` + `45785a5` + `60af46e` + `6452b7c` + `4f463fb` + `26691c8` + `1ee10c7` + `3b9f623` + `6cb0704` + `0d17a4f` |
+| Commit dasar app | `9eb8c37` + `37cebaa` + `678ab49` |
 | Commit kiosk | `a6390a2` (APK 1.4.5 build tag `1.4.5-26-a6390a2`) |
 | Commit clean | snapshot `clean` terbaru (sinkron dengan master) |
 | Commit artefak REA | `f266e33` (`app_360booking`) |
@@ -100,12 +100,12 @@ metrik otomatis.
   di tablet → klik relay fisik.
 - [x] Akses per peran: `super_admin` dari `/setup`, matrix menu per peran,
   multi-lantai (`tbl_users.floors`), resepsionis lintas lantai, log audit.
-  Commit `bed9c86` + `e165ed7`.
+  Commit `60af46e` + `45785a5`.
 - [x] Halaman unduh APK `/apk/index.html` + paket `1.4.5` rebuild
-  (build tag `1.4.5-26-a6390a2`). Commit halaman APK `05c6020`; bump `a6390a2`.
+  (build tag `1.4.5-26-a6390a2`). Commit halaman APK `c43be28`; bump `a6390a2`.
 - [x] Update server UAT remote ke CMS/APK current (2026-10-27); health 200,
   APK checksum sama dengan build lokal.
-- [x] Dokumentasi + deck training 22 slide (commit `d92d8e1`); deck disalin
+- [x] Dokumentasi + deck training 22 slide (commit `5509fe8`); deck disalin
   ke Downloads untuk review.
 - [x] Backup + restore test: dump terbaru direstore ke DB disposable;
   users 260, events 114, cards 202, migrations 20; DB uji dihapus.

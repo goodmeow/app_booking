@@ -313,4 +313,4 @@ baris baru di bawah.
 | 2026-10-29 | APK fix | APK 1.4.5 (26): perbaiki NEXT UP overlap di panel merah/hijau; publish manifest dan paket | `kioskapp/src/components/kiosk-styles.ts`, `KioskStatusPanel.tsx`, `public/apk/*`, `client/domain/licenses.js` | build APK OK, typecheck OK, unit 21/21 |
 | 2026-10-29 | Verification | Build client/server; client 97/97; server unit 85/85; regression 98/98; parity 8/8 | `build/`, `server/tests/*` | semua lulus |
 | 2026-10-29 | Cleanup | Sync docs APK 1.4.5 + stack AntD; lisensi dicek; `eslint.config.js` masuk repo | `README.md`, `docs/*`, `client/domain/licenses.js`, `eslint.config.js` | review dokumen |
-| 2026-10-29 | Docs sync | Selaraskan distribusi APK di `VERSIONING.md` ke paket 1.4.5 (26) `d25ab1d` dan hapus kalimat **Tentang** ganda | `docs/VERSIONING.md` | `git diff --check` bersih |
+| 2026-10-29 | Docs sync | Selaraskan distribusi APK di `VERSIONING.md` ke paket 1.4.5 (26) `941a537` dan hapus kalimat **Tentang** ganda | `docs/VERSIONING.md` | `git diff --check` bersih |

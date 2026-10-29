@@ -43,7 +43,7 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   **98/98** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
   dan `build:server:check` lulus. Unit izin event **9/9**, kontrak kalender
   **14/14** setelah perubahan `can_mutate`.
-- Distribusi APK, 2026-10-29 (commit `d25ab1d`): paket
+- Distribusi APK, 2026-10-29 (commit `941a537`): paket
   `public/apk/kiosk-release.apk` **1.4.5 (26)** 21.530.462 byte, SHA-256
   `adb6af93a49f592f4c4767895605248ed963988d2875b0ff44ebe457c1a338d6`,
   plus halaman unduh `public/apk/index.html` (`/apk/index.html`) dan
@@ -87,8 +87,8 @@ tanggal DD-MMM-YYYY, language chip di footer, navbar sticky, dan APK 1.3.7
   menambah `tbl_users.is_protected`: akun admin hasil `/setup` dilindungi,
   `DELETE` mengembalikan `403 PROTECTED_ACCOUNT`, dan CMS menyembunyikan
   tombol Hapus untuk akun itu (UAT: ADMIN-001 terlindungi, delete 403).
-  Commit: server `db57d7a` (impor transaksi + floor) + `bfbb962` (proteksi
-  setup admin + LAST_ADMIN), test `99d0043`, APK `fbd48dc`, docs `af6a88b`.
+  Commit: server `37cebaa` (impor transaksi + floor) + `9eb8c37` (proteksi
+  setup admin + LAST_ADMIN), test `678ab49`, APK `6476efc`, docs `3d40836`.
 - Status UAT Docker, 2026-10-26 (tanpa naik versi): CMS/API di stack Docker
   Compose VM Linux port `8082`; setup admin + impor user bersih; tablet
   dipairing; akses pintu terbukti end-to-end lewat relay CH340. Angka tes
@@ -221,7 +221,7 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
     `/api/kiosk/schedule` mengirim `checkedInAt`;
     `/api/kiosk/context` mengirim `cmsVersion`.
   - Bukti: unit 79/79, client 92/92, regresi 83/83, parity 8/8 (commit
-    `00e39ed`, 2026-10-24); uji tablet +15 prompt kartu dan Finish easter egg.
+    `9d96805`, 2026-10-24); uji tablet +15 prompt kartu dan Finish easter egg.
 - Patch APK `1.3.5` (16): LED menjadi opsional. `getStatus()` melaporkan
   `led`, `nfcHardware`, dan `nfcEnabled`; `setLed` tidak menulis bila path LED
   tidak ada, sehingga tablet tanpa LED tetap berjalan.
