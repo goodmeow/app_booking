@@ -29,6 +29,20 @@ body {
   background: var(--fc-neutral-bg-color);
 }
 
+/* FullCalendar mirrors the body scrollbar next to the sticky header. The
+   header itself never scrolls, so hide that decorative track. */
+.fc .fc-scrollgrid-section-header,
+.fc .fc-scrollgrid-section-header * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.fc .fc-scrollgrid-section-header *::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 .fc .fc-col-header-cell-cushion,
 .fc .fc-daygrid-day-number,
 .fc .fc-timegrid-axis-cushion,
