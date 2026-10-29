@@ -46,7 +46,7 @@ FullCalendar tetap v6, tetapi pindah dari `themeSystem="bootstrap5"` ke
 ### Tetap
 
 - `react` / `react-dom` 17
-- `react-router` 5
+- `react-router-dom` 5 (hapus direct `react-router` yang redundant)
 - `react-redux` / `@reduxjs/toolkit`
 - `i18next` / `react-i18next`
 - `@fullcalendar/*` 6
@@ -80,7 +80,65 @@ FullCalendar tetap v6, tetapi pindah dari `themeSystem="bootstrap5"` ke
 - Audit CSS global lain karena reset AntD bisa mengubah spacing, tombol, dan
   form.
 
+## Cleanup inventory
+
+### Paket redundant atau tidak dipakai
+
+| Package | Alasan |
+|---|---|
+| `moment` | Tidak ada referensi di client/server |
+| `react-router` | Direct dependency redundant; kode hanya memakai `react-router-dom` |
+| `terser` | Tidak diimpor langsung |
+| `terser-webpack-plugin` | Diimpor di `webpack.config.cjs`, tetapi tidak dipakai (`minimize: false`) |
+| `body-parser` | Redundant; Express 4 punya `express.json()` dan `express.urlencoded()` |
+| `bootstrap` | Hanya dipakai FullCalendar |
+| `@fullcalendar/bootstrap5` | Diganti theme standard |
+
+`body-parser` diganti di `server/express.js`:
+
+```js
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+```
+
+### Kode dan test yang obsolete
+
+| File | Tindakan |
+|---|---|
+| `client/theme.js` | Ganti dengan AntD theme token |
+| `client/components/common/resolve-mui-icon.js` | Hapus |
+| `client/tests/resolve-mui-icon.test.js` | Hapus |
+| `client/tests/ui-robustness.test.js` | Hapus atau tulis ulang untuk AntD |
+| `client/components/common/LocalizedDataGrid.js` | Ganti dengan wrapper AntD Table |
+| `client/management/users/user-columns.js` | Ganti definisi kolom AntD Table |
+| `client/management/rooms/room-columns.js` | Ganti definisi kolom AntD Table |
+| `client/domain/licenses.js` | Hapus entri MUI, Emotion, Bootstrap, body-parser; tambah AntD |
+
+### Dokumentasi yang stale
+
+| File | Perubahan |
+|---|---|
+| `README.md` | React 17 + MUI 5 -> React 17 + Ant Design 5 |
+| `docs/architecture.md` | Update tabel stack dan diagram |
+| `docs/CMS.md` | Hapus `LocalizedDataGrid`/`theme.js` MUI |
+| `docs/handover/START-HERE.md` | Update stack dan lokasi theme |
+| `docs/operations-runbook.md` | Update label agen CMS |
+
+`docs/reconstruction/*` dibiarkan sebagai catatan historis.
+
+### Scope kiosk web
+
+`client/kiosk/KioskApp.js` memakai MUI. Kalau tidak ikut dimigrasi:
+
+- MUI dan Emotion tetap tinggal.
+- Bundel membawa MUI + AntD permanen.
+- `bootstrap` tetap bisa dihapus karena hanya dipakai kalender.
+
 ## Deprecated packages
+
+Sumber: `npm ci` bersih di direktori sementara dan `npm ls --all` pada
+lockfile, dicek 2026-10-29. Ini daftar package deprecated dari registry,
+bukan audit vulnerability.
 
 ### CMS/API
 
