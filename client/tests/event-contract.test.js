@@ -8,6 +8,8 @@ import {
   encodeEventDescription,
   isRoomAttendee,
   organizerEmailField,
+  participantEmail,
+  participantRoomId,
   validateEventDraft,
 } from "../domain/events/event-contract.js";
 import { editorFieldDisabled } from "../domain/events/editor-lock.js";
@@ -24,6 +26,16 @@ const validDraft = { subject: "Planning", startDate, endDate, attendees };
 test("recognizes rooms by explicit identity type", () => {
   assert.equal(isRoomAttendee({ attendee_email: "anything@example.test", type: "room" }), true);
   assert.equal(isRoomAttendee({ attendee_email: "meeting@room.com", type: "employee" }), false);
+  assert.equal(isRoomAttendee({ roomId: "room-1" }), true);
+});
+
+test("details participants accept snake_case and camelCase shapes", () => {
+  assert.equal(participantRoomId({ room_id: "room-1" }), "room-1");
+  assert.equal(participantRoomId({ roomId: "room-1" }), "room-1");
+  assert.equal(participantEmail({ attendee_email: "room@example.test" }), "room@example.test");
+  assert.equal(participantEmail({ email: "room@example.test" }), "room@example.test");
+  assert.equal(participantRoomId({}), "");
+  assert.equal(participantEmail({}), "");
 });
 
 test("returns semantic meeting validation keys", () => {

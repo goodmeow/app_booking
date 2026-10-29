@@ -1,5 +1,9 @@
 export const isRoomAttendee = (attendee) =>
-  attendee?.type === "room" || Boolean(attendee?.room_id);
+  attendee?.type === "room" || Boolean(attendee?.room_id || attendee?.roomId);
+
+// Details responses use snake_case; older client objects use camelCase.
+export const participantRoomId = (participant) => participant?.roomId || participant?.room_id || "";
+export const participantEmail = (participant) => participant?.email || participant?.attendee_email || "";
 
 export const encodeEventDescription = (value = "") => encodeURIComponent(value);
 

@@ -3,6 +3,7 @@ import { Alert, Button, Divider, Drawer, Space, Tag, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { calendarLocaleForLanguage } from "../i18n/languages.js";
 import { formatMeetingDateCue, formatMeetingTimeRange } from "../domain/calendar.js";
+import { participantEmail, participantRoomId } from "../domain/events/event-contract.js";
 import { getApiError } from "../domain/api-error.js";
 import { useDeleteEventByIdMutation, useGetEventDetailsQuery } from "../redux/services/events.js";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
@@ -17,14 +18,18 @@ const EventDetailsDrawer = ({ open, event, rooms = [], canMutate = false, onClos
 
   const roomName = useMemo(() => {
     if (!Array.isArray(participants)) return "";
-    const roomParticipant = participants.find((participant) => participant.roomId);
+    const roomParticipant = participants.find((participant) => participantRoomId(participant));
     if (!roomParticipant) return "";
-    const room = rooms.find((item) => item._id === roomParticipant.roomId || item.email === roomParticipant.email);
-    return room?.name || roomParticipant.email || "";
+    const roomId = participantRoomId(roomParticipant);
+    const email = participantEmail(roomParticipant);
+    const room = rooms.find((item) => item._id === roomId || item.email === email);
+    return room?.name || email || "";
   }, [participants, rooms]);
 
   const attendees = useMemo(
-    () => (Array.isArray(participants) ? participants.filter((participant) => !participant.roomId).map((participant) => participant.email) : []),
+    () => (Array.isArray(participants)
+      ? participants.filter((participant) => !participantRoomId(participant)).map(participantEmail)
+      : []),
     [participants]
   );
 
