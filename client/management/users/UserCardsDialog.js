@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, Button, Input, Space, Tag, Typography, theme } from "antd";
+import { Alert, Button, Input, List, Space, Tag, Typography } from "antd";
 import FormDialog from "../../components/common/FormDialog.js";
 import { CARD_ACTIVE_LIMIT } from "./user-cards.js";
 
@@ -20,9 +20,7 @@ const UserCardsDialog = ({
   onMarkLost,
   onReactivate,
   t,
-}) => {
-  const { token } = theme.useToken();
-  return (
+}) => (
   <FormDialog
     open={open}
     title={t("users.cardsTitle", { name: userName })}
@@ -39,30 +37,18 @@ const UserCardsDialog = ({
         {t("users.cardsActiveCount", { count: activeCount, max: CARD_ACTIVE_LIMIT })}
       </Typography.Text>
       {formError ? <Alert type="error" showIcon message={formError} /> : null}
-      {cards.length === 0 ? (
-        <Typography.Text type="secondary">{t("users.cardNoCards")}</Typography.Text>
-      ) : (
-        <Space direction="vertical" size="small" style={{ width: "100%" }}>
-          {cards.map((card) => (
-            <Space
-              key={card.id}
-              align="center"
-              style={{
-                width: "100%",
-                justifyContent: "space-between",
-                padding: "8px 12px",
-                borderRadius: 8,
-                background: token.colorFillQuaternary,
-              }}
-            >
-              <Space size={8}>
-                <Typography.Text>{card.card_number}</Typography.Text>
-                <Tag color={card.status === "active" ? "green" : undefined}>
-                  {t(card.status === "active" ? "users.cardActive" : "users.cardLost")}
-                </Tag>
-              </Space>
-              {card.status === "active" ? (
+
+      <List
+        size="small"
+        bordered
+        dataSource={cards}
+        locale={{ emptyText: t("users.cardNoCards") }}
+        renderItem={(card) => (
+          <List.Item
+            actions={[
+              card.status === "active" ? (
                 <Button
+                  key="lost"
                   size="small"
                   disabled={isMarkingLost || isReactivating}
                   aria-label={t("users.cardMarkLostAria", { number: card.card_number })}
@@ -72,6 +58,7 @@ const UserCardsDialog = ({
                 </Button>
               ) : (
                 <Button
+                  key="active"
                   size="small"
                   type="primary"
                   disabled={isReactivating || isMarkingLost || limitReached}
@@ -80,11 +67,19 @@ const UserCardsDialog = ({
                 >
                   {t("users.cardReactivate")}
                 </Button>
-              )}
+              ),
+            ]}
+          >
+            <Space size={8}>
+              <Typography.Text>{card.card_number}</Typography.Text>
+              <Tag color={card.status === "active" ? "green" : undefined}>
+                {t(card.status === "active" ? "users.cardActive" : "users.cardLost")}
+              </Tag>
             </Space>
-          ))}
-        </Space>
-      )}
+          </List.Item>
+        )}
+      />
+
       <div>
         <Input
           placeholder={t("users.cardAddPlaceholder")}
@@ -98,7 +93,6 @@ const UserCardsDialog = ({
       </div>
     </Space>
   </FormDialog>
-  );
-};
+);
 
 export default UserCardsDialog;
