@@ -253,3 +253,4 @@ baris baru di bawah.
 | 2026-10-29 | Profile/Report/Kiosk | Migrasi profile, room usage report, dan web kiosk | `client/profile/*`, `client/report/*`, `client/kiosk/KioskApp.js` | build client OK |
 | 2026-10-29 | Cleanup | Hapus MUI, Emotion, Bootstrap, LocalizedDataGrid, resolveMuiIcon, test khusus MUI; update lisensi dan docs stack | `package.json`, `package-lock.json`, `client/domain/licenses.js`, docs | 96/96 test client, build client + server OK |
 | 2026-10-29 | UAT lokal | Rebuild image app/web, recreate app/web tanpa menyentuh DB | `deploy/docker/.env.revamp` (lokal, ignored) | app/web/db healthy, HTTP 200 |
+| 2026-10-29 | Theming | Light/dark via AntD algorithm + token; toggle header; ThemeShell menjembatani token ke FullCalendar dan body | `client/theme.js`, `client/theme-mode.js`, `client/core/ThemeShell.js`, `client/core/Menu.js`, `client/theme.css`, locales | build client OK, 96/96 test |

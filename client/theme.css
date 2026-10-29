@@ -1,0 +1,62 @@
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+/* FullCalendar's standard theme reads these CSS variables. They are filled
+   from AntD design tokens by client/core/ThemeShell.js, so the calendar follows
+   the same light/dark surface as the surrounding card. */
+.fc {
+  color: var(--fc-page-text-color);
+}
+
+.fc-theme-standard .fc-scrollgrid,
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: var(--fc-border-color);
+}
+
+.fc .fc-scrollgrid {
+  background: var(--fc-page-bg-color);
+}
+
+.fc .fc-col-header-cell {
+  background: var(--fc-neutral-bg-color);
+}
+
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number,
+.fc .fc-timegrid-axis-cushion,
+.fc .fc-timegrid-slot-label-cushion {
+  color: var(--fc-neutral-text-color);
+}
+
+.fc .fc-toolbar-title {
+  color: var(--fc-neutral-text-color);
+  font-size: 1.1rem;
+}
+
+.fc .fc-button {
+  box-shadow: none;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background: var(--fc-button-active-bg-color);
+  border-color: var(--fc-button-active-border-color);
+  color: #0a1f14;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background: var(--fc-today-bg-color);
+}
+
+.fc .fc-timegrid-now-indicator-line,
+.fc .fc-timegrid-now-indicator-arrow {
+  border-color: var(--fc-now-indicator-color);
+}

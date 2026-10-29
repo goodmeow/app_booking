@@ -1,6 +1,7 @@
 import React from "react";
-import { Button, Drawer, Grid, Layout, Space, Typography } from "antd";
-import { MenuOutlined } from "@ant-design/icons";
+import { Button, Drawer, Grid, Layout, Space, Typography, theme } from "antd";
+import { MenuOutlined, MoonOutlined, SunOutlined } from "@ant-design/icons";
+import { useThemeMode } from "../theme-mode.js";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { isAuthenticated, signout } from "../auth/auth-helper.js";
@@ -13,6 +14,7 @@ const { Header } = Layout;
 
 const BrandLockup = () => {
   const { t } = useTranslation("common");
+  const { token } = theme.useToken();
   const { data: branding } = useGetBrandingQuery();
   return (
     <Link
@@ -39,7 +41,7 @@ const BrandLockup = () => {
             lineHeight: 1,
             letterSpacing: "0.4em",
             textTransform: "uppercase",
-            color: "#2FB46A",
+            color: token.colorPrimary,
           }}
         >
           {branding?.brand_name || t("brand.name")}
@@ -54,7 +56,12 @@ const MenuLink = ({ to, children }) => {
   const active = location.pathname === to;
   return (
     <Link to={to}>
-      <Button type={active ? "primary" : "text"}>{children}</Button>
+      <Button
+        type={active ? "primary" : "text"}
+        style={active ? { color: "#0A1F14" } : { color: "#EDF2F6" }}
+      >
+        {children}
+      </Button>
     </Link>
   );
 };
@@ -65,6 +72,7 @@ const Menu = () => {
   const location = useLocation();
   const screens = Grid.useBreakpoint();
   const mobile = !screens.md;
+  const { mode: themeMode, toggle: toggleTheme } = useThemeMode();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const session = isAuthenticated();
   const { can, canManage } = useMenuAccess();
@@ -117,21 +125,39 @@ const Menu = () => {
                 <MenuLink key={to} to={to}>{label}</MenuLink>
               ))}
               {session ? (
-                <Typography.Text type="secondary" style={{ marginLeft: 8 }}>
+                <Typography.Text style={{ marginLeft: 8, color: "#9FB0BF" }}>
                   {t("nav.welcome", { name: displayName })}
                 </Typography.Text>
               ) : null}
-              {session ? <Button type="text" onClick={handleSignout}>{t("nav.signOut")}</Button> : null}
+              {session ? <Button type="text" style={{ color: "#EDF2F6" }} onClick={handleSignout}>{t("nav.signOut")}</Button> : null}
+              <Button
+                type="text"
+                icon={themeMode === "dark" ? <SunOutlined /> : <MoonOutlined />}
+                style={{ color: "#EDF2F6" }}
+                aria-label={t("nav.toggleTheme")}
+                title={t("nav.toggleTheme")}
+                onClick={toggleTheme}
+              />
             </Space>
           </>
         ) : (
-          <Button
-            type="text"
-            icon={<MenuOutlined />}
-            aria-label={t("nav.openMenu")}
-            onClick={() => setDrawerOpen(true)}
-            style={{ marginLeft: "auto" }}
-          />
+          <>
+            <Button
+              type="text"
+              icon={themeMode === "dark" ? <SunOutlined /> : <MoonOutlined />}
+              style={{ color: "#EDF2F6", marginLeft: "auto" }}
+              aria-label={t("nav.toggleTheme")}
+              title={t("nav.toggleTheme")}
+              onClick={toggleTheme}
+            />
+            <Button
+              type="text"
+              icon={<MenuOutlined />}
+              style={{ color: "#EDF2F6" }}
+              aria-label={t("nav.openMenu")}
+              onClick={() => setDrawerOpen(true)}
+            />
+          </>
         )}
       </Header>
 

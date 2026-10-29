@@ -272,7 +272,8 @@ modal email + sandi ruangan.
 | `components/common/ConfirmDialog.js`, `FormDialog.js`, `PasswordDialog.js` | Dialog standar |
 | `components/common/FeedbackSnackbar.js` | Notifikasi |
 | `components/common/LanguageSwitcher.js` | Ganti bahasa id/en |
-| `theme.js` | Tema AntD (token warna, font Public Sans) |
+| `theme.js` | Tema AntD light/dark (algorithm + token, font Public Sans) |
+| `core/ThemeShell.js` | Menjembatani token AntD ke background body dan variabel FullCalendar |
 
 ## 5. Data & state
 

@@ -1,25 +1,52 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { App as AntApp, ConfigProvider } from "antd";
 import enUS from "antd/locale/en_US";
 import idID from "antd/locale/id_ID";
 import { useTranslation } from "react-i18next";
 import MainRouter from "./MainRouter.js";
-import theme from "./theme.js";
+import ThemeShell from "./core/ThemeShell.js";
+import { createAppTheme } from "./theme.js";
+import { ThemeModeContext } from "./theme-mode.js";
 import DocumentLocale from "./i18n/DocumentLocale.js";
 import "antd/dist/reset.css";
 
+const THEME_STORAGE_KEY = "cms-theme";
+
+const readInitialTheme = () => {
+  if (typeof window === "undefined") return "dark";
+  const saved = window.localStorage?.getItem(THEME_STORAGE_KEY);
+  if (saved === "light" || saved === "dark") return saved;
+  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
+};
+
 const App = () => {
   const { i18n } = useTranslation();
+  const [themeMode, setThemeMode] = useState(readInitialTheme);
   const language = i18n.resolvedLanguage || i18n.language || "";
   const antdLocale = language.startsWith("id") ? idID : enUS;
+  const antdTheme = useMemo(() => createAppTheme(themeMode), [themeMode]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = themeMode;
+    window.localStorage?.setItem(THEME_STORAGE_KEY, themeMode);
+  }, [themeMode]);
+
+  const themeContext = useMemo(() => ({
+    mode: themeMode,
+    toggle: () => setThemeMode((current) => (current === "dark" ? "light" : "dark")),
+  }), [themeMode]);
 
   return (
-    <ConfigProvider theme={theme} locale={antdLocale}>
-      <AntApp>
-        <DocumentLocale />
-        <MainRouter />
-      </AntApp>
-    </ConfigProvider>
+    <ThemeModeContext.Provider value={themeContext}>
+      <ConfigProvider theme={antdTheme} locale={antdLocale}>
+        <AntApp>
+          <ThemeShell>
+            <DocumentLocale />
+            <MainRouter />
+          </ThemeShell>
+        </AntApp>
+      </ConfigProvider>
+    </ThemeModeContext.Provider>
   );
 };
 

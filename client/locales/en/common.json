@@ -65,7 +65,8 @@
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "openMenu": "Open menu",
-    "welcome": "Welcome, {{name}}"
+    "welcome": "Welcome, {{name}}",
+    "toggleTheme": "Toggle light / dark theme"
   },
   "roles": {
     "superAdmin": "Super Admin",

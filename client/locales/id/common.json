@@ -65,7 +65,8 @@
     "signIn": "Masuk",
     "signOut": "Keluar",
     "openMenu": "Buka menu",
-    "welcome": "Selamat datang, {{name}}"
+    "welcome": "Selamat datang, {{name}}",
+    "toggleTheme": "Ganti tema terang / gelap"
   },
   "roles": {
     "superAdmin": "Super Admin",
