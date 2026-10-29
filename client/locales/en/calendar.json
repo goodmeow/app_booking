@@ -159,6 +159,8 @@
     "noAlternatives": "No other rooms are free at this time.",
     "conflictTruncated": "Showing {{shown}} of {{total}} conflicts.",
     "detailBookedBy": "Booked by",
-    "bookedBy": "Booked by {{name}}"
+    "bookedBy": "Booked by {{name}}",
+    "floorShort": "Floor {{floor}}",
+    "floorAllShort": "All floors"
   }
 }

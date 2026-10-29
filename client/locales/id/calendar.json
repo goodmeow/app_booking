@@ -159,6 +159,8 @@
     "noAlternatives": "Tidak ada ruangan lain yang kosong di waktu ini.",
     "conflictTruncated": "Menampilkan {{shown}} dari {{total}} konflik.",
     "detailBookedBy": "Dipesan oleh",
-    "bookedBy": "Dipesan oleh {{name}}"
+    "bookedBy": "Dipesan oleh {{name}}",
+    "floorShort": "Lt {{floor}}",
+    "floorAllShort": "Semua lantai"
   }
 }

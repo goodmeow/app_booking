@@ -155,6 +155,7 @@ export const calendarEventFromApi = (event) => ({
   ...(eventValue(event, "occurrence_index") === undefined ? {} : { occurrence_index: eventValue(event, "occurrence_index") }),
   ...(eventValue(event, "booked_by") === undefined ? {} : { booked_by: eventValue(event, "booked_by") }),
   ...(eventValue(event, "booked_by_name") === undefined ? {} : { booked_by_name: eventValue(event, "booked_by_name") }),
+  ...(eventValue(event, "room_floors") === undefined ? {} : { room_floors: eventValue(event, "room_floors") }),
 });
 
 // A booking created by the front desk belongs to the employee (organizer), but

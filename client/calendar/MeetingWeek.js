@@ -71,6 +71,10 @@ const agendaDayLabel = (value, locale) => new Intl.DateTimeFormat(locale, {
 const agendaDateCue = (start, end, locale) => formatMeetingDateCue(start, end, locale)
   .replace(/-\d{4}/g, "");
 
+const floorTagLabel = (floor, t) => floor === "all"
+  ? t("calendar.floorAllShort")
+  : t("calendar.floorShort", { floor });
+
 const agendaRangeLabel = (selectedDate, locale) => {
   const start = new Date(selectedDate || new Date());
   const end = new Date(selectedDate || new Date());
@@ -135,16 +139,19 @@ const MeetingAgenda = ({ events, selectedDate, locale, onEventClick }) => {
                     ) : null}
                     <Typography.Text strong={busy}>{title}</Typography.Text>
                   </Space>
+                  {(Array.isArray(event.room_floors) && event.room_floors.length) || event.checked_in ? (
+                    <Space wrap size={4} style={{ marginTop: 8 }}>
+                      {[...new Set(event.room_floors || [])].filter(Boolean).map((floor) => (
+                        <Tag key={floor}>{floorTagLabel(floor, t)}</Tag>
+                      ))}
+                      {event.checked_in ? <Tag color="green">✓ {t("calendar.checkedIn")}</Tag> : null}
+                    </Space>
+                  ) : null}
                   {cues.map((cue) => (
-                    <Typography.Text key={cue} type="secondary" style={{ display: "block" }}>
+                    <Typography.Text key={cue} type="secondary" style={{ display: "block", marginTop: 4 }}>
                       {cue}
                     </Typography.Text>
                   ))}
-                  {event.checked_in ? (
-                    <Typography.Text type="success" style={{ display: "block" }}>
-                      ✓ {t("calendar.checkedIn")}
-                    </Typography.Text>
-                  ) : null}
                 </Card>
               );
             })}
