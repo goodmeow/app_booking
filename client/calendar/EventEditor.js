@@ -65,7 +65,16 @@ const safeDecode = (value) => {
 };
 
 const EditorField = ({ label, help, required = false, children }) => (
-  <Form.Item label={label} help={help} required={required} style={{ marginBottom: 0 }}>
+  <Form.Item
+    label={required ? (
+      <span>
+        {label}
+        <span aria-hidden="true" style={{ color: "#ff4d4f", marginLeft: 4 }}>*</span>
+      </span>
+    ) : label}
+    help={help}
+    style={{ marginBottom: 0 }}
+  >
     {children}
   </Form.Item>
 );
