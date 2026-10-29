@@ -1,17 +1,5 @@
 import React from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
+import { Alert, Button, Table, Tag, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { getApiError } from "../domain/api-error.js";
 import { useGetAuditLogQuery } from "../redux/services/audit.js";
@@ -31,61 +19,70 @@ const AuditLogSection = () => {
   const { t, i18n } = useTranslation("management");
   const { data, isLoading, isError, error, refetch } = useGetAuditLogQuery(100);
 
-  if (isLoading) return <Typography>{t("settings.audit.loading")}</Typography>;
+  if (isLoading) return <Typography.Text>{t("settings.audit.loading")}</Typography.Text>;
   if (isError) {
     return (
       <Alert
-        severity="error"
-        action={<Button color="inherit" size="small" onClick={refetch}>{t("common:actions.retry")}</Button>}
-      >
-        {getApiError(error, t("settings.audit.loadError"))}
-      </Alert>
+        type="error"
+        showIcon
+        message={getApiError(error, t("settings.audit.loadError"))}
+        action={<Button size="small" onClick={refetch}>{t("common:actions.retry")}</Button>}
+      />
     );
   }
 
+  const columns = [
+    {
+      title: t("settings.audit.time"),
+      dataIndex: "created_at",
+      key: "created_at",
+      width: 190,
+      render: (value) => new Date(value).toLocaleString(i18n.resolvedLanguage || i18n.language),
+    },
+    {
+      title: t("settings.audit.actor"),
+      dataIndex: "actor_name",
+      key: "actor_name",
+      width: 180,
+      render: (value) => value || "-",
+    },
+    {
+      title: t("settings.audit.action"),
+      dataIndex: "action",
+      key: "action",
+      width: 160,
+      render: (value) => (
+        <Tag color="green">{t(`settings.audit.actions.${value}`, { defaultValue: value })}</Tag>
+      ),
+    },
+    {
+      title: t("settings.audit.details"),
+      key: "details",
+      render: (_, row) => (
+        <Typography.Text style={{ wordBreak: "break-word" }}>{summary(row)}</Typography.Text>
+      ),
+    },
+  ];
+
   return (
-    <Box component="section">
-      <Typography variant="h6" component="h2" gutterBottom>
+    <section>
+      <Typography.Title level={4} style={{ marginTop: 0 }}>
         {t("settings.audit.title")}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        {t("settings.audit.description")}
-      </Typography>
+      </Typography.Title>
+      <Typography.Paragraph type="secondary">{t("settings.audit.description")}</Typography.Paragraph>
       {data?.length ? (
-        <TableContainer sx={{ maxHeight: 420 }}>
-          <Table size="small" stickyHeader aria-label={t("settings.audit.title")}>
-            <TableHead>
-              <TableRow>
-                <TableCell>{t("settings.audit.time")}</TableCell>
-                <TableCell>{t("settings.audit.actor")}</TableCell>
-                <TableCell>{t("settings.audit.action")}</TableCell>
-                <TableCell>{t("settings.audit.details")}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.map((row) => (
-                <TableRow key={row._id} hover>
-                  <TableCell sx={{ whiteSpace: "nowrap" }}>
-                    {new Date(row.created_at).toLocaleString(i18n.resolvedLanguage || i18n.language)}
-                  </TableCell>
-                  <TableCell>{row.actor_name || "-"}</TableCell>
-                  <TableCell>
-                    <Chip size="small" label={t(`settings.audit.actions.${row.action}`, { defaultValue: row.action })} />
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="caption" component="div" sx={{ wordBreak: "break-word" }}>
-                      {summary(row)}
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Table
+          size="small"
+          rowKey="_id"
+          columns={columns}
+          dataSource={data}
+          pagination={false}
+          scroll={{ x: 900, y: 420 }}
+        />
       ) : (
-        <Alert severity="info">{t("settings.audit.empty")}</Alert>
+        <Alert type="info" showIcon message={t("settings.audit.empty")} />
       )}
-    </Box>
+    </section>
   );
 };
 

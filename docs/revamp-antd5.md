@@ -1,6 +1,7 @@
 # Revamp CMS ke Ant Design 5
 
-Status: **in progress** — fondasi dan pilot User Management selesai.
+Status: **implementasi UI selesai** — seluruh client CMS sudah AntD; UAT lokal
+menunggu pengecekan manual.
 Tanggal: 2026-10-29.
 
 ## Cara pakai dokumen ini
@@ -246,3 +247,9 @@ baris baru di bawah.
 | 2026-10-29 | Fondasi | Tambah AntD 5 + icons; ConfigProvider, theme token, locale; hapus Bootstrap dan theme FullCalendar bootstrap5 | `package.json`, `package-lock.json`, `client/App.js`, `client/theme.js`, `client/entry-client.js`, `client/calendar/MeetingWeek.js` | build client OK |
 | 2026-10-29 | Fondasi | Migrasi komponen umum: FormDialog, ConfirmDialog, PasswordDialog, AsyncState, FeedbackSnackbar | `client/components/common/*` | build client OK |
 | 2026-10-29 | Pilot | Migrasi User Management: table, filter, form, import, cards, password, delete | `client/management/UserManagementSection.js`, `client/management/users/*` | 98/98 test client, build OK, UAT lokal sehat |
+| 2026-10-29 | Shell/Auth | Migrasi Menu, footer, 404, error boundary, signup, force password, setup gate, language switcher | `client/core/*`, `client/auth/*`, `client/MainRouter.js`, `client/components/common/*` | build client OK, 98/98 test |
+| 2026-10-29 | Calendar | Migrasi kalender, sidebar, agenda, detail drawer, editor, attendee/on-behalf picker | `client/calendar/*` | build client OK, 98/98 test |
+| 2026-10-29 | Management | Migrasi rooms, settings, branding, role matrix, audit, devices, About | `client/management/*` | build client OK |
+| 2026-10-29 | Profile/Report/Kiosk | Migrasi profile, room usage report, dan web kiosk | `client/profile/*`, `client/report/*`, `client/kiosk/KioskApp.js` | build client OK |
+| 2026-10-29 | Cleanup | Hapus MUI, Emotion, Bootstrap, LocalizedDataGrid, resolveMuiIcon, test khusus MUI; update lisensi dan docs stack | `package.json`, `package-lock.json`, `client/domain/licenses.js`, docs | 96/96 test client, build client + server OK |
+| 2026-10-29 | UAT lokal | Rebuild image app/web, recreate app/web tanpa menyentuh DB | `deploy/docker/.env.revamp` (lokal, ignored) | app/web/db healthy, HTTP 200 |

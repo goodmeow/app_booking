@@ -635,7 +635,7 @@ konfigurasi kiosk; token lama akan ditolak.
 | Area | Pemilik utama | File kunci |
 |---|---|---|
 | Backend API/DB | `server-dev` | `server/features/`, `database/migrations/` |
-| CMS React/MUI | `cms-dev` | `client/` |
+| CMS React/Ant Design | `cms-dev` | `client/` |
 | Tablet kiosk & native | `kiosk-dev` | repo `kioskapp` |
 | Deploy/CI/LAN | `devops-deployer` | `deploy/`, `.github/workflows/` |
 | Verifikasi & bukti uji | `qa-verifier` | `server/tests/`, `client/tests/` |

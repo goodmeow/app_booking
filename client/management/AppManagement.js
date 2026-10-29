@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Container, Paper, Tab, Tabs, Typography } from "@mui/material";
+import { Alert, Card, Tabs, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import RoomManagementSection from "./RoomManagementSection.js";
@@ -7,6 +7,7 @@ import UserManagementSection from "./UserManagementSection.js";
 import KioskDeviceManagementSection from "./KioskDeviceManagementSection.js";
 import SettingsSection from "./SettingsSection.js";
 import AboutSection from "./AboutSection.js";
+import { LoadingState } from "../components/common/AsyncState.js";
 import { useMenuAccess } from "../auth/use-menu-access.js";
 
 const AppManagement = () => {
@@ -31,38 +32,36 @@ const AppManagement = () => {
 
   if (isLoading) {
     return (
-      <Container maxWidth={false} sx={{ py: 4 }}>
-        <Typography>{t("common:states.loading")}</Typography>
-      </Container>
+      <div style={{ padding: 32 }}>
+        <LoadingState label={t("common:states.loading")} />
+      </div>
     );
   }
 
   if (!active) {
     return (
-      <Container maxWidth={false} sx={{ py: 4 }}>
-        <Alert severity="warning">{t("page.noAccess")}</Alert>
-      </Container>
+      <div style={{ padding: 32 }}>
+        <Alert type="warning" showIcon message={t("page.noAccess")} />
+      </div>
     );
   }
 
   return (
-    <Container maxWidth={false} sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>{t("page.title")}</Typography>
-      <Paper sx={{ mb: 2 }}>
+    <div style={{ padding: 32, maxWidth: "100%" }}>
+      <Typography.Title level={3} style={{ marginTop: 0 }}>{t("page.title")}</Typography.Title>
+      <Card size="small" styles={{ body: { padding: 0 } }}>
         <Tabs
-          value={active.value}
-          onChange={(_event, value) => setSection(value)}
-          variant="scrollable"
-          scrollButtons="auto"
-          aria-label={t("page.navigation")}
-        >
-          {sections.map((item) => <Tab key={item.value} value={item.value} label={item.label} />)}
-        </Tabs>
-      </Paper>
-      <Paper sx={{ p: { xs: 1.5, sm: 3 }, overflow: "hidden" }}>
-        {active.content}
-      </Paper>
-    </Container>
+          activeKey={active.value}
+          onChange={setSection}
+          items={sections.map(({ value, label, content }) => ({
+            key: value,
+            label,
+            children: <div style={{ padding: 24 }}>{content}</div>,
+          }))}
+          tabBarStyle={{ padding: "0 16px", margin: 0 }}
+        />
+      </Card>
+    </div>
   );
 };
 

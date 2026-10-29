@@ -18,7 +18,7 @@ versi yang ditampilkan di footer.
 | DB | PostgreSQL 14 (`pg`) | container `360booking-postgres-test` |
 | Realtime | Socket.io 4 | invalidasi data antar klien |
 | Auth | JWT + bcrypt | `server/features/auth/` |
-| Web | React 17 + MUI 5 + Redux Toolkit + Vite | `client/` |
+| Web | React 17 + Ant Design 5 + Redux Toolkit + Vite | `client/` |
 | Font | Inter (self-host) | `public/fonts/Inter-latin.woff2`, `client/fonts.css` |
 
 Menjalankan lokal: `npm run demo` → web `:8081`, API `:9091`, DB `:54320`.
@@ -270,10 +270,9 @@ modal email + sandi ruangan.
 | `core/NotFound.js` | Halaman 404 |
 | `components/common/AsyncState.js` | State loading/error standar |
 | `components/common/ConfirmDialog.js`, `FormDialog.js`, `PasswordDialog.js` | Dialog standar |
-| `components/common/LocalizedDataGrid.js` | Pembungkus DataGrid dengan lokalisasi |
 | `components/common/FeedbackSnackbar.js` | Notifikasi |
 | `components/common/LanguageSwitcher.js` | Ganti bahasa id/en |
-| `theme.js` | Tema MUI (font Inter) |
+| `theme.js` | Tema AntD (token warna, font Public Sans) |
 
 ## 5. Data & state
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Box, Button, Divider, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Button, Divider, Input, Space, Typography, Upload } from "antd";
 import { useTranslation } from "react-i18next";
 import { getApiError } from "../domain/api-error.js";
 import {
@@ -44,7 +44,7 @@ const BrandingSection = () => {
   }, [branding]);
 
   const saveText = async (event) => {
-    event.preventDefault();
+    event?.preventDefault();
     setFeedback(null);
     try {
       await updateBranding(form).unwrap();
@@ -84,75 +84,82 @@ const BrandingSection = () => {
     }
   };
 
-  if (isLoading) return <Typography>{t("branding.loading")}</Typography>;
+  if (isLoading) return <Typography.Text>{t("branding.loading")}</Typography.Text>;
 
   return (
-    <Box sx={{ maxWidth: 760 }}>
-      <Typography variant="h6" component="h2" gutterBottom>{t("branding.title")}</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        {t("branding.description")}
-      </Typography>
+    <div style={{ maxWidth: 760 }}>
+      <Typography.Title level={4} style={{ marginTop: 0 }}>{t("branding.title")}</Typography.Title>
+      <Typography.Paragraph type="secondary">{t("branding.description")}</Typography.Paragraph>
 
-      <Stack spacing={2}>
-        <TextField
-          size="small"
-          label={t("branding.name")}
-          value={form.brand_name}
-          onChange={(event) => setForm((current) => ({ ...current, brand_name: event.target.value }))}
-          inputProps={{ maxLength: 80 }}
-          disabled={saving}
-        />
-        <TextField
-          size="small"
-          label={t("branding.documentTitle")}
-          value={form.document_title}
-          onChange={(event) => setForm((current) => ({ ...current, document_title: event.target.value }))}
-          inputProps={{ maxLength: 120 }}
-          disabled={saving}
-        />
-        <Box>
-          <Button type="button" variant="contained" disabled={saving} onClick={saveText}>{t("branding.save")}</Button>
-        </Box>
-      </Stack>
+      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+        <div>
+          <Typography.Text strong>{t("branding.name")}</Typography.Text>
+          <Input
+            maxLength={80}
+            value={form.brand_name}
+            onChange={(event) => setForm((current) => ({ ...current, brand_name: event.target.value }))}
+            disabled={saving}
+          />
+        </div>
+        <div>
+          <Typography.Text strong>{t("branding.documentTitle")}</Typography.Text>
+          <Input
+            maxLength={120}
+            value={form.document_title}
+            onChange={(event) => setForm((current) => ({ ...current, document_title: event.target.value }))}
+            disabled={saving}
+          />
+        </div>
+        <Button type="primary" onClick={saveText} disabled={saving}>
+          {t("branding.save")}
+        </Button>
+      </Space>
 
-      <Divider sx={{ my: 3 }} />
+      <Divider style={{ margin: "24px 0" }} />
 
-      <Stack spacing={2}>
+      <Space direction="vertical" size="large" style={{ width: "100%" }}>
         {ASSETS.map(({ kind, label, fallback, previewHeight }) => (
-          <Box key={kind}>
-            <Typography variant="subtitle2" gutterBottom>{t(label)}</Typography>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "stretch", sm: "center" }}>
-              <Box
-                component="img"
+          <div key={kind}>
+            <Typography.Text strong>{t(label)}</Typography.Text>
+            <Space wrap size="middle" align="center" style={{ marginTop: 8 }}>
+              <img
                 src={branding?.assets?.[kind] || fallback}
                 alt=""
-                sx={{ height: previewHeight, width: "auto", maxWidth: 240, objectFit: "contain", bgcolor: "background.paper", p: 0.5 }}
+                style={{
+                  height: previewHeight,
+                  width: "auto",
+                  maxWidth: 240,
+                  objectFit: "contain",
+                  background: "#171E26",
+                  padding: 4,
+                }}
               />
-              <Button component="label" variant="outlined" disabled={uploading}>
-                {t("branding.upload")}
-                <input
-                  hidden
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp,image/x-icon"
-                  onChange={(event) => {
-                    upload(kind, event.target.files?.[0]);
-                    event.target.value = "";
-                  }}
-                />
-              </Button>
+              <Upload
+                accept="image/png,image/jpeg,image/webp,image/x-icon"
+                showUploadList={false}
+                disabled={uploading}
+                beforeUpload={(file) => {
+                  void upload(kind, file);
+                  return false;
+                }}
+              >
+                <Button disabled={uploading}>{t("branding.upload")}</Button>
+              </Upload>
               {branding?.assets?.[kind] ? (
-                <Button color="inherit" onClick={() => reset(kind)} disabled={uploading}>{t("branding.reset")}</Button>
+                <Button onClick={() => reset(kind)} disabled={uploading}>{t("branding.reset")}</Button>
               ) : null}
-            </Stack>
-          </Box>
+            </Space>
+          </div>
         ))}
-      </Stack>
-      <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+      </Space>
+      <Typography.Text type="secondary" style={{ display: "block", marginTop: 8 }}>
         {t("branding.help")}
-      </Typography>
+      </Typography.Text>
 
-      {feedback ? <Alert severity={feedback.severity} sx={{ mt: 2 }}>{feedback.message}</Alert> : null}
-    </Box>
+      {feedback ? (
+        <Alert type={feedback.severity} showIcon message={feedback.message} style={{ marginTop: 16 }} />
+      ) : null}
+    </div>
   );
 };
 

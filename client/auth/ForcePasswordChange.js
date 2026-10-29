@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Box, Button, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Button, Card, Input, Space, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { authenticate, isAuthenticated, signout } from "./auth-helper.js";
 import { useChangePasswordMutation } from "../redux/services/users.js";
@@ -57,52 +57,66 @@ const ForcePasswordChange = () => {
   const logout = () => signout(() => window.location.assign("/signin"));
 
   return (
-    <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", bgcolor: "background.default", p: 2 }}>
-      <Paper component="form" onSubmit={submit} sx={{ width: "100%", maxWidth: 460, p: { xs: 3, sm: 4 } }}>
-        <Box component="img" src={brandAsset(branding, "mark")} alt={branding?.brand_name || t("common:brand.name")} sx={{ display: "block", height: 56, mx: "auto", mb: 2 }} />
-        <Typography variant="h5" component="h1" align="center" gutterBottom>
+    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 16 }}>
+      <Card style={{ width: "100%", maxWidth: 460 }}>
+        <img
+          src={brandAsset(branding, "mark")}
+          alt={branding?.brand_name || t("common:brand.name")}
+          style={{ display: "block", height: 56, margin: "0 auto 16px" }}
+        />
+        <Typography.Title level={4} style={{ textAlign: "center", marginTop: 0 }}>
           {t("auth:forcePassword.title")}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: "center" }}>
+        </Typography.Title>
+        <Typography.Paragraph type="secondary" style={{ textAlign: "center" }}>
           {t("auth:forcePassword.intro")}
-        </Typography>
-        {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
-        <Stack spacing={2}>
-          <TextField
-            type="password"
-            label={t("auth:forcePassword.current")}
-            autoComplete="current-password"
-            value={current}
-            onChange={(event) => setCurrent(event.target.value)}
-            required
-            autoFocus
-          />
-          <TextField
-            type="password"
-            label={t("auth:forcePassword.new")}
-            autoComplete="new-password"
-            helperText={t("auth:forcePassword.rule")}
-            value={next}
-            onChange={(event) => setNext(event.target.value)}
-            required
-          />
-          <TextField
-            type="password"
-            label={t("auth:forcePassword.confirm")}
-            autoComplete="new-password"
-            value={confirmation}
-            onChange={(event) => setConfirmation(event.target.value)}
-            required
-          />
-          <Button type="submit" variant="contained" size="large" disabled={isLoading}>
-            {isLoading ? t("common:states.loading") : t("auth:forcePassword.submit")}
-          </Button>
-          <Button type="button" color="inherit" onClick={logout} disabled={isLoading}>
-            {t("auth:forcePassword.logout")}
-          </Button>
-        </Stack>
-      </Paper>
-    </Box>
+        </Typography.Paragraph>
+
+        <form onSubmit={submit}>
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            {error ? <Alert type="error" showIcon message={error} /> : null}
+
+            <div>
+              <Typography.Text strong>{t("auth:forcePassword.current")}</Typography.Text>
+              <Input.Password
+                autoComplete="current-password"
+                value={current}
+                onChange={(event) => setCurrent(event.target.value)}
+                required
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <Typography.Text strong>{t("auth:forcePassword.new")}</Typography.Text>
+              <Input.Password
+                autoComplete="new-password"
+                value={next}
+                onChange={(event) => setNext(event.target.value)}
+                required
+              />
+              <Typography.Text type="secondary">{t("auth:forcePassword.rule")}</Typography.Text>
+            </div>
+
+            <div>
+              <Typography.Text strong>{t("auth:forcePassword.confirm")}</Typography.Text>
+              <Input.Password
+                autoComplete="new-password"
+                value={confirmation}
+                onChange={(event) => setConfirmation(event.target.value)}
+                required
+              />
+            </div>
+
+            <Button type="primary" htmlType="submit" size="large" block loading={isLoading}>
+              {t("auth:forcePassword.submit")}
+            </Button>
+            <Button block onClick={logout} disabled={isLoading}>
+              {t("auth:forcePassword.logout")}
+            </Button>
+          </Space>
+        </form>
+      </Card>
+    </div>
   );
 };
 

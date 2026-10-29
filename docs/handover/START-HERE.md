@@ -44,7 +44,7 @@ tablet bila sesi kios ikut hilang.
 
 | Area | Lokasi |
 |---|---|
-| CMS (React + MUI) | `client/` — kalender di `client/calendar/`, manajemen di `client/management/`, tema di `client/theme.js` |
+| CMS (React + Ant Design) | `client/` — kalender di `client/calendar/`, manajemen di `client/management/`, tema di `client/theme.js` |
 | API + Socket.io | `server/features/<fitur>/` (routes → controller → service → repository) |
 | Database | `database/migrations/` (urut), seed disposable di `database/seeds/` |
 | Test | `server/tests/unit|parity|regression`, `client/tests` |

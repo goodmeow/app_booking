@@ -1,19 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Button, Card, Input, Modal, Space, Spin, Tag, Typography } from "antd";
 import { io } from "socket.io-client";
 import { useHistory } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -67,49 +53,57 @@ const KioskSignin = ({ onAuthenticated }) => {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#07111f", display: "grid", placeItems: "center", p: 3, fontFamily: kioskSans }}>
-      <Paper component="form" onSubmit={submit} elevation={16} sx={{ width: "100%", maxWidth: 520, p: 5, borderRadius: 4 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
-          <Box>
-            <Typography variant="overline" color="primary" sx={{ letterSpacing: 3 }}>{t("common:brand.name")}</Typography>
-            <Typography variant="h3" sx={{ mt: 1, mb: 1, fontWeight: 800 }}>{t("setup.title")}</Typography>
-          </Box>
+    <div style={{ minHeight: "100vh", background: "#07111f", display: "grid", placeItems: "center", padding: 24, fontFamily: kioskSans }}>
+      <Card style={{ width: "100%", maxWidth: 520 }} styles={{ body: { padding: 40 } }}>
+        <Space align="start" style={{ width: "100%", justifyContent: "space-between" }}>
+          <div>
+            <Typography.Text style={{ color: "#2FB46A", letterSpacing: 3, textTransform: "uppercase" }}>
+              {t("common:brand.name")}
+            </Typography.Text>
+            <Typography.Title level={2} style={{ marginTop: 8, marginBottom: 8 }}>
+              {t("setup.title")}
+            </Typography.Title>
+          </div>
           <LanguageSwitcher />
-        </Stack>
-        <Typography color="text.secondary" sx={{ mb: 3 }}>{t("setup.description")}</Typography>
-        {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
-        <TextField
-          autoFocus
-          fullWidth
-          required
-          label={t("setup.roomLogin")}
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          margin="normal"
-        />
-        <TextField
-          fullWidth
-          required
-          label={t("setup.deviceName")}
-          value={deviceName}
-          onChange={(event) => setDeviceName(event.target.value)}
-          margin="normal"
-          inputProps={{ maxLength: 80 }}
-        />
-        <TextField
-          fullWidth
-          required
-          type="password"
-          label={t("setup.roomPassword")}
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          margin="normal"
-        />
-        <Button fullWidth size="large" type="submit" variant="contained" disabled={loading} sx={{ mt: 3, py: 1.5 }}>
-          {loading ? t("setup.connecting") : t("setup.connect")}
-        </Button>
-      </Paper>
-    </Box>
+        </Space>
+        <Typography.Paragraph type="secondary">{t("setup.description")}</Typography.Paragraph>
+
+        <form onSubmit={submit}>
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            {error ? <Alert type="error" showIcon message={error} /> : null}
+            <div>
+              <Typography.Text strong>{t("setup.roomLogin")}</Typography.Text>
+              <Input
+                autoFocus
+                required
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+            </div>
+            <div>
+              <Typography.Text strong>{t("setup.deviceName")}</Typography.Text>
+              <Input
+                required
+                maxLength={80}
+                value={deviceName}
+                onChange={(event) => setDeviceName(event.target.value)}
+              />
+            </div>
+            <div>
+              <Typography.Text strong>{t("setup.roomPassword")}</Typography.Text>
+              <Input.Password
+                required
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+            </div>
+            <Button type="primary" htmlType="submit" size="large" block loading={loading}>
+              {loading ? t("setup.connecting") : t("setup.connect")}
+            </Button>
+          </Space>
+        </form>
+      </Card>
+    </div>
   );
 };
 
@@ -118,18 +112,40 @@ const ScheduleItem = ({ event, now, timeZone }) => {
   const active = new Date(event.start) <= now && now < new Date(event.end);
   const past = new Date(event.end) <= now;
   return (
-    <Box sx={{ display: "grid", gridTemplateColumns: "110px minmax(0, 1fr)", gap: 2, py: 2, opacity: past ? 0.45 : 1 }}>
-      <Box>
-        <Typography variant="h6" fontWeight={800}>{formatKioskTime(event.start, timeZone)}</Typography>
-        <Typography variant="body2" color="text.secondary">{formatKioskTime(event.end, timeZone)}</Typography>
-      </Box>
-      <Box sx={{ borderLeft: 4, borderColor: active ? "error.main" : "primary.main", pl: 2, minWidth: 0 }}>
-        <Typography variant="h6" noWrap sx={{ fontFamily: kioskSerif, fontWeight: 600 }}>{event.title}</Typography>
-        <Typography variant="body2" color="text.secondary">
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "110px minmax(0, 1fr)",
+        gap: 16,
+        padding: "12px 0",
+        opacity: past ? 0.45 : 1,
+      }}
+    >
+      <div>
+        <Typography.Title level={5} style={{ margin: 0 }}>
+          {formatKioskTime(event.start, timeZone)}
+        </Typography.Title>
+        <Typography.Text type="secondary">{formatKioskTime(event.end, timeZone)}</Typography.Text>
+      </div>
+      <div
+        style={{
+          borderLeft: `4px solid ${active ? "#FF8A80" : "#2FB46A"}`,
+          paddingLeft: 12,
+          minWidth: 0,
+        }}
+      >
+        <Typography.Title
+          level={5}
+          ellipsis
+          style={{ margin: 0, fontFamily: kioskSerif, fontWeight: 600 }}
+        >
+          {event.title}
+        </Typography.Title>
+        <Typography.Text type="secondary">
           {active ? t("schedule.occupiedNow") : t("schedule.reserved")}
-        </Typography>
-      </Box>
-    </Box>
+        </Typography.Text>
+      </div>
+    </div>
   );
 };
 
@@ -245,10 +261,10 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
   );
   const palette = kioskPalette[state.mode];
   const paletteLabel = t(palette.labelKey);
-  const ledChipColor = {
-    occupied: "error",
-    awaitingCheckIn: "warning",
-    available: "success",
+  const ledTagColor = {
+    occupied: "red",
+    awaitingCheckIn: "gold",
+    available: "green",
     offline: "default",
     unknown: "default",
   }[state.mode] || "default";
@@ -298,116 +314,237 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
     changeRoomTimer.current = setTimeout(onDeprovision, 2500);
   };
 
-  if (loading) return <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", bgcolor: "#07111f" }}><CircularProgress /></Box>;
+  if (loading) {
+    return (
+      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#07111f" }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#07111f", color: "common.white", p: { xs: 2, md: 3 }, overflow: "hidden", fontFamily: kioskSans }}>
-      <Box sx={{ maxWidth: 1500, mx: "auto" }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Box>
-            <Typography variant="overline" sx={{ letterSpacing: 3, opacity: 0.7 }}>{t("common:brand.kiosk")}</Typography>
-            <Typography variant="h4" fontWeight={700} sx={{ fontFamily: kioskSerif }}>{context.room.name}</Typography>
-            <Typography sx={{ opacity: 0.7 }}>{[context.room.building, context.room.floor && t("schedule.floor", { floor: context.room.floor })].filter(Boolean).join(" · ")}</Typography>
-          </Box>
-          <Stack direction="row" spacing={1} alignItems="center">
-            {context.device?.nfcEnabled ? <Chip label="NFC" color="info" variant="outlined" sx={{ color: "white" }} /> : null}
-            {context.device?.ledEnabled ? <Chip label={`LED · ${paletteLabel}`} color={ledChipColor} variant="outlined" sx={{ color: "white" }} /> : null}
-            <Chip label={connected ? t("schedule.live") : t("schedule.offline")} color={connected ? "success" : "default"} variant="outlined" sx={{ color: "white" }} />
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#07111f",
+        color: "#EDF2F6",
+        padding: 24,
+        overflow: "hidden",
+        fontFamily: kioskSans,
+      }}
+    >
+      <div style={{ maxWidth: 1500, margin: "0 auto" }}>
+        <Space
+          align="center"
+          style={{ width: "100%", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap" }}
+        >
+          <div>
+            <Typography.Text style={{ letterSpacing: 3, opacity: 0.7, textTransform: "uppercase" }}>
+              {t("common:brand.kiosk")}
+            </Typography.Text>
+            <Typography.Title level={3} style={{ margin: "4px 0", fontFamily: kioskSerif }}>
+              {context.room.name}
+            </Typography.Title>
+            <Typography.Text style={{ opacity: 0.7 }}>
+              {[context.room.building, context.room.floor && t("schedule.floor", { floor: context.room.floor })]
+                .filter(Boolean)
+                .join(" · ")}
+            </Typography.Text>
+          </div>
+          <Space wrap>
+            {context.device?.nfcEnabled ? (
+              <Tag color="blue" style={{ color: "#EDF2F6" }}>NFC</Tag>
+            ) : null}
+            {context.device?.ledEnabled ? (
+              <Tag color={ledTagColor} style={{ color: "#EDF2F6" }}>
+                LED · {paletteLabel}
+              </Tag>
+            ) : null}
+            <Tag color={connected ? "green" : "default"} style={{ color: "#EDF2F6" }}>
+              {connected ? t("schedule.live") : t("schedule.offline")}
+            </Tag>
             <LanguageSwitcher />
-            <Button color="inherit" onClick={() => document.documentElement.requestFullscreen?.()}>{t("schedule.fullscreen")}</Button>
             <Button
-              color="inherit"
+              type="text"
+              style={{ color: "#EDF2F6" }}
+              onClick={() => document.documentElement.requestFullscreen?.()}
+            >
+              {t("schedule.fullscreen")}
+            </Button>
+            <Button
+              type="text"
+              style={{ color: "#EDF2F6" }}
               onPointerDown={armChangeRoom}
               onPointerUp={cancelChangeRoom}
               onPointerLeave={cancelChangeRoom}
               onPointerCancel={cancelChangeRoom}
-            >{t("schedule.changeRoom")}</Button>
-          </Stack>
-        </Stack>
+            >
+              {t("schedule.changeRoom")}
+            </Button>
+          </Space>
+        </Space>
 
-        {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
-        {notice ? <Alert severity="success" sx={{ mb: 2 }} onClose={() => setNotice("")}>{notice}</Alert> : null}
+        {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
+        {notice ? (
+          <Alert
+            type="success"
+            showIcon
+            closable
+            message={notice}
+            onClose={() => setNotice("")}
+            style={{ marginBottom: 16 }}
+          />
+        ) : null}
 
-        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1.8fr) minmax(360px, 1fr)" }, gap: 3 }}>
-          <Paper sx={{ minHeight: { md: "calc(100vh - 150px)" }, p: { xs: 3, md: 5 }, borderRadius: 5, color: "common.white", background: `linear-gradient(145deg, ${palette.main}, ${palette.dark})`, display: "flex", flexDirection: "column" }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-              <Typography variant="h2" fontWeight={700} sx={{ letterSpacing: 2, fontFamily: kioskSerif }}>{paletteLabel}</Typography>
-              <Box textAlign="right">
-                <Typography variant="h2" fontWeight={600} sx={{ fontFamily: kioskSerif }}>{formatKioskTime(now, context.timezone)}</Typography>
-                <Typography sx={{ opacity: 0.85 }}>{formatKioskDate(now, language, context.timezone)}</Typography>
-              </Box>
-            </Stack>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1.8fr) minmax(360px, 1fr)",
+            gap: 24,
+          }}
+        >
+          <Card
+            bordered={false}
+            style={{
+              minHeight: "calc(100vh - 150px)",
+              borderRadius: 20,
+              color: "#FFFFFF",
+              background: `linear-gradient(145deg, ${palette.main}, ${palette.dark})`,
+            }}
+            styles={{
+              body: {
+                padding: 40,
+                minHeight: "calc(100vh - 150px)",
+                display: "flex",
+                flexDirection: "column",
+              },
+            }}
+          >
+            <Space align="start" style={{ width: "100%", justifyContent: "space-between" }}>
+              <Typography.Title
+                level={1}
+                style={{ margin: 0, letterSpacing: 2, fontFamily: kioskSerif, color: "#FFFFFF" }}
+              >
+                {paletteLabel}
+              </Typography.Title>
+              <div style={{ textAlign: "right" }}>
+                <Typography.Title level={1} style={{ margin: 0, fontFamily: kioskSerif, color: "#FFFFFF" }}>
+                  {formatKioskTime(now, context.timezone)}
+                </Typography.Title>
+                <Typography.Text style={{ opacity: 0.85, color: "#FFFFFF" }}>
+                  {formatKioskDate(now, language, context.timezone)}
+                </Typography.Text>
+              </div>
+            </Space>
 
-            <Box sx={{ flex: 1, display: "grid", alignContent: "center", py: 5 }}>
+            <div style={{ flex: 1, display: "grid", alignContent: "center", padding: "40px 0" }}>
               {state.mode === "offline" || state.mode === "unknown" ? (
                 <>
-                  <Typography variant="h3" fontWeight={800}>{t("states.offline")}</Typography>
-                  <Typography variant="h6" sx={{ mt: 2, opacity: 0.85 }}>{t("schedule.offlineHelp")}</Typography>
+                  <Typography.Title level={2} style={{ margin: 0, color: "#FFFFFF" }}>
+                    {t("states.offline")}
+                  </Typography.Title>
+                  <Typography.Title level={4} style={{ marginTop: 16, opacity: 0.85, color: "#FFFFFF" }}>
+                    {t("schedule.offlineHelp")}
+                  </Typography.Title>
                 </>
               ) : featured ? (
                 <>
-                  <Typography variant="overline" sx={{ letterSpacing: 2, opacity: 0.8 }}>
+                  <Typography.Text style={{ letterSpacing: 2, opacity: 0.8, textTransform: "uppercase" }}>
                     {state.current ? t("schedule.currentMeeting") : t("schedule.nextMeeting")}
-                  </Typography>
-                  <Typography variant="h3" fontWeight={700} sx={{ mt: 1, fontFamily: kioskSerif }}>{featured.title}</Typography>
-                  <Typography variant="h5" sx={{ mt: 2, opacity: 0.9 }}>
+                  </Typography.Text>
+                  <Typography.Title
+                    level={2}
+                    style={{ marginTop: 8, fontFamily: kioskSerif, color: "#FFFFFF" }}
+                  >
+                    {featured.title}
+                  </Typography.Title>
+                  <Typography.Title level={4} style={{ marginTop: 16, opacity: 0.9, color: "#FFFFFF" }}>
                     {formatKioskTime(featured.start, context.timezone)} – {formatKioskTime(featured.end, context.timezone)}
-                  </Typography>
+                  </Typography.Title>
                   {state.current?.canCheckIn ? (
-                    <Box sx={{ mt: 3 }}>
-                      <Button variant="contained" color="inherit" size="large" onClick={() => openCheckIn(state.current)}>
+                    <div style={{ marginTop: 24 }}>
+                      <Button
+                        size="large"
+                        onClick={() => openCheckIn(state.current)}
+                        style={{ background: "#FFFFFF", color: "#11151B", fontWeight: 700 }}
+                      >
                         {t("checkin.action")}
                       </Button>
-                    </Box>
+                    </div>
                   ) : null}
                 </>
               ) : (
                 <>
-                  <Typography variant="h3" fontWeight={800}>{t("schedule.ready")}</Typography>
-                  <Typography variant="h6" sx={{ mt: 2, opacity: 0.8 }}>{t("schedule.noMore")}</Typography>
+                  <Typography.Title level={2} style={{ margin: 0, color: "#FFFFFF" }}>
+                    {t("schedule.ready")}
+                  </Typography.Title>
+                  <Typography.Title level={4} style={{ marginTop: 16, opacity: 0.8, color: "#FFFFFF" }}>
+                    {t("schedule.noMore")}
+                  </Typography.Title>
                 </>
               )}
-            </Box>
+            </div>
+          </Card>
 
-          </Paper>
-
-          <Paper sx={{ minHeight: { md: "calc(100vh - 150px)" }, maxHeight: { md: "calc(100vh - 150px)" }, p: 3, borderRadius: 5, overflow: "auto" }}>
-            <Typography variant="h4" fontWeight={800}>{t("schedule.today")}</Typography>
-            <Typography color="text.secondary" sx={{ mb: 2 }}>{t("schedule.count", { count: events.length })}</Typography>
-            {events.length ? events.map((event) => <ScheduleItem key={event.id} event={event} now={now} timeZone={context.timezone} />) : (
-              <Box sx={{ py: 8, textAlign: "center" }}><Typography color="text.secondary">{t("schedule.empty")}</Typography></Box>
+          <Card
+            style={{
+              minHeight: "calc(100vh - 150px)",
+              maxHeight: "calc(100vh - 150px)",
+              borderRadius: 20,
+            }}
+            styles={{ body: { padding: 24, overflow: "auto", maxHeight: "calc(100vh - 150px)" } }}
+          >
+            <Typography.Title level={3} style={{ marginTop: 0 }}>{t("schedule.today")}</Typography.Title>
+            <Typography.Paragraph type="secondary">
+              {t("schedule.count", { count: events.length })}
+            </Typography.Paragraph>
+            {events.length ? events.map((event) => (
+              <ScheduleItem key={event.id} event={event} now={now} timeZone={context.timezone} />
+            )) : (
+              <div style={{ padding: "64px 0", textAlign: "center" }}>
+                <Typography.Text type="secondary">{t("schedule.empty")}</Typography.Text>
+              </div>
             )}
-          </Paper>
-        </Box>
-      </Box>
+          </Card>
+        </div>
+      </div>
 
-      <Dialog open={Boolean(checkInFor)} onClose={closeCheckIn} fullWidth maxWidth="xs">
-        <Box component="form" onSubmit={submitCheckIn}>
-          <DialogTitle>{t("checkin.title")}</DialogTitle>
-          <DialogContent>
-            <Typography color="text.secondary" sx={{ mb: 2 }}>
-              {checkInFor?.title}
-            </Typography>
-            {checkInError ? <Alert severity="error" sx={{ mb: 2 }}>{checkInError}</Alert> : null}
-            <TextField
+      <Modal
+        open={Boolean(checkInFor)}
+        title={t("checkin.title")}
+        width={420}
+        onCancel={closeCheckIn}
+        maskClosable={!checkInBusy}
+        closable={!checkInBusy}
+        footer={[
+          <Button key="cancel" onClick={closeCheckIn} disabled={checkInBusy}>
+            {t("checkin.cancel")}
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            htmlType="submit"
+            form="kiosk-checkin-form"
+            loading={checkInBusy}
+          >
+            {checkInBusy ? t("checkin.submitting") : t("checkin.submit")}
+          </Button>,
+        ]}
+      >
+        <form id="kiosk-checkin-form" onSubmit={submitCheckIn}>
+          <Space direction="vertical" size="middle" style={{ width: "100%", marginTop: 8 }}>
+            <Typography.Text type="secondary">{checkInFor?.title}</Typography.Text>
+            {checkInError ? <Alert type="error" showIcon message={checkInError} /> : null}
+            <Input
               autoFocus
-              fullWidth
               inputMode="numeric"
-              label={t("checkin.cardNumber")}
               value={cardNumber}
               onChange={(event) => setCardNumber(event.target.value.replace(/[^0-9]/g, ""))}
             />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={closeCheckIn} disabled={checkInBusy}>{t("checkin.cancel")}</Button>
-            <Button type="submit" variant="contained" disabled={checkInBusy}>
-              {checkInBusy ? t("checkin.submitting") : t("checkin.submit")}
-            </Button>
-          </DialogActions>
-        </Box>
-      </Dialog>
-
-    </Box>
+          </Space>
+        </form>
+      </Modal>
+    </div>
   );
 };
 
@@ -449,7 +586,13 @@ const KioskApp = ({ forceProvision = false }) => {
     setSession(nextSession);
     if (forceProvision) history.replace("/kiosk");
   };
-  if (resetting) return <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", bgcolor: "#07111f" }}><CircularProgress /></Box>;
+  if (resetting) {
+    return (
+      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#07111f" }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
   if (!session) return <KioskSignin onAuthenticated={completeProvision} />;
   return <KioskDisplay session={session} onSessionUpdate={setSession} onDeprovision={clearProvisioning} />;
 };

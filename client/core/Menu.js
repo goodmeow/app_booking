@@ -1,94 +1,61 @@
 import React from "react";
-import {
-  AppBar,
-  Box,
-  Button,
-  Container,
-  Divider,
-  Drawer,
-  IconButton,
-  List,
-  ListItemButton,
-  ListItemText,
-  Toolbar,
-  Typography,
-  useMediaQuery,
-} from "@mui/material";
-import MenuIconModule from "@mui/icons-material/Menu";
-import { useTheme } from "@mui/material/styles";
+import { Button, Drawer, Grid, Layout, Space, Typography } from "antd";
+import { MenuOutlined } from "@ant-design/icons";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { isAuthenticated, signout } from "../auth/auth-helper.js";
-import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { useDetailUserQuery } from "../redux/services/users.js";
 import { useGetBrandingQuery, useGetPublicSettingsQuery } from "../redux/services/settings.js";
 import { brandAsset } from "./brand-assets.js";
 import { useMenuAccess } from "../auth/use-menu-access.js";
 
+const { Header } = Layout;
+
 const BrandLockup = () => {
   const { t } = useTranslation("common");
   const { data: branding } = useGetBrandingQuery();
   return (
-    <Box
-      component={Link}
+    <Link
       to="/"
-      color="inherit"
-      sx={{ display: "flex", alignItems: "center", gap: 1.5, textDecoration: "none" }}
+      style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", color: "inherit" }}
     >
-      <Box
-        component="img"
+      <img
         src={brandAsset(branding, "mark")}
         alt=""
-        sx={{ height: 38, width: "auto", display: "block" }}
+        style={{ height: 38, width: "auto", display: "block" }}
       />
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+      <span style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {/* The official "The Prasada" wordmark as an image, so the typography matches
             the tablet exactly; Room Booking below it uses the accent colour. */}
-        <Box
-          component="img"
+        <img
           src={brandAsset(branding, "wordmark")}
           alt="The Prasada"
-          sx={{ height: 15, width: "auto", display: "block" }}
+          style={{ height: 15, width: "auto", display: "block" }}
         />
-        <Typography
-          component="span"
-          sx={{
+        <Typography.Text
+          style={{
             fontSize: 10.5,
             fontWeight: 700,
             lineHeight: 1,
             letterSpacing: "0.4em",
             textTransform: "uppercase",
-            color: "primary.main",
+            color: "#2FB46A",
           }}
         >
           {branding?.brand_name || t("brand.name")}
-        </Typography>
-      </Box>
-    </Box>
+        </Typography.Text>
+      </span>
+    </Link>
   );
 };
-
-const MenuIcon = resolveMuiIcon(MenuIconModule);
 
 const MenuLink = ({ to, children }) => {
   const location = useLocation();
   const active = location.pathname === to;
   return (
-    <Button
-      component={Link}
-      to={to}
-      color="inherit"
-      sx={{
-        color: active ? "primary.contrastText" : "text.secondary",
-        bgcolor: active ? "primary.main" : "transparent",
-        "&:hover": {
-          bgcolor: active ? "primary.dark" : "rgba(237,242,246,0.06)",
-          color: active ? "primary.contrastText" : "text.primary",
-        },
-      }}
-    >
-      {children}
-    </Button>
+    <Link to={to}>
+      <Button type={active ? "primary" : "text"}>{children}</Button>
+    </Link>
   );
 };
 
@@ -96,8 +63,8 @@ const Menu = () => {
   const { t } = useTranslation("common");
   const history = useHistory();
   const location = useLocation();
-  const theme = useTheme();
-  const mobile = useMediaQuery(theme.breakpoints.down("md"));
+  const screens = Grid.useBreakpoint();
+  const mobile = !screens.md;
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const session = isAuthenticated();
   const { can, canManage } = useMenuAccess();
@@ -119,65 +86,90 @@ const Menu = () => {
     ...(!session ? [{ to: "/signin", label: t("nav.signIn") }] : []),
     ...(session ? [{ to: `/user/${session.user._id}`, label: t("nav.myProfile") }] : []),
   ];
+  const primaryItems = navItems.filter(({ to }) => to === "/app-management" || to === "/report");
+  const secondaryItems = navItems.filter(({ to }) => to !== "/app-management" && to !== "/report");
 
   return (
-    <AppBar position="sticky" color="inherit" elevation={0} sx={{ top: 0, zIndex: theme.zIndex.appBar }}>
-      <Container maxWidth={false}>
-        <Toolbar disableGutters>
+    <>
+      <Header
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+          padding: "0 24px",
+          background: "#0C1014",
+          borderBottom: "1px solid rgba(235,244,240,0.10)",
+        }}
+      >
         <BrandLockup />
-          <Box sx={{ flexGrow: 1, ml: 3, display: { xs: "none", md: "block" } }}>
-            {navItems.filter(({ to }) => to === "/app-management" || to === "/report").map(({ to, label }) => (
-              <MenuLink key={to} to={to}>{label}</MenuLink>
-            ))}
-          </Box>
-          <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 0.5 }}>
-            {navItems.filter(({ to }) => to !== "/app-management" && to !== "/report").map(({ to, label }) => (
-              <MenuLink key={to} to={to}>{label}</MenuLink>
-            ))}
-            {session && <Typography variant="body2" sx={{ mx: 2 }}>{t("nav.welcome", { name: displayName })}</Typography>}
-            {session && <Button color="inherit" onClick={handleSignout}>{t("nav.signOut")}</Button>}
-          </Box>
-          {mobile ? (
-            <IconButton
-              edge="end"
-              color="inherit"
-              aria-label={t("nav.openMenu")}
-              onClick={() => setDrawerOpen(true)}
-              sx={{ ml: "auto" }}
-            >
-              <MenuIcon />
-            </IconButton>
+        {!mobile ? (
+          <>
+            <Space size={4} style={{ flex: 1, marginLeft: 16 }}>
+              {primaryItems.map(({ to, label }) => (
+                <MenuLink key={to} to={to}>{label}</MenuLink>
+              ))}
+            </Space>
+            <Space size={4}>
+              {secondaryItems.map(({ to, label }) => (
+                <MenuLink key={to} to={to}>{label}</MenuLink>
+              ))}
+              {session ? (
+                <Typography.Text type="secondary" style={{ marginLeft: 8 }}>
+                  {t("nav.welcome", { name: displayName })}
+                </Typography.Text>
+              ) : null}
+              {session ? <Button type="text" onClick={handleSignout}>{t("nav.signOut")}</Button> : null}
+            </Space>
+          </>
+        ) : (
+          <Button
+            type="text"
+            icon={<MenuOutlined />}
+            aria-label={t("nav.openMenu")}
+            onClick={() => setDrawerOpen(true)}
+            style={{ marginLeft: "auto" }}
+          />
+        )}
+      </Header>
+
+      <Drawer
+        title={branding?.brand_name || t("brand.name")}
+        placement="right"
+        open={drawerOpen}
+        onClose={closeDrawer}
+        width={280}
+      >
+        <Space direction="vertical" size="small" style={{ width: "100%" }}>
+          {session ? (
+            <Typography.Text type="secondary">
+              {t("nav.welcome", { name: displayName })}
+            </Typography.Text>
           ) : null}
-        </Toolbar>
-      </Container>
-      <Drawer anchor="right" open={drawerOpen} onClose={closeDrawer}>
-        <Box sx={{ width: 280 }} role="presentation">
-          <Box sx={{ p: 2 }}>
-            <Typography variant="h6">{branding?.brand_name || t("brand.name")}</Typography>
-            {session ? <Typography variant="body2" color="text.secondary">{t("nav.welcome", { name: displayName })}</Typography> : null}
-          </Box>
-          <Divider />
-          <List>
-            {can("calendar") ? (
-              <ListItemButton component={Link} to="/" selected={location.pathname === "/"} onClick={closeDrawer}>
-                <ListItemText primary={t("nav.calendar")} />
-              </ListItemButton>
-            ) : null}
-            {navItems.map(({ to, label }) => (
-              <ListItemButton key={to} component={Link} to={to} selected={location.pathname === to} onClick={closeDrawer}>
-                <ListItemText primary={label} />
-              </ListItemButton>
-            ))}
-          </List>
-          <Divider />
-          <Box sx={{ p: 2 }}>
-            {session ? (
-              <Button fullWidth onClick={handleSignOutClick}>{t("nav.signOut")}</Button>
-            ) : null}
-          </Box>
-        </Box>
+          {can("calendar") ? (
+            <Link to="/" onClick={closeDrawer}>
+              <Button block type={location.pathname === "/" ? "primary" : "text"}>
+                {t("nav.calendar")}
+              </Button>
+            </Link>
+          ) : null}
+          {navItems.map(({ to, label }) => (
+            <Link key={to} to={to} onClick={closeDrawer}>
+              <Button block type={location.pathname === to ? "primary" : "text"}>
+                {label}
+              </Button>
+            </Link>
+          ))}
+          {session ? (
+            <Button block danger onClick={handleSignOutClick}>
+              {t("nav.signOut")}
+            </Button>
+          ) : null}
+        </Space>
       </Drawer>
-    </AppBar>
+    </>
   );
 };
 

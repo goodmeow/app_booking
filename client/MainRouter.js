@@ -13,7 +13,7 @@ import { LoadingState } from "./components/common/AsyncState.js";
 import ErrorBoundary from "./components/common/ErrorBoundary.js";
 import KioskApp from "./kiosk/KioskApp.js";
 import { MANAGEMENT_MENUS, useMenuAccess } from "./auth/use-menu-access.js";
-import { Alert, Typography } from "@mui/material";
+import { Alert } from "antd";
 
 const AppManagement = React.lazy(() => import("./management/AppManagement.js"));
 const UserProfile = React.lazy(() => import("./profile/UserProfile.js"));
@@ -66,9 +66,12 @@ const HomeRoute = () => {
   if (access.can("report")) return <Redirect to="/report" />;
   if (access.canManage) return <Redirect to="/app-management" />;
   return (
-    <Alert severity="warning" sx={{ m: 4 }}>
-      <Typography>{`This account has no menu access. Ask a super admin to open Management > Settings > User Role Management.`}</Typography>
-    </Alert>
+    <Alert
+      type="warning"
+      showIcon
+      style={{ margin: 32 }}
+      message="This account has no menu access. Ask a super admin to open Management > Settings > User Role Management."
+    />
   );
 };
 

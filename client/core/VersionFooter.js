@@ -1,5 +1,5 @@
 import React from "react";
-import { Box } from "@mui/material";
+import { Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/common/LanguageSwitcher.js";
 import { CMS_VERSION } from "./version.js";
@@ -9,25 +9,21 @@ import { CMS_VERSION } from "./version.js";
 const VersionFooter = () => {
   const { t } = useTranslation("common");
   return (
-    <Box
-      component="footer"
-      sx={{
-        pt: 2,
-        pb: 2,
-        px: { xs: 2, md: 4 },
-        color: "text.disabled",
+    <footer
+      style={{
+        padding: "16px 24px",
         display: "flex",
         alignItems: "flex-end",
         justifyContent: "space-between",
         flexWrap: "wrap",
-        gap: 2,
+        gap: 16,
       }}
     >
       <LanguageSwitcher />
-      <Box sx={{ typography: "caption", display: "block", ml: "auto", textAlign: "right" }}>
+      <Typography.Text type="secondary" style={{ marginLeft: "auto", textAlign: "right" }}>
         {t("brand.footer", { version: CMS_VERSION })}
-      </Box>
-    </Box>
+      </Typography.Text>
+    </footer>
   );
 };
 

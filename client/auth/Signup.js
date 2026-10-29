@@ -1,17 +1,5 @@
 import React, { useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Paper,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Button, Card, Form, Input, Modal, Space, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { Link, Redirect } from "react-router-dom";
 import { signup } from "./auth-helper.js";
@@ -53,31 +41,68 @@ const Signup = () => {
   if (!publicSettings?.self_signup_enabled) return <Redirect to="/signin" />;
 
   return (
-    <Box sx={{ minHeight: "calc(100vh - 64px)", display: "grid", placeItems: "center", p: 2 }}>
-      <Paper component="form" onSubmit={submit} sx={{ width: "100%", maxWidth: 420, p: 4 }}>
-        <Box component="img" src={brandAsset(branding, "mark")} alt={branding?.brand_name || t("common:brand.name")} sx={{ display: "block", height: 64, width: "auto", mx: "auto", mb: 1 }} />
-        <Box component="img" src={brandAsset(branding, "wordmark")} alt="" sx={{ display: "block", height: 22, width: "auto", mx: "auto", mb: 2 }} />
-        <Typography variant="h4" color="primary" align="center" gutterBottom>{branding?.brand_name || t("common:brand.name")}</Typography>
-        <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>{t("common:brand.descriptor")}</Typography>
-        <Typography variant="h6" gutterBottom>{t("auth:signup.title")}</Typography>
-        {error && <Alert severity="error">{error}</Alert>}
-        <TextField fullWidth required label={t("common:fields.name")} margin="normal" {...field("name")} />
-        <TextField fullWidth required label={t("common:fields.email")} type="email" margin="normal" {...field("email")} />
-        <TextField fullWidth label={t("common:fields.usernameOptional")} margin="normal" {...field("username")} />
-        <TextField fullWidth required label={t("common:fields.password")} type="password" margin="normal" {...field("password")} />
-        <Button fullWidth type="submit" variant="contained" disabled={loading} sx={{ mt: 2 }}>{loading ? t("common:states.loading") : t("common:actions.submit")}</Button>
-        <Button component={Link} to="/signin" fullWidth sx={{ mt: 1 }}>{t("common:nav.signIn")}</Button>
-      </Paper>
-      <Dialog open={Boolean(message)} onClose={() => setMessage("")} aria-labelledby="signup-success-title">
-        <DialogTitle id="signup-success-title">{t("auth:signup.successTitle")}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>{message}</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button component={Link} to="/signin" variant="contained">{t("common:nav.signIn")}</Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+    <div style={{ minHeight: "calc(100vh - 64px)", display: "grid", placeItems: "center", padding: 16 }}>
+      <Card style={{ width: "100%", maxWidth: 420 }}>
+        <img
+          src={brandAsset(branding, "mark")}
+          alt={branding?.brand_name || t("common:brand.name")}
+          style={{ display: "block", height: 64, margin: "0 auto 8px" }}
+        />
+        <img
+          src={brandAsset(branding, "wordmark")}
+          alt=""
+          style={{ display: "block", height: 22, margin: "0 auto 16px" }}
+        />
+        <Typography.Title level={4} style={{ textAlign: "center", marginTop: 0 }}>
+          {branding?.brand_name || t("common:brand.name")}
+        </Typography.Title>
+        <Typography.Paragraph type="secondary" style={{ textAlign: "center" }}>
+          {t("common:brand.descriptor")}
+        </Typography.Paragraph>
+        <Typography.Title level={5}>{t("auth:signup.title")}</Typography.Title>
+
+        <form onSubmit={submit}>
+          <Form component={false} layout="vertical">
+            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+              {error ? <Alert type="error" showIcon message={error} /> : null}
+
+              <Form.Item label={t("common:fields.name")} required style={{ marginBottom: 0 }}>
+                <Input {...field("name")} />
+              </Form.Item>
+              <Form.Item label={t("common:fields.email")} required style={{ marginBottom: 0 }}>
+                <Input type="email" {...field("email")} />
+              </Form.Item>
+              <Form.Item label={t("common:fields.usernameOptional")} style={{ marginBottom: 0 }}>
+                <Input {...field("username")} />
+              </Form.Item>
+              <Form.Item label={t("common:fields.password")} required style={{ marginBottom: 0 }}>
+                <Input.Password {...field("password")} />
+              </Form.Item>
+
+              <Button type="primary" htmlType="submit" block loading={loading}>
+                {loading ? t("common:states.loading") : t("common:actions.submit")}
+              </Button>
+              <Link to="/signin">
+                <Button block>{t("common:nav.signIn")}</Button>
+              </Link>
+            </Space>
+          </Form>
+        </form>
+      </Card>
+
+      <Modal
+        open={Boolean(message)}
+        title={t("auth:signup.successTitle")}
+        onCancel={() => setMessage("")}
+        footer={(
+          <Link to="/signin">
+            <Button type="primary">{t("common:nav.signIn")}</Button>
+          </Link>
+        )}
+      >
+        <p style={{ margin: 0 }}>{message}</p>
+      </Modal>
+    </div>
   );
 };
 

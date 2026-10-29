@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, Box, Button } from "@mui/material";
+import { Alert, Button } from "antd";
 import i18n from "../../i18n/index.js";
 import { stateFromError, stateFromProps } from "./error-boundary-state.js";
 
@@ -28,14 +28,23 @@ class ErrorBoundary extends React.Component {
   render() {
     if (!this.state.error) return this.props.children;
     return (
-      <Box sx={{ p: 3 }}>
+      <div style={{ padding: 24 }}>
         <Alert
-          severity="error"
-          action={<Button color="inherit" size="small" onClick={() => window.location.reload()}>{i18n.t("common:actions.reload")}</Button>}
-        >
-          <strong>{i18n.t("common:states.crashTitle")}</strong> {i18n.t("common:states.crashMessage")}
-        </Alert>
-      </Box>
+          type="error"
+          showIcon
+          message={(
+            <>
+              <strong>{i18n.t("common:states.crashTitle")}</strong>{" "}
+              {i18n.t("common:states.crashMessage")}
+            </>
+          )}
+          action={(
+            <Button size="small" onClick={() => window.location.reload()}>
+              {i18n.t("common:actions.reload")}
+            </Button>
+          )}
+        />
+      </div>
     );
   }
 }

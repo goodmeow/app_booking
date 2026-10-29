@@ -1,19 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  Paper,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
+import { Alert, Button, Checkbox, Space, Table, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { getApiError } from "../domain/api-error.js";
 import { useGetMenuMatrixQuery, useUpdateMenuMatrixMutation } from "../redux/services/access.js";
@@ -86,87 +72,84 @@ const RoleAccessMatrix = () => {
     }
   };
 
-  if (isLoading) return <Typography>{t("settings.roleAccess.loading")}</Typography>;
+  if (isLoading) return <Typography.Text>{t("settings.roleAccess.loading")}</Typography.Text>;
   if (isError) {
     return (
       <Alert
-        severity="error"
-        action={<Button color="inherit" size="small" onClick={refetch}>{t("common:actions.retry")}</Button>}
-      >
-        {getApiError(error, t("settings.roleAccess.loadError"))}
-      </Alert>
+        type="error"
+        showIcon
+        message={getApiError(error, t("settings.roleAccess.loadError"))}
+        action={<Button size="small" onClick={refetch}>{t("common:actions.retry")}</Button>}
+      />
     );
   }
 
-  return (
-    <Box component="section">
-      <Typography variant="h6" component="h2" gutterBottom>
-        {t("settings.roleAccess.title")}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        {t("settings.roleAccess.description")}
-      </Typography>
-
-      <TableContainer component={Paper} variant="outlined">
-        <Table size="small" aria-label={t("settings.roleAccess.title")}>
-          <TableHead>
-            <TableRow>
-              <TableCell>{t("settings.roleAccess.role")}</TableCell>
-              {(data?.menus || []).map((menuKey) => (
-                <TableCell key={menuKey} align="center">
-                  {t(menuLabelKey[menuKey])}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((role) => {
-              const fixed = role.role_name === "super_admin";
-              return (
-                <TableRow key={role.role_name} hover>
-                  <TableCell component="th" scope="row">
-                    <Typography variant="body2" fontWeight={fixed ? 700 : 500}>
-                      {t(roleLabelKey[role.role_name] || role.role_name)}
-                    </Typography>
-                  </TableCell>
-                  {(data?.menus || []).map((menuKey) => {
-                    const checked = fixed || form[accessKey(role.role_name, menuKey)] === true;
-                    return (
-                      <TableCell key={menuKey} align="center" padding="checkbox">
-                        <Checkbox
-                          size="small"
-                          checked={checked}
-                          disabled={fixed || saving}
-                          onChange={() => toggle(role.role_name, menuKey)}
-                          inputProps={{
-                            "aria-label": t("settings.roleAccess.toggleAria", {
-                              role: t(roleLabelKey[role.role_name] || role.role_name),
-                              menu: t(menuLabelKey[menuKey]),
-                            }),
-                          }}
-                        />
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              );
+  const columns = [
+    {
+      title: t("settings.roleAccess.role"),
+      dataIndex: "role_name",
+      key: "role_name",
+      fixed: "left",
+      width: 180,
+      render: (roleName) => (
+        <Typography.Text strong={roleName === "super_admin"}>
+          {t(roleLabelKey[roleName] || roleName)}
+        </Typography.Text>
+      ),
+    },
+    ...(data?.menus || []).map((menuKey) => ({
+      title: t(menuLabelKey[menuKey]),
+      key: menuKey,
+      align: "center",
+      width: 120,
+      render: (_, row) => {
+        const fixed = row.role_name === "super_admin";
+        const checked = fixed || form[accessKey(row.role_name, menuKey)] === true;
+        return (
+          <Checkbox
+            checked={checked}
+            disabled={fixed || saving}
+            onChange={() => toggle(row.role_name, menuKey)}
+            aria-label={t("settings.roleAccess.toggleAria", {
+              role: t(roleLabelKey[row.role_name] || row.role_name),
+              menu: t(menuLabelKey[menuKey]),
             })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          />
+        );
+      },
+    })),
+  ];
 
-      <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+  return (
+    <section>
+      <Typography.Title level={4} style={{ marginTop: 0 }}>
+        {t("settings.roleAccess.title")}
+      </Typography.Title>
+      <Typography.Paragraph type="secondary">{t("settings.roleAccess.description")}</Typography.Paragraph>
+
+      <Table
+        size="small"
+        rowKey="role_name"
+        columns={columns}
+        dataSource={rows}
+        pagination={false}
+        scroll={{ x: 900 }}
+      />
+
+      <Typography.Text type="secondary" style={{ display: "block", marginTop: 8 }}>
         {t("settings.roleAccess.superAdminHint")}
-      </Typography>
+      </Typography.Text>
 
-      {feedback ? <Alert severity={feedback.severity} sx={{ mt: 2 }}>{feedback.message}</Alert> : null}
+      {feedback ? (
+        <Alert type={feedback.severity} showIcon message={feedback.message} style={{ marginTop: 16 }} />
+      ) : null}
 
-      <Stack direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
-        <Button variant="contained" onClick={save} disabled={saving}>
+      <Space style={{ width: "100%", justifyContent: "flex-end", marginTop: 16 }}>
+        <Button type="primary" onClick={save} loading={saving}>
           {saving ? t("settings.roleAccess.saving") : t("settings.roleAccess.save")}
         </Button>
-      </Stack>
-    </Box>
+      </Space>
+    </section>
   );
 };
 

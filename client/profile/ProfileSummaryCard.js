@@ -1,16 +1,9 @@
 import React from "react";
-import { Avatar, Box, Button, Divider, Stack, Typography } from "@mui/material";
-import EditIconModule from "@mui/icons-material/Edit";
-import LockResetIconModule from "@mui/icons-material/LockReset";
-import PersonIconModule from "@mui/icons-material/Person";
+import { Avatar, Button, Divider, Space, Typography } from "antd";
+import { EditOutlined, KeyOutlined, UserOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
-import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { formatJoinedDate } from "../domain/profile.js";
 import { normalizeLanguage } from "../i18n/languages.js";
-
-const EditIcon = resolveMuiIcon(EditIconModule);
-const LockResetIcon = resolveMuiIcon(LockResetIconModule);
-const PersonIcon = resolveMuiIcon(PersonIconModule);
 
 // Read-only identity card: avatar, name, e-mail, joined date, and the account
 // actions that are only offered to the profile owner.
@@ -19,29 +12,31 @@ const ProfileSummaryCard = ({ user, isOwner, onEdit, onChangePassword }) => {
   const language = normalizeLanguage(i18n.resolvedLanguage || i18n.language);
 
   return (
-    <Stack spacing={3} alignItems="center">
-      <Avatar sx={{ width: 88, height: 88, bgcolor: "primary.main" }}>
-        <PersonIcon sx={{ fontSize: 52 }} />
-      </Avatar>
-      <Box sx={{ textAlign: "center" }}>
-        <Typography variant="h4" component="h1">{user?.name || t("common:states.unknown")}</Typography>
-        <Typography color="text.secondary">{user?.email || t("common:states.unknown")}</Typography>
-      </Box>
-      <Divider flexItem />
-      <Typography color="text.secondary">
+    <Space direction="vertical" size="large" align="center" style={{ width: "100%" }}>
+      <Avatar size={88} icon={<UserOutlined />} style={{ background: "#2FB46A", color: "#0A1F14" }} />
+      <div style={{ textAlign: "center" }}>
+        <Typography.Title level={3} style={{ marginBottom: 0 }}>
+          {user?.name || t("common:states.unknown")}
+        </Typography.Title>
+        <Typography.Text type="secondary">
+          {user?.email || t("common:states.unknown")}
+        </Typography.Text>
+      </div>
+      <Divider style={{ margin: 0 }} />
+      <Typography.Text type="secondary">
         {t("auth:profile.joined", { date: formatJoinedDate(user?.created_at, language) })}
-      </Typography>
+      </Typography.Text>
       {isOwner ? (
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ width: "100%" }}>
-          <Button fullWidth variant="contained" startIcon={<EditIcon />} onClick={onEdit}>
+        <Space style={{ width: "100%" }} wrap>
+          <Button type="primary" icon={<EditOutlined />} onClick={onEdit}>
             {t("auth:profile.edit")}
           </Button>
-          <Button fullWidth variant="outlined" startIcon={<LockResetIcon />} onClick={onChangePassword}>
+          <Button icon={<KeyOutlined />} onClick={onChangePassword}>
             {t("common:actions.changePassword")}
           </Button>
-        </Stack>
+        </Space>
       ) : null}
-    </Stack>
+    </Space>
   );
 };
 

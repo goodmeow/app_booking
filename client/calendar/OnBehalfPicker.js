@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Autocomplete, Box, TextField, Typography } from "@mui/material";
+import { Select, Spin, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { getApiError } from "../domain/api-error.js";
 import {
@@ -34,8 +34,14 @@ const OnBehalfPicker = ({ value = null, disabled = false, onChange }) => {
   // as soon as the input text changes, and the value must stay resolvable.
   const options = useMemo(() => {
     const found = Array.isArray(searchQuery.data) ? searchQuery.data : [];
-    if (!value || found.some((option) => option?._id === value?._id)) return found;
-    return [value, ...found];
+    const people = !value || found.some((option) => option?._id === value?._id)
+      ? found
+      : [value, ...found];
+    return people.map((person) => ({
+      value: person._id,
+      label: person.name || person.email,
+      person,
+    }));
   }, [searchQuery.data, value]);
 
   const typedTerm = directoryQuery(inputValue);
@@ -49,38 +55,37 @@ const OnBehalfPicker = ({ value = null, disabled = false, onChange }) => {
     : t("editor.onBehalfHelp");
 
   return (
-    <Autocomplete
-      options={options}
-      value={value}
-      inputValue={inputValue}
-      onChange={(_, selected) => onChange?.(selected || null)}
-      // MUI reports reason "reset" when the selected option changes and passes
-      // the new label with it. Keeping that label means the chosen employee
-      // stays visible in the field instead of looking unsaved.
-      onInputChange={(_, nextValue) => setInputValue(nextValue)}
-      // The server already narrowed the result list, so no local filtering.
-      filterOptions={(available) => available}
-      getOptionLabel={(option) => option?.name || option?.email || ""}
-      isOptionEqualToValue={(option, selected) => option?._id === selected?._id}
-      loading={searching}
-      loadingText={t("editor.onBehalfSearching")}
-      noOptionsText={noOptionsText}
-      disabled={disabled}
-      renderOption={(props, option) => (
-        <Box component="li" {...props} sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-          <Typography variant="body2" noWrap>{option.name}</Typography>
-          <Typography variant="caption" color="text.secondary" noWrap>{option.email}</Typography>
-        </Box>
-      )}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label={t("editor.onBehalfLabel")}
-          helperText={helperText}
-          error={searchQuery.isError}
-        />
-      )}
-    />
+    <div>
+      <Typography.Text strong>{t("editor.onBehalfLabel")}</Typography.Text>
+      <Select
+        showSearch
+        allowClear
+        value={value?._id}
+        options={options}
+        onSearch={setInputValue}
+        filterOption={false}
+        loading={searching}
+        disabled={disabled}
+        status={searchQuery.isError ? "error" : undefined}
+        notFoundContent={searching ? <Spin size="small" /> : noOptionsText}
+        onChange={(id) => {
+          const selected = options.find((option) => option.value === id);
+          onChange?.(selected?.person || null);
+        }}
+        optionRender={(option) => (
+          <div>
+            <div>{option.data.person?.name}</div>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {option.data.person?.email}
+            </Typography.Text>
+          </div>
+        )}
+        style={{ width: "100%" }}
+      />
+      <Typography.Text type={searchQuery.isError ? "danger" : "secondary"}>
+        {helperText}
+      </Typography.Text>
+    </div>
   );
 };
 

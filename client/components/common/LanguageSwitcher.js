@@ -1,5 +1,5 @@
 import React from "react";
-import { MenuItem, TextField } from "@mui/material";
+import { Select } from "antd";
 import { useTranslation } from "react-i18next";
 import {
   normalizeLanguage,
@@ -12,26 +12,20 @@ const LanguageSwitcher = () => {
     i18n.resolvedLanguage || i18n.language
   );
 
-  const handleLanguageChange = (event) => {
-    void i18n.changeLanguage(event.target.value);
-  };
+  const options = SUPPORTED_LANGUAGES.map(({ code, labelKey, nativeName }) => ({
+    value: code,
+    label: t(labelKey, { defaultValue: nativeName }),
+  }));
 
   return (
-    <TextField
-      select
+    <Select
       size="small"
       value={currentLanguage}
-      onChange={handleLanguageChange}
-      label={t("language.label")}
-      inputProps={{ "aria-label": t("language.ariaLabel") }}
-      sx={{ minWidth: 150, bgcolor: "background.paper", borderRadius: 1 }}
-    >
-      {SUPPORTED_LANGUAGES.map(({ code, labelKey, nativeName }) => (
-        <MenuItem key={code} value={code}>
-          {t(labelKey, { defaultValue: nativeName })}
-        </MenuItem>
-      ))}
-    </TextField>
+      options={options}
+      aria-label={t("language.ariaLabel")}
+      onChange={(value) => void i18n.changeLanguage(value)}
+      style={{ minWidth: 150 }}
+    />
   );
 };
 

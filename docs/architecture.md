@@ -9,7 +9,7 @@ Dokumen ini menjelaskan komponen, alur request, dan batas kepercayaan aplikasi
 
 | Komponen | Teknologi | Lokasi kode | Port (dev) |
 |---|---|---|---|
-| CMS (browser) | React 17, MUI 5, Redux Toolkit, React Router 5, FullCalendar | `client/` | disajikan Vite `:8081` |
+| CMS (browser) | React 17, Ant Design 5, Redux Toolkit, React Router 5, FullCalendar | `client/` | disajikan Vite `:8081` |
 | API + realtime | Express 4, Socket.io 4, `pg` Pool | `server/` | `:9091` |
 | Basis data | PostgreSQL 14 (`btree_gist`) | `database/migrations/` | `:54320` (container demo) |
 | Tablet kiosk | React Native + modul native (NFC, relay USB serial, LED sysfs) | repo `kioskapp` | klien keluar (outbound) |
@@ -28,7 +28,7 @@ kartu yang sudah dinormalisasi tablet.
 ```mermaid
 flowchart LR
   subgraph Klien
-    CMS["Browser CMS<br/>React 17 + MUI 5"]
+    CMS["Browser CMS<br/>React 17 + Ant Design 5"]
     KIOSK["Tablet kiosk<br/>APK React Native 1.4.4"]
   end
 

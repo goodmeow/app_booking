@@ -1,23 +1,16 @@
 import React from "react";
-import { Chip, IconButton, Stack, Tooltip } from "@mui/material";
-import DeleteIconModule from "@mui/icons-material/Delete";
-import EditIconModule from "@mui/icons-material/Edit";
-import PasswordIconModule from "@mui/icons-material/Password";
-import { resolveMuiIcon } from "../../components/common/resolve-mui-icon.js";
+import { Button, Space, Tag, Tooltip } from "antd";
+import { DeleteOutlined, EditOutlined, KeyOutlined } from "@ant-design/icons";
 
-const DeleteIcon = resolveMuiIcon(DeleteIconModule);
-const EditIcon = resolveMuiIcon(EditIconModule);
-const PasswordIcon = resolveMuiIcon(PasswordIconModule);
-
-const tabletChip = (device, t) => {
-  if (!device) return <Chip size="small" label={t("rooms.tabletNone")} />;
-  if (device.status === "revoked") return <Chip size="small" color="error" label={t("rooms.tabletRevoked")} />;
+const tabletTag = (device, t) => {
+  if (!device) return <Tag>{t("rooms.tabletNone")}</Tag>;
+  if (device.status === "revoked") return <Tag color="red">{t("rooms.tabletRevoked")}</Tag>;
   return device.online
-    ? <Chip size="small" color="success" label={t("rooms.tabletOnline")} />
-    : <Chip size="small" color="default" label={t("rooms.tabletOffline")} />;
+    ? <Tag color="green">{t("rooms.tabletOnline")}</Tag>
+    : <Tag>{t("rooms.tabletOffline")}</Tag>;
 };
 
-// Column definitions for the Rooms grid. `deviceByRoom` maps a room id to its
+// Column definitions for the Rooms table. `deviceByRoom` maps a room id to its
 // paired tablet, so the tablet column stays a pure lookup.
 export const buildRoomColumns = ({
   t,
@@ -26,45 +19,52 @@ export const buildRoomColumns = ({
   openPasswordDialog,
   openDeleteDialog,
 }) => [
-  { field: "name", headerName: t("common:fields.name"), minWidth: 140, flex: 1 },
-  { field: "building", headerName: t("rooms.building"), minWidth: 120, flex: 0.7 },
-  { field: "capacity", headerName: t("rooms.capacity"), minWidth: 100, flex: 0.6 },
-  { field: "floor", headerName: t("rooms.floor"), minWidth: 90, flex: 0.5 },
-  { field: "email", headerName: t("common:fields.email"), minWidth: 190, flex: 1 },
+  { title: t("common:fields.name"), dataIndex: "name", key: "name", width: 160 },
+  { title: t("rooms.building"), dataIndex: "building", key: "building", width: 140 },
+  { title: t("rooms.capacity"), dataIndex: "capacity", key: "capacity", width: 100 },
+  { title: t("rooms.floor"), dataIndex: "floor", key: "floor", width: 90 },
+  { title: t("common:fields.email"), dataIndex: "email", key: "email", width: 220 },
   {
-    field: "tablet",
-    headerName: t("rooms.tablet"),
-    minWidth: 140,
-    flex: 0.7,
-    sortable: false,
-    filterable: false,
-    renderCell: ({ row }) => tabletChip(deviceByRoom.get(String(row._id)), t),
+    title: t("rooms.tablet"),
+    key: "tablet",
+    width: 150,
+    render: (_, row) => tabletTag(deviceByRoom.get(String(row._id)), t),
   },
   {
-    field: "actions",
-    headerName: t("common:fields.action"),
-    sortable: false,
-    filterable: false,
-    // Three icon buttons like the Users tab: text buttons get clipped at 1440 px wide.
+    title: t("common:fields.action"),
+    key: "actions",
     width: 150,
-    renderCell: ({ row }) => (
-      <Stack direction="row" spacing={0.25}>
+    render: (_, row) => (
+      <Space size={2}>
         <Tooltip title={t("common:actions.edit")}>
-          <IconButton size="small" aria-label={`${t("common:actions.edit")} ${row.name}`} onClick={() => openEdit(row)}>
-            <EditIcon fontSize="small" />
-          </IconButton>
+          <Button
+            type="text"
+            size="small"
+            icon={<EditOutlined />}
+            aria-label={`${t("common:actions.edit")} ${row.name}`}
+            onClick={() => openEdit(row)}
+          />
         </Tooltip>
         <Tooltip title={t("common:actions.changePassword")}>
-          <IconButton size="small" aria-label={`${t("common:actions.changePassword")} ${row.name}`} onClick={() => openPasswordDialog(row)}>
-            <PasswordIcon fontSize="small" />
-          </IconButton>
+          <Button
+            type="text"
+            size="small"
+            icon={<KeyOutlined />}
+            aria-label={`${t("common:actions.changePassword")} ${row.name}`}
+            onClick={() => openPasswordDialog(row)}
+          />
         </Tooltip>
         <Tooltip title={t("common:actions.delete")}>
-          <IconButton size="small" color="error" aria-label={`${t("common:actions.delete")} ${row.name}`} onClick={() => openDeleteDialog(row)}>
-            <DeleteIcon fontSize="small" />
-          </IconButton>
+          <Button
+            type="text"
+            danger
+            size="small"
+            icon={<DeleteOutlined />}
+            aria-label={`${t("common:actions.delete")} ${row.name}`}
+            onClick={() => openDeleteDialog(row)}
+          />
         </Tooltip>
-      </Stack>
+      </Space>
     ),
   },
 ];

@@ -1,20 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Divider,
-  FormControl,
-  FormControlLabel,
-  InputAdornment,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Button, Divider, Input, InputNumber, Select, Space, Switch, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { getApiError } from "../domain/api-error.js";
 import { useGetSettingsQuery, useRunBackupMutation, useUpdateSettingsMutation } from "../redux/services/settings.js";
@@ -86,173 +71,152 @@ const SettingsSection = () => {
     }
   };
 
-  if (isLoading) return <Typography>{t("settings.loading")}</Typography>;
+  if (isLoading) return <Typography.Text>{t("settings.loading")}</Typography.Text>;
 
   return (
-    <Box component="form" id="settings-form" onSubmit={submit} sx={{ maxWidth: 760 }}>
-      <Typography variant="h6" component="h2" gutterBottom>
-        {t("settings.title")}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        {t("settings.description")}
-      </Typography>
+    <form id="settings-form" onSubmit={submit} style={{ maxWidth: 760 }}>
+      <Typography.Title level={4} style={{ marginTop: 0 }}>{t("settings.title")}</Typography.Title>
+      <Typography.Paragraph type="secondary">{t("settings.description")}</Typography.Paragraph>
 
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
-          gap: 2,
-        }}
-      >
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
         {SETTINGS_NUMBER_FIELDS.map((field) => (
-          <TextField
-            key={field}
-            type="number"
-            size="small"
-            label={t(NUMBER_FIELD_LABELS[field].label)}
-            helperText={t(NUMBER_FIELD_LABELS[field].help)}
-            value={form[field]}
-            onChange={(event) => setField(field, event.target.value)}
-            inputProps={{ min: 1, step: 1 }}
-            InputProps={{
-              endAdornment: <InputAdornment position="end">{t("settings.minutesUnit")}</InputAdornment>,
-            }}
-            disabled={saving || !settings}
-          />
+          <div key={field}>
+            <Typography.Text strong>{t(NUMBER_FIELD_LABELS[field].label)}</Typography.Text>
+            <InputNumber
+              min={1}
+              step={1}
+              value={Number(form[field])}
+              onChange={(value) => setField(field, value ?? "")}
+              addonAfter={t("settings.minutesUnit")}
+              disabled={saving || !settings}
+              style={{ width: "100%" }}
+            />
+            <Typography.Text type="secondary">{t(NUMBER_FIELD_LABELS[field].help)}</Typography.Text>
+          </div>
         ))}
-      </Box>
+      </div>
 
-      <Box sx={{ mt: 2, maxWidth: 360 }}>
-        <FormControl fullWidth size="small" disabled={saving || !settings}>
-          <InputLabel id="week-start-label">{t("settings.weekStart")}</InputLabel>
-          <Select
-            labelId="week-start-label"
-            label={t("settings.weekStart")}
-            value={form.week_start_day}
-            onChange={(event) => setField("week_start_day", event.target.value)}
-          >
-            {[0, 1, 2, 3, 4, 5, 6].map((day) => (
-              <MenuItem key={day} value={String(day)}>{weekdayLabel(day)}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
-          {t("settings.weekStartHelp")}
-        </Typography>
-      </Box>
+      <div style={{ marginTop: 16, maxWidth: 360 }}>
+        <Typography.Text strong>{t("settings.weekStart")}</Typography.Text>
+        <Select
+          value={form.week_start_day}
+          onChange={(value) => setField("week_start_day", value)}
+          disabled={saving || !settings}
+          style={{ width: "100%" }}
+          options={[0, 1, 2, 3, 4, 5, 6].map((day) => ({
+            value: String(day),
+            label: weekdayLabel(day),
+          }))}
+        />
+        <Typography.Text type="secondary">{t("settings.weekStartHelp")}</Typography.Text>
+      </div>
 
-      <Divider sx={{ my: 3 }} />
+      <Divider style={{ margin: "24px 0" }} />
 
-      <Box sx={{ maxWidth: 760 }}>
-        <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-          {t("settings.backupTitle")}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {t("settings.backupHelp")}
-        </Typography>
-        <Stack spacing={0.5} sx={{ mb: 2 }}>
-          <FormControlLabel
-            control={(
-              <Switch
-                checked={form.backup_enabled}
-                onChange={(event) => setField("backup_enabled", event.target.checked)}
-                disabled={saving || !settings}
-              />
-            )}
-            label={t("settings.backupEnabled")}
-          />
-        </Stack>
-        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "2fr 1fr 1fr" }, gap: 2 }}>
-          <TextField
-            size="small"
-            label={t("settings.backupPath")}
-            helperText={t("settings.backupPathHelp")}
-            value={form.backup_path}
-            onChange={(event) => setField("backup_path", event.target.value)}
+      <div>
+        <Typography.Title level={5} style={{ marginTop: 0 }}>{t("settings.backupTitle")}</Typography.Title>
+        <Typography.Paragraph type="secondary">{t("settings.backupHelp")}</Typography.Paragraph>
+
+        <Space style={{ marginBottom: 12 }}>
+          <Switch
+            checked={form.backup_enabled}
+            onChange={(checked) => setField("backup_enabled", checked)}
             disabled={saving || !settings}
           />
-          <TextField
-            size="small"
-            label={t("settings.backupTime")}
-            helperText={t("settings.backupTimeHelp")}
-            value={form.backup_time}
-            onChange={(event) => setField("backup_time", event.target.value)}
-            disabled={saving || !settings}
-          />
-          <TextField
-            size="small"
-            type="number"
-            label={t("settings.backupRetention")}
-            value={form.backup_retention_days}
-            onChange={(event) => setField("backup_retention_days", event.target.value)}
-            inputProps={{ min: 1, max: 365, step: 1 }}
-            disabled={saving || !settings}
-          />
-        </Box>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "stretch", sm: "center" }} sx={{ mt: 2 }}>
-          <Button type="button" variant="outlined" onClick={backupNow} disabled={saving || backingUp || !settings}>
+          <Typography.Text>{t("settings.backupEnabled")}</Typography.Text>
+        </Space>
+
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 16 }}>
+          <div>
+            <Typography.Text strong>{t("settings.backupPath")}</Typography.Text>
+            <Input
+              value={form.backup_path}
+              onChange={(event) => setField("backup_path", event.target.value)}
+              disabled={saving || !settings}
+            />
+            <Typography.Text type="secondary">{t("settings.backupPathHelp")}</Typography.Text>
+          </div>
+          <div>
+            <Typography.Text strong>{t("settings.backupTime")}</Typography.Text>
+            <Input
+              value={form.backup_time}
+              onChange={(event) => setField("backup_time", event.target.value)}
+              disabled={saving || !settings}
+            />
+            <Typography.Text type="secondary">{t("settings.backupTimeHelp")}</Typography.Text>
+          </div>
+          <div>
+            <Typography.Text strong>{t("settings.backupRetention")}</Typography.Text>
+            <InputNumber
+              min={1}
+              max={365}
+              step={1}
+              value={Number(form.backup_retention_days)}
+              onChange={(value) => setField("backup_retention_days", value ?? "")}
+              disabled={saving || !settings}
+              style={{ width: "100%" }}
+            />
+          </div>
+        </div>
+
+        <Space style={{ marginTop: 16 }} wrap>
+          <Button onClick={backupNow} disabled={saving || backingUp || !settings} loading={backingUp}>
             {backingUp ? t("settings.backupRunning") : t("settings.backupNow")}
           </Button>
-          <Typography variant="caption" color="text.secondary">
+          <Typography.Text type="secondary">
             {settings?.backup_last_at
               ? t("settings.backupLast", { status: settings.backup_last_status || "-", date: new Date(settings.backup_last_at).toLocaleString() })
               : t("settings.backupNever")}
-          </Typography>
-        </Stack>
-      </Box>
+          </Typography.Text>
+        </Space>
+      </div>
 
-      <Divider sx={{ my: 3 }} />
+      <Divider style={{ margin: "24px 0" }} />
 
-      <Stack spacing={0.5}>
-        <FormControlLabel
-          control={(
-            <Switch
-              checked={form.table_input}
-              onChange={(event) => setField("table_input", event.target.checked)}
-              disabled={saving || !settings}
-            />
-          )}
-          label={t("settings.tableInput")}
-        />
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {t("settings.tableInputHelp")}
-        </Typography>
+      <Space direction="vertical" size="small" style={{ width: "100%" }}>
+        <Space>
+          <Switch
+            checked={form.table_input}
+            onChange={(checked) => setField("table_input", checked)}
+            disabled={saving || !settings}
+          />
+          <Typography.Text>{t("settings.tableInput")}</Typography.Text>
+        </Space>
+        <Typography.Text type="secondary">{t("settings.tableInputHelp")}</Typography.Text>
 
-        <FormControlLabel
-          control={(
-            <Switch
-              checked={form.self_signup_enabled}
-              onChange={(event) => setField("self_signup_enabled", event.target.checked)}
-              disabled={saving || !settings}
-            />
-          )}
-          label={t("settings.selfSignup")}
-        />
-        <Typography variant="body2" color="text.secondary">
-          {t("settings.selfSignupHelp")}
-        </Typography>
-      </Stack>
+        <Space>
+          <Switch
+            checked={form.self_signup_enabled}
+            onChange={(checked) => setField("self_signup_enabled", checked)}
+            disabled={saving || !settings}
+          />
+          <Typography.Text>{t("settings.selfSignup")}</Typography.Text>
+        </Space>
+        <Typography.Text type="secondary">{t("settings.selfSignupHelp")}</Typography.Text>
+      </Space>
 
-      {feedback ? <Alert severity={feedback.severity} sx={{ mt: 2 }}>{feedback.message}</Alert> : null}
+      {feedback ? (
+        <Alert type={feedback.severity} showIcon message={feedback.message} style={{ marginTop: 16 }} />
+      ) : null}
 
-      <Stack direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
-        <Button type="submit" variant="contained" disabled={saving || !settings}>
+      <Space style={{ width: "100%", justifyContent: "flex-end", marginTop: 16 }}>
+        <Button type="primary" htmlType="submit" disabled={saving || !settings}>
           {t("settings.save")}
         </Button>
-      </Stack>
+      </Space>
 
-      <Divider sx={{ my: 4 }} />
+      <Divider style={{ margin: "32px 0" }} />
       <BrandingSection />
 
       {isSuperAdmin ? (
         <>
-          <Divider sx={{ my: 4 }} />
+          <Divider style={{ margin: "32px 0" }} />
           <RoleAccessMatrix />
-          <Divider sx={{ my: 4 }} />
+          <Divider style={{ margin: "32px 0" }} />
           <AuditLogSection />
         </>
       ) : null}
-    </Box>
+    </form>
   );
 };
 

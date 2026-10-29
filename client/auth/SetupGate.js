@@ -1,7 +1,7 @@
 import React from "react";
 import { Redirect, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Alert, Box, Button } from "@mui/material";
+import { Alert, Button } from "antd";
 import { useGetSetupStatusQuery } from "../redux/services/setup.js";
 import { LoadingState } from "../components/common/AsyncState.js";
 import InitialSetup from "./InitialSetup.js";
@@ -24,18 +24,18 @@ export const SetupGate = ({ children }) => {
   if (isError) {
     return (
       <>
-        <Box sx={{ p: 2 }}>
+        <div style={{ padding: 16 }}>
           <Alert
-            severity="warning"
+            type="warning"
+            showIcon
+            message={t("auth:setup.statusError")}
             action={(
-              <Button color="inherit" size="small" disabled={isFetching} onClick={() => refetch()}>
+              <Button size="small" disabled={isFetching} onClick={() => refetch()}>
                 {t("common:actions.retry")}
               </Button>
             )}
-          >
-            {t("auth:setup.statusError")}
-          </Alert>
-        </Box>
+          />
+        </div>
         {children}
       </>
     );
@@ -58,18 +58,18 @@ export const SetupRoute = () => {
 
   if (isError) {
     return (
-      <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", p: 3 }}>
+      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24 }}>
         <Alert
-          severity="error"
+          type="error"
+          showIcon
+          message={t("auth:setup.statusError")}
           action={(
-            <Button color="inherit" size="small" disabled={isFetching} onClick={() => refetch()}>
+            <Button size="small" disabled={isFetching} onClick={() => refetch()}>
               {t("common:actions.retry")}
             </Button>
           )}
-        >
-          {t("auth:setup.statusError")}
-        </Alert>
-      </Box>
+        />
+      </div>
     );
   }
 

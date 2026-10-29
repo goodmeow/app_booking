@@ -3,7 +3,7 @@
 ## Apa ini
 
 RoomBooking adalah aplikasi pemesanan ruang meeting: **CMS web** untuk admin,
-resepsionis, dan karyawan (React 17 + MUI 5), **API + realtime** berbasis
+resepsionis, dan karyawan (React 17 + Ant Design 5), **API + realtime** berbasis
 Express dan Socket.io, **PostgreSQL** sebagai basis data, dan **tablet kiosk**
 (APK React Native di repo `kioskapp`) yang menempel di depan tiap ruangan.
 Tablet menampilkan status ruangan hari itu, menerima check-in, perpanjangan,

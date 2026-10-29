@@ -1,76 +1,66 @@
 import React from "react";
-import {
-  Box,
-  Divider,
-  Link,
-  Paper,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
+import { Divider, Space, Table, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { CMS_VERSION } from "../core/version.js";
 import { CMS_LIBRARIES, KIOSK_APP_VERSION, KIOSK_LIBRARIES } from "../domain/licenses.js";
 
-const LicenseTable = ({ rows, t, title }) => (
-  <Box component="section" sx={{ mt: 3 }}>
-    <Typography variant="h6" component="h2" gutterBottom>{title}</Typography>
-    <TableContainer component={Paper} variant="outlined">
-      <Table size="small" aria-label={title}>
-        <TableHead>
-          <TableRow>
-            <TableCell>{t("about.library")}</TableCell>
-            <TableCell>{t("about.version")}</TableCell>
-            <TableCell>{t("about.license")}</TableCell>
-            <TableCell>{t("about.source")}</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows.map((item) => (
-            <TableRow key={`${item.name}-${item.version}`}>
-              <TableCell component="th" scope="row">{item.name}</TableCell>
-              <TableCell>{item.version}</TableCell>
-              <TableCell>{item.license}</TableCell>
-              <TableCell>
-                <Link href={item.url} target="_blank" rel="noopener noreferrer">
-                  {t("about.openSource")}
-                </Link>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  </Box>
-);
+const LicenseTable = ({ rows, t, title }) => {
+  const columns = [
+    {
+      title: t("about.library"),
+      dataIndex: "name",
+      key: "name",
+      render: (value) => <strong>{value}</strong>,
+    },
+    { title: t("about.version"), dataIndex: "version", key: "version" },
+    { title: t("about.license"), dataIndex: "license", key: "license" },
+    {
+      title: t("about.source"),
+      dataIndex: "url",
+      key: "url",
+      render: (value) => (
+        <Typography.Link href={value} target="_blank" rel="noopener noreferrer">
+          {t("about.openSource")}
+        </Typography.Link>
+      ),
+    },
+  ];
+
+  return (
+    <section style={{ marginTop: 24 }}>
+      <Typography.Title level={5}>{title}</Typography.Title>
+      <Table
+        size="small"
+        rowKey={(row) => `${row.name}-${row.version}`}
+        columns={columns}
+        dataSource={rows}
+        pagination={false}
+        scroll={{ x: 640 }}
+      />
+    </section>
+  );
+};
 
 const AboutSection = () => {
   const { t } = useTranslation("management");
   return (
-    <Box>
-      <Typography variant="h5" component="h2" gutterBottom>{t("about.title")}</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        {t("about.intro")}
-      </Typography>
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2 }}>
-        <Typography variant="body2"><strong>CMS/API:</strong> {CMS_VERSION}</Typography>
-        <Typography variant="body2"><strong>Kiosk APK:</strong> {KIOSK_APP_VERSION}</Typography>
-      </Stack>
+    <div>
+      <Typography.Title level={4} style={{ marginTop: 0 }}>{t("about.title")}</Typography.Title>
+      <Typography.Paragraph type="secondary">{t("about.intro")}</Typography.Paragraph>
+      <Space wrap size="large" style={{ marginBottom: 16 }}>
+        <Typography.Text><strong>CMS/API:</strong> {CMS_VERSION}</Typography.Text>
+        <Typography.Text><strong>Kiosk APK:</strong> {KIOSK_APP_VERSION}</Typography.Text>
+      </Space>
       <Divider />
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+      <Typography.Paragraph type="secondary" style={{ marginTop: 16 }}>
         {t("about.note")}
-      </Typography>
+      </Typography.Paragraph>
       <LicenseTable rows={CMS_LIBRARIES} t={t} title={t("about.cmsLibraries")} />
       <LicenseTable rows={KIOSK_LIBRARIES} t={t} title={t("about.kioskLibraries")} />
-      <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 3 }}>
+      <Typography.Text type="secondary" style={{ display: "block", marginTop: 24 }}>
         {t("about.copyright")}
-      </Typography>
-    </Box>
+      </Typography.Text>
+    </div>
   );
 };
 

@@ -204,9 +204,9 @@ test("admin shell uses tabs, hides technical ID columns, and merges cards into u
   assert.match(userColumns, /dataIndex: "card_number"/);
   assert.match(userColumns, /dataIndex: "is_master_card"/);
   assert.doesNotMatch(userColumns, /dataIndex: "_id"/);
-  assert.match(roomColumns, /field: "name"/);
+  assert.match(roomColumns, /dataIndex: "name"/);
   assert.doesNotMatch(rooms, /field: "_id"/);
-  assert.doesNotMatch(roomColumns, /field: "_id"/);
+  assert.doesNotMatch(roomColumns, /dataIndex: "_id"/);
 });
 
 test("Phase 10B resource errors are retryable and routes have a not-found page", () => {
