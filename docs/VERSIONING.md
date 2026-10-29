@@ -33,7 +33,6 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   dengan izin backend. Menu tablet (ketuk jam lima kali) punya tombol
   **Cek update**; bila manifest lebih baru, tombol berubah menjadi kuning
   **Perbarui**. Di sampingnya ada tombol **Tentang** yang membuka versi
-  aplikasi, versi CMS, dan lisensi pustaka APK. Di sampingnya ada tombol **Tentang** yang membuka versi
   aplikasi, versi CMS, dan lisensi pustaka APK.
 - Ver 3 Rev 13 mencakup matrix menu per role, `super_admin` dari akun setup,
   multi-lantai (`tbl_users.floors`), akses resepsionis per lantai, audit log,
@@ -44,12 +43,14 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   **95/95** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
   dan `build:server:check` lulus. Unit izin event **9/9**, kontrak kalender
   **14/14** setelah perubahan `can_mutate`.
-- Distribusi APK, 2026-10-28 (commit `04c7d80`): paket
-  `public/apk/kiosk-release.apk` 21.530.390 byte, SHA-256
-  `a0e4b9693fbfd2805700f9075f972fb8682f38398548999624fe7f94ce4a2c8c`,
-  plus halaman unduh `public/apk/index.html` (`/apk/index.html`).
-  Sebelumnya 1.4.2 (23) 21.521.724 byte, 1.4.1 (22) 21.521.483 byte,
-  1.4.0 (21) 21.521.436 byte.
+- Distribusi APK, 2026-10-29 (commit `d25ab1d`): paket
+  `public/apk/kiosk-release.apk` **1.4.5 (26)** 21.530.462 byte, SHA-256
+  `adb6af93a49f592f4c4767895605248ed963988d2875b0ff44ebe457c1a338d6`,
+  plus halaman unduh `public/apk/index.html` (`/apk/index.html`) dan
+  `public/apk/latest.json`. Isi patch: blok **NEXT UP** tidak lagi menabrak
+  teks status di panel merah/hijau.
+  Sebelumnya 1.4.4 (25) 21.530.390 byte, 1.4.2 (23) 21.521.724 byte,
+  1.4.1 (22) 21.521.483 byte, 1.4.0 (21) 21.521.436 byte.
 - Status UAT remote 2026-10-27: CMS/APK current aktif; `/api/health`, CMS
   root, `/apk/index.html`, dan APK balas HTTP 200. `TRUST_PROXY=1`,
   `FLOOR_RESTRICTION=true`; database UAT dipertahankan.
