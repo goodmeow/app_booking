@@ -91,7 +91,9 @@
     "onBehalfSearchHint": "Ketik minimal 2 karakter untuk mencari karyawan.",
     "onBehalfSearching": "Mencari karyawan...",
     "onBehalfNoOptions": "Tidak ada karyawan yang cocok.",
-    "floorRoomsEmpty": "Lantai Anda belum punya ruangan yang bisa dipesan. Minta admin menambah ruangan untuk lantai Anda di Manajemen > Ruangan."
+    "floorRoomsEmpty": "Lantai Anda belum punya ruangan yang bisa dipesan. Minta admin menambah ruangan untuk lantai Anda di Manajemen > Ruangan.",
+    "weekdaysLabel": "Hari",
+    "monthlyPatternLabel": "Pola bulanan"
   },
   "validation": {
     "subjectRequired": "Isi judul meeting.",

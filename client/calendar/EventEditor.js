@@ -477,7 +477,7 @@ const EventEditor = ({
               {guidance ? <Alert type="success" showIcon message={guidance} /> : null}
               {readOnly ? <Alert type="info" showIcon message={t("editor.readOnly")} /> : null}
 
-              <EditorField label={t("editor.title")}>
+              <EditorField label={t("editor.title")} required>
                 <Input
                   autoFocus={!editing}
                   value={draft.subject}
@@ -516,7 +516,7 @@ const EventEditor = ({
               />
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <EditorField label={t("editor.startDate")}>
+                <EditorField label={t("editor.startDate")} required>
                   <DatePicker
                     value={draft.startDate ? dayjs(draft.startDate) : null}
                     onChange={(value) => changeValue("startDate")(value ? value.format("YYYY-MM-DD") : "")}
@@ -525,7 +525,7 @@ const EventEditor = ({
                     style={{ width: "100%" }}
                   />
                 </EditorField>
-                <EditorField label={t("editor.startTime")}>
+                <EditorField label={t("editor.startTime")} required>
                   <TimePicker
                     value={draft.startTime ? dayjs(`2000-01-01T${draft.startTime}`) : null}
                     onChange={(value) => changeValue("startTime")(value ? value.format("HH:mm") : "")}
@@ -538,7 +538,7 @@ const EventEditor = ({
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <EditorField label={t("editor.endDate")}>
+                <EditorField label={t("editor.endDate")} required>
                   {!(!editing && draft.bookingKind === "recurring") ? (
                     <DatePicker
                       value={draft.endDate ? dayjs(draft.endDate) : null}
@@ -551,7 +551,7 @@ const EventEditor = ({
                     <Input value={t("editor.endDateFollowsRepeat")} disabled />
                   )}
                 </EditorField>
-                <EditorField label={t("editor.endTime")}>
+                <EditorField label={t("editor.endTime")} required>
                   <TimePicker
                     value={draft.endTime ? dayjs(`2000-01-01T${draft.endTime}`) : null}
                     onChange={(value) => changeValue("endTime")(value ? value.format("HH:mm") : "")}
@@ -565,7 +565,7 @@ const EventEditor = ({
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
                 {!editing ? (
-                  <EditorField label={t("editor.bookingKind")} help={t("editor.bookingKindHelp")}>
+                  <EditorField label={t("editor.bookingKind")} help={t("editor.bookingKindHelp")} required>
                     <Select
                       value={draft.bookingKind}
                       onChange={changeValue("bookingKind")}
@@ -589,7 +589,7 @@ const EventEditor = ({
                     {t("editor.recurrenceTitle")}
                   </Typography.Title>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-                    <EditorField label={t("editor.recurrenceCadence")}>
+                    <EditorField label={t("editor.recurrenceCadence")} required>
                       <Select
                         value={draft.recurrence.cadence}
                         onChange={changeRecurrenceValue("cadence")}
@@ -601,7 +601,7 @@ const EventEditor = ({
                         ]}
                       />
                     </EditorField>
-                    <EditorField label={t("editor.recurrenceInterval")}>
+                    <EditorField label={t("editor.recurrenceInterval")} required>
                       <InputNumber
                         min={1}
                         value={draft.recurrence.interval}
@@ -610,7 +610,7 @@ const EventEditor = ({
                         style={{ width: "100%" }}
                       />
                     </EditorField>
-                    <EditorField label={t("editor.recurrenceEnd")}>
+                    <EditorField label={t("editor.recurrenceEnd")} required>
                       <DatePicker
                         value={draft.recurrence.endDate ? dayjs(draft.recurrence.endDate) : null}
                         onChange={(value) => changeRecurrenceValue("endDate")(value ? value.format("YYYY-MM-DD") : "")}
@@ -622,8 +622,11 @@ const EventEditor = ({
                   </div>
 
                   {draft.recurrence.cadence === "weekly" ? (
-                    <div style={{ marginTop: 12 }}>
-                      <Typography.Text type="secondary">{t("editor.weekdayHelp")}</Typography.Text>
+                    <EditorField
+                      label={t("editor.weekdaysLabel")}
+                      help={t("editor.weekdayHelp")}
+                      required
+                    >
                       <Checkbox.Group
                         value={draft.recurrence.weekdays}
                         disabled={saving}
@@ -640,22 +643,24 @@ const EventEditor = ({
                           setGuidance("");
                         }}
                       />
-                    </div>
+                    </EditorField>
                   ) : null}
 
                   {draft.recurrence.cadence === "monthly" ? (
                     <div style={{ marginTop: 12 }}>
-                      <Radio.Group
-                        value={draft.recurrence.monthlyPattern}
-                        onChange={(event) => changeRecurrenceValue("monthlyPattern")(event.target.value)}
-                        options={[
-                          { value: "date", label: t("editor.monthlyByDate") },
-                          { value: "weekday", label: t("editor.monthlyByWeekday") },
-                        ]}
-                      />
+                      <EditorField label={t("editor.monthlyPatternLabel")} required>
+                        <Radio.Group
+                          value={draft.recurrence.monthlyPattern}
+                          onChange={(event) => changeRecurrenceValue("monthlyPattern")(event.target.value)}
+                          options={[
+                            { value: "date", label: t("editor.monthlyByDate") },
+                            { value: "weekday", label: t("editor.monthlyByWeekday") },
+                          ]}
+                        />
+                      </EditorField>
                       {draft.recurrence.monthlyPattern === "weekday" ? (
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 12 }}>
-                          <EditorField label={t("editor.monthWeekLabel")}>
+                          <EditorField label={t("editor.monthWeekLabel")} required>
                             <Select
                               value={draft.recurrence.monthWeekIndex}
                               onChange={changeRecurrenceValue("monthWeekIndex")}
@@ -669,7 +674,7 @@ const EventEditor = ({
                               ]}
                             />
                           </EditorField>
-                          <EditorField label={t("editor.monthWeekdayLabel")}>
+                          <EditorField label={t("editor.monthWeekdayLabel")} required>
                             <Select
                               value={draft.recurrence.monthWeekday}
                               onChange={changeRecurrenceValue("monthWeekday")}
@@ -689,7 +694,7 @@ const EventEditor = ({
               ) : null}
 
               {editing && recurringEvent && !readOnly ? (
-                <EditorField label={t("editor.scopeTitle")} help={t("editor.scopeHelp")}>
+                <EditorField label={t("editor.scopeTitle")} help={t("editor.scopeHelp")} required>
                   <Radio.Group
                     value={draft.scope}
                     onChange={(event) => changeValue("scope")(event.target.value)}

@@ -91,7 +91,9 @@
     "onBehalfSearchHint": "Type at least 2 characters to search employees.",
     "onBehalfSearching": "Searching employees...",
     "onBehalfNoOptions": "No employee matches this search.",
-    "floorRoomsEmpty": "Your floor has no bookable rooms yet. Ask an admin to add rooms for your floor in Management > Rooms."
+    "floorRoomsEmpty": "Your floor has no bookable rooms yet. Ask an admin to add rooms for your floor in Management > Rooms.",
+    "weekdaysLabel": "Days",
+    "monthlyPatternLabel": "Monthly pattern"
   },
   "validation": {
     "subjectRequired": "Enter a meeting title.",
