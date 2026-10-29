@@ -345,6 +345,7 @@ const projectCalendarEvent = (row, principal) => {
     created_at: row.created_at,
     checked_in: row.checked_in,
     late_threshold: row.late_threshold,
+    room_floors: Array.isArray(row.room_floors) ? row.room_floors : [],
     timezone: row.timezone,
     series_id: row.series_id,
     occurrence_index: row.occurrence_index,

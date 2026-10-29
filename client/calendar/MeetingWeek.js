@@ -118,6 +118,7 @@ const MeetingAgenda = ({ events, selectedDate, locale, onEventClick }) => {
               const title = event.title || t("calendar.untitled");
               const cues = cueLinesFor(event, locale, t);
               const multiDay = calendarEventCueFlags(event).multiDay;
+              const floors = [...new Set(Array.isArray(event.room_floors) ? event.room_floors : [])].filter(Boolean);
               return (
                 <Card
                   key={`${event.id}-${event.start}`}
@@ -126,32 +127,42 @@ const MeetingAgenda = ({ events, selectedDate, locale, onEventClick }) => {
                   onClick={busy ? undefined : () => onEventClick?.(event)}
                   style={{ cursor: busy ? "default" : "pointer", opacity: busy ? 0.85 : 1 }}
                 >
-                  {multiDay ? (
-                    <Typography.Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
-                      {agendaDateCue(event.start, event.end, locale)}
-                    </Typography.Text>
-                  ) : null}
-                  <Space wrap size="small" align="baseline">
-                    {!busy ? (
-                      <Typography.Text strong style={{ minWidth: 110, display: "inline-block" }}>
-                        {formatMeetingTimeRange(event.start, event.end, locale)}
-                      </Typography.Text>
-                    ) : null}
-                    <Typography.Text strong={busy}>{title}</Typography.Text>
-                  </Space>
-                  {(Array.isArray(event.room_floors) && event.room_floors.length) || event.checked_in ? (
-                    <Space wrap size={4} style={{ marginTop: 8 }}>
-                      {[...new Set(event.room_floors || [])].filter(Boolean).map((floor) => (
-                        <Tag key={floor}>{floorTagLabel(floor, t)}</Tag>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      {multiDay ? (
+                        <Typography.Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+                          {agendaDateCue(event.start, event.end, locale)}
+                        </Typography.Text>
+                      ) : null}
+                      <Space wrap size="small" align="baseline">
+                        {!busy ? (
+                          <Typography.Text strong style={{ minWidth: 110, display: "inline-block" }}>
+                            {formatMeetingTimeRange(event.start, event.end, locale)}
+                          </Typography.Text>
+                        ) : null}
+                        <Typography.Text strong={busy}>{title}</Typography.Text>
+                      </Space>
+                      {event.checked_in ? (
+                        <div style={{ marginTop: 8 }}>
+                          <Tag color="green">✓ {t("calendar.checkedIn")}</Tag>
+                        </div>
+                      ) : null}
+                      {cues.map((cue) => (
+                        <Typography.Text key={cue} type="secondary" style={{ display: "block", marginTop: 4 }}>
+                          {cue}
+                        </Typography.Text>
                       ))}
-                      {event.checked_in ? <Tag color="green">✓ {t("calendar.checkedIn")}</Tag> : null}
-                    </Space>
-                  ) : null}
-                  {cues.map((cue) => (
-                    <Typography.Text key={cue} type="secondary" style={{ display: "block", marginTop: 4 }}>
-                      {cue}
-                    </Typography.Text>
-                  ))}
+                    </div>
+                    {floors.length ? (
+                      <Space direction="vertical" size={4} align="end" style={{ flexShrink: 0 }}>
+                        {floors.map((floor) => (
+                          <Tag key={floor} style={{ marginInlineEnd: 0 }}>
+                            {floorTagLabel(floor, t)}
+                          </Tag>
+                        ))}
+                      </Space>
+                    ) : null}
+                  </div>
                 </Card>
               );
             })}
