@@ -1,6 +1,6 @@
 // Direct runtime libraries and bundled fonts. Transitive dependencies are
 // covered by their parent packages; the source link is kept for the full text.
-export const KIOSK_APP_VERSION = "1.4.4 (25)";
+export const KIOSK_APP_VERSION = "1.4.5 (26)";
 
 export const CMS_LIBRARIES = [
   { name: "@ant-design/icons", version: "5.6.1", license: "MIT", url: "https://ant.design/components/icon" },

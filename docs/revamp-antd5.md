@@ -20,17 +20,17 @@ Tanggal: 2026-10-29.
 - Visual boleh berubah; fungsi, izin, alur, dan API harus tetap sama.
 - React tetap **17.0.2**; AntD 5 mendukung React >=16.9.
 - APK kiosk React Native **tidak disentuh** dalam revamp ini.
-- **APK stays**: tetap `1.4.4 (25)`, tidak ada update APK, tidak ada bump
-  `versionCode`, dan tidak ada perubahan `public/apk/latest.json`.
+- Revamp CMS tidak mengubah APK. Perbaikan layout APK dilakukan terpisah
+  sebagai `1.4.5 (26)`; manifest dan paket distribusi ikut diperbarui.
 - Upgrade React Native ditunda; dibahas terpisah setelah revamp CMS.
 - Migrasi bertahap; MUI dan AntD boleh hidup berdampingan sementara.
 
 ## Batas APK kiosk
 
 - APK kiosk **tidak diupdate** selama revamp CMS.
-- Versi tetap `1.4.4` dengan `versionCode 25`.
+- Versi revamp awal tetap `1.4.4 (25)`; patch layout terpisah menjadi `1.4.5 (26)`.
 - Tidak ada perubahan pada `kioskapp/`, APK distribusi, atau manifest update.
-- Kontrak API CMS harus tetap kompatibel dengan APK 1.4.4.
+- Kontrak API CMS harus tetap kompatibel dengan APK 1.4.4/1.4.5.
 - Android 8.1 masih memenuhi `minSdk 24` untuk RN baru, tetapi upgrade RN
   bukan bagian dari pekerjaan ini. Catatan risetnya disimpan terpisah agar
   tidak tercampur dengan revamp UI.
@@ -231,7 +231,7 @@ MUI icons              -> @ant-design/icons
 
 - [ ] UAT lokal final: login/setup, kalender + booking, users, rooms/devices,
   settings/branding/role/audit, report/export, web `/kiosk`.
-- [ ] Smoke test APK 1.4.4 terhadap CMS baru: pairing, schedule, check-in,
+- [ ] Smoke test APK 1.4.5 terhadap CMS baru: pairing, schedule, check-in,
   extend, NFC/LED.
 - [ ] Merge `revamp/antd5` ke `master` dan push.
 - [ ] Bump/tag rilis CMS setelah merge (saat ini `3.12.1`, belum ada tag revamp).
@@ -241,7 +241,7 @@ MUI icons              -> @ant-design/icons
 ### Ditunda
 
 - [ ] Bulk atomic grant/revoke master card — butuh endpoint baru.
-- [ ] Upgrade React Native / APK — APK tetap 1.4.4.
+- [ ] Upgrade React Native tetap ditunda; APK saat ini 1.4.5.
 - [ ] ESLint 10, Babel target `node 14` -> Node 22, hapus `moment`,
   `react-router`, `terser*`, `body-parser`.
 - [ ] Screenshot/visual parity final.
@@ -298,3 +298,4 @@ baris baru di bawah.
 | 2026-10-29 | Layout | Footer selalu terlihat: WebRouter jadi flex column, konten scroll di tengah, footer flex-shrink 0 | `client/MainRouter.js`, `client/core/VersionFooter.js`, `client/auth/*` | build client OK, 96/96 test |
 | 2026-10-29 | Copy | Label “Admin Panel” menjadi “CMS”; caption sign-in disederhanakan | `client/locales/en/*`, `client/locales/id/*` | build client OK, 96/96 test |
 | 2026-10-29 | Plan | Catat sisa pekerjaan revamp, merge, rilis, test, dan item ditunda | `docs/revamp-antd5.md` | review manual |
+| 2026-10-29 | APK fix | APK 1.4.5 (26): perbaiki NEXT UP overlap di panel merah/hijau; publish manifest dan paket | `kioskapp/src/components/kiosk-styles.ts`, `KioskStatusPanel.tsx`, `public/apk/*`, `client/domain/licenses.js` | build APK OK, typecheck OK, unit 21/21 |
