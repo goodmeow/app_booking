@@ -5,6 +5,7 @@ import {
   Checkbox,
   DatePicker,
   Divider,
+  Form,
   Input,
   InputNumber,
   Modal,
@@ -64,11 +65,9 @@ const safeDecode = (value) => {
 };
 
 const EditorField = ({ label, help, children }) => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-    <Typography.Text strong>{label}</Typography.Text>
+  <Form.Item label={label} help={help} style={{ marginBottom: 0 }}>
     {children}
-    {help ? <Typography.Text type="secondary">{help}</Typography.Text> : null}
-  </div>
+  </Form.Item>
 );
 
 const emailOf = (value) => typeof value === "string" ? value : value?.email || value?.attendee_email || "";
@@ -472,6 +471,7 @@ const EventEditor = ({
         ) : null}
         {(!editing || details.data || (!details.isFetching && !details.isError)) ? (
           <form id="event-editor-form" onSubmit={submit}>
+            <Form component={false} layout="vertical">
             <Space direction="vertical" size="middle" style={{ width: "100%", marginTop: 8 }}>
               {error ? <Alert type="error" showIcon message={error} /> : null}
               {guidance ? <Alert type="success" showIcon message={guidance} /> : null}
@@ -767,6 +767,7 @@ const EventEditor = ({
                 />
               </EditorField>
             </Space>
+            </Form>
           </form>
         ) : null}
       </Modal>

@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import { Alert, Button, Modal, Select, Space, Typography } from "antd";
+import React, { useState } from "react";
+import { Alert, Button, Modal, Select, Space, Typography, Upload } from "antd";
 import { useTranslation } from "react-i18next";
 import { getApiError } from "../../domain/api-error.js";
 import { parseUserCsv } from "../../domain/users/user-import-csv.js";
@@ -15,7 +15,6 @@ const UserImportDialog = ({ open, onClose, onImported }) => {
   const [mode, setMode] = useState("skip");
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
-  const fileInputRef = useRef(null);
 
   const reset = () => {
     setRows([]);
@@ -31,9 +30,7 @@ const UserImportDialog = ({ open, onClose, onImported }) => {
     onClose?.();
   };
 
-  const pickFile = async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
+  const pickFile = async (file) => {
     setError("");
     setResult(null);
     if (!file) return;
@@ -85,16 +82,19 @@ const UserImportDialog = ({ open, onClose, onImported }) => {
       <Space direction="vertical" size="middle" style={{ width: "100%", marginTop: 8 }}>
         <Typography.Text type="secondary">{t("users.importHelp")}</Typography.Text>
         <Typography.Text code>{TEMPLATE}</Typography.Text>
-        <input
-          ref={fileInputRef}
-          type="file"
+        <Upload
           accept=".csv,text/csv"
-          style={{ display: "none" }}
-          onChange={pickFile}
-        />
-        <Button disabled={isLoading} onClick={() => fileInputRef.current?.click()}>
-          {fileName || t("users.importChoose")}
-        </Button>
+          showUploadList={false}
+          disabled={isLoading}
+          beforeUpload={(file) => {
+            void pickFile(file);
+            return false;
+          }}
+        >
+          <Button disabled={isLoading}>
+            {fileName || t("users.importChoose")}
+          </Button>
+        </Upload>
         {rows.length ? <Alert type="info" showIcon message={t("users.importRows", { count: rows.length })} /> : null}
         <div>
           <Typography.Text>{t("users.importMode")}</Typography.Text>
