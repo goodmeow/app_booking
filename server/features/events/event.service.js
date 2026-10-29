@@ -77,7 +77,7 @@ const normalizedCreate = (body) => {
       start: first.start_date,
       end: first.end_date,
       timezone: first.timezone || config.appTimezone,
-      attendeeEmails: unique(body.map((item) => item.attendee_email)),
+      attendeeEmails: unique(body.map((item) => item?.attendee_email)),
       organizerEmail: null,
     };
   }

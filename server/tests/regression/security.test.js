@@ -89,6 +89,14 @@ test("malformed participant identifiers do not crash PostgreSQL", async () => {
   });
   assert.equal(response.status, 400);
   assert.equal(response.body.code, "ROOM_REQUIRED");
+
+  const nullParticipant = await apiRequest(targets.reconstructed, "/api/events", {
+    method: "POST",
+    headers: bearer("admin"),
+    body: JSON.stringify([null]),
+  });
+  assert.equal(nullParticipant.status, 400);
+  assert.equal(nullParticipant.body.code, "INVALID_EVENT");
 });
 
 test("personal schedule identity cannot be selected through query parameters", async () => {
