@@ -1,7 +1,7 @@
 # Audit `floor` produksi (dari snapshot vault)
 
 Sumber: `nauchara/DATABASE.md` (snapshot **2026-10-21**, diambil read-only dari
-produksi `192.0.2.3`), `nauchara/CORE-SERVICE.md`, dan
+produksi `<ip-server>`), `nauchara/CORE-SERVICE.md`, dan
 `nauchara/360Booking-ARCHITECTURE.md`. Tidak ada query baru ke produksi pada
 audit ini.
 
