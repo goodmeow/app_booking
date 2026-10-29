@@ -60,8 +60,14 @@ const validateHeader = ({ subject, start, end, timezone }) => {
 };
 
 const normalizedCreate = (body) => {
+  if (body == null || typeof body !== "object") {
+    throw badRequest("INVALID_EVENT", "Event payload must be an object or a non-empty array");
+  }
+  const asArray = (value) => (Array.isArray(value) ? value : []);
   if (Array.isArray(body)) {
-    if (!body.length) throw badRequest("INVALID_EVENT", "Event payload cannot be empty");
+    if (!body.length || !body[0] || typeof body[0] !== "object") {
+      throw badRequest("INVALID_EVENT", "Event payload cannot be empty");
+    }
     const first = body[0];
     return {
       legacy: true,
@@ -83,9 +89,9 @@ const normalizedCreate = (body) => {
     start: body.start || body.start_date,
     end: body.end || body.end_date,
     timezone: body.timezone || config.appTimezone,
-    roomIds: unique([body.roomId, ...(body.roomIds || [])]),
-    attendeeIds: unique(body.attendeeIds || []),
-    visitorEmails: unique(body.visitorEmails || []),
+    roomIds: unique([body.roomId, ...asArray(body.roomIds)]),
+    attendeeIds: unique(asArray(body.attendeeIds)),
+    visitorEmails: unique(asArray(body.visitorEmails)),
     organizerEmail: body.organizer_email,
     recurrence: body.recurrence,
   };
@@ -358,7 +364,10 @@ export const listEvents = async (queryParams, principal) => {
   const room = queryParams.rooms ? await findActiveRoom(queryParams.rooms) : null;
   if (queryParams.rooms && !room) throw notFound("Room not found");
   const range = calendarRange(queryParams.start, queryParams.end, config.appTimezone);
-  const floorSchedule = isReceptionistRole(principal.role) || queryParams.floor === "true";
+  // Floor-wide details are a receptionist capability. Honouring a public
+  // `floor=true` query for everyone let an ordinary employee read the subject
+  // and description of every meeting on their floor.
+  const floorSchedule = isReceptionistRole(principal.role);
   const floors = floorSchedule ? effectiveFloors(principal) : [];
   const rows = await listEventsForPrincipal({
     principalId: principal._id,
@@ -438,7 +447,7 @@ const participantsForUpdate = async (body, eventId) => {
   if (Array.isArray(body.attendees)) {
     const request = {
       legacy: true,
-      attendeeEmails: unique(body.attendees.map((item) => item.attendee_email)),
+      attendeeEmails: unique(body.attendees.map((item) => item?.attendee_email)),
     };
     return resolveParticipants(request);
   }
@@ -446,6 +455,7 @@ const participantsForUpdate = async (body, eventId) => {
 };
 
 export const updateEvents = async (body, principal) => {
+  body = body || {};
   const eventId = body.id || body.eventId;
   const access = await findEventAccess(eventId, principal._id);
   if (!access) throw notFound("Event not found");

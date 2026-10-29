@@ -62,6 +62,20 @@ export const update = run(async (req, res) => {
   if (typeof req.body.self_signup_enabled !== "boolean") {
     throw badRequest("INVALID_SETTINGS", "self_signup_enabled must be a boolean");
   }
+  if (typeof req.body.table_input !== "boolean") {
+    throw badRequest("INVALID_SETTINGS", "table_input must be a boolean");
+  }
+  for (const field of ["lock_timer", "led_timer", "not_checked_in_time_limit", "time_of_event_start_soon"]) {
+    const value = Number(req.body[field]);
+    if (!Number.isInteger(value) || value <= 0) {
+      throw badRequest("INVALID_SETTINGS", `${field} must be a positive integer`);
+    }
+  }
+  for (const field of ["available_color", "will_start_color", "on_meeting_color"]) {
+    if (typeof req.body[field] !== "string" || !req.body[field].trim()) {
+      throw badRequest("INVALID_SETTINGS", `${field} must be a non-empty string`);
+    }
+  }
   const weekStartDay = Number(req.body.week_start_day);
   if (!Number.isInteger(weekStartDay) || weekStartDay < 0 || weekStartDay > 6) {
     throw badRequest("INVALID_SETTINGS", "week_start_day must be an integer from 0 to 6");

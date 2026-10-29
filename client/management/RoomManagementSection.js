@@ -15,7 +15,7 @@ import {
 import { useChangePasswordMutation } from "../redux/services/users.js";
 import { useGetKioskDevicesQuery } from "../redux/services/kiosk-devices.js";
 import RoomFormDialog from "./rooms/RoomFormDialog.js";
-import { buildRoomColumns } from "./rooms/room-columns.js";
+import { buildRoomColumns, devicesByRoom } from "./rooms/room-columns.js";
 
 const emptyForm = {
   name: "",
@@ -31,11 +31,7 @@ const RoomManagementSection = () => {
   const { t } = useTranslation(["management", "common"]);
   const rooms = useGetRoomsQuery();
   const devicesQuery = useGetKioskDevicesQuery(undefined, { pollingInterval: 15000 });
-  const deviceByRoom = useMemo(() => {
-    const map = new Map();
-    (devicesQuery.data || []).forEach((device) => map.set(String(device.roomId), device));
-    return map;
-  }, [devicesQuery.data]);
+  const deviceByRoom = useMemo(() => devicesByRoom(devicesQuery.data), [devicesQuery.data]);
   const [storeRoom, storeState] = useStoreRoomMutation();
   const [updateRoom, updateState] = useUpdateRoomMutation();
   const [deleteRoom, deleteState] = useDeleteRoomByIdMutation();

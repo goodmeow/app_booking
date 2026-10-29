@@ -12,6 +12,13 @@ app.set("trust proxy", config.trustProxy);
 
 app.use(bodyParser.json({ limit: "1mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "1mb" }));
+// A request without a body must reach the controllers as an empty object, not
+// as undefined; otherwise the first property read becomes a 500 instead of a
+// normal validation error.
+app.use((req, res, next) => {
+  if (req.body == null) req.body = {};
+  next();
+});
 app.use(compression());
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(requestTelemetry);

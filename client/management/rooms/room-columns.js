@@ -10,6 +10,21 @@ const tabletTag = (device, t) => {
     : <Tag>{t("rooms.tabletOffline")}</Tag>;
 };
 
+// A room can have old revoked devices plus one active tablet. The list is
+// ordered with active devices first, but a plain Map.set() would let the later
+// revoked row overwrite it, so keep the first non-revoked device.
+export const devicesByRoom = (devices = []) => {
+  const map = new Map();
+  for (const device of Array.isArray(devices) ? devices : []) {
+    const key = String(device.roomId);
+    const current = map.get(key);
+    if (!current || (current.status === "revoked" && device.status !== "revoked")) {
+      map.set(key, device);
+    }
+  }
+  return map;
+};
+
 // Column definitions for the Rooms table. `deviceByRoom` maps a room id to its
 // paired tablet, so the tablet column stays a pure lookup.
 export const buildRoomColumns = ({

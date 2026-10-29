@@ -1,4 +1,5 @@
 import { query } from "../../db/pool.js";
+import { isUuid } from "../../lib/uuid.js";
 
 const kioskRoomColumns = `
   u._id, u.name, u.email, u.password, u.type,
@@ -27,7 +28,9 @@ export const createKioskDevice = async ({ roomId, name, refreshTokenHash, refres
   [roomId, name, refreshTokenHash, refreshExpiresAt]
 )).rows[0];
 
-export const findActiveKioskDeviceById = async (deviceId) => (await query(
+export const findActiveKioskDeviceById = async (deviceId) => {
+  if (!isUuid(deviceId)) return null;
+  return (await query(
   `SELECT ${kioskDeviceColumns}
    FROM tbl_kiosk_devices d
    JOIN tbl_users u ON u._id = d.room_id
@@ -38,6 +41,7 @@ export const findActiveKioskDeviceById = async (deviceId) => (await query(
    LIMIT 1`,
   [deviceId]
 )).rows[0] || null;
+};
 
 export const rotateKioskRefreshToken = async ({ refreshTokenHash, nextHash, refreshExpiresAt }) => {
   const rotated = (await query(
@@ -79,7 +83,9 @@ export const rotateKioskRefreshToken = async ({ refreshTokenHash, nextHash, refr
   )).rows[0] || null;
 };
 
-export const revokeKioskDevice = async (deviceId, revokedBy = null) => (await query(
+export const revokeKioskDevice = async (deviceId, revokedBy = null) => {
+  if (!isUuid(deviceId)) return null;
+  return (await query(
   `UPDATE tbl_kiosk_devices
    SET revoked_at = now(),
        revoked_by = $2,
@@ -89,6 +95,7 @@ export const revokeKioskDevice = async (deviceId, revokedBy = null) => (await qu
    RETURNING _id AS device_id, room_id`,
   [deviceId, revokedBy]
 )).rows[0] || null;
+};
 
 export const revokeRoomKioskDevices = async (roomId, revokedBy = null, execute = query) => (await execute(
   `UPDATE tbl_kiosk_devices
@@ -101,7 +108,9 @@ export const revokeRoomKioskDevices = async (roomId, revokedBy = null, execute =
   [roomId, revokedBy]
 )).rows;
 
-export const listKioskDevices = async (roomId = null) => (await query(
+export const listKioskDevices = async (roomId = null) => {
+  if (roomId && !isUuid(roomId)) return [];
+  return (await query(
   `SELECT
      d._id AS device_id, d.room_id, d.name AS device_name,
      d.refresh_expires_at, d.last_seen_at, d.revoked_at,
@@ -114,8 +123,11 @@ export const listKioskDevices = async (roomId = null) => (await query(
    ORDER BY d.revoked_at NULLS FIRST, d.last_seen_at DESC NULLS LAST, d.created_at DESC`,
   [roomId || null]
 )).rows;
+};
 
-export const updateKioskDeviceCapabilities = async ({ deviceId, nfcEnabled = null, ledEnabled = null, showSubject = null }) => (await query(
+export const updateKioskDeviceCapabilities = async ({ deviceId, nfcEnabled = null, ledEnabled = null, showSubject = null }) => {
+  if (!isUuid(deviceId)) return null;
+  return (await query(
   `WITH updated AS (
      UPDATE tbl_kiosk_devices
      SET nfc_enabled = COALESCE($2::boolean, nfc_enabled),
@@ -130,6 +142,7 @@ export const updateKioskDeviceCapabilities = async ({ deviceId, nfcEnabled = nul
    JOIN tbl_users u ON u._id = d.room_id`,
   [deviceId, nfcEnabled, ledEnabled, showSubject]
 )).rows[0] || null;
+};
 
 export const findKioskRoomByLogin = async (login) => (await query(
   `SELECT ${kioskRoomColumns}

@@ -35,13 +35,17 @@ export const findAccountsByEmails = async (emails, client = { query }) => {
 };
 
 export const findAccountsByIds = async (ids, client = { query }) => {
-  if (!ids.length) return [];
+  // The request body supplies these IDs. Filter malformed values before the
+  // uuid[] cast so a bad participant ID becomes a 400 in the service instead of
+  // a PostgreSQL 22P02 that surfaces as a 500.
+  const validIds = (Array.isArray(ids) ? ids : []).filter(isUuid);
+  if (!validIds.length) return [];
   return (await client.query(
     `SELECT _id, name, email, type
      FROM tbl_users
      WHERE _id = ANY($1::uuid[])
        AND is_deleted IS NOT TRUE`,
-    [ids]
+    [validIds]
   )).rows;
 };
 

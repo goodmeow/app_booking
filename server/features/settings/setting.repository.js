@@ -1,4 +1,5 @@
 import { query } from "../../db/pool.js";
+import { isUuid } from "../../lib/uuid.js";
 
 export const getSettings = async (execute = query) => (await execute(
   `SELECT _id, lock_timer, led_timer, table_input, not_checked_in_time_limit,
@@ -16,7 +17,9 @@ export const getSelfSignupEnabled = async () => (await query(
    LIMIT 1`
 )).rows[0]?.self_signup_enabled === true;
 
-export const updateSettings = async (id, values, execute = query) => (await execute(
+export const updateSettings = async (id, values, execute = query) => {
+  if (!isUuid(id)) return null;
+  return (await execute(
   `UPDATE tbl_app_settings
    SET lock_timer = $2,
        led_timer = $3,
@@ -37,6 +40,7 @@ export const updateSettings = async (id, values, execute = query) => (await exec
    RETURNING _id`,
   [id, values.lock_timer, values.led_timer, values.table_input, values.not_checked_in_time_limit, values.time_of_event_start_soon, values.available_color, values.will_start_color, values.on_meeting_color, values.self_signup_enabled, values.week_start_day, values.backup_enabled, values.backup_path, values.backup_time, values.backup_retention_days]
 )).rows[0] || null;
+};
 
 export const listCards = async (cardNumber) => (await query(
   `SELECT
@@ -57,15 +61,21 @@ export const insertCard = async (cardNumber, principalId, execute = query) => (a
   [cardNumber, principalId]
 )).rows[0];
 
-export const updateCard = async (id, cardNumber, principalId, execute = query) => (await execute(
+export const updateCard = async (id, cardNumber, principalId, execute = query) => {
+  if (!isUuid(id)) return null;
+  return (await execute(
   `UPDATE tbl_card_masters
    SET card_number = $2, updated_by = $3, updated_at = now()
    WHERE _id = $1
    RETURNING _id, card_number, updated_at`,
   [id, cardNumber, principalId]
 )).rows[0] || null;
+};
 
-export const deleteCard = async (id, execute = query) => (await execute(
-  `DELETE FROM tbl_card_masters WHERE _id = $1 RETURNING _id`,
-  [id]
-)).rows[0] || null;
+export const deleteCard = async (id, execute = query) => {
+  if (!isUuid(id)) return null;
+  return (await execute(
+    `DELETE FROM tbl_card_masters WHERE _id = $1 RETURNING _id`,
+    [id]
+  )).rows[0] || null;
+};

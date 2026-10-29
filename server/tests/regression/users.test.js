@@ -65,6 +65,43 @@ test("admin keeps the employee card in the user list and can flag it as master",
   );
 });
 
+test("a lost card cannot be put back on the master list through profile edit", async () => {
+  const created = await apiRequest(targets.reconstructed, "/api/users/", {
+    method: "POST",
+    headers: bearer("admin"),
+    body: JSON.stringify({
+      name: "Lost Master",
+      email: "lost.master@example.test",
+      employee_id: "EMP-LOST-MASTER",
+      password: "Petugas123!",
+      card_number: "555000112",
+      roleId: userRoleId,
+    }),
+  });
+  assert.equal(created.status, 201);
+  const userId = created.body._id;
+  const cardId = created.body.cards[0].id;
+
+  const lost = await apiRequest(targets.reconstructed, `/api/users/${userId}/cards/${cardId}`, {
+    method: "PATCH",
+    headers: bearer("admin"),
+    body: JSON.stringify({ status: "lost" }),
+  });
+  assert.equal(lost.status, 200);
+
+  const reflag = await apiRequest(targets.reconstructed, `/api/users/${userId}`, {
+    method: "PUT",
+    headers: bearer("admin"),
+    body: JSON.stringify({ card_number: "555000112", master_card: true }),
+  });
+  assert.equal(reflag.status, 400);
+  assert.equal(reflag.body.code, "INVALID_CARD");
+  assert.equal(
+    await queryParityDatabase("SELECT count(*) FROM tbl_card_masters WHERE card_number = '555000112';"),
+    "0"
+  );
+});
+
 test("a non-admin cannot flag a card as master", async () => {
   const response = await apiRequest(targets.reconstructed, `/api/users/${"20000000-0000-4000-8000-000000000002"}`, {
     method: "PUT",
