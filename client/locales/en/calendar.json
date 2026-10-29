@@ -118,7 +118,7 @@
     "agenda": "Agenda",
     "navigation": "Calendar navigation",
     "viewMode": "Calendar view",
-    "refreshTitle": "Schedule data",
+    "refreshTitle": "Schedule",
     "noMeetings": "No meetings in this range.",
     "untitled": "Untitled meeting",
     "roomsLoadError": "Unable to load rooms.",
