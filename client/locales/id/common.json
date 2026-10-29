@@ -4,7 +4,7 @@
     "descriptor": "Penjadwal rapat The Prasada",
     "documentTitle": "RoomBooking — The Prasada",
     "kiosk": "RoomBooking · Kiosk Ruangan",
-    "adminPanel": "Panel admin ruang meeting",
+    "adminPanel": "CMS",
     "footer": "RoomBooking CMS v{{version}}"
   },
   "language": {

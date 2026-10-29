@@ -4,7 +4,7 @@
     "descriptor": "The Prasada meeting scheduler",
     "documentTitle": "RoomBooking — The Prasada",
     "kiosk": "RoomBooking · Room Kiosk",
-    "adminPanel": "Room meeting admin panel",
+    "adminPanel": "CMS",
     "footer": "RoomBooking CMS v{{version}}"
   },
   "language": {
