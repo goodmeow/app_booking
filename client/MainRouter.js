@@ -88,23 +88,25 @@ const WebChrome = () => {
 };
 
 const WebRouter = () => (
-  <>
-    <WebChrome />
-    <SetupGate>
-      <Switch>
-        <Route path="/setup" component={SetupRoute} />
-        <Route path="/signup" component={Signup} />
-        <Route path="/signin" component={Signin} />
-        <ProtectedRoute path="/app-management" anyOf={MANAGEMENT_MENUS} component={AppManagement} />
-        <ProtectedRoute path="/report" anyOf={["report"]} component={RoomUsageReport} />
-        <ProtectedRoute path="/user/:userId" component={UserProfile} />
-        <ProtectedRoute exact path="/" component={HomeRoute} />
-        <Route component={NotFound} />
-      </Switch>
-    </SetupGate>
+  <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+      <WebChrome />
+      <SetupGate>
+        <Switch>
+          <Route path="/setup" component={SetupRoute} />
+          <Route path="/signup" component={Signup} />
+          <Route path="/signin" component={Signin} />
+          <ProtectedRoute path="/app-management" anyOf={MANAGEMENT_MENUS} component={AppManagement} />
+          <ProtectedRoute path="/report" anyOf={["report"]} component={RoomUsageReport} />
+          <ProtectedRoute path="/user/:userId" component={UserProfile} />
+          <ProtectedRoute exact path="/" component={HomeRoute} />
+          <Route component={NotFound} />
+        </Switch>
+      </SetupGate>
+    </div>
     {/* The CMS version number is shown on every web page: Ver.Rev from package.json. */}
     <VersionFooter />
-  </>
+  </div>
 );
 
 const MainRouter = () => (

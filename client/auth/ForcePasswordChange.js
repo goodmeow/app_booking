@@ -57,7 +57,7 @@ const ForcePasswordChange = () => {
   const logout = () => signout(() => window.location.assign("/signin"));
 
   return (
-    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 16 }}>
+    <div style={{ minHeight: "100%", display: "grid", placeItems: "center", padding: 16 }}>
       <Card style={{ width: "100%", maxWidth: 460 }}>
         <img
           src={brandAsset(branding, "mark")}

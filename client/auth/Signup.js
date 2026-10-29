@@ -41,7 +41,7 @@ const Signup = () => {
   if (!publicSettings?.self_signup_enabled) return <Redirect to="/signin" />;
 
   return (
-    <div style={{ minHeight: "calc(100vh - 64px)", display: "grid", placeItems: "center", padding: 16 }}>
+    <div style={{ minHeight: "100%", display: "grid", placeItems: "center", padding: 16 }}>
       <Card style={{ width: "100%", maxWidth: 420 }}>
         <img
           src={brandAsset(branding, "mark")}

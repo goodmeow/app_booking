@@ -11,6 +11,7 @@ const VersionFooter = () => {
   return (
     <footer
       style={{
+        flexShrink: 0,
         padding: "16px 24px",
         display: "flex",
         alignItems: "flex-end",

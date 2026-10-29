@@ -58,7 +58,7 @@ export const SetupRoute = () => {
 
   if (isError) {
     return (
-      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24 }}>
+      <div style={{ minHeight: "100%", display: "grid", placeItems: "center", padding: 24 }}>
         <Alert
           type="error"
           showIcon
