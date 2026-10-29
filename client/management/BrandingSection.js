@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Button, Divider, Input, Space, Typography, Upload } from "antd";
+import { Alert, Button, Divider, Input, Space, Typography, Upload, theme } from "antd";
 import { useTranslation } from "react-i18next";
 import { getApiError } from "../domain/api-error.js";
 import {
@@ -27,6 +27,7 @@ const fileToDataUrl = (file) => new Promise((resolve, reject) => {
 
 const BrandingSection = () => {
   const { t } = useTranslation("management");
+  const { token } = theme.useToken();
   const { data: branding, isLoading } = useGetBrandingQuery();
   const [updateBranding, { isLoading: saving }] = useUpdateBrandingMutation();
   const [uploadAsset, { isLoading: uploading }] = useUploadBrandAssetMutation();
@@ -130,7 +131,7 @@ const BrandingSection = () => {
                   width: "auto",
                   maxWidth: 240,
                   objectFit: "contain",
-                  background: "#171E26",
+                  background: token.colorBgContainer,
                   padding: 4,
                 }}
               />

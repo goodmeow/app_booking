@@ -278,11 +278,11 @@
   "branding": {
     "tab": "Branding",
     "title": "Global branding",
-    "description": "Change the name, tab title, icon, The Prasada logo, and favicon without a rebuild.",
+    "description": "Change the name, tab title, icon, logo, and favicon without a rebuild.",
     "name": "Brand name",
     "documentTitle": "Browser tab title",
     "mark": "Icon",
-    "wordmark": "The Prasada logo",
+    "wordmark": "Logo",
     "favicon": "Favicon",
     "upload": "Upload image",
     "reset": "Reset to default",

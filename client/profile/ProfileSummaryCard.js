@@ -1,5 +1,5 @@
 import React from "react";
-import { Avatar, Button, Divider, Space, Typography } from "antd";
+import { Avatar, Button, Divider, Space, Typography, theme } from "antd";
 import { EditOutlined, KeyOutlined, UserOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { formatJoinedDate } from "../domain/profile.js";
@@ -10,10 +10,11 @@ import { normalizeLanguage } from "../i18n/languages.js";
 const ProfileSummaryCard = ({ user, isOwner, onEdit, onChangePassword }) => {
   const { i18n, t } = useTranslation(["auth", "common"]);
   const language = normalizeLanguage(i18n.resolvedLanguage || i18n.language);
+  const { token } = theme.useToken();
 
   return (
     <Space direction="vertical" size="large" align="center" style={{ width: "100%" }}>
-      <Avatar size={88} icon={<UserOutlined />} style={{ background: "#2FB46A", color: "#0A1F14" }} />
+      <Avatar size={88} icon={<UserOutlined />} style={{ background: token.colorPrimary, color: token.colorTextLightSolid }} />
       <div style={{ textAlign: "center" }}>
         <Typography.Title level={3} style={{ marginBottom: 0 }}>
           {user?.name || t("common:states.unknown")}

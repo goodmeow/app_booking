@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Button, Card, Input, Modal, Space, Spin, Tag, Typography } from "antd";
+import { Alert, Button, Card, ConfigProvider, Input, Modal, Space, Spin, Tag, Typography } from "antd";
 import { io } from "socket.io-client";
 import { useHistory } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -15,6 +15,7 @@ import {
 } from "./kiosk-api.js";
 import { clearKioskSession, readKioskSession, saveKioskSession } from "./kiosk-session.js";
 import { deriveKioskState, formatKioskDate, formatKioskTime, kioskDayRange, kioskPalette } from "./kiosk-state.js";
+import { createAppTheme } from "../theme.js";
 
 const kioskSans = "'Public Sans', system-ui, sans-serif";
 const kioskSerif = "'Source Serif 4', Georgia, serif";
@@ -586,15 +587,18 @@ const KioskApp = ({ forceProvision = false }) => {
     setSession(nextSession);
     if (forceProvision) history.replace("/kiosk");
   };
-  if (resetting) {
-    return (
-      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#07111f" }}>
-        <Spin size="large" />
-      </div>
-    );
-  }
-  if (!session) return <KioskSignin onAuthenticated={completeProvision} />;
-  return <KioskDisplay session={session} onSessionUpdate={setSession} onDeprovision={clearProvisioning} />;
+  const content = resetting ? (
+    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#07111f" }}>
+      <Spin size="large" />
+    </div>
+  ) : !session ? (
+    <KioskSignin onAuthenticated={completeProvision} />
+  ) : (
+    <KioskDisplay session={session} onSessionUpdate={setSession} onDeprovision={clearProvisioning} />
+  );
+
+  // The kiosk is a fixed dark appliance even when the CMS is in light mode.
+  return <ConfigProvider theme={createAppTheme("dark")}>{content}</ConfigProvider>;
 };
 
 export default KioskApp;

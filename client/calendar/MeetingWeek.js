@@ -3,7 +3,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import { Alert, Button, Card, Divider, Space, Typography } from "antd";
+import { Alert, Button, Card, Divider, Space, Typography, theme } from "antd";
 import enGbLocale from "@fullcalendar/core/locales/en-gb.js";
 import idLocale from "@fullcalendar/core/locales/id.js";
 import { useTranslation } from "react-i18next";
@@ -57,6 +57,7 @@ const CalendarControls = ({ view, onToday, onPrevious, onNext, onViewChange }) =
 
 const MeetingAgenda = ({ events, locale, onEventClick }) => {
   const { t } = useTranslation("calendar");
+  const { token } = theme.useToken();
   const sorted = [...events].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   if (!sorted.length) return <Alert type="info" showIcon message={t("calendar.noMeetings")} />;
   return (
@@ -73,7 +74,7 @@ const MeetingAgenda = ({ events, locale, onEventClick }) => {
             onClick={busy ? undefined : () => onEventClick?.(event)}
             style={{
               cursor: busy ? "default" : "pointer",
-              borderColor: busy ? undefined : "#2FB46A",
+              borderColor: busy ? undefined : token.colorPrimary,
               opacity: busy ? 0.85 : 1,
             }}
           >

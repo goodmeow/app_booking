@@ -87,7 +87,7 @@ const RoomUsageReport = () => {
     <div style={{ padding: 24, maxWidth: "100%" }}>
       <Card>
         <Typography.Title level={3} style={{ marginTop: 0, marginBottom: 24 }}>{t("title")}</Typography.Title>
-        <Space wrap size="middle" style={{ marginBottom: 16 }}>
+        <Space wrap size="middle" style={{ width: "100%", marginBottom: 16 }}>
           <div>
             <Typography.Text strong>{t("startDate")}</Typography.Text>
             <DatePicker
@@ -111,6 +111,7 @@ const RoomUsageReport = () => {
             icon={<DownloadOutlined />}
             disabled={!validRange || query.isFetching || !rooms.length}
             onClick={() => void exportReport()}
+            style={{ marginLeft: "auto" }}
           >
             {t("export")}
           </Button>

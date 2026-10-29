@@ -278,11 +278,11 @@
   "branding": {
     "tab": "Branding",
     "title": "Branding global",
-    "description": "Ganti nama, judul tab, icon, logo The Prasada, dan favicon tanpa rebuild.",
+    "description": "Ganti nama, judul tab, icon, logo, dan favicon tanpa rebuild.",
     "name": "Nama branding",
     "documentTitle": "Judul tab browser",
     "mark": "Icon",
-    "wordmark": "Logo The Prasada",
+    "wordmark": "Logo",
     "favicon": "Favicon",
     "upload": "Unggah gambar",
     "reset": "Kembalikan default",

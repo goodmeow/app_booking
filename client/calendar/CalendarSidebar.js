@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Alert, Button, Calendar, Card, Segmented, Select, Space, Tag, Typography } from "antd";
+import { Alert, Button, Calendar, Card, Segmented, Select, Space, Tag, Typography, theme } from "antd";
 import dayjs from "dayjs";
 import "dayjs/locale/en-gb.js";
 import "dayjs/locale/id.js";
@@ -32,6 +32,7 @@ const CalendarSidebar = ({
   onAdd,
 }) => {
   const { i18n, t } = useTranslation("calendar");
+  const { token } = theme.useToken();
   const dateLocale = calendarLocaleForLanguage(i18n.resolvedLanguage || i18n.language);
   const floorScope = floors.length ? floors.join(", ") : floor;
   dayjs.locale(dateLocale);
@@ -143,7 +144,7 @@ const CalendarSidebar = ({
                   .filter((room) => room.occupied)
                   .sort((a, b) => String(a.name).localeCompare(String(b.name)))
                   .map((room) => (
-                    <Card key={room.id} size="small" style={{ borderColor: "#FF8A80" }}>
+                    <Card key={room.id} size="small" style={{ borderColor: token.colorError }}>
                       <Space align="center" style={{ width: "100%", justifyContent: "space-between" }} wrap>
                         <Typography.Text strong ellipsis>{room.name}</Typography.Text>
                         <Tag color="red">{t("calendar.roomOccupied")}</Tag>

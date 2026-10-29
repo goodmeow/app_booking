@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, Button, Input, Space, Tag, Typography } from "antd";
+import { Alert, Button, Input, Space, Tag, Typography, theme } from "antd";
 import FormDialog from "../../components/common/FormDialog.js";
 import { CARD_ACTIVE_LIMIT } from "./user-cards.js";
 
@@ -20,7 +20,9 @@ const UserCardsDialog = ({
   onMarkLost,
   onReactivate,
   t,
-}) => (
+}) => {
+  const { token } = theme.useToken();
+  return (
   <FormDialog
     open={open}
     title={t("users.cardsTitle", { name: userName })}
@@ -50,7 +52,7 @@ const UserCardsDialog = ({
                 justifyContent: "space-between",
                 padding: "8px 12px",
                 borderRadius: 8,
-                background: "#11151B",
+                background: token.colorFillQuaternary,
               }}
             >
               <Space size={8}>
@@ -96,6 +98,7 @@ const UserCardsDialog = ({
       </div>
     </Space>
   </FormDialog>
-);
+  );
+};
 
 export default UserCardsDialog;
