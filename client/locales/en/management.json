@@ -319,6 +319,7 @@
     "license": "License",
     "source": "Source",
     "openSource": "Open source",
-    "copyright": "© 2026 The Prasada. RoomBooking is an internal application."
+    "copyright": "© 2026 The Prasada. RoomBooking is an internal application.",
+    "versionTitle": "Versions"
   }
 }
