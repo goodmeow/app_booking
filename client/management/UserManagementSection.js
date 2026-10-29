@@ -25,6 +25,9 @@ import {
 import { useGetRoomsQuery } from "../redux/services/rooms.js";
 
 const FLOOR_FILTER_ALL = "__all_floors__";
+const MASTER_FILTER_ALL = "__all_master__";
+const MASTER_FILTER_YES = "yes";
+const MASTER_FILTER_NO = "no";
 
 const UserManagementSection = () => {
   const { t } = useTranslation(["management", "common", "auth"]);
@@ -52,6 +55,7 @@ const UserManagementSection = () => {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState(ROLE_FILTER_ALL);
   const [floorFilter, setFloorFilter] = useState(FLOOR_FILTER_ALL);
+  const [masterFilter, setMasterFilter] = useState(MASTER_FILTER_ALL);
   const [importOpen, setImportOpen] = useState(false);
 
   const [changePassword, { isLoading: isChangingPassword, reset: resetPassword }] = useChangePasswordMutation();
@@ -138,22 +142,28 @@ const UserManagementSection = () => {
   const missingFloorCount = useMemo(() => users.filter((user) => !hasFloor(user)).length, [users]);
   const visibleUsers = useMemo(() => {
     const base = filterUsers(users, { search, roleId: roleFilter, onlyMissingFloor });
-    if (floorFilter === FLOOR_FILTER_ALL) return base;
     return base.filter((user) => {
-      const floors = user.floors?.length ? user.floors : (user.floor ? [user.floor] : []);
-      return floors.includes(floorFilter);
+      if (floorFilter !== FLOOR_FILTER_ALL) {
+        const floors = user.floors?.length ? user.floors : (user.floor ? [user.floor] : []);
+        if (!floors.includes(floorFilter)) return false;
+      }
+      if (masterFilter === MASTER_FILTER_YES && !user.is_master_card) return false;
+      if (masterFilter === MASTER_FILTER_NO && user.is_master_card) return false;
+      return true;
     });
-  }, [users, search, roleFilter, floorFilter, onlyMissingFloor]);
+  }, [users, search, roleFilter, floorFilter, masterFilter, onlyMissingFloor]);
 
   const hasFilters = Boolean(search)
     || roleFilter !== ROLE_FILTER_ALL
     || floorFilter !== FLOOR_FILTER_ALL
+    || masterFilter !== MASTER_FILTER_ALL
     || onlyMissingFloor;
 
   const resetFilters = () => {
     setSearch("");
     setRoleFilter(ROLE_FILTER_ALL);
     setFloorFilter(FLOOR_FILTER_ALL);
+    setMasterFilter(MASTER_FILTER_ALL);
     setOnlyMissingFloor(false);
   };
 
@@ -180,6 +190,12 @@ const UserManagementSection = () => {
       value: floor,
       label: t("users.floorValue", { floor }),
     })),
+  ];
+
+  const masterFilterOptions = [
+    { value: MASTER_FILTER_ALL, label: t("users.masterAll") },
+    { value: MASTER_FILTER_YES, label: t("users.masterYes") },
+    { value: MASTER_FILTER_NO, label: t("users.masterNo") },
   ];
 
   const hasLoadedUsers = !isLoading && (!isError || users.length > 0);
@@ -248,6 +264,13 @@ const UserManagementSection = () => {
             options={floorFilterOptions}
             aria-label={t("users.floorFilter")}
             onChange={(value) => setFloorFilter(value ?? FLOOR_FILTER_ALL)}
+            style={{ minWidth: 160 }}
+          />
+          <Select
+            value={masterFilter}
+            options={masterFilterOptions}
+            aria-label={t("users.masterFilter")}
+            onChange={(value) => setMasterFilter(value ?? MASTER_FILTER_ALL)}
             style={{ minWidth: 160 }}
           />
           {hasFilters ? (

@@ -175,7 +175,11 @@
     "summary": "{{count}} users · {{missing}} without floor",
     "floorFilter": "Filter floor",
     "floorAllFilters": "All floors",
-    "moreActions": "More actions"
+    "moreActions": "More actions",
+    "masterFilter": "Master card",
+    "masterAll": "All cards",
+    "masterYes": "Master card",
+    "masterNo": "Not master"
   },
   "settings": {
     "tab": "Settings",

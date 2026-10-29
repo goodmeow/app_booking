@@ -175,7 +175,11 @@
     "summary": "{{count}} pengguna · {{missing}} tanpa lantai",
     "floorFilter": "Filter lantai",
     "floorAllFilters": "Semua lantai",
-    "moreActions": "Aksi lainnya"
+    "moreActions": "Aksi lainnya",
+    "masterFilter": "Kartu master",
+    "masterAll": "Semua kartu",
+    "masterYes": "Kartu master",
+    "masterNo": "Bukan master"
   },
   "settings": {
     "tab": "Pengaturan",
