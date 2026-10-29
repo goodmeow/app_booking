@@ -3,6 +3,14 @@
 Status: **rencana, belum dieksekusi**.
 Tanggal: 2026-10-29.
 
+## Cara pakai dokumen ini
+
+- Dokumen ini adalah sumber recall utama untuk revamp AntD.
+- Sebelum mulai bekerja, baca status, fase, cleanup inventory, dan log terakhir.
+- Setiap perubahan wajib menambah satu baris di **Log perubahan**.
+- Satu baris per commit atau per fase; sebut file utama dan hasil verifikasi.
+- Kalau keputusan berubah, update bagian terkait dan catat alasannya di log.
+
 ## Keputusan
 
 - UI CMS memakai **Ant Design 5**.
@@ -207,3 +215,14 @@ MUI icons              -> @ant-design/icons
 - DataGrid -> Table: sorting, filter, pagination, dan column behavior.
 - FullCalendar standard theme: tampilan berubah, event handling harus tetap.
 - Test client yang bergantung pada selector/komponen MUI.
+
+## Log perubahan
+
+Setiap perubahan wajib dicatat di sini. Jangan hapus baris lama; tambahkan
+baris baru di bawah.
+
+| Tanggal | Fase | Perubahan | File utama | Verifikasi |
+|---|---|---|---|---|
+| 2026-10-29 | Plan | Rencana revamp AntD 5 | `docs/revamp-antd5.md` | review manual |
+| 2026-10-29 | Plan | Cleanup inventory + hasil audit npm | `docs/revamp-antd5.md` | review manual |
+| 2026-10-29 | Plan | Aturan pencatatan perubahan untuk agent | `docs/revamp-antd5.md`, `AGENTS.md` | review manual |
