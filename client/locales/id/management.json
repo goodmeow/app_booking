@@ -281,7 +281,9 @@
           "update": "Akses peran diubah"
         }
       }
-    }
+    },
+    "generalTitle": "Umum",
+    "kioskTitle": "Kiosk & pendaftaran"
   },
   "branding": {
     "tab": "Branding",

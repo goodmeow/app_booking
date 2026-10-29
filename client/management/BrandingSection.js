@@ -88,8 +88,7 @@ const BrandingSection = () => {
   if (isLoading) return <Typography.Text>{t("branding.loading")}</Typography.Text>;
 
   return (
-    <div style={{ maxWidth: 760 }}>
-      <Typography.Title level={4} style={{ marginTop: 0 }}>{t("branding.title")}</Typography.Title>
+    <div>
       <Typography.Paragraph type="secondary">{t("branding.description")}</Typography.Paragraph>
 
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
@@ -111,9 +110,11 @@ const BrandingSection = () => {
             disabled={saving}
           />
         </div>
-        <Button type="primary" onClick={saveText} disabled={saving}>
-          {t("branding.save")}
-        </Button>
+        <Space style={{ width: "100%", justifyContent: "flex-end" }}>
+          <Button type="primary" onClick={saveText} disabled={saving}>
+            {t("branding.save")}
+          </Button>
+        </Space>
       </Space>
 
       <Divider style={{ margin: "24px 0" }} />

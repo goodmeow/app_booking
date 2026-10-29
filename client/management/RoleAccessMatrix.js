@@ -122,9 +122,6 @@ const RoleAccessMatrix = () => {
 
   return (
     <section>
-      <Typography.Title level={4} style={{ marginTop: 0 }}>
-        {t("settings.roleAccess.title")}
-      </Typography.Title>
       <Typography.Paragraph type="secondary">{t("settings.roleAccess.description")}</Typography.Paragraph>
 
       <Table

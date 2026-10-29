@@ -66,9 +66,6 @@ const AuditLogSection = () => {
 
   return (
     <section>
-      <Typography.Title level={4} style={{ marginTop: 0 }}>
-        {t("settings.audit.title")}
-      </Typography.Title>
       <Typography.Paragraph type="secondary">{t("settings.audit.description")}</Typography.Paragraph>
       {data?.length ? (
         <Table

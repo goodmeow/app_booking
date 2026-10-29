@@ -281,7 +281,9 @@
           "update": "Role access updated"
         }
       }
-    }
+    },
+    "generalTitle": "General",
+    "kioskTitle": "Kiosk & signup"
   },
   "branding": {
     "tab": "Branding",
