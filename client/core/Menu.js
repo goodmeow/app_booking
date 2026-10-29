@@ -1,6 +1,6 @@
 import React from "react";
-import { Button, Drawer, Grid, Layout, Space, Typography, theme } from "antd";
-import { MenuOutlined, MoonOutlined, SunOutlined } from "@ant-design/icons";
+import { Avatar, Button, Drawer, Dropdown, Grid, Layout, Space, Typography, theme } from "antd";
+import { DownOutlined, LogoutOutlined, MenuOutlined, MoonOutlined, SunOutlined, UserOutlined } from "@ant-design/icons";
 import { useThemeMode } from "../theme-mode.js";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -87,15 +87,28 @@ const Menu = () => {
     handleSignout();
   };
   const handleSignout = () => signout(() => history.push("/"));
+  const profileItem = session
+    ? { to: `/user/${session.user._id}`, label: t("nav.myProfile") }
+    : null;
   const navItems = [
     ...(canManage ? [{ to: "/app-management", label: t("nav.management") }] : []),
     ...(can("report") ? [{ to: "/report", label: t("nav.report") }] : []),
     ...(!session && signupEnabled ? [{ to: "/signup", label: t("nav.signUp") }] : []),
     ...(!session ? [{ to: "/signin", label: t("nav.signIn") }] : []),
-    ...(session ? [{ to: `/user/${session.user._id}`, label: t("nav.myProfile") }] : []),
   ];
   const primaryItems = navItems.filter(({ to }) => to === "/app-management" || to === "/report");
   const secondaryItems = navItems.filter(({ to }) => to !== "/app-management" && to !== "/report");
+  const accountMenu = {
+    items: [
+      { key: "profile", icon: <UserOutlined />, label: t("nav.myProfile") },
+      { type: "divider" },
+      { key: "signout", danger: true, icon: <LogoutOutlined />, label: t("nav.signOut") },
+    ],
+    onClick: ({ key }) => {
+      if (key === "profile" && profileItem) history.push(profileItem.to);
+      if (key === "signout") handleSignout();
+    },
+  };
 
   return (
     <>
@@ -124,12 +137,6 @@ const Menu = () => {
               {secondaryItems.map(({ to, label }) => (
                 <MenuLink key={to} to={to}>{label}</MenuLink>
               ))}
-              {session ? (
-                <Typography.Text style={{ marginLeft: 8, color: "#9FB0BF" }}>
-                  {t("nav.welcome", { name: displayName })}
-                </Typography.Text>
-              ) : null}
-              {session ? <Button type="text" style={{ color: "#EDF2F6" }} onClick={handleSignout}>{t("nav.signOut")}</Button> : null}
               <Button
                 type="text"
                 icon={themeMode === "dark" ? <SunOutlined /> : <MoonOutlined />}
@@ -138,6 +145,36 @@ const Menu = () => {
                 title={t("nav.toggleTheme")}
                 onClick={toggleTheme}
               />
+              {session ? (
+                <Dropdown menu={accountMenu} trigger={["click"]} placement="bottomRight">
+                  <Button
+                    type="text"
+                    aria-label={t("nav.accountMenu", { name: displayName })}
+                    style={{ color: "#EDF2F6", paddingInline: 8 }}
+                  >
+                    <Space size={8}>
+                      <Avatar
+                        size={28}
+                        icon={<UserOutlined />}
+                        style={{ background: "#2FB46A", color: "#0A1F14" }}
+                      />
+                      {screens.lg ? (
+                        <span
+                          style={{
+                            maxWidth: 160,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {displayName}
+                        </span>
+                      ) : null}
+                      <DownOutlined style={{ fontSize: 10 }} />
+                    </Space>
+                  </Button>
+                </Dropdown>
+              ) : null}
             </Space>
           </>
         ) : (
@@ -178,6 +215,13 @@ const Menu = () => {
             <Link to="/" onClick={closeDrawer}>
               <Button block type={location.pathname === "/" ? "primary" : "text"}>
                 {t("nav.calendar")}
+              </Button>
+            </Link>
+          ) : null}
+          {profileItem ? (
+            <Link to={profileItem.to} onClick={closeDrawer}>
+              <Button block type={location.pathname === profileItem.to ? "primary" : "text"}>
+                {profileItem.label}
               </Button>
             </Link>
           ) : null}

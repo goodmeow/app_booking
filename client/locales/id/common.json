@@ -66,7 +66,8 @@
     "signOut": "Keluar",
     "openMenu": "Buka menu",
     "welcome": "Selamat datang, {{name}}",
-    "toggleTheme": "Ganti tema terang / gelap"
+    "toggleTheme": "Ganti tema terang / gelap",
+    "accountMenu": "Menu akun"
   },
   "roles": {
     "superAdmin": "Super Admin",
