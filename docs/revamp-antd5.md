@@ -17,7 +17,20 @@ Tanggal: 2026-10-29.
 - Visual boleh berubah; fungsi, izin, alur, dan API harus tetap sama.
 - React tetap **17.0.2**; AntD 5 mendukung React >=16.9.
 - APK kiosk React Native **tidak disentuh** dalam revamp ini.
+- **APK stays**: tetap `1.4.4 (25)`, tidak ada update APK, tidak ada bump
+  `versionCode`, dan tidak ada perubahan `public/apk/latest.json`.
+- Upgrade React Native ditunda; dibahas terpisah setelah revamp CMS.
 - Migrasi bertahap; MUI dan AntD boleh hidup berdampingan sementara.
+
+## Batas APK kiosk
+
+- APK kiosk **tidak diupdate** selama revamp CMS.
+- Versi tetap `1.4.4` dengan `versionCode 25`.
+- Tidak ada perubahan pada `kioskapp/`, APK distribusi, atau manifest update.
+- Kontrak API CMS harus tetap kompatibel dengan APK 1.4.4.
+- Android 8.1 masih memenuhi `minSdk 24` untuk RN baru, tetapi upgrade RN
+  bukan bagian dari pekerjaan ini. Catatan risetnya disimpan terpisah agar
+  tidak tercampur dengan revamp UI.
 
 ## Paket
 
@@ -226,3 +239,4 @@ baris baru di bawah.
 | 2026-10-29 | Plan | Rencana revamp AntD 5 | `docs/revamp-antd5.md` | review manual |
 | 2026-10-29 | Plan | Cleanup inventory + hasil audit npm | `docs/revamp-antd5.md` | review manual |
 | 2026-10-29 | Plan | Aturan pencatatan perubahan untuk agent | `docs/revamp-antd5.md`, `AGENTS.md` | review manual |
+| 2026-10-29 | Plan | Batas scope: APK stays 1.4.4 (25), tanpa update APK/RN | `docs/revamp-antd5.md` | review manual |
