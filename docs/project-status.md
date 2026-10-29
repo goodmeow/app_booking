@@ -8,13 +8,13 @@ metrik otomatis.
 | Item | Nilai |
 |---|---|
 | CMS/API | **3.12.1** (Ver 3 Rev 13) |
-| APK kiosk | **1.4.4 (25)** |
+| APK kiosk | **1.4.5 (26)** |
 | URL UAT Docker | `http://<uat-host>:8082` (LAN langsung, belum lewat domain) |
 | Domain baru | `<uat-domain>` — DNS + vhost nginx **belum aktif** |
 | Database | `360booking` (PostgreSQL di stack Docker UAT) |
 | Commit app | `4b4b117` + `3.12.0` (bump) + `104b4f9` + `d92d8e1` + `05c6020` + `e165ed7` + `bed9c86` + `febd049` + `5ae6b0b` + `dabbfbb` + `8e1854d` + `e2abf77` + `85f57dd` + `2c064dd` |
 | Commit dasar app | `bfbb962` + `db57d7a` + `99d0043` |
-| Commit kiosk | `04c7d80` (APK 1.4.4 build tag `1.4.4-25-04c7d80`) |
+| Commit kiosk | `a6390a2` (APK 1.4.5 build tag `1.4.5-26-a6390a2`) |
 | Commit clean | snapshot `clean` terbaru (sinkron dengan master) |
 | Commit artefak REA | `f266e33` (`app_360booking`) |
 
@@ -38,7 +38,7 @@ metrik otomatis.
 
 ## Sudah selesai
 
-- CMS/API 3.12.1, APK 1.4.4, branding upload, week start, backup settings.
+- CMS/API 3.12.1, APK 1.4.5, branding upload, week start, backup settings.
 - **Resepsionis**: tombol Edit/Batalkan mengikuti flag `can_mutate`; meeting
   karyawan di lantai akses resepsionis bisa dibatalkan.
 - **Update APK semi-otomatis**: kiosk cek `/apk/latest.json` tiap 6 jam,
@@ -49,7 +49,7 @@ metrik otomatis.
   dipegang, dan log audit untuk role/lantai/kartu/pengaturan/akses
   (endpoint `/api/access/*` dan `/api/audit` hanya untuk Super Admin).
 - **Distribusi APK**: halaman `/apk/index.html` + `kiosk-release.apk` current
-  (build tag `1.4.4-25-04c7d80`, 21.530.390 byte, SHA-256 `a0e4b969…2c8c`);
+  (build tag `1.4.5-26-a6390a2`, 21.530.462 byte, SHA-256 `adb6af93…a338d6`);
   copy kiosk netral "Siap digunakan / Belum ada jadwal berikutnya".
 - **UAT berjalan sebagai stack Docker Compose di VM Linux**: CMS/API di port
   `8082`; CMS root, `/api/health`, dan `/apk/index.html` balas HTTP 200.
@@ -101,8 +101,8 @@ metrik otomatis.
 - [x] Akses per peran: `super_admin` dari `/setup`, matrix menu per peran,
   multi-lantai (`tbl_users.floors`), resepsionis lintas lantai, log audit.
   Commit `bed9c86` + `e165ed7`.
-- [x] Halaman unduh APK `/apk/index.html` + paket `1.4.4` rebuild
-  (build tag `1.4.4-25-04c7d80`). Commit halaman APK `05c6020`; bump `04c7d80`.
+- [x] Halaman unduh APK `/apk/index.html` + paket `1.4.5` rebuild
+  (build tag `1.4.5-26-a6390a2`). Commit halaman APK `05c6020`; bump `a6390a2`.
 - [x] Update server UAT remote ke CMS/APK current (2026-10-27); health 200,
   APK checksum sama dengan build lokal.
 - [x] Dokumentasi + deck training 22 slide (commit `d92d8e1`); deck disalin

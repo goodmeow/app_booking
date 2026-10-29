@@ -9,8 +9,8 @@ Express dan Socket.io, **PostgreSQL** sebagai basis data, dan **tablet kiosk**
 Tablet menampilkan status ruangan hari itu, menerima check-in, perpanjangan,
 pemesanan mendadak, dan membuka pintu lewat kartu NFC.
 
-Versi saat ini: CMS/API **3.12.1** (Ver 3 Rev 13) · APK kiosk **1.4.4**
-(versionCode 25). Riwayat lengkap ada di [`docs/VERSIONING.md`](docs/VERSIONING.md).
+Versi saat ini: CMS/API **3.12.1** (Ver 3 Rev 13) · APK kiosk **1.4.5**
+(versionCode 26). Riwayat lengkap ada di [`docs/VERSIONING.md`](docs/VERSIONING.md).
 
 - Baru bergabung? Mulai dari [`docs/handover/START-HERE.md`](docs/handover/START-HERE.md).
 - Mencari dokumen tertentu? Lihat index [`docs/README.md`](docs/README.md).
@@ -70,7 +70,7 @@ jangan dicampur.
    kartu per user.
 3. Periksa **Manajemen → Pengaturan**: pendaftaran mandiri (default mati),
    timer check-in, timer kunci, timer LED, input meja.
-4. Cek tablet: layar menampilkan jadwal hari ini, versi `v1.4.4 (25) · CMS
+4. Cek tablet: layar menampilkan jadwal hari ini, versi `v1.4.5 (26) · CMS
    3.12.1` di footer.
 5. Uji satu booking, satu check-in kartu, satu buka pintu, dan satu laporan
    pemakaian ruangan.

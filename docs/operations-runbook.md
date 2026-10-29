@@ -3,7 +3,7 @@
 Panduan menjalankan, merawat, dan memulihkan RoomBooking. Sumber utama
 deploy tetap [`../deploy/README.md`](../deploy/README.md); dokumen ini
 melengkapi bagian operasional yang belum tercakup di sana. Versi acuan:
-CMS/API `3.12.1`, APK kiosk `1.4.4` (code 25).
+CMS/API `3.12.1`, APK kiosk `1.4.5` (code 26).
 
 Semua contoh memakai placeholder `<ip-server>` / `<domain>`; jangan menulis
 IP atau kredensial nyata ke repo.
@@ -528,7 +528,7 @@ lagi memicu langkah ini karena memakai database `360booking_parity_test`.
 
 Verifikasi versi setelah pairing: footer kiosk menampilkan
 `v<versi APK> (<versionCode>) · CMS <versi server>` (contoh
-`v1.4.4 (25) · CMS 3.12.1`), bukan lagi “perangkat …”. Bila bagian `CMS`
+`v1.4.5 (26) · CMS 3.12.1`), bukan lagi “perangkat …”. Bila bagian `CMS`
 kosong/`unknown`, tablet belum berhasil memuat `/api/kiosk/context` versi
 terbaru — cek koneksi dan pastikan server sudah di-restart dengan build baru.
 Tombol **Finish** sengaja tersembunyi; muncul setelah **5 tap** pada pill
@@ -546,8 +546,8 @@ Tombol **Unduh APK Tablet** di CMS → Manajemen → Perangkat Tablet menunjuk k
 file yang sama.
 
 1. Pastikan versi file sesuai rilis yang diumumkan: footer tablet harus
-   menampilkan `v1.4.4 (25) · CMS 3.12.1` setelah update. Versi saat ini
-   adalah build tag `1.4.4-25-04c7d80`.
+   menampilkan `v1.4.5 (26) · CMS 3.12.1` setelah update. Versi saat ini
+   adalah build tag `1.4.5-26-a6390a2`.
 2. Unduh APK dari server sendiri (jangan dari chat/email), lalu pasang di
    tablet (buka file, izinkan instalasi sekali).
 3. Buka aplikasi kiosk, cek footer versi dan status **Online** di tab
