@@ -43,7 +43,6 @@ const MeetingCalendar = () => {
   useEffect(() => {
     setCalendarView(isNarrow ? "agenda" : "timeGridWeek");
   }, [isNarrow]);
-  const floorMode = scheduleMode === "floor";
   const activeRoom = scheduleMode === "room" ? selectedRoom : null;
   const { data: publicSettings } = useGetPublicSettingsQuery();
   // The first day of the week stays in one place: the same value feeds the
@@ -59,15 +58,11 @@ const MeetingCalendar = () => {
   );
   const singleQuery = useGetEventsQuery(
     calendarEventFilters({ email: session.user.email, roomEmail: activeRoom?.email, range, all: scheduleMode === "all" }),
-    { skip: floorMode || (scheduleMode === "room" && !activeRoom) }
+    { skip: scheduleMode === "room" && !activeRoom }
   );
   const roomQuery = useGetRoomsQuery();
   const roomStatusQuery = useGetRoomStatusQuery(undefined, { pollingInterval: 30_000 });
   const isAdmin = isAdminRole(session?.user?.role);
-  const floorQuery = useGetEventsQuery(
-    { start: range.start, end: range.end, floor: true, ...(isAdmin ? { all: true } : {}) },
-    { skip: !floorMode }
-  );
   const { can: canMenu } = useMenuAccess();
   const canListAllUsers = canMenu("users");
   // Only a Users-menu role loads the full employee directory; everyone else
@@ -89,23 +84,19 @@ const MeetingCalendar = () => {
     return (Array.isArray(roomStatusQuery.data) ? roomStatusQuery.data : []).filter((room) => allowed.has(room.id));
   }, [bookableRooms, roomStatusQuery.data]);
 
-  const floorEvents = Array.isArray(floorQuery.data) ? floorQuery.data : [];
-  const floorFetching = floorMode && floorQuery.isFetching;
-  const floorFailed = floorMode && floorQuery.isError;
-
-  const events = floorMode ? floorEvents : (Array.isArray(singleQuery.data) ? singleQuery.data : []);
+  const events = Array.isArray(singleQuery.data) ? singleQuery.data : [];
   const hasEvents = events.length > 0;
-  const eventFetching = floorMode ? floorFetching : singleQuery.isFetching;
-  const eventError = floorMode ? floorFailed : singleQuery.isError;
+  const eventFetching = singleQuery.isFetching;
+  const eventError = singleQuery.isError;
   const eventInitialLoading = eventFetching && !hasEvents;
   const eventRefreshing = eventFetching && hasEvents;
-  const canLoadEvents = floorMode || !(scheduleMode === "room" && !activeRoom);
+  const canLoadEvents = !(scheduleMode === "room" && !activeRoom);
 
   const visibleRoomIds = useMemo(
-    () => (floorMode || scheduleMode === "all")
+    () => scheduleMode === "all"
       ? bookableRooms.map((room) => room._id).filter(Boolean)
       : (activeRoom?._id ? [activeRoom._id] : []),
-    [floorMode, scheduleMode, bookableRooms, activeRoom?._id]
+    [scheduleMode, bookableRooms, activeRoom?._id]
   );
 
   useEffect(() => {
@@ -136,10 +127,6 @@ const MeetingCalendar = () => {
   };
 
   const refreshEvents = () => {
-    if (floorMode) {
-      floorQuery.refetch();
-      return;
-    }
     singleQuery.refetch();
   };
 
@@ -163,7 +150,6 @@ const MeetingCalendar = () => {
             floor={userFloor}
             floors={userFloors}
             showAllFloors={showAllFloors}
-            showFloorSchedule={!showAllFloors && Boolean(userFloor || userFloors.length)}
             isAdmin={isAdmin}
             showTabletStatus={isAdmin}
             roomStatus={roomStatus}
@@ -203,13 +189,12 @@ const MeetingCalendar = () => {
           {eventInitialLoading ? <LoadingState label={t("calendar.loading")} /> : null}
           {eventError ? (
             <ErrorState
-              message={getApiError(floorMode ? floorQuery.error : singleQuery.error, t("calendar.loadError"))}
+              message={getApiError(singleQuery.error, t("calendar.loadError"))}
               busy={eventFetching}
               onAction={refreshEvents}
             />
           ) : null}
           {scheduleMode === "room" && !activeRoom ? <Alert type="info" showIcon message={t("calendar.selectRoomPrompt")} /> : null}
-          {floorMode && !bookableRooms.length ? <Alert type="info" showIcon message={t("calendar.floorScheduleEmpty")} /> : null}
           {!eventInitialLoading && (!eventError || hasEvents) && canLoadEvents ? (
             <MeetingWeek
               events={events}

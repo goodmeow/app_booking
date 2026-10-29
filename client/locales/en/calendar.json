@@ -4,15 +4,15 @@
     "filterTitle": "Room filter",
     "searchRoom": "Search for a room",
     "noRoomFilter": "No room filter",
-    "scheduleMode": "Schedule mode",
-    "mySchedule": "My Schedule",
+    "scheduleMode": "View",
+    "mySchedule": "Mine",
     "floorSchedule": "Floor Schedule",
-    "roomSchedule": "Room Schedule",
-    "mineHint": "Shows meetings connected to your account.",
+    "roomSchedule": "Room",
+    "mineHint": "Meetings linked to your account.",
     "floorHint": "Shows every meeting in the rooms on your floor.",
-    "roomHint": "Choose a room to see only that room schedule.",
-    "allSchedule": "All schedules",
-    "allHint": "Shows bookings from every employee and room."
+    "roomHint": "Choose one room.",
+    "allSchedule": "All",
+    "allHint": "Every employee and room."
   },
   "editor": {
     "addTitle": "Add Meeting",

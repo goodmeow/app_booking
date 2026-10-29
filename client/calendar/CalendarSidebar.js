@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Alert, Button, Calendar, Card, Segmented, Select, Space, Tag, Typography, theme } from "antd";
+import { Button, Calendar, Card, Segmented, Select, Space, Tag, Typography, theme } from "antd";
 import dayjs from "dayjs";
 import "dayjs/locale/en-gb.js";
 import "dayjs/locale/id.js";
@@ -21,7 +21,6 @@ const CalendarSidebar = ({
   floor = "",
   floors = [],
   showAllFloors = false,
-  showFloorSchedule = false,
   isAdmin = false,
   showTabletStatus = false,
   roomStatus = [],
@@ -39,7 +38,6 @@ const CalendarSidebar = ({
 
   const modeOptions = [
     { value: "mine", label: t("sidebar.mySchedule") },
-    ...(showFloorSchedule ? [{ value: "floor", label: t("sidebar.floorSchedule") }] : []),
     { value: "room", label: t("sidebar.roomSchedule") },
     ...(isAdmin ? [{ value: "all", label: t("sidebar.allSchedule") }] : []),
   ];
@@ -67,20 +65,15 @@ const CalendarSidebar = ({
             options={modeOptions}
             onChange={(value) => onScheduleModeChange?.(value)}
           />
-          <Alert
-            type="info"
-            showIcon
-            style={{ marginTop: 8 }}
-            message={t(
+          <Typography.Text type="secondary" style={{ display: "block", marginTop: 8 }}>
+            {t(
               scheduleMode === "room"
                 ? "sidebar.roomHint"
                 : scheduleMode === "all"
                   ? "sidebar.allHint"
-                  : scheduleMode === "floor"
-                    ? "sidebar.floorHint"
-                    : "sidebar.mineHint"
+                  : "sidebar.mineHint"
             )}
-          />
+          </Typography.Text>
         </div>
 
         <Calendar

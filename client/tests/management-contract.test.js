@@ -54,7 +54,7 @@ test("receptionist role can book for employees but only on its own floor", () =>
   // The calendar must not open an empty "my schedule" for the front desk: the
   // default scope is the floor it serves, and every room in the dropdown comes
   // from that same scope.
-  assert.equal(defaultScheduleModeForRole("RECEPTIONIST"), "floor");
+  assert.equal(defaultScheduleModeForRole("RECEPTIONIST"), "mine");
   assert.equal(defaultScheduleModeForRole("ADMIN"), "all");
   assert.equal(defaultScheduleModeForRole("USER"), "mine");
   assert.equal(defaultScheduleModeForRole(undefined), "mine");

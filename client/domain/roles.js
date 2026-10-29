@@ -33,12 +33,10 @@ export const isSuperAdminRole = (role) => normalizedRole(role) === "SUPER_ADMIN"
 
 export const isReceptionistRole = (role) => normalizedRole(role) === "RECEPTIONIST";
 
-// The schedule scope the calendar opens with: an admin sees every floor, the
-// front desk opens on its own floor, and an employee opens on their own
-// meetings.
+// The schedule scope the calendar opens with: an admin starts on the full
+// schedule, everyone else starts on their own meetings and can switch to a room.
 export const defaultScheduleModeForRole = (role) => {
   if (isAdminRole(role)) return "all";
-  if (isReceptionistRole(role)) return "floor";
   return "mine";
 };
 

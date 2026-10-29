@@ -4,15 +4,15 @@
     "filterTitle": "Filter ruangan",
     "searchRoom": "Cari ruangan",
     "noRoomFilter": "Tanpa filter ruangan",
-    "scheduleMode": "Mode jadwal",
-    "mySchedule": "Jadwal Saya",
+    "scheduleMode": "Tampilan",
+    "mySchedule": "Saya",
     "floorSchedule": "Jadwal Lantai",
-    "roomSchedule": "Jadwal Ruangan",
-    "mineHint": "Menampilkan meeting yang terhubung ke akun Anda.",
+    "roomSchedule": "Ruangan",
+    "mineHint": "Meeting yang terkait akun Anda.",
     "floorHint": "Menampilkan semua rapat di ruangan lantai Anda.",
-    "roomHint": "Pilih ruangan untuk melihat jadwal ruangan itu saja.",
-    "allSchedule": "Semua jadwal",
-    "allHint": "Menampilkan jadwal semua karyawan dan ruangan."
+    "roomHint": "Pilih satu ruangan.",
+    "allSchedule": "Semua",
+    "allHint": "Semua karyawan dan ruangan."
   },
   "editor": {
     "addTitle": "Tambah Meeting",
