@@ -14,6 +14,8 @@ Tanggal: 2026-10-29.
 ## Keputusan
 
 - UI CMS memakai **Ant Design 5**.
+- Revamp **hanya mengubah UI client CMS**.
+- Backend, API, socket, database, auth, dan APK tidak berubah.
 - Visual boleh berubah; fungsi, izin, alur, dan API harus tetap sama.
 - React tetap **17.0.2**; AntD 5 mendukung React >=16.9.
 - APK kiosk React Native **tidak disentuh** dalam revamp ini.
@@ -240,3 +242,4 @@ baris baru di bawah.
 | 2026-10-29 | Plan | Cleanup inventory + hasil audit npm | `docs/revamp-antd5.md` | review manual |
 | 2026-10-29 | Plan | Aturan pencatatan perubahan untuk agent | `docs/revamp-antd5.md`, `AGENTS.md` | review manual |
 | 2026-10-29 | Plan | Batas scope: APK stays 1.4.4 (25), tanpa update APK/RN | `docs/revamp-antd5.md` | review manual |
+| 2026-10-29 | Plan | Revamp hanya UI CMS; backend/API/socket/DB/auth/APK tidak berubah | `docs/revamp-antd5.md` | review manual |
