@@ -64,8 +64,12 @@ const agendaDayLabel = (value, locale) => new Intl.DateTimeFormat(locale, {
   weekday: "long",
   day: "2-digit",
   month: "short",
-  year: "numeric",
 }).format(new Date(value));
+
+// The range above already carries the year. Dropping it from the per-card
+// multi-day cue keeps the date from crowding the time line on narrow screens.
+const agendaDateCue = (start, end, locale) => formatMeetingDateCue(start, end, locale)
+  .replace(/-\d{4}/g, "");
 
 const agendaRangeLabel = (selectedDate, locale) => {
   const start = new Date(selectedDate || new Date());
@@ -119,8 +123,8 @@ const MeetingAgenda = ({ events, selectedDate, locale, onEventClick }) => {
                   style={{ cursor: busy ? "default" : "pointer", opacity: busy ? 0.85 : 1 }}
                 >
                   {multiDay ? (
-                    <Typography.Text type="secondary" style={{ display: "block", marginBottom: 4 }}>
-                      {formatMeetingDateCue(event.start, event.end, locale)}
+                    <Typography.Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+                      {agendaDateCue(event.start, event.end, locale)}
                     </Typography.Text>
                   ) : null}
                   <Space wrap size="small" align="baseline">
