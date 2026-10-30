@@ -8,6 +8,18 @@ CMS/API `3.12.1`, APK kiosk `1.4.5` (code 26).
 Semua contoh memakai placeholder `<ip-server>` / `<domain>`; jangan menulis
 IP atau kredensial nyata ke repo.
 
+## 0. Lingkungan saat ini (2026-10-30)
+
+| Lingkungan | URL | Commit | Versi | Migrasi | Kesehatan | Bukti uji |
+|---|---|---|---|---|---|---|
+| UAT local test bed | `http://127.0.0.1:8082` | `9c96999` | CMS 3.12.1, APK 1.4.5 (26) | `026_event_room_timezone.sql` | app/web/db sehat | client 99/99, unit 85/85, regresi 105/105, parity 8/8 |
+| UAT live | `http://<uat-host>:8082` | `9c96999` | CMS 3.12.1, APK 1.4.5 (26) | `026_event_room_timezone.sql` | app/web/db sehat | sama dengan build di atas |
+
+Keduanya stack Docker Alpine (§2.5) di port `8082`. Alur `npm run demo` tidak
+lagi dipakai sebagai prosedur; skrip demo hanya tersisa untuk harness
+unit/parity. Angka uji di atas berasal dari checkout build
+`/home/goodmeow/build/app_booking` (2026-10-30).
+
 ## 1. Topologi produksi
 
 | Komponen | Dijalankan oleh | Alamat |
@@ -84,7 +96,7 @@ matrix menu dan log audit perlu dipakai.
 ### 2.2 Jebakan: `tbl_role` kosong pada database baru
 
 `02-provision-database.sh` hanya menjalankan migrasi. Migrasi 022 mengisi role
-`super_admin`, dan seed demo mengisi `admin`/`user`/`receptionist`, tetapi
+`super_admin`, dan seed sanitized mengisi `admin`/`user`/`receptionist`, tetapi
 `05-create-admin.sh` memakai `role_id` admin hardcoded dengan FK ke
 `tbl_role`. Pada database yang benar-benar baru, langkah 05 dapat gagal bila
 role admin belum ada. Verifikasi:
@@ -93,7 +105,7 @@ role admin belum ada. Verifikasi:
 SELECT role_name FROM tbl_role ORDER BY role_name;
 ```
 
-Bila role belum lengkap, isi lebih dulu (id sama dengan seed demo):
+Bila role belum lengkap, isi lebih dulu (id sama dengan seed sanitized):
 
 ```sql
 INSERT INTO tbl_role (_id, role_name, is_deleted) VALUES
@@ -139,7 +151,7 @@ Sertifikat self-signed/CA internal: CA harus dipasang di tablet (anchor
 ### 2.5 Docker Alpine (alternatif deploy)
 
 Stack uji/produksi kecil: `deploy/docker/compose.alpine.yaml` menjalankan
-`postgres:16-alpine` (db), `node:20-alpine` (app API), dan `nginx:alpine`
+`postgres:16-alpine` (db), `node:22-alpine` (app API), dan `nginx:alpine`
 (web SPA + proxy `/api` + `/socket.io`). Build context harus root repo.
 
 ```bash
@@ -175,44 +187,54 @@ supaya tetap terbaca setiap `up`/rebuild.
 
 ## 3. Restart
 
+Definisikan perintah stack UAT dulu (berlaku untuk UAT local test bed dan UAT
+live, ganti host sesuai mesin):
+
+```bash
+C="docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine"
+```
+
 | Situasi | Perintah | Efek |
 |---|---|---|
-| Demo, ingin data & pairing tetap | `npm run demo:resume` | Container DB dijalankan ulang tanpa reset, lalu CMS `:8081` + API `:9091` |
-| Demo, ingin database bersih | `npm run demo` | **Menghapus** DB demo `360booking_reconstruction_test`, migrasi + seed ulang; akun uji dan pairing hilang |
-| Test parity/regression | `npm run test:server:parity` / `test:server:regression` | Hanya me-reset `360booking_parity_test`; DB demo tidak disentuh |
-| Demo, mematikan DB | `npm run demo:stop` | Container `360booking-postgres-test` berhenti |
-| Produksi, hanya API | `sudo systemctl restart 360booking-server` | Koneksi socket terputus, klien reconnect |
-| Produksi, ubah nginx | `sudo nginx -t && sudo systemctl reload nginx` | Tanpa memutus API |
-| Produksi, ubah env | edit `/etc/360booking/app.env` lalu restart service | Semua sesi JWT lama bisa tetap valid bila `JWT_SECRET` tidak berubah |
+| UAT, ingin data & pairing tetap | `$C up -d` | Container db/app/web dijalankan ulang tanpa reset; DB, akun, dan pairing utuh |
+| UAT, ada perubahan kode/env | `$C up -d --build` | Image app/web dibangun ulang, DB tidak disentuh |
+| UAT, mematikan stack | `$C down` | Container berhenti, named volume DB tetap ada |
+| UAT, lihat status/log | `$C ps` / `$C logs -f app` | Diagnosa cepat tanpa restart |
+| Test parity/regression | `npm run test:server:parity` / `test:server:regression` | Hanya me-reset `360booking_parity_test`; DB UAT tidak disentuh |
+| Produksi native, hanya API | `sudo systemctl restart 360booking-server` | Koneksi socket terputus, klien reconnect |
+| Produksi native, ubah nginx | `sudo nginx -t && sudo systemctl reload nginx` | Tanpa memutus API |
+| Produksi native, ubah env | edit `/etc/360booking/app.env` lalu restart service | Semua sesi JWT lama bisa tetap valid bila `JWT_SECRET` tidak berubah |
 
-Dua database berbagi satu container: `360booking_reconstruction_test` untuk
-demo dan `360booking_parity_test` untuk suite parity/regression. Reset parity
+Stack UAT memakai database `360booking`; suite parity/regression memakai
+database terpisah `360booking_parity_test` di container yang sama. Reset parity
 dijalankan oleh `database/scripts/reset-parity-db.sh` (membuat DB bila belum
-ada), dan skrip itu menolak nama database demo.
+ada).
 
-Urutan aman saat menutup demo: `Ctrl+C` pada `npm run demo` (server menutup
-socket dan pool DB), lalu `npm run demo:stop` bila container ingin dimatikan.
+**Jangan** menjalankan `$C down -v`, reset database, atau restore pada stack UAT
+tanpa backup terbaru dan persetujuan tim teknis — perintah itu menghapus data
+beserta pairing tablet.
 
 Setelah restart, cek:
 
 ```bash
-curl -fsS http://127.0.0.1:9091/api/health
-sudo systemctl status 360booking-server --no-pager
-sudo journalctl -u 360booking-server -n 50 --no-pager
+curl -fsS http://127.0.0.1:8082/api/health        # UAT local test bed
+curl -fsS http://<uat-host>:8082/api/health       # UAT live
+$C ps
+$C logs --tail 50 app
 ```
 
-## 4. Pemulihan setelah reboot (mesin demo Windows/WSL)
+## 4. Pemulihan setelah reboot (UAT local test bed)
 
-Urutan yang sudah terbukti (README “Setelah restart mesin”):
+Urutan yang terbukti:
 
-1. `npm run demo:resume` — **jangan** `npm run demo` bila pairing tablet
-   ingin dipertahankan.
-2. Pastikan stack Docker aktif; Nginx mempublikasikan **8082** langsung
-   (tanpa forwarder Python).
+1. Nyalakan stack tanpa reset data: `$C up -d` (dengan `C` seperti §3;
+   jangan `down -v`; pairing tablet dan akun harus bertahan).
+2. Pastikan stack sehat dan nginx container mempublikasikan **8082**
+   langsung (tanpa forwarder Python).
 3. Bila CMS/tablet tidak bisa diakses:
-   - cek `docker-compose ... ps` dan listener `8082`;
-   - cek firewall Windows untuk TCP 8082;
-   - portproxy hanya diperlukan bila WSL memakai NAT, bukan mirrored network.
+   - cek `$C ps` dan listener `8082`;
+   - cek firewall host untuk TCP 8082;
+   - portproxy hanya diperlukan bila host memakai NAT, bukan mirrored network.
 4. Verifikasi tablet benar-benar lewat LAN: lihat koneksi masuk ke port 8082
    dari IP tablet dan log server terus menerima `/context` + `/schedule`.
 
@@ -503,9 +525,9 @@ memiliki event.
 
 ## 7. Prosedur re-pair tablet
 
-Dipakai setelah database demo direset (`npm run demo`), ruangan dihapus,
+Dipakai setelah database UAT direset/dipulihkan dari backup, ruangan dihapus,
 sandi ruangan diganti, atau perangkat dicabut. Suite parity/regression tidak
-lagi memicu langkah ini karena memakai database `360booking_parity_test`.
+memicu langkah ini karena memakai database `360booking_parity_test`.
 
 1. **Cabut perangkat lama** — CMS → Manajemen → Perangkat Tablet → pilih
    ruangan → Cabut. Alternatif API:
@@ -535,8 +557,8 @@ Tombol **Finish** sengaja tersembunyi; muncul setelah **5 tap** pada pill
 **IN USE** (easter egg operator), dan **+15 menit** meminta kartu
 organizer/peserta/master yang diverifikasi server.
 
-Catatan: `npm run demo:accounts` **tidak** memulihkan perangkat kiosk; pairing
-harus dilakukan ulang setelah reset DB.
+Catatan: mengembalikan akun seed tidak memulihkan perangkat kiosk; pairing
+harus dilakukan ulang setelah database UAT dibangun ulang dari backup.
 
 ### 7.1 Update APK tablet dari halaman `/apk`
 
@@ -646,55 +668,56 @@ konfigurasi kiosk; token lama akan ditolak.
 Perubahan lintas area dikoordinasikan oleh `team-lead`; jangan mengubah
 kontrak API tanpa memperbarui `docs/api-reference.md` dan test terkait.
 
-## 11. Pengembangan lokal, demo, dan LAN tablet
+## 11. UAT local test bed, UAT live, dan pengembangan
 
-### 11.1 Demo deterministic
+### 11.1 UAT local test bed (`http://127.0.0.1:8082`)
+
+Lingkungan uji utama tim: stack Docker Alpine (§2.5), commit `9c96999`,
+migrasi terakhir `026_event_room_timezone.sql`.
 
 ```bash
-npm install
-npm run demo
+C="docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine"
+cp deploy/docker/.env.example deploy/docker/.env   # sekali saja, isi origin + secret
+$C up -d --build
+$C ps
+curl -fsS http://127.0.0.1:8082/api/health         # {"ok":true}
 ```
 
-Perintah ini menyalakan container PostgreSQL compose (`127.0.0.1:54320`,
-project `360booking`, container `360booking-postgres-test`), mereset database
-`360booking_reconstruction_test`, menerapkan migrasi + seed sanitized, lalu
-menjalankan CMS/Vite `:8081` dan API/Socket.io `:9091`. Status `Demo ready`
-baru tampil setelah login database dan proxy client terverifikasi.
-`Ctrl+C` menghentikan aplikasi (database tetap hidup); `npm run demo:stop`
-menghentikan container.
+- Web + API satu origin `http://127.0.0.1:8082` (nginx container mem-proxy
+  `/api` dan `/socket.io`); database PostgreSQL 16 internal container, tidak
+  dipublikasikan.
+- Akun dibuat lewat `/setup` (Super Admin) lalu CMS → Manajemen; sandi tidak
+  pernah ditulis di dokumen atau repo.
+- Restart tanpa kehilangan data/pairing: `$C up -d`. Rebuild kode: `$C up -d
+  --build` (DB tidak tersentuh). `$C down` tidak menghapus named volume.
+- Membangun ulang database menghapus akun dan pairing tablet; lakukan hanya
+  dengan backup terbaru (§5) dan pairing ulang (§7).
+- Suite parity/regression me-reset `360booking_parity_test`, bukan database UAT.
 
-Akun demo (khusus database disposable):
+### 11.2 UAT live (`http://<uat-host>:8082`)
 
-| Akun | Email | Sandi | Keterangan |
-|---|---|---|---|
-| Admin | `admin@example.test` | `ParityTest123!` | akses penuh CMS |
-| Ruangan (kiosk) | `room-one@room.com` | `RoomTablet123!` | pairing tablet |
-| Karyawan uji | `karyawan@uji.prasada.test` | `1234` | kartu uji NFC dummy |
-| Karyawan uji 2 | `emp@uji.local` | `1234` | kartu `DEMO-UJI-CARD` |
+Server UAT yang dipakai pemilik produk dan tablet, commit yang sama
+(`9c96999`), database UAT dipertahankan.
 
-### 11.2 Dua database di satu container
+1. Ambil commit yang sudah lulus `npm run verify` dari branch `master`.
+2. Di host UAT: `$C up -d --build` (tanpa `down -v`).
+3. Verifikasi: `curl -fsS http://<uat-host>:8082/api/health` → `{"ok":true}`,
+   `$C ps` menunjukkan db/app/web healthy, lalu buka CMS dan cek footer
+   `3.12.1`.
+4. Cek tablet: footer menampilkan `v1.4.5 (26) · CMS 3.12.1` dan status
+   **Online** di tab Perangkat Tablet.
+5. Bila ada migrasi baru, entrypoint container menerapkannya otomatis; backup
+   DB dulu bila migrasi mengubah data.
+6. Rollback: kembali ke commit/tag sebelumnya lalu `$C up -d --build`;
+   jangan menurunkan `versionCode` APK.
 
-| Database | Dipakai oleh | Di-reset oleh |
-|---|---|---|
-| `360booking_reconstruction_test` | `npm run demo`, CMS, tablet kiosk | `npm run demo` (`rebuild-test-db.sh`) |
-| `360booking_parity_test` | `test:server:parity`, `test:server:regression` | `database/scripts/reset-parity-db.sh` |
+### 11.3 Riwayat demo (tidak dipakai lagi)
 
-Suite parity/regression hanya me-reset `360booking_parity_test`, sehingga akun
-demo, kartu NFC, dan pairing tablet tidak ikut terhapus. `npm run demo:resume`
-menyalakan ulang aplikasi tanpa reset.
-
-### 11.3 Memulihkan akun demo
-
-`npm run demo` membangun ulang DB demo, jadi akun uji tambahan hilang dan
-pairing tablet perlu diulang:
-
-1. `npm run demo` — bangun ulang database + nyalakan server.
-2. `npm run demo:accounts` — kembalikan akun demo (termasuk `role_id`, syarat
-   login server).
-3. Pasangkan ulang tablet bila sesi kiosk hilang (`pm clear` + provisioning).
-
-`demo:accounts` harus dijalankan **setelah** demo; bila dijalankan lebih dulu,
-rebuild akan menghapusnya lagi.
+Alur `npm run demo` / `demo:resume` / `demo:stop` / `demo:accounts` sudah
+**pensiun** sebagai prosedur kerja sejak pengujian pindah ke UAT local test bed
+dan UAT live. Skrip `scripts/demo*.js`, database
+`360booking_reconstruction_test`, dan seed sanitized masih ada di repo karena
+dirujuk harness unit/parity; jangan memakainya sebagai langkah operasional.
 
 ### 11.4 Pengembangan kustom
 
@@ -710,19 +733,19 @@ dan `npm run create:server:package`.
 
 ### 11.5 Tablet kiosk satu segment LAN (tanpa USB reverse)
 
-Tablet dan laptop dijadikan satu subnet (contoh `192.168.1.0/24`):
+Tablet dan host UAT dijadikan satu subnet (contoh `192.168.1.0/24`):
 
 | Sisi | Konfigurasi |
 |---|---|
 | Tablet (`eth0`) | statis `<ip-tablet>/24` via Settings → Ethernet (persisten) |
-| Windows host | statis `<ip-server>/24` via `netsh` |
-| Akses LAN | Docker web mem-publish **8082** langsung (tanpa forwarder Python) |
+| Host UAT | statis `<ip-server>/24` via `netsh`/netplan |
+| Akses LAN | Container nginx mem-publish **8082** langsung (tanpa forwarder Python) |
 | Firewall | rule inbound TCP 8082 (`360booking-kiosk-8082`) |
 | APK | URL server diketik saat provisioning; HTTP polos diizinkan lewat `network_security_config.xml` |
 
-Origin LAN untuk CMS (mis. `http://<ip-server>:8082`) jangan di-commit; salin
-ke `.env.local` (di-ignore) yang ditimpa di atas `.env.demo` saat
-`npm run demo`. `adb` hanya diperlukan untuk instalasi APK dan screenshot.
+Origin LAN untuk CMS (mis. `http://<ip-server>:8082`) jangan di-commit; isi
+`ALPINE_CORS_ORIGINS` di `deploy/docker/.env` (di-ignore). `adb` hanya
+diperlukan untuk instalasi APK dan screenshot.
 
 Tablet tahan putus sambung: saat kabel dicabut layar menampilkan `OFFLINE`, dan
 begitu kabel kembali tablet pulih otomatis tanpa dibuka ulang.
@@ -736,7 +759,7 @@ app_booking/
 ├── server/            # features/, routes/, runtime/, socket/, db/,
 │                      # observability/, tests/{unit,parity,regression}
 ├── config/config.js   # baca env + validasi runtime
-├── scripts/           # demo.js, demo-accounts.js, dev-*, start-*
+├── scripts/           # dev-*, start-*, demo*.js (demo = legacy harness)
 ├── database/          # migrations/, seeds/, scripts/, tests/
 ├── deploy/            # 01..05 (Ubuntu), docker/, nginx/, systemd/
 ├── public/apk/        # kiosk-release.apk + riwayat

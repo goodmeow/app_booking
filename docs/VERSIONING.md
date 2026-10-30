@@ -38,11 +38,13 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   multi-lantai (`tbl_users.floors`), akses resepsionis per lantai, audit log,
   dan pengerasan security: rate-limit proxy, reset sandi, pairing kiosk,
   backup retry, auto-release, serta filter status ruangan per floor.
-- Bukti 2026-10-29 di checkout build `/home/goodmeow/build/app_booking`:
-  unit server **85/85**, unit kiosk **21/21**, client **99/99**, regresi
-  **105/105** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
-  dan `build:server:check` lulus. Unit izin event **9/9**, kontrak kalender
-  **14/14** setelah perubahan `can_mutate`.
+- Bukti 2026-10-30 di checkout build `/home/goodmeow/build/app_booking`
+  (commit `9c96999`): unit server **85/85**, unit kiosk **21/21**, client
+  **99/99**, regresi **105/105** (0 skip), parity prepare **2/2**, parity
+  **8/8**; `build:client` dan `build:server:check` lulus, lint 0 error
+  (warning tersisa). Unit izin event **9/9**, kontrak kalender **14/14**
+  setelah perubahan `can_mutate`. Migrasi terakhir:
+  `026_event_room_timezone.sql`.
 - Distribusi APK, 2026-10-29 (commit `941a537`): paket
   `public/apk/kiosk-release.apk` **1.4.5 (26)** 21.530.462 byte, SHA-256
   `adb6af93a49f592f4c4767895605248ed963988d2875b0ff44ebe457c1a338d6`,
@@ -51,9 +53,14 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   teks status di panel merah/hijau.
   Sebelumnya 1.4.4 (25) 21.530.390 byte, 1.4.2 (23) 21.521.724 byte,
   1.4.1 (22) 21.521.483 byte, 1.4.0 (21) 21.521.436 byte.
-- Status UAT remote 2026-10-27: CMS/APK current aktif; `/api/health`, CMS
-  root, `/apk/index.html`, dan APK balas HTTP 200. `TRUST_PROXY=1`,
-  `FLOOR_RESTRICTION=true`; database UAT dipertahankan.
+- Status UAT 2026-10-30: **UAT local test bed** `http://127.0.0.1:8082` dan
+  **UAT live** `http://<uat-host>:8082` sama-sama commit `9c96999`, app/web/db
+  sehat, `/api/health` 200. `TRUST_PROXY=1`, `FLOOR_RESTRICTION=true`;
+  database UAT dipertahankan. Alur `npm run demo` tidak lagi dipakai; skrip
+  demo hanya tersisa untuk harness unit/parity.
+- Revamp CMS Ant Design 5 sudah **merge ke `master`** (HEAD `9c96999`).
+  Tag rilis revamp/produksi belum dibuat; `public/apk` dan `package.json`
+  tetap seperti rilis 3.12.1 / APK 1.4.5 (26).
 
 ## Riwayat
 

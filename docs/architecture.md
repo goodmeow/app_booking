@@ -1,19 +1,19 @@
 # Arsitektur RoomBooking
 
 Dokumen ini menjelaskan komponen, alur request, dan batas kepercayaan aplikasi
-**seperti kode saat ini** (diperiksa 2026-10-26). Versi acuan: CMS/API
+**seperti kode saat ini** (diperiksa 2026-10-30). Versi acuan: CMS/API
 `3.12.1` (Ver 3 Rev 13), APK kiosk `1.4.5` (code 26) — lihat
 [`VERSIONING.md`](VERSIONING.md).
 
 ## 1. Komponen
 
-| Komponen | Teknologi | Lokasi kode | Port (dev) |
+| Komponen | Teknologi | Lokasi kode | Port |
 |---|---|---|---|
-| CMS (browser) | React 17, Ant Design 5, Redux Toolkit, React Router 5, FullCalendar | `client/` | disajikan Vite `:8081` |
+| CMS (browser) | React 17, Ant Design 5, Redux Toolkit, React Router 5, FullCalendar | `client/` | Vite `:8081` (dev); nginx `:8082` (UAT) |
 | API + realtime | Express 4, Socket.io 4, `pg` Pool | `server/` | `:9091` |
-| Basis data | PostgreSQL 14 (`btree_gist`) | `database/migrations/` | `:54320` (container demo) |
+| Basis data | PostgreSQL 14/16 (`btree_gist`) | `database/migrations/` | internal container (UAT) / `:5432` (native) |
 | Tablet kiosk | React Native + modul native (NFC, relay USB serial, LED sysfs) | repo `kioskapp` | klien keluar (outbound) |
-| Reverse proxy (produksi) | nginx: statik CMS + proxy `/api/` dan `/socket.io/` | `deploy/nginx/360booking.conf` | `:80`/`:443` |
+| Reverse proxy | nginx: statik CMS + proxy `/api/` dan `/socket.io/` | `deploy/nginx/360booking.conf`, `deploy/docker/` | `:8082` (UAT) / `:80`,`:443` (produksi) |
 | Proses API (produksi) | systemd `360booking-server.service` | `deploy/systemd/` | `127.0.0.1:9091` |
 
 Perangkat keras tidak punya service sendiri: tablet menulis LED lewat
@@ -33,9 +33,9 @@ flowchart LR
   end
 
   subgraph Host["Host aplikasi"]
-    EDGE["Vite dev :8081<br/>atau nginx :80/:443"]
+    EDGE["Vite dev :8081<br/>atau nginx :8082/:443"]
     API["Express + Socket.io<br/>:9091"]
-    DB[("PostgreSQL 14")]
+    DB[("PostgreSQL 14/16")]
   end
 
   HW["NFC reader<br/>Relay CH340<br/>LED sysfs"]
@@ -149,7 +149,7 @@ sequenceDiagram
 
 - Jendela check-in memakai dua nilai settings: `time_of_event_start_soon`
   (boleh check-in sebelum mulai) dan `not_checked_in_time_limit` (batas
-  terlambat). Seed demo: 10 dan 15 menit
+  terlambat). Seed sanitized: 10 dan 15 menit
   (`database/seeds/development.sql:104-120`).
 - Kiosk hanya boleh menyentuh event yang ruangannya sama dengan perangkat
   (`findKioskEventActionContext` memfilter `booking.room_id`).
@@ -253,20 +253,24 @@ Pemilik meeting tetap melihat data lengkap di CMS karena ia organizer; kartu
 dan nomor kartu hanya dikembalikan ke admin (proyeksi whitelist, migrasi
 hardening 2026-10-23).
 
-## 6. Dev vs produksi
+## 6. Test bed vs produksi
 
-| Aspek | Dev (`npm run demo`) | Produksi (nginx + systemd) |
+| Aspek | UAT local test bed / live (Docker Alpine) | Produksi native (nginx + systemd) |
 |---|---|---|
-| Origin | Dua proses: CMS `:8081`, API `:9091` | Satu origin `http(s)://<host>` |
-| Proxy | Vite mem-proxy `/api/*` dan `/socket.io` ke `:9091` (`vite.config.js:65-80`) | nginx `location /api/` dan `/socket.io/` ke `127.0.0.1:9091` |
-| Statik | Vite dev server | `/opt/360booking/client` + fallback SPA |
-| Database | Container `360booking-postgres-test`, `127.0.0.1:54320` | PostgreSQL lokal `:5432` |
-| CORS | `CORS_ORIGINS` diisi `.env.demo` + origin LAN dari `.env.local` | `CORS_ORIGINS=https://<domain>` (tanpa wildcard) |
+| Origin | Satu origin `http://<host>:8082` (nginx container) | Satu origin `http(s)://<domain>` |
+| Proxy | nginx container mem-proxy `/api/*` dan `/socket.io` ke app `:9091` | nginx `location /api/` dan `/socket.io/` ke `127.0.0.1:9091` |
+| Statik | `/usr/share/nginx/html` di image web | `/opt/360booking/client` + fallback SPA |
+| Database | Container `postgres:16-alpine` (tidak dipublikasikan) | PostgreSQL lokal `:5432` |
+| CORS | `ALPINE_CORS_ORIGINS` di `deploy/docker/.env` (di-ignore) | `CORS_ORIGINS=https://<domain>` (tanpa wildcard) |
 | Trust proxy | kosong/false | `TRUST_PROXY=1` (satu hop nginx) |
-| Realtime | Vite mem-proxy WebSocket | nginx `Upgrade`/`Connection` + timeout 7 hari |
+| Realtime | nginx `Upgrade`/`Connection` | nginx `Upgrade`/`Connection` + timeout 7 hari |
 
-Catatan: di dev, `GET /api/health` tetap tanpa autentikasi sehingga dapat
-dipakai sebagai probe.
+Pengembangan lokal memakai `npm run development` (Vite `:8081` + API `:9091`,
+`vite.config.js:65-80` mem-proxy `/api` dan `/socket.io`) dengan `PGDATABASE`
+dari `.env`. Alur `npm run demo` sudah tidak dipakai sebagai prosedur.
+
+Catatan: `GET /api/health` tetap tanpa autentikasi sehingga dapat dipakai
+sebagai probe di kedua lingkungan.
 
 ## 7. Batasan yang diketahui
 

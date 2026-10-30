@@ -2,7 +2,7 @@
 
 Dokumen ini memetakan halaman-halaman web admin (CMS) beserta isi, API, dan
 lokasi kodenya. Versi yang didokumentasikan: CMS/API **3.12.1** (Ver 3 Rev 13).
-Terakhir diperbarui: 2026-10-26.
+Terakhir diperbarui: 2026-10-30.
 
 ## 1. Ringkasan teknis
 
@@ -15,14 +15,17 @@ versi yang ditampilkan di footer.
 |---|---|---|
 | Runtime | Node.js 22 | – |
 | API | Express 4 | `server/express.js`, `server/server.js` |
-| DB | PostgreSQL 14 (`pg`) | container `360booking-postgres-test` |
+| DB | PostgreSQL 14/16 (`pg`) | native: paket distro 14; Docker: `postgres:16-alpine` |
 | Realtime | Socket.io 4 | invalidasi data antar klien |
 | Auth | JWT + bcrypt | `server/features/auth/` |
 | Web | React 17 + Ant Design 5 + Redux Toolkit + Vite | `client/` |
 | Font | Inter (self-host) | `public/fonts/Inter-latin.woff2`, `client/fonts.css` |
 
-Menjalankan lokal: `npm run demo` → web `:8081`, API `:9091`, DB `:54320`.
-Login demo: `admin@example.test` (password di `.env.demo`).
+Menjalankan lokal: stack Docker Alpine (lihat
+[`operations-runbook.md`](operations-runbook.md) §3) → UAT local test bed
+`http://127.0.0.1:8082`, UAT live `http://<uat-host>:8082`. Akun dibuat lewat
+`/setup` lalu CMS → Manajemen; sandi dipegang operator dan tidak ditulis di
+dokumen. Alur `npm run demo` sudah tidak dipakai.
 
 ## 2. Peta rute
 

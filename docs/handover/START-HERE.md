@@ -20,25 +20,31 @@ Aturan produk terpenting:
 - Pemesanan langsung (instant) dan pemesanan terjadwal dari kiosk dibatasi
   hari yang sama, wajib kartu karyawan, dan tunduk aturan lantai.
 
-## 2. Menjalankan demo (5 menit)
+## 2. Lingkungan uji saat ini (5 menit)
+
+Tidak ada lagi alur `npm run demo`. Pengujian berjalan di **UAT local test
+bed** dan **UAT live**, keduanya stack Docker Alpine port `8082`.
+Skrip demo masih ada di repo karena dirujuk harness unit/parity.
+
+| Lingkungan | URL | Commit | Migrasi | Status |
+|---|---|---|---|---|
+| UAT local test bed | `http://127.0.0.1:8082` | `9c96999` | `026_event_room_timezone.sql` | app/web/db sehat |
+| UAT live | `http://<uat-host>:8082` | `9c96999` | `026_event_room_timezone.sql` | app/web/db sehat |
 
 ```bash
-git clone https://github.com/goodmeow/app_booking.git
+git clone <repo-url> app_booking
 cd app_booking && npm install
-npm run demo        # DB disposable + CMS :8081 + API :9091
+
+# UAT local test bed (stack Docker Alpine, port 8082)
+cp deploy/docker/.env.example deploy/docker/.env   # isi origin + secret
+docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d --build
+curl -fsS http://127.0.0.1:8082/api/health          # {"ok":true}
 ```
 
-Kredensial demo (database disposable):
-
-| Peran | Email | Sandi |
-|---|---|---|
-| Admin CMS | `admin@example.test` | `ParityTest123!` |
-| Tablet ruangan | `room-one@room.com` | `RoomTablet123!` |
-| Karyawan uji | `karyawan@uji.prasada.test` / `emp@uji.local` | `1234` |
-
-Setelah menjalankan `test:server:regression` (me-reset DB), jalankan
-`npm run demo:accounts` untuk mengembalikan akun uji, lalu pasangkan ulang
-tablet bila sesi kios ikut hilang.
+Akun tidak lagi memakai kredensial demo. Buat akun pertama lewat `/setup`
+(Super Admin), lalu akun operasional lewat CMS → Manajemen; sandi dipegang
+operator, jangan ditulis di repo. Detail prosedur ada di
+`docs/operations-runbook.md` §2.1 dan §3.
 
 ## 3. Peta repo
 
@@ -81,8 +87,13 @@ tablet bila sesi kios ikut hilang.
 
 ```bash
 npm run verify                  # build client+server, test client + unit server
-npm run test:server:regression  # end-to-end API (reset DB demo; pairing tablet hilang)
+npm run test:server:regression  # end-to-end API (reset DB parity; pairing tablet aman)
 ```
+
+Angka terakhir 2026-10-30 (checkout build `/home/goodmeow/build/app_booking`):
+client **99/99**, unit server **85/85**, regresi **105/105** (0 skip), parity
+prepare **2/2**, parity **8/8**; lint 0 error (warning tersisa). Regresi/parity
+me-reset database `360booking_parity_test`, bukan database UAT.
 
 CI (`.github/workflows/ci.yml`) menjalankan `verify`; suite paritas/regresi
 butuh PostgreSQL disposable sehingga dijalankan manual/ops.
@@ -96,7 +107,7 @@ lewat env `HTTPS=true` + `TLS_CERT_PATH`/`TLS_KEY_PATH` atau reverse proxy
 (`TRUST_PROXY=1`, satu hop nginx).
 
 Alternatif Docker: `deploy/docker/compose.alpine.yaml`
-(`node:20-alpine` + `postgres:16-alpine` + `nginx:alpine`), entrypoint
+(`node:22-alpine` + `postgres:16-alpine` + `nginx:alpine`), entrypoint
 menerapkan migrasi + seed role otomatis; detail di `deploy/docker/README.md`
 dan `docs/operations-runbook.md` §2.5.
 

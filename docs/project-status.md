@@ -1,6 +1,6 @@
 # Status Proyek RoomBooking
 
-Snapshot: **2026-10-27, WIB**. Angka kesiapan adalah penilaian berbobot, bukan
+Snapshot: **2026-10-30, WIB**. Angka kesiapan adalah penilaian berbobot, bukan
 metrik otomatis.
 
 ## Versi dan akses
@@ -9,11 +9,14 @@ metrik otomatis.
 |---|---|
 | CMS/API | **3.12.1** (Ver 3 Rev 13) |
 | APK kiosk | **1.4.5 (26)** |
-| URL UAT Docker | `http://<uat-host>:8082` (LAN langsung, belum lewat domain) |
+| Commit app (HEAD `master`) | `9c96999` (2026-10-30) |
+| Migrasi terakhir | `026_event_room_timezone.sql` |
+| UAT local test bed | `http://127.0.0.1:8082` — app/web/db sehat |
+| UAT live | `http://<uat-host>:8082` — app/web/db sehat |
 | Domain baru | `<uat-domain>` — DNS + vhost nginx **belum aktif** |
-| Database | `360booking` (PostgreSQL di stack Docker UAT) |
-| Commit app | `69fc547` + `3.12.0` (bump) + `ec6baac` + `5509fe8` + `c43be28` + `45785a5` + `60af46e` + `6452b7c` + `4f463fb` + `26691c8` + `1ee10c7` + `3b9f623` + `6cb0704` + `0d17a4f` |
-| Commit dasar app | `9eb8c37` + `37cebaa` + `678ab49` |
+| Database | `360booking` (PostgreSQL 16 di stack Docker UAT) |
+| Commit rilis 3.12.1 (historis) | `69fc547` + `3.12.0` (bump) + `ec6baac` + `5509fe8` + `c43be28` + `45785a5` + `60af46e` + `6452b7c` + `4f463fb` + `26691c8` + `1ee10c7` + `3b9f623` + `6cb0704` + `0d17a4f` |
+| Commit dasar app (historis) | `9eb8c37` + `37cebaa` + `678ab49` |
 | Commit kiosk | `a6390a2` (APK 1.4.5 build tag `1.4.5-26-a6390a2`) |
 | Commit clean | snapshot `clean` terbaru (sinkron dengan master) |
 | Commit artefak REA | `f266e33` (`app_360booking`) |
@@ -51,11 +54,19 @@ metrik otomatis.
 - **Distribusi APK**: halaman `/apk/index.html` + `kiosk-release.apk` current
   (build tag `1.4.5-26-a6390a2`, 21.530.462 byte, SHA-256 `adb6af93…a338d6`);
   copy kiosk netral "Siap digunakan / Belum ada jadwal berikutnya".
-- **UAT berjalan sebagai stack Docker Compose di VM Linux**: CMS/API di port
-  `8082`; CMS root, `/api/health`, dan `/apk/index.html` balas HTTP 200.
-- **Server UAT remote diperbarui 2026-10-27**: CMS current dan APK current
-  terpasang; health 200. Insiden password DB setelah `.env` tertimpa sudah
-  diperbaiki dengan reset role + env baru, volume database dipertahankan.
+- **UAT berjalan sebagai stack Docker Compose di VM Linux**: UAT local test bed
+  `http://127.0.0.1:8082` dan UAT live `http://<uat-host>:8082` sama-sama
+  commit `9c96999`; CMS root, `/api/health`, dan `/apk/index.html` balas
+  HTTP 200; container app/web/db healthy.
+- **Revamp CMS Ant Design 5 sudah merge ke `master`** (HEAD `9c96999`);
+  tag rilis revamp/produksi belum dibuat.
+- **Alur `npm run demo` tidak lagi dipakai.** Skrip demo masih ada di repo
+  karena dirujuk harness unit/parity, bukan prosedur kerja; pengujian berjalan
+  di UAT local test bed dan UAT live. Tidak ada migrasi baru setelah
+  `026_event_room_timezone.sql`.
+- **Server UAT remote diperbarui 2026-10-27** (historis): CMS current dan APK
+  current terpasang; health 200. Insiden password DB setelah `.env` tertimpa
+  sudah diperbaiki dengan reset role + env baru, volume database dipertahankan.
   Permission tree dinormalkan (755/644/755 untuk script) dan deploy script
   tidak lagi menimpa `.env` yang ada.
 - **Setup admin selesai** dan **impor user bersih** di DB UAT; satu akun
@@ -71,11 +82,13 @@ metrik otomatis.
 - Setup admin terlindungi (`is_protected`, migrasi 021): delete `403
   PROTECTED_ACCOUNT`; UAT ADMIN-001 terverifikasi.
 - UAT lintas lantai dan multi-room; data kartu UAT.
-- Angka uji akhir 2026-10-26 di checkout build `/home/goodmeow/build/app_booking`:
-  unit server **85/85**, unit kiosk **21/21**, client **98/98**, regresi
-  **95/95** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
-  dan `build:server:check` lulus. Perubahan UI terakhir juga lulus client
-  98/98.
+- Angka uji akhir 2026-10-30 di checkout build `/home/goodmeow/build/app_booking`
+  (commit `9c96999`): unit server **85/85**, unit kiosk **21/21**, client
+  **99/99**, regresi **105/105** (0 skip), parity prepare **2/2**, parity
+  **8/8**; `build:client` dan `build:server:check` lulus, lint 0 error
+  (warning tersisa).
+- Angka uji 2026-10-26 (historis, sebelum revamp AntD): unit server 85/85,
+  unit kiosk 21/21, client 98/98, regresi 95/95 (0 skip), parity 8/8.
 - Deploy native satu perintah: `deploy/bootstrap.sh` (IP + HTTP + 80);
   deploy external nginx punya opsi argumen wajib (origin/proxy-ip).
 - Repo dipecah: `app_booking`, `app_360booking`, `kioskapp` root repo.
@@ -95,7 +108,8 @@ metrik otomatis.
 - [x] UAT Docker Compose di VM Linux: CMS root HTTP 200, `/api/health` 200,
   `/apk/kiosk-release.apk` 200 (port 8082).
 - [x] Setup admin + impor user bersih di DB UAT; akun meeting room dibuat.
-- [x] Tablet dipairing ke server UAT, footer `v1.4.4 (25) · CMS 3.12.0`.
+- [x] Tablet dipairing ke server UAT, footer `v1.4.4 (25) · CMS 3.12.0`
+  (historis; sekarang `v1.4.5 (26) · CMS 3.12.1`).
 - [x] Akses pintu end-to-end: APK → `/api` validasi kartu 200 → CH340 relay
   di tablet → klik relay fisik.
 - [x] Akses per peran: `super_admin` dari `/setup`, matrix menu per peran,
@@ -111,8 +125,13 @@ metrik otomatis.
   users 260, events 114, cards 202, migrations 20; DB uji dihapus.
 - [x] Deck training 22 slide (CMS + tablet + screenshot) masuk docs.
 - [x] Client 98/98, server unit 85/85, kiosk unit 21/21, typecheck kiosk
-  bersih (2026-10-26).
-- [x] Regression 95/95 (0 skip) dan parity 8/8 sudah lulus (2026-10-26).
+  bersih (2026-10-26, historis).
+- [x] Regression 95/95 (0 skip) dan parity 8/8 sudah lulus (2026-10-26,
+  historis).
+- [x] Revamp AntD 5 merge ke `master` (HEAD `9c96999`); UAT local test bed dan
+  UAT live di commit yang sama, app/web/db sehat (2026-10-30).
+- [x] Verifikasi final 2026-10-30: client 99/99, server unit 85/85, regresi
+  105/105 (0 skip), parity 8/8, build client/server lulus.
 
 ## Sisa pekerjaan kita
 

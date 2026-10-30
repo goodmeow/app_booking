@@ -8,6 +8,13 @@ Versi acuan dokumen: CMS/API **3.12.1** (Ver 3 Rev 13), APK kiosk **1.4.5**
 (versionCode 26, build tag `1.4.5-26-a6390a2`). Setiap perubahan versi dicatat
 di [`VERSIONING.md`](VERSIONING.md).
 
+Lingkungan saat ini (2026-10-30, commit `9c96999`, migrasi terakhir
+`026_event_room_timezone.sql`): UAT local test bed `http://127.0.0.1:8082` dan
+UAT live `http://<uat-host>:8082`, keduanya app/web/db sehat. Bukti uji
+terakhir: client **99/99**, unit server **85/85**, regresi **105/105**, parity
+**8/8**. Alur `npm run demo` sudah tidak dipakai; lihat
+[`operations-runbook.md`](operations-runbook.md) §3.
+
 ## Untuk product champion dan operator
 
 | Dokumen | Isi |
@@ -25,7 +32,7 @@ di [`VERSIONING.md`](VERSIONING.md).
 
 | Dokumen | Isi |
 |---|---|
-| [`handover/START-HERE.md`](handover/START-HERE.md) | Orientasi 10 menit: apa ini, demo, peta repo, gate kualitas |
+| [`handover/START-HERE.md`](handover/START-HERE.md) | Orientasi 10 menit: apa ini, lingkungan uji, peta repo, gate kualitas |
 | [`architecture.md`](architecture.md) | Komponen, diagram, alur request, zona waktu, privasi proyeksi |
 | [`api-reference.md`](api-reference.md) | Endpoint, field, kode error, dan pemetaan ke UI |
 | [`erd.md`](erd.md) | ERD dan kamus data tabel utama |
@@ -51,7 +58,7 @@ di [`VERSIONING.md`](VERSIONING.md).
 | [`../database/README.md`](../database/README.md) | Batas aman database uji, rebuild migrasi, seed sanitized |
 | [`../database/scripts/README.md`](../database/scripts/README.md) | Skrip backup, restore, reset, preflight, dan impor |
 | [`../deploy/README.md`](../deploy/README.md) | Deploy Ubuntu 22.04 lewat `deploy/01`…`05` |
-| [`../deploy/docker/README.md`](../deploy/docker/README.md) | Stack Docker Alpine (`node:20-alpine`, `postgres:16-alpine`, `nginx:alpine`) |
+| [`../deploy/docker/README.md`](../deploy/docker/README.md) | Stack Docker Alpine (`node:22-alpine`, `postgres:16-alpine`, `nginx:alpine`) |
 | [`../public/apk/README.md`](../public/apk/README.md) | Riwayat APK yang ditebar di `/apk/kiosk-release.apk`; halaman unduh `/apk/index.html` |
 
 ## Catatan proyek

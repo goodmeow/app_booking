@@ -1,7 +1,7 @@
 # Revamp CMS ke Ant Design 5
 
-Status: **implementasi UI + verifikasi selesai** — menunggu merge dan tag rilis.
-Tanggal: 2026-10-29.
+Status: **merge selesai (HEAD `9c96999`)** — tag rilis belum dibuat.
+Tanggal: 2026-10-30.
 
 ## Cara pakai dokumen ini
 
@@ -226,17 +226,28 @@ MUI icons              -> @ant-design/icons
 
 ## Sisa pekerjaan
 
-### Sebelum merge
+### Penutupan rilis
 
 - [x] UAT lokal final: login/setup, kalender + booking, users, rooms/devices,
   settings/branding/role/audit, report/export, web `/kiosk`.
 - [x] Smoke test APK 1.4.5 terhadap CMS baru: pairing, schedule, check-in,
   extend, NFC/LED (dianggap selesai oleh pemilik produk).
-- [ ] Merge `revamp/antd5` ke `master` dan push.
-- [ ] Bump/tag rilis CMS setelah merge (saat ini `3.12.1`, belum ada tag revamp).
-- [x] Build client/server, client 96/96, server unit 85/85, regression 98/98,
-  parity 8/8. Parity memerlukan `cookie-parser` + `lodash` legacy di checkout
-  build; setelah dipasang, semua 8 test lulus.
+- [x] Merge `revamp/antd5` ke `master` dan push (HEAD `9c96999`).
+- [ ] Bump/tag rilis CMS setelah merge (saat ini `3.12.1`, belum ada tag
+  revamp/produksi).
+- [x] Build client/server, client **99/99**, server unit **85/85**, regression
+  **105/105**, parity **8/8** (bukti 2026-10-30). Parity memerlukan
+  `cookie-parser` + `lodash` legacy di checkout build; setelah dipasang, semua
+  8 test lulus.
+
+### Status lingkungan
+
+- UAT local test bed `http://127.0.0.1:8082` dan UAT live
+  `http://<uat-host>:8082` sudah memakai commit `9c96999`; app/web/db sehat.
+- Migrasi terakhir tetap `026_event_room_timezone.sql`; tidak ada migrasi baru
+  setelah merge.
+- Alur `npm run demo` sudah **tidak dipakai**; skrip demo tersisa hanya karena
+  dirujuk harness unit/parity.
 
 ### Ditunda
 
@@ -314,3 +325,4 @@ baris baru di bawah.
 | 2026-10-29 | Verification | Build client/server; client 99/99; server unit 85/85; regression 105/105; parity 8/8 | `build/`, `server/tests/*` | semua lulus |
 | 2026-10-29 | Cleanup | Sync docs APK 1.4.5 + stack AntD; lisensi dicek; `eslint.config.js` masuk repo | `README.md`, `docs/*`, `client/domain/licenses.js`, `eslint.config.js` | review dokumen |
 | 2026-10-29 | Docs sync | Selaraskan distribusi APK di `VERSIONING.md` ke paket 1.4.5 (26) `941a537` dan hapus kalimat **Tentang** ganda | `docs/VERSIONING.md` | `git diff --check` bersih |
+| 2026-10-30 | Docs sync | Catat merge selesai (`9c96999`), angka final client 99/99 + regresi 105/105, UAT local/live current, migrasi 026, demo tidak dipakai; tag rilis belum ada | `docs/*`, `README.md` | `git diff --check` |
