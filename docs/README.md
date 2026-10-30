@@ -26,7 +26,8 @@ terakhir: client **99/99**, unit server **85/85**, regresi **105/105**, parity
 | [`CMS.md`](CMS.md) | Peta halaman CMS, tombol, dan alur tiap layar (termasuk matrix peran dan log audit) |
 | [`user-import.md`](user-import.md) | Bulk import user dari CSV: employee_id sebagai master key, skip/overwrite, kartu |
 | [`scenarios.md`](scenarios.md) | Katalog skenario uji manual end-to-end |
-| [`training/RoomBooking-Panduan-CMS-Tablet.pptx`](training/RoomBooking-Panduan-CMS-Tablet.pptx) | Deck 22 slide: panduan CMS + tablet (termasuk Super Admin, multi-lantai, audit, update APK) |
+| [`training/RoomBooking-Panduan-CMS-Tablet.pptx`](training/RoomBooking-Panduan-CMS-Tablet.pptx) | Deck **31 slide**: panduan operasional CMS + tablet, bahasa non-teknis, termasuk screenshot tablet dan status |
+| [`training/RoomBooking-Panduan-CMS.pptx`](training/RoomBooking-Panduan-CMS.pptx) | Deck **28 slide**: panduan penggunaan CMS untuk admin/resepsionis (kalender, booking, users, rooms, devices, settings, audit, report) |
 
 ## Untuk developer
 

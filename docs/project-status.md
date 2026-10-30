@@ -36,7 +36,7 @@ metrik otomatis.
 | Infrastruktur | 15% | 75% | UAT current + health 200; domain/TLS/nginx produksi belum aktif |
 | Keamanan | 15% | 78% | Reset sandi/audit/menu hardened; TLS, signing produksi, dan hardening host belum |
 | Backup/monitoring | 10% | 65% | Backup + restore lokal lulus; off-host copy + alert belum |
-| UAT/training | 8% | 92% | UAT Docker + deck 22 slide; UAT formal pengguna belum |
+| UAT/training | 8% | 92% | UAT Docker + deck 31 slide (CMS/tablet) + 28 slide (CMS); UAT formal pengguna belum |
 | Hardware | 7% | 70% | CH340 relay terbukti; NFC 7-byte + autostart belum |
 
 ## Sudah selesai
@@ -119,11 +119,12 @@ metrik otomatis.
   (build tag `1.4.5-26-a6390a2`). Commit halaman APK `c43be28`; bump `a6390a2`.
 - [x] Update server UAT remote ke CMS/APK current (2026-10-27); health 200,
   APK checksum sama dengan build lokal.
-- [x] Dokumentasi + deck training 22 slide (commit `5509fe8`); deck disalin
-  ke Downloads untuk review.
+- [x] Dokumentasi + deck training (31 slide CMS/tablet + 28 slide CMS);
+  disimpan di `docs/training/`.
 - [x] Backup + restore test: dump terbaru direstore ke DB disposable;
   users 260, events 114, cards 202, migrations 20; DB uji dihapus.
-- [x] Deck training 22 slide (CMS + tablet + screenshot) masuk docs.
+- [x] Deck training 31 slide (CMS + tablet + screenshot tablet) dan 28 slide
+  (penggunaan CMS) masuk docs.
 - [x] Client 98/98, server unit 85/85, kiosk unit 21/21, typecheck kiosk
   bersih (2026-10-26, historis).
 - [x] Regression 95/95 (0 skip) dan parity 8/8 sudah lulus (2026-10-26,
