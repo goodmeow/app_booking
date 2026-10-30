@@ -2,7 +2,7 @@
 
 Dokumen ini menjelaskan komponen, alur request, dan batas kepercayaan aplikasi
 **seperti kode saat ini** (diperiksa 2026-10-30). Versi acuan: CMS/API
-`3.12.1` (Ver 3 Rev 13), APK kiosk `1.4.5` (code 26) — lihat
+`3.13.0` (Ver 3 Rev 14), APK kiosk `1.4.5` (code 26) — lihat
 [`VERSIONING.md`](VERSIONING.md).
 
 ## 1. Komponen
@@ -161,7 +161,7 @@ sequenceDiagram
   organizer/peserta/master (`403`). Guard ini tidak bisa dilewati dari UI.
 - `GET /api/kiosk/context` mengirim `cmsVersion` dari `package.json` server;
   tablet menampilkannya di footer bersama versi APK
-  (`v1.4.5 (26) · CMS 3.12.1`).
+  (`v1.4.5 (26) · CMS 3.13.0`).
 
 ### 3.4 Invalidasi realtime
 

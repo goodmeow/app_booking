@@ -1,6 +1,6 @@
 # Revamp CMS ke Ant Design 5
 
-Status: **merge selesai (HEAD `9c96999`)** — tag rilis belum dibuat.
+Status: **merge selesai dan dirilis sebagai `v3.13.0`**.
 Tanggal: 2026-10-30.
 
 ## Cara pakai dokumen ini
@@ -232,9 +232,8 @@ MUI icons              -> @ant-design/icons
   settings/branding/role/audit, report/export, web `/kiosk`.
 - [x] Smoke test APK 1.4.5 terhadap CMS baru: pairing, schedule, check-in,
   extend, NFC/LED (dianggap selesai oleh pemilik produk).
-- [x] Merge `revamp/antd5` ke `master` dan push (HEAD `9c96999`).
-- [ ] Bump/tag rilis CMS setelah merge (saat ini `3.12.1`, belum ada tag
-  revamp/produksi).
+- [x] Merge `revamp/antd5` ke `master` dan push (tag `v3.13.0`).
+- [x] Bump CMS ke `3.13.0` / Ver 3 Rev 14 dan tag `v3.13.0` (2026-10-30).
 - [x] Build client/server, client **99/99**, server unit **85/85**, regression
   **105/105**, parity **8/8** (bukti 2026-10-30). Parity memerlukan
   `cookie-parser` + `lodash` legacy di checkout build; setelah dipasang, semua
@@ -243,7 +242,7 @@ MUI icons              -> @ant-design/icons
 ### Status lingkungan
 
 - UAT local test bed `http://127.0.0.1:8082` dan UAT live
-  `http://<uat-host>:8082` sudah memakai commit `9c96999`; app/web/db sehat.
+  `http://<uat-host>:8082` sudah memakai tag `v3.13.0`; app/web/db sehat.
 - Migrasi terakhir tetap `026_event_room_timezone.sql`; tidak ada migrasi baru
   setelah merge.
 - Alur `npm run demo` sudah **tidak dipakai**; skrip demo tersisa hanya karena

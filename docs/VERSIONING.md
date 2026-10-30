@@ -15,13 +15,13 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
-## Posisi saat ini (Ver 3 Rev 13)
+## Posisi saat ini (Ver 3 Rev 14)
 
-- CMS + API: **Ver 3 Rev 13**, `package.json` `3.12.1`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 14**, `package.json` `3.13.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
 - APK kiosk: `versionName 1.4.5 / versionCode 26`, build tag
   `1.4.5-26-a6390a2`. Footer kios menampilkan versi APK + **versi CMS**
-  (`v1.4.5 (26) · CMS 3.12.1`). Build membawa pill `TERSEDIA` 44 px, copy
+  (`v1.4.5 (26) · CMS 3.13.0`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
@@ -34,12 +34,12 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   **Cek update**; bila manifest lebih baru, tombol berubah menjadi kuning
   **Perbarui**. Di sampingnya ada tombol **Tentang** yang membuka versi
   aplikasi, versi CMS, dan lisensi pustaka APK.
-- Ver 3 Rev 13 mencakup matrix menu per role, `super_admin` dari akun setup,
+- Ver 3 Rev 14 mencakup revamp UI Ant Design 5, proteksi super admin, validasi API, dan hardening storage/kiosk. Ver 3 Rev 13 mencakup matrix menu per role, `super_admin` dari akun setup,
   multi-lantai (`tbl_users.floors`), akses resepsionis per lantai, audit log,
   dan pengerasan security: rate-limit proxy, reset sandi, pairing kiosk,
   backup retry, auto-release, serta filter status ruangan per floor.
 - Bukti 2026-10-30 di checkout build `/home/goodmeow/build/app_booking`
-  (commit `9c96999`): unit server **85/85**, unit kiosk **21/21**, client
+  (tag `v3.13.0`): unit server **85/85**, unit kiosk **21/21**, client
   **99/99**, regresi **105/105** (0 skip), parity prepare **2/2**, parity
   **8/8**; `build:client` dan `build:server:check` lulus, lint 0 error
   (warning tersisa). Unit izin event **9/9**, kontrak kalender **14/14**
@@ -54,17 +54,25 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   Sebelumnya 1.4.4 (25) 21.530.390 byte, 1.4.2 (23) 21.521.724 byte,
   1.4.1 (22) 21.521.483 byte, 1.4.0 (21) 21.521.436 byte.
 - Status UAT 2026-10-30: **UAT local test bed** `http://127.0.0.1:8082` dan
-  **UAT live** `http://<uat-host>:8082` sama-sama commit `9c96999`, app/web/db
+  **UAT live** `http://<uat-host>:8082` sama-sama tag `v3.13.0`, app/web/db
   sehat, `/api/health` 200. `TRUST_PROXY=1`, `FLOOR_RESTRICTION=true`;
   database UAT dipertahankan. Alur `npm run demo` tidak lagi dipakai; skrip
   demo hanya tersisa untuk harness unit/parity.
-- Revamp CMS Ant Design 5 sudah **merge ke `master`** (HEAD `9c96999`).
-  Tag rilis revamp/produksi belum dibuat; `public/apk` dan `package.json`
-  tetap seperti rilis 3.12.1 / APK 1.4.5 (26).
+- Revamp CMS Ant Design 5 sudah **merge ke `master`** dan dirilis sebagai
+  **`v3.13.0` / Ver 3 Rev 14** (2026-10-30). APK tetap 1.4.5 (26);
+  `public/apk` mengikuti paket kiosk yang sama.
 
 ## Riwayat
 
-### Ver 3 Rev 13 - 2026-10-28 (rilis saat ini)
+### Ver 3 Rev 14 - 2026-10-30 (rilis saat ini)
+Revamp UI CMS ke Ant Design 5 (light/dark), agenda/kalender, users, settings,
+branding, role matrix, audit, report, dan web kiosk. Hardening: proteksi super
+admin, validasi ID/payload, detail lantai khusus resepsionis, kartu lost,
+storage browser, refresh kiosk, backup advisory lock, audit retention, dan
+migrasi 026 timezone. Bukti: client 99/99, server 85/85, regresi 105/105,
+parity 8/8. APK tetap 1.4.5 (26).
+
+### Ver 3 Rev 13 - 2026-10-28 (rilis sebelumnya)
 Matrix menu, super admin, multi-lantai, audit, hardening security, dan halaman
 Tentang & Lisensi. APK 1.4.5 (26), build tag `1.4.5-26-a6390a2`.
 

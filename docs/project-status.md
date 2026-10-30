@@ -7,9 +7,9 @@ metrik otomatis.
 
 | Item | Nilai |
 |---|---|
-| CMS/API | **3.12.1** (Ver 3 Rev 13) |
+| CMS/API | **3.13.0** (Ver 3 Rev 14) |
 | APK kiosk | **1.4.5 (26)** |
-| Commit app (HEAD `master`) | `9c96999` (2026-10-30) |
+| Rilis app | **`v3.13.0`** (2026-10-30) |
 | Migrasi terakhir | `026_event_room_timezone.sql` |
 | UAT local test bed | `http://127.0.0.1:8082` — app/web/db sehat |
 | UAT live | `http://<uat-host>:8082` — app/web/db sehat |
@@ -41,7 +41,7 @@ metrik otomatis.
 
 ## Sudah selesai
 
-- CMS/API 3.12.1, APK 1.4.5, branding upload, week start, backup settings.
+- CMS/API 3.13.0, APK 1.4.5, branding upload, week start, backup settings.
 - **Resepsionis**: tombol Edit/Batalkan mengikuti flag `can_mutate`; meeting
   karyawan di lantai akses resepsionis bisa dibatalkan.
 - **Update APK semi-otomatis**: kiosk cek `/apk/latest.json` tiap 6 jam,
@@ -56,10 +56,10 @@ metrik otomatis.
   copy kiosk netral "Siap digunakan / Belum ada jadwal berikutnya".
 - **UAT berjalan sebagai stack Docker Compose di VM Linux**: UAT local test bed
   `http://127.0.0.1:8082` dan UAT live `http://<uat-host>:8082` sama-sama
-  commit `9c96999`; CMS root, `/api/health`, dan `/apk/index.html` balas
+  tag `v3.13.0`; CMS root, `/api/health`, dan `/apk/index.html` balas
   HTTP 200; container app/web/db healthy.
-- **Revamp CMS Ant Design 5 sudah merge ke `master`** (HEAD `9c96999`);
-  tag rilis revamp/produksi belum dibuat.
+- **Revamp CMS Ant Design 5 sudah merge ke `master` dan dirilis `v3.13.0`**;
+  tag `v3.13.0` sudah dibuat; go-live produksi belum.
 - **Alur `npm run demo` tidak lagi dipakai.** Skrip demo masih ada di repo
   karena dirujuk harness unit/parity, bukan prosedur kerja; pengujian berjalan
   di UAT local test bed dan UAT live. Tidak ada migrasi baru setelah
@@ -83,7 +83,7 @@ metrik otomatis.
   PROTECTED_ACCOUNT`; UAT ADMIN-001 terverifikasi.
 - UAT lintas lantai dan multi-room; data kartu UAT.
 - Angka uji akhir 2026-10-30 di checkout build `/home/goodmeow/build/app_booking`
-  (commit `9c96999`): unit server **85/85**, unit kiosk **21/21**, client
+  (tag `v3.13.0`): unit server **85/85**, unit kiosk **21/21**, client
   **99/99**, regresi **105/105** (0 skip), parity prepare **2/2**, parity
   **8/8**; `build:client` dan `build:server:check` lulus, lint 0 error
   (warning tersisa).
@@ -109,7 +109,7 @@ metrik otomatis.
   `/apk/kiosk-release.apk` 200 (port 8082).
 - [x] Setup admin + impor user bersih di DB UAT; akun meeting room dibuat.
 - [x] Tablet dipairing ke server UAT, footer `v1.4.4 (25) · CMS 3.12.0`
-  (historis; sekarang `v1.4.5 (26) · CMS 3.12.1`).
+  (historis; sekarang `v1.4.5 (26) · CMS 3.13.0`).
 - [x] Akses pintu end-to-end: APK → `/api` validasi kartu 200 → CH340 relay
   di tablet → klik relay fisik.
 - [x] Akses per peran: `super_admin` dari `/setup`, matrix menu per peran,
@@ -128,7 +128,7 @@ metrik otomatis.
   bersih (2026-10-26, historis).
 - [x] Regression 95/95 (0 skip) dan parity 8/8 sudah lulus (2026-10-26,
   historis).
-- [x] Revamp AntD 5 merge ke `master` (HEAD `9c96999`); UAT local test bed dan
+- [x] Revamp AntD 5 merge ke `master` → tag `v3.13.0`; UAT local test bed dan
   UAT live di commit yang sama, app/web/db sehat (2026-10-30).
 - [x] Verifikasi final 2026-10-30: client 99/99, server unit 85/85, regresi
   105/105 (0 skip), parity 8/8, build client/server lulus.
@@ -153,7 +153,8 @@ sisi deployment dan operasi:
 ### Setelah blocker
 
 - [ ] UAT formal / training pengguna (pemilik produk).
-- [ ] Go-live produksi + tag rilis.
+- [x] Tag rilis CMS `v3.13.0` (2026-10-30).
+- [ ] Go-live produksi.
 - [ ] Hardware opsional: NFC 7-byte, autostart/kiosk lock.
 - [ ] 16 kartu placeholder RMH ditunda.
 

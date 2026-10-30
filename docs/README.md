@@ -4,11 +4,11 @@ Peta seluruh dokumentasi proyek. Mulai dari
 [`handover/START-HERE.md`](handover/START-HERE.md) bila baru bergabung, atau
 dari [`../README.md`](../README.md) untuk instalasi cepat.
 
-Versi acuan dokumen: CMS/API **3.12.1** (Ver 3 Rev 13), APK kiosk **1.4.5**
+Versi acuan dokumen: CMS/API **3.13.0** (Ver 3 Rev 14), APK kiosk **1.4.5**
 (versionCode 26, build tag `1.4.5-26-a6390a2`). Setiap perubahan versi dicatat
 di [`VERSIONING.md`](VERSIONING.md).
 
-Lingkungan saat ini (2026-10-30, commit `9c96999`, migrasi terakhir
+Lingkungan saat ini (2026-10-30, commit `v3.13.0`, migrasi terakhir
 `026_event_room_timezone.sql`): UAT local test bed `http://127.0.0.1:8082` dan
 UAT live `http://<uat-host>:8082`, keduanya app/web/db sehat. Bukti uji
 terakhir: client **99/99**, unit server **85/85**, regresi **105/105**, parity
@@ -44,6 +44,7 @@ terakhir: client **99/99**, unit server **85/85**, regresi **105/105**, parity
 |---|---|
 | [`project-status.md`](project-status.md) | Status kesiapan, blocker, dan prioritas go-live |
 | [`VERSIONING.md`](VERSIONING.md) | Skema `Ver.Rev`, posisi versi saat ini, riwayat tiap Rev |
+| [`release-v3.13.0.md`](release-v3.13.0.md) | Catatan rilis Ver 3 Rev 14 (v3.13.0) |
 | [`release-v3.12.0.md`](release-v3.12.0.md) | Catatan rilis Ver 3 Rev 13 + checklist sebelum tag |
 | [`release-v3.10.4.md`](release-v3.10.4.md) | Catatan rilis Ver 3 Rev 11 |
 | [`release-v3.10.3.md`](release-v3.10.3.md) | Catatan rilis Ver 3 Rev 10 (riwayat) |

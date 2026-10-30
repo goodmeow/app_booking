@@ -3,7 +3,7 @@
 Panduan menjalankan, merawat, dan memulihkan RoomBooking. Sumber utama
 deploy tetap [`../deploy/README.md`](../deploy/README.md); dokumen ini
 melengkapi bagian operasional yang belum tercakup di sana. Versi acuan:
-CMS/API `3.12.1`, APK kiosk `1.4.5` (code 26).
+CMS/API `3.13.0`, APK kiosk `1.4.5` (code 26).
 
 Semua contoh memakai placeholder `<ip-server>` / `<domain>`; jangan menulis
 IP atau kredensial nyata ke repo.
@@ -12,8 +12,8 @@ IP atau kredensial nyata ke repo.
 
 | Lingkungan | URL | Commit | Versi | Migrasi | Kesehatan | Bukti uji |
 |---|---|---|---|---|---|---|
-| UAT local test bed | `http://127.0.0.1:8082` | `9c96999` | CMS 3.12.1, APK 1.4.5 (26) | `026_event_room_timezone.sql` | app/web/db sehat | client 99/99, unit 85/85, regresi 105/105, parity 8/8 |
-| UAT live | `http://<uat-host>:8082` | `9c96999` | CMS 3.12.1, APK 1.4.5 (26) | `026_event_room_timezone.sql` | app/web/db sehat | sama dengan build di atas |
+| UAT local test bed | `http://127.0.0.1:8082` | `v3.13.0` | CMS 3.13.0, APK 1.4.5 (26) | `026_event_room_timezone.sql` | app/web/db sehat | client 99/99, unit 85/85, regresi 105/105, parity 8/8 |
+| UAT live | `http://<uat-host>:8082` | `v3.13.0` | CMS 3.13.0, APK 1.4.5 (26) | `026_event_room_timezone.sql` | app/web/db sehat | sama dengan build di atas |
 
 Keduanya stack Docker Alpine (§2.5) di port `8082`. Alur `npm run demo` tidak
 lagi dipakai sebagai prosedur; skrip demo hanya tersisa untuk harness
@@ -550,7 +550,7 @@ memicu langkah ini karena memakai database `360booking_parity_test`.
 
 Verifikasi versi setelah pairing: footer kiosk menampilkan
 `v<versi APK> (<versionCode>) · CMS <versi server>` (contoh
-`v1.4.5 (26) · CMS 3.12.1`), bukan lagi “perangkat …”. Bila bagian `CMS`
+`v1.4.5 (26) · CMS 3.13.0`), bukan lagi “perangkat …”. Bila bagian `CMS`
 kosong/`unknown`, tablet belum berhasil memuat `/api/kiosk/context` versi
 terbaru — cek koneksi dan pastikan server sudah di-restart dengan build baru.
 Tombol **Finish** sengaja tersembunyi; muncul setelah **5 tap** pada pill
@@ -568,7 +568,7 @@ Tombol **Unduh APK Tablet** di CMS → Manajemen → Perangkat Tablet menunjuk k
 file yang sama.
 
 1. Pastikan versi file sesuai rilis yang diumumkan: footer tablet harus
-   menampilkan `v1.4.5 (26) · CMS 3.12.1` setelah update. Versi saat ini
+   menampilkan `v1.4.5 (26) · CMS 3.13.0` setelah update. Versi saat ini
    adalah build tag `1.4.5-26-a6390a2`.
 2. Unduh APK dari server sendiri (jangan dari chat/email), lalu pasang di
    tablet (buka file, izinkan instalasi sekali).
@@ -672,7 +672,7 @@ kontrak API tanpa memperbarui `docs/api-reference.md` dan test terkait.
 
 ### 11.1 UAT local test bed (`http://127.0.0.1:8082`)
 
-Lingkungan uji utama tim: stack Docker Alpine (§2.5), commit `9c96999`,
+Lingkungan uji utama tim: stack Docker Alpine (§2.5), commit `v3.13.0`,
 migrasi terakhir `026_event_room_timezone.sql`.
 
 ```bash
@@ -697,14 +697,14 @@ curl -fsS http://127.0.0.1:8082/api/health         # {"ok":true}
 ### 11.2 UAT live (`http://<uat-host>:8082`)
 
 Server UAT yang dipakai pemilik produk dan tablet, commit yang sama
-(`9c96999`), database UAT dipertahankan.
+(`v3.13.0`), database UAT dipertahankan.
 
 1. Ambil commit yang sudah lulus `npm run verify` dari branch `master`.
 2. Di host UAT: `$C up -d --build` (tanpa `down -v`).
 3. Verifikasi: `curl -fsS http://<uat-host>:8082/api/health` → `{"ok":true}`,
    `$C ps` menunjukkan db/app/web healthy, lalu buka CMS dan cek footer
-   `3.12.1`.
-4. Cek tablet: footer menampilkan `v1.4.5 (26) · CMS 3.12.1` dan status
+   `3.13.0`.
+4. Cek tablet: footer menampilkan `v1.4.5 (26) · CMS 3.13.0` dan status
    **Online** di tab Perangkat Tablet.
 5. Bila ada migrasi baru, entrypoint container menerapkannya otomatis; backup
    DB dulu bila migrasi mengubah data.

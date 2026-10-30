@@ -28,8 +28,8 @@ Skrip demo masih ada di repo karena dirujuk harness unit/parity.
 
 | Lingkungan | URL | Commit | Migrasi | Status |
 |---|---|---|---|---|
-| UAT local test bed | `http://127.0.0.1:8082` | `9c96999` | `026_event_room_timezone.sql` | app/web/db sehat |
-| UAT live | `http://<uat-host>:8082` | `9c96999` | `026_event_room_timezone.sql` | app/web/db sehat |
+| UAT local test bed | `http://127.0.0.1:8082` | `v3.13.0` | `026_event_room_timezone.sql` | app/web/db sehat |
+| UAT live | `http://<uat-host>:8082` | `v3.13.0` | `026_event_room_timezone.sql` | app/web/db sehat |
 
 ```bash
 git clone <repo-url> app_booking
@@ -55,7 +55,7 @@ operator, jangan ditulis di repo. Detail prosedur ada di
 | Database | `database/migrations/` (urut), seed disposable di `database/seeds/` |
 | Test | `server/tests/unit|parity|regression`, `client/tests` |
 | Deploy Ubuntu 22.04 | `deploy/` (lihat `deploy/README.md`) |
-| Versi & riwayat | `docs/VERSIONING.md`, `package.json` (`3.12.1` = Ver 3 Rev 13), APK kiosk `1.4.5` (code 26) |
+| Versi & riwayat | `docs/VERSIONING.md`, `package.json` (`3.13.0` = Ver 3 Rev 14), APK kiosk `1.4.5` (code 26) |
 
 ## 4. Alur kiosk singkat
 
@@ -70,7 +70,7 @@ operator, jangan ditulis di repo. Detail prosedur ada di
    - **Sampai HH:MM** hanya muncul bila masih ada meeting berikutnya hari itu;
    - **Finish/Selesai** disembunyikan; muncul setelah **5 tap** pada pill
      **IN USE** (easter egg operator).
-4. Footer kios menampilkan versi APK + versi CMS (`v1.4.5 (26) · CMS 3.12.1`),
+4. Footer kios menampilkan versi APK + versi CMS (`v1.4.5 (26) · CMS 3.13.0`),
    berguna untuk memastikan tablet dan server memakai rilis yang sama.
 5. Admin mengelola perangkat di CMS → Manajemen → Perangkat Tablet (LED,
    tampilkan judul, cabut perangkat, unduh APK). Pengaturan global (timer
@@ -81,7 +81,7 @@ operator, jangan ditulis di repo. Detail prosedur ada di
 6. Update APK tablet: unduh dari `https://<domain>/apk/index.html` (atau tombol
    Unduh APK Tablet). Versi saat ini `1.4.5` (26), build tag
    `1.4.5-26-a6390a2`; footer tablet menampilkan
-   `v1.4.5 (26) · CMS 3.12.1`.
+   `v1.4.5 (26) · CMS 3.13.0`.
 
 ## 5. Gate kualitas
 
