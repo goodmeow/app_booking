@@ -67,8 +67,12 @@ class Matcher:
         self._templates = list(templates)
         if self._templates:
             self._matrix = np.vstack([t.embedding for t in self._templates])
+            # Precomputed so identify can mask by face_group with numpy instead
+            # of a Python loop over every template.
+            self._groups = np.array([t.face_group for t in self._templates], dtype=object)
         else:
             self._matrix = None
+            self._groups = None
 
     def __len__(self):
         return len(self._templates)
@@ -82,15 +86,17 @@ class Matcher:
         best = self._templates[best_index]
         best_score = float(scores[best_index])
 
-        runner_up = self._runner_up_score(scores, best.face_group)
+        same_mask = self._groups == best.face_group
+        runner_mask = ~same_mask
+        runner_up = float(np.max(scores[runner_mask])) if runner_mask.any() else -1.0
         margin = best_score - runner_up
 
+        same_indices = np.nonzero(same_mask)[0]
+        top_indices = same_indices[np.argsort(scores[same_indices])[::-1][:3]]
         same_group = [
-            (template.employee_id, float(scores[index]))
-            for index, template in enumerate(self._templates)
-            if template.face_group == best.face_group
+            (self._templates[int(index)].employee_id, float(scores[index]))
+            for index in top_indices
         ]
-        same_group.sort(key=lambda pair: pair[1], reverse=True)
 
         if best_score < self.threshold:
             return MatchResult("no_match", best_score, margin, None, same_group[:3])
@@ -122,13 +128,3 @@ class Matcher:
             return None
         scores = self._matrix[indices] @ embedding
         return float(np.max(scores))
-
-    def _runner_up_score(self, scores, winning_group):
-        """Best score from a different face_group."""
-        best = -1.0
-        for index, score in enumerate(scores):
-            if self._templates[index].face_group == winning_group:
-                continue
-            if score > best:
-                best = float(score)
-        return best

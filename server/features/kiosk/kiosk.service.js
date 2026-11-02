@@ -19,8 +19,12 @@ import {
   findActiveKioskDeviceById,
   findActiveKioskDeviceForRoom,
   findEmployeeByCard,
+  findEmployeeByUserId,
+  findEmployeesByEmployeeIds,
+  findFaceRoomBookings,
   findKioskEventActionContext,
   findKioskDoorContext,
+  findKioskEventActionContextByUser,
   findKioskRoomEvent,
   findKioskRoomByLogin,
   listKioskDevices,
@@ -266,6 +270,109 @@ export const authorizeKioskDoor = async (cardNumber, room) => {
   return { roomId: room._id, deviceId: room.deviceId };
 };
 
+// Frames are bounded before they reach the face service: an empty list cannot
+// identify anyone, and a long list is just a way to make the ML service work.
+// 6 is the documented burst size; larger bodies are rejected by express.json anyway.
+const MIN_FACE_FRAMES = 1;
+// Each frame costs one detect + embed on the face service and ~1s on the
+// tablet camera, so the burst is capped at 3 (the kiosk sends 1).
+const MAX_FACE_FRAMES = 3;
+const FACE_SERVICE_TIMEOUT_MS = 8000;
+
+const validateFaceFrames = (frames) => {
+  const list = Array.isArray(frames) ? frames : [];
+  if (list.length < MIN_FACE_FRAMES || list.length > MAX_FACE_FRAMES) {
+    throw badRequest("INVALID_FRAMES", `Send ${MIN_FACE_FRAMES}-${MAX_FACE_FRAMES} camera frames`);
+  }
+  if (list.some((frame) => typeof frame !== "string" || !frame.trim())) {
+    throw badRequest("INVALID_FRAMES", "Every frame must be a base64 JPEG string");
+  }
+  return list;
+};
+
+// Forward the burst to the internal face service. It owns detection + matching
+// and logs every attempt to tbl_face_verify_log, so this call only reads the
+// verdict; app_booking never writes a second audit row for the same scan.
+const callFaceIdentify = async ({ deviceId, frames }) => {
+  const baseUrl = String(config.faceServiceUrl || "").replace(/\/+$/, "");
+  if (!baseUrl) {
+    throw new HttpError(503, "FACE_SERVICE_UNAVAILABLE", "Face unlock is not available. Use your card.");
+  }
+  let response;
+  try {
+    response = await fetch(`${baseUrl}/identify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(config.faceInternalToken ? { "X-Face-Token": config.faceInternalToken } : {}),
+      },
+      body: JSON.stringify({ device_id: deviceId, frames }),
+      signal: AbortSignal.timeout(FACE_SERVICE_TIMEOUT_MS),
+    });
+  } catch {
+    throw new HttpError(503, "FACE_SERVICE_UNAVAILABLE", "Face unlock is not available. Use your card.");
+  }
+  if (!response.ok) {
+    throw new HttpError(502, "FACE_SERVICE_ERROR", "Face unlock failed. Use your card.");
+  }
+  return response.json();
+};
+
+// Face unlock for the kiosk: identify the face, then authorize it against an
+// active booking in THIS room. A recognition miss (no_match / ambiguous /
+// no_face) is a normal 200 with allowed:false so the tablet falls back to a card;
+// a hit with no booking here is a 403 so the tablet can say "no right to this
+// room". One physical person with two employee accounts (a face_group) comes back
+// as several candidates: whichever account actually holds a booking here wins.
+export const faceUnlockKiosk = async ({ frames }, room) => {
+  const list = validateFaceFrames(frames);
+  const identified = await callFaceIdentify({ deviceId: room.deviceId, frames: list });
+  const result = String(identified?.result || "no_face");
+
+  if (result !== "match") {
+    return {
+      allowed: false,
+      result,
+      score: identified?.score ?? null,
+      margin: identified?.margin ?? null,
+      faceGroup: identified?.face_group ?? null,
+    };
+  }
+
+  const employeeIds = (Array.isArray(identified?.candidates) ? identified.candidates : [])
+    .map((candidate) => candidate?.employee_id)
+    .filter((value) => typeof value === "string" && value.trim());
+
+  const bookings = employeeIds.length
+    ? await findFaceRoomBookings({ roomId: room._id, employeeIds })
+    : [];
+
+  // The face service's check-in window is the same one the card path uses, but
+  // entry stays valid for the whole booking (not just the attendance band), so a
+  // person can walk in while their meeting is running.
+  const now = Date.now();
+  const authorized = bookings.find((booking) => {
+    const start = new Date(booking.start_at).getTime();
+    const end = new Date(booking.end_at).getTime();
+    const opens = start - Number(booking.early_minutes || 0) * MILLISECONDS_PER_MINUTE;
+    return now >= opens && now < end;
+  });
+
+  if (!authorized) {
+    throw new HttpError(403, "NOT_AUTHORIZED_FOR_ROOM", "No active booking in this room for this face. Use your card.");
+  }
+
+  return {
+    allowed: true,
+    result: "match",
+    employeeId: authorized.employee_id,
+    eventId: authorized.event_id,
+    score: identified?.score ?? null,
+    margin: identified?.margin ?? null,
+    faceGroup: identified?.face_group ?? null,
+  };
+};
+
 export const deprovisionKioskDevice = async (deviceId) => {
   const device = await revokeKioskDevice(deviceId);
   if (!device) throw notFound("Kiosk device not found");
@@ -355,18 +462,27 @@ export const getKioskSchedule = async (query, room) => {
   }));
 };
 
-const kioskActionContext = async ({ eventId, cardNumber, room }, execute) => {
-  if (!isUuid(eventId) || !cardNumber) throw badRequest("INVALID_KIOSK_ACTION", "Event and card number are required");
-  const context = await findKioskEventActionContext({ eventId, roomId: room._id, cardNumber }, execute);
+// Identity can come from a card (HTTP path) or from a face-matched user id
+// (server-internal face path). The user id is never accepted from a request
+// body; only faceActionKiosk resolves it from the face service.
+const kioskActionContext = async ({ eventId, cardNumber, userId, room }, execute) => {
+  if (!isUuid(eventId) || (!cardNumber && !userId)) {
+    throw badRequest("INVALID_KIOSK_ACTION", "Event and identity are required");
+  }
+  const context = userId
+    ? await findKioskEventActionContextByUser({ eventId, roomId: room._id, userId }, execute)
+    : await findKioskEventActionContext({ eventId, roomId: room._id, cardNumber }, execute);
   if (!context) throw notFound("Event not found for this room");
-  if (!context.card_allowed) throw forbidden("Card is not authorized for this meeting");
+  if (userId ? !context.user_allowed : !context.card_allowed) {
+    throw forbidden("This person is not authorized for this meeting");
+  }
   return context;
 };
 
-export const checkInKioskEvent = async ({ event_id: eventId, card_number: cardNumber }, room) => {
+const checkInWithIdentity = async ({ eventId, cardNumber = null, userId = null }, room) => {
   return withTransaction(async (client) => {
     const execute = (text, values) => client.query(text, values);
-    const context = await kioskActionContext({ eventId, cardNumber, room }, execute);
+    const context = await kioskActionContext({ eventId, cardNumber, userId, room }, execute);
     const now = Date.now();
     const start = new Date(context.start_at).getTime();
     const opens = start - Number(context.early_minutes || 0) * MILLISECONDS_PER_MINUTE;
@@ -376,6 +492,9 @@ export const checkInKioskEvent = async ({ event_id: eventId, card_number: cardNu
     return markCheckedIn(eventId, execute);
   });
 };
+
+export const checkInKioskEvent = ({ event_id: eventId, card_number: cardNumber }, room) =>
+  checkInWithIdentity({ eventId, cardNumber }, room);
 
 export const finishKioskEvent = async ({ event_id: eventId, card_number: cardNumber }, room) => {
   return withTransaction(async (client) => {
@@ -414,30 +533,32 @@ const clampMinutes = (value, fallback, min, max) => {
   return Math.min(max, Math.max(min, Math.round(minutes)));
 };
 
-// The kiosk card must belong to an active employee whose floor list covers the
-// room. Used by instant booking and by scheduled booking for today.
+// A kiosk employee must belong to an active employee whose floor list covers
+// the room. Shared by the card path and the face path.
+const assertKioskFloor = (employee, room) => {
+  const employeeFloors = effectiveFloors(employee);
+  const roomFloor = String(room.floor || "").trim();
+  if (!employeeFloors.length) {
+    throw new HttpError(403, "FLOOR_REQUIRED", "This account is not linked to a work floor. Ask an admin to set it in Management > Users.");
+  }
+  if (!coversAllFloors(employee) && !coversFloor(employee, roomFloor)) {
+    throw new HttpError(403, "FLOOR_RESTRICTED", `This account is registered on floor ${employeeFloors.join(", ")}, but this room is on floor ${roomFloor}.`);
+  }
+  return employee;
+};
+
 const resolveKioskEmployeeByCard = async (cardNumber, room) => {
   const card = String(cardNumber || "").trim();
   if (!card) throw badRequest("INVALID_CARD", "Card number is required");
   const employee = await findEmployeeByCard(card);
   if (!employee) throw badRequest("INVALID_CARD", "Card number not found");
-  const employeeFloors = effectiveFloors(employee);
-  const roomFloor = String(room.floor || "").trim();
-  if (!employeeFloors.length) {
-    throw new HttpError(
-      403,
-      "FLOOR_REQUIRED",
-      "This card is not linked to a work floor. Ask an admin to set it in Management > Users.",
-    );
-  }
-  if (!coversAllFloors(employee) && !coversFloor(employee, roomFloor)) {
-    throw new HttpError(
-      403,
-      "FLOOR_RESTRICTED",
-      `This card is registered on floor ${employeeFloors.join(", ")}, but this room is on floor ${roomFloor}.`,
-    );
-  }
-  return employee;
+  return assertKioskFloor(employee, room);
+};
+
+const resolveKioskEmployeeByUser = async (userId, room) => {
+  const employee = await findEmployeeByUserId(userId);
+  if (!employee) throw notFound("Employee not found");
+  return assertKioskFloor(employee, room);
 };
 
 const localDayKey = (date, timezone) => {
@@ -467,15 +588,15 @@ export const validateKioskBookedSlot = ({ now, start, end, timezone }) => {
   return { startDate, endDate, startsNow: startDate.getTime() - now.getTime() <= 2 * MILLISECONDS_PER_MINUTE };
 };
 
-export const extendKioskEvent = async ({ event_id: eventId, minutes, card_number: cardNumber }, room) => {
+const extendWithIdentity = async ({ eventId, minutes, cardNumber = null, userId = null }, room) => {
   if (!eventId) throw badRequest("INVALID_KIOSK_ACTION", "Event is required");
-  // Extending is a room action, not a free tap: the card must belong to the
-  // organizer or an attendee (or be a master card), same rule as check-in.
-  if (!String(cardNumber ?? "").trim()) throw badRequest("INVALID_CARD", "Card number is required");
+  // Extending is a room action, not a free tap: the person must be the
+  // organizer or an attendee (or hold a master card on the card path).
+  if (!cardNumber && !userId) throw badRequest("INVALID_CARD", "Card number is required");
   const extra = clampMinutes(minutes, 15, 5, 60);
   return withTransaction(async (client) => {
     const execute = (text, values) => client.query(text, values);
-    const context = await kioskActionContext({ eventId, cardNumber, room }, execute);
+    const context = await kioskActionContext({ eventId, cardNumber, userId, room }, execute);
     const now = Date.now();
     if (!context.checked_in) throw conflict("NOT_CHECKED_IN", "Only a checked-in meeting can be extended");
     if (now < new Date(context.start_at).getTime() || now >= new Date(context.end_at).getTime()) {
@@ -497,6 +618,9 @@ export const extendKioskEvent = async ({ event_id: eventId, minutes, card_number
     }
   });
 };
+
+export const extendKioskEvent = ({ event_id: eventId, minutes, card_number: cardNumber }, room) =>
+  extendWithIdentity({ eventId, minutes, cardNumber }, room);
 
 export const completeKioskEvent = async ({ event_id: eventId }, room) => {
   if (!isUuid(eventId)) throw badRequest("INVALID_KIOSK_ACTION", "Event is required");
@@ -541,12 +665,11 @@ export const instantBookingWindow = ({ now, nextStart, minutes, untilNext = fals
   };
 };
 
-export const instantKioskBooking = async (
-  { card_number: cardNumber, minutes, until_next: untilNextRequested },
-  room,
-) => {
+const instantWithIdentity = async ({ cardNumber = null, userId = null, minutes, untilNextRequested }, room) => {
   await maybeReleaseAbandonedBookings();
-  const employee = await resolveKioskEmployeeByCard(cardNumber, room);
+  const employee = userId
+    ? await resolveKioskEmployeeByUser(userId, room)
+    : await resolveKioskEmployeeByCard(cardNumber, room);
   const now = new Date();
   const horizon = new Date(now.getTime() + SCHEDULE_LOOKAHEAD_HOURS * MILLISECONDS_PER_HOUR);
   const rows = await listKioskScheduleRows({ roomId: room._id, rangeStart: now, rangeEnd: horizon });
@@ -594,12 +717,17 @@ export const instantKioskBooking = async (
   };
 };
 
+export const instantKioskBooking = ({ card_number: cardNumber, minutes, until_next: untilNextRequested }, room) =>
+  instantWithIdentity({ cardNumber, minutes, untilNextRequested }, room);
+
 // Scheduled booking from the kiosk: the user picks start and end times on the same day.
 // When the start is within 2 minutes of now, the booking is checked in right away,
 // like an instant booking.
-export const bookKioskSlot = async ({ card_number: cardNumber, start, end }, room) => {
+const bookWithIdentity = async ({ cardNumber = null, userId = null, start, end }, room) => {
   await maybeReleaseAbandonedBookings();
-  const employee = await resolveKioskEmployeeByCard(cardNumber, room);
+  const employee = userId
+    ? await resolveKioskEmployeeByUser(userId, room)
+    : await resolveKioskEmployeeByCard(cardNumber, room);
   const now = new Date();
   const slot = validateKioskBookedSlot({ now, start, end, timezone: config.appTimezone });
   const created = await createEvents(
@@ -633,4 +761,82 @@ export const bookKioskSlot = async ({ card_number: cardNumber, start, end }, roo
     checkedIn: Boolean(slot.startsNow),
     scheduled: !slot.startsNow,
   };
+};
+
+export const bookKioskSlot = ({ card_number: cardNumber, start, end }, room) =>
+  bookWithIdentity({ cardNumber, start, end }, room);
+
+// Actions reachable from the card prompt. "door" stays on the dedicated
+// face-unlock flow because it authorises room access, not a card action.
+const FACE_ACTIONS = new Set(["checkin", "extend", "instant", "book"]);
+
+// Face alternative to a card tap. The face is identified server-side, then the
+// same action logic runs with the matched user id instead of a card. A matched
+// face that the action rejects is returned as 200 {recognized:true,allowed:false}
+// so the kiosk shows the reason and does not fall back to the card prompt.
+export const faceActionKiosk = async (input, room) => {
+  const action = String(input?.action || "");
+  if (!FACE_ACTIONS.has(action)) {
+    throw badRequest("INVALID_FACE_ACTION", "Unknown face action");
+  }
+  const list = validateFaceFrames(input?.frames);
+  const identified = await callFaceIdentify({ deviceId: room.deviceId, frames: list });
+  const result = String(identified?.result || "no_face");
+  const employeeIds = (Array.isArray(identified?.candidates) ? identified.candidates : [])
+    .map((candidate) => candidate?.employee_id)
+    .filter((value) => typeof value === "string" && value.trim());
+
+  if (result !== "match" || !employeeIds.length) {
+    return { recognized: false, allowed: false, result, score: identified?.score ?? null };
+  }
+
+  const users = await findEmployeesByEmployeeIds(employeeIds);
+  if (!users.length) {
+    return {
+      recognized: true,
+      allowed: false,
+      action,
+      code: "FACE_ACCOUNT_UNKNOWN",
+      message: "Face recognised but the account is not in this system.",
+    };
+  }
+
+  try {
+    if (action === "checkin" || action === "extend") {
+      // A face_group can hold two accounts; pick the one that is organizer or
+      // attendee of this event.
+      let owner = null;
+      for (const user of users) {
+        const context = await findKioskEventActionContextByUser({
+          eventId: input?.event_id,
+          roomId: room._id,
+          userId: user._id,
+          lock: false,
+        });
+        if (context?.user_allowed) {
+          owner = user;
+          break;
+        }
+      }
+      if (!owner) {
+        throw forbidden("This person is not authorized for this meeting");
+      }
+      const outcome = action === "checkin"
+        ? await checkInWithIdentity({ eventId: input?.event_id, userId: owner._id }, room)
+        : await extendWithIdentity({ eventId: input?.event_id, userId: owner._id, minutes: input?.minutes }, room);
+      return { recognized: true, allowed: true, action, employeeId: owner.employee_id, result: outcome };
+    }
+
+    // Instant/scheduled booking: prefer the account whose floors cover the room.
+    const owner = users.find((user) => coversAllFloors(user) || coversFloor(user, room.floor)) || users[0];
+    const outcome = action === "instant"
+      ? await instantWithIdentity({ userId: owner._id, minutes: input?.minutes, untilNextRequested: input?.until_next }, room)
+      : await bookWithIdentity({ userId: owner._id, start: input?.start, end: input?.end }, room);
+    return { recognized: true, allowed: true, action, employeeId: owner.employee_id, result: outcome };
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return { recognized: true, allowed: false, action, code: error.code, message: error.message };
+    }
+    throw error;
+  }
 };

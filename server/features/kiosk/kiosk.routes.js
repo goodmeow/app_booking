@@ -12,6 +12,8 @@ import {
   doorOpen,
   earlyFinish,
   extendEvent,
+  faceAction,
+  faceUnlock,
   instantBooking,
   refresh,
   revokeDevice,
@@ -35,6 +37,13 @@ router.get("/context", context);
 router.get("/schedule", schedule);
 router.delete("/device", deprovision);
 router.post("/door-open", kioskLimit(60), doorOpen);
+// Face unlock triggers an ML call on every attempt, so it gets a tighter budget
+// than door-open. Non-match results come back as 200 allowed:false; a match with
+// no booking here is a 403.
+router.post("/face-unlock", kioskLimit(30), faceUnlock);
+// Face alternative to a card tap for check-in, extend and booking. Uses the
+// same rate budget as face-unlock because every call runs the ML service.
+router.post("/face-action", kioskLimit(30), faceAction);
 router.put("/events/check-in", checkIn);
 router.post("/events/extend", kioskLimit(60), extendEvent);
 router.post("/events/complete", kioskLimit(60), completeEvent);

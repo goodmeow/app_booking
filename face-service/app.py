@@ -14,6 +14,7 @@ Liveness is NOT implemented yet. Every response says so explicitly through
 
 import base64
 import os
+import threading
 from contextlib import asynccontextmanager
 
 import cv2
@@ -94,7 +95,8 @@ def reload_templates():
 
 
 @app.post("/identify")
-def identify(request: IdentifyRequest):
+def identify(request: IdentifyRequest, x_face_token: str | None = Header(default=None)):
+    _check_internal_token(x_face_token)
     reads = _read_frames(request.frames)
     if not reads:
         _log(request.device_id, "no_face", None, None, None, len(request.frames))
@@ -165,7 +167,8 @@ def enroll(request: EnrollRequest, x_face_token: str | None = Header(default=Non
 
 
 @app.post("/verify")
-def verify(request: VerifyRequest):
+def verify(request: VerifyRequest, x_face_token: str | None = Header(default=None)):
+    _check_internal_token(x_face_token)
     reads = _read_frames(request.frames)
     if not reads:
         _log(request.device_id, "no_face", None, None, None, len(request.frames),
@@ -200,8 +203,10 @@ def _check_internal_token(received):
 
 
 def _read_frames(frames):
+    # Detect + embed is the expensive step, so never process more than two
+    # frames per request; pick_best_frame only needs a small burst.
     reads = []
-    for encoded in frames:
+    for encoded in frames[:2]:
         image = _decode(encoded)
         if image is None:
             continue
@@ -229,9 +234,13 @@ def _leading_employee(outcome):
 
 def _log(device_id, result, score, margin, liveness, frame_count,
          employee_id=None, face_group=None):
-    try:
-        template_store.log_verify(device_id, result, score, margin, liveness,
-                                  frame_count, employee_id, face_group)
-    except Exception:
-        # Logging must never break a verification attempt.
-        pass
+    # The audit insert must not sit between the face and the answer, so it runs
+    # on a background thread. A failure is swallowed, same as before.
+    def write():
+        try:
+            template_store.log_verify(device_id, result, score, margin, liveness,
+                                      frame_count, employee_id, face_group)
+        except Exception:
+            pass
+
+    threading.Thread(target=write, daemon=True).start()

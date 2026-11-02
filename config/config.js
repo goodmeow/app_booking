@@ -45,6 +45,12 @@ const config = {
   // Turn off temporarily while employee floors are not filled in (FLOOR_RESTRICTION=false).
   floorRestriction: String(env.FLOOR_RESTRICTION ?? "true").toLowerCase() !== "false",
   maxPreviewConflicts: Number(env.MAX_PREVIEW_CONFLICTS || 50),
+  // Internal face service for kiosk face-unlock. Empty disables the endpoint's
+  // forward path (the kiosk then always falls back to a card tap).
+  faceServiceUrl: env.FACE_SERVICE_URL || "",
+  // Shared secret with the face service. Empty disables the header check (dev);
+  // set it to stop any other container on the network from calling /identify.
+  faceInternalToken: env.FACE_INTERNAL_TOKEN || "",
   recurrenceMaxDays: Number(env.RECURRENCE_MAX_DAYS || 366),
   recurrenceMaxOccurrences: Number(env.RECURRENCE_MAX_OCCURRENCES || 200),
   pgConn: {

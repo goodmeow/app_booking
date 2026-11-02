@@ -58,6 +58,22 @@ Alur default setiap bump versi (wajib, bukan opsional):
   multi-lantai (`tbl_users.floors`), akses resepsionis per lantai, audit log,
   dan pengerasan security: rate-limit proxy, reset sandi, pairing kiosk,
   backup retry, auto-release, serta filter status ruangan per floor.
+
+### Face unlock (2026-11-02)
+
+- API: `POST /api/kiosk/face-unlock` di `app_booking` meneruskan frame kamera
+  tablet ke face service, mencocokkan wajah ke booking aktif di ruangan kiosk,
+  dan mengembalikan izin. Audit biometrik ditulis face service ke
+  `tbl_face_verify_log`.
+- Deploy: service `face` ditambahkan ke `deploy/docker/compose.alpine.yaml`
+  (internal, `FACE_SERVICE_URL=http://face:8090`). Model ONNX diunduh lewat
+  `face-service/fetch-models.sh` dan di-mount read-only; kunci embedding
+  (`ALPINE_FACE_EMBEDDING_KEY`) hanya ada di `.env` lokal.
+- APK kiosk: **1.5.0 / 27** (`versionCode` 27). Pemindaian wajah memakai kamera
+  depan, 3 frame 640×480 JPEG; jatuh ke kartu bila `no_match`/`no_face`/
+  `ambiguous`/izin ditolak/service mati.
+- Versi CMS/API (`package.json`) belum dinaikkan untuk gelombang ini; perubahan
+  API dan APK dicatat di sini sampai penutupan Ver berikutnya.
 - Bukti 2026-10-30 di checkout build `/home/goodmeow/build/app_booking`
   (tag `v3.13.0`): unit server **85/85**, unit kiosk **21/21**, client
   **99/99**, regresi **105/105** (0 skip), parity prepare **2/2**, parity

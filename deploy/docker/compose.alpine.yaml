@@ -1,7 +1,13 @@
 # Alpine demo/test stack. Never reuse these credentials outside a local run.
 #
-# Build context is the repository root, so run from the repo root:
-#   docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine up -d --build
+# Build context is the repository root, so run from the repo root and pass the
+# env file explicitly (compose v2 resolves .env next to this file, not the cwd):
+#   docker-compose --env-file .env -f deploy/docker/compose.alpine.yaml \
+#     -p roombooking-alpine up -d --build
+#
+# Face unlock needs the ONNX models (face-service/fetch-models.sh) and an
+# ALPINE_FACE_EMBEDDING_KEY in the env file. Recreating the app container
+# changes its IP, so restart the web container so nginx re-resolves "app".
 
 services:
   db:
@@ -25,6 +31,37 @@ services:
       timeout: 3s
       retries: 20
       start_period: 5s
+    restart: unless-stopped
+
+  face:
+    # Face unlock ML service (YuNet + SFace). It owns biometric matching and
+    # the tbl_face_verify_log audit; booking rules stay in app. Models are
+    # downloaded by face-service/fetch-models.sh and mounted read-only, never
+    # baked into the image. The embedding key comes from the stack .env.
+    build:
+      context: ../../face-service
+      dockerfile: Dockerfile
+    image: roombooking-face:latest
+    environment:
+      FACE_DB_DSN: postgresql://${ALPINE_PGUSER:-booking}:${ALPINE_PGPASSWORD:?ALPINE_PGPASSWORD is required}@db:5432/${ALPINE_PGDATABASE:-360booking}
+      FACE_EMBEDDING_KEY: ${ALPINE_FACE_EMBEDDING_KEY:?ALPINE_FACE_EMBEDDING_KEY is required}
+      FACE_MATCH_THRESHOLD: ${ALPINE_FACE_MATCH_THRESHOLD:-0.60}
+      FACE_MATCH_MARGIN: ${ALPINE_FACE_MATCH_MARGIN:-0.05}
+      # Shared secret with app; empty disables the header check (dev only).
+      FACE_INTERNAL_TOKEN: ${ALPINE_FACE_INTERNAL_TOKEN:-}
+    volumes:
+      - ../../face-service/models:/app/models:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health')"
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
     restart: unless-stopped
 
   app:
@@ -65,9 +102,18 @@ services:
       MAX_PREVIEW_CONFLICTS: "50"
       RECURRENCE_MAX_DAYS: "366"
       RECURRENCE_MAX_OCCURRENCES: "200"
+      # Internal face service for kiosk face unlock. Server-to-server only; the
+      # face service is never exposed outside the Docker network.
+      FACE_SERVICE_URL: ${ALPINE_FACE_SERVICE_URL:-http://face:8090}
+      FACE_INTERNAL_TOKEN: ${ALPINE_FACE_INTERNAL_TOKEN:-}
+      # Set to "false" on every instance except one when scaling out, so the
+      # auto-release/backup/retention timers run once.
+      RUN_SCHEDULERS: ${ALPINE_RUN_SCHEDULERS:-true}
     depends_on:
       db:
         condition: service_healthy
+      face:
+        condition: service_started
     healthcheck:
       test:
         - CMD-SHELL
