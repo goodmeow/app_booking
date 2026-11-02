@@ -4,6 +4,8 @@ import {
   completeKioskEvent,
   extendKioskEvent,
   bookKioskSlot,
+  faceActionKiosk,
+  faceUnlockKiosk,
   instantKioskBooking,
   deprovisionKioskDevice,
   finishKioskEvent,
@@ -65,6 +67,12 @@ export const checkIn = run(async (req, res) => {
 export const doorOpen = run(async (req, res) => {
   await authorizeKioskDoor(req.body?.card_number, req.kiosk);
   res.json({ message: "Door opened" });
+});
+export const faceUnlock = run(async (req, res) => {
+  res.json(await faceUnlockKiosk(req.body || {}, req.kiosk));
+});
+export const faceAction = run(async (req, res) => {
+  res.json(await faceActionKiosk(req.body || {}, req.kiosk));
 });
 export const extendEvent = run(async (req, res) => {
   const result = await extendKioskEvent(req.body || {}, req.kiosk);

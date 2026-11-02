@@ -3,6 +3,10 @@ import { HttpError } from "../lib/http-error.js";
 // One named window for the short-lived limits used by auth and kiosk routes.
 export const SHORT_WINDOW_MS = 15 * 60_000;
 
+// Counters live in this process's memory. They are correct for the single app
+// instance this stack runs; if you scale to several containers, move them to a
+// shared store or the limits multiply by the instance count.
+
 const clientAddress = (req) => req.ip || req.socket?.remoteAddress || "unknown";
 
 // Key for limiting attempts against one account from one address, so an office

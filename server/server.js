@@ -8,6 +8,7 @@ import { closePool } from "./db/pool.js";
 import { releaseAbandonedBookings } from "./features/events/event.service.js";
 import { startBackupScheduler } from "./features/settings/backup.service.js";
 import { deleteExpiredAudit } from "./features/audit/audit.repository.js";
+import { deleteExpiredFaceVerifyLog } from "./features/kiosk/kiosk.repository.js";
 import { findEventAudience } from "./features/events/event.repository.js";
 import { emitEventInvalidation } from "./socket/event-invalidation.js";
 import { log } from "./observability/logger.js";
@@ -47,34 +48,43 @@ server.listen(port, () => {
   log("info", "server_started", { operation: config.ssrMode ? "client_server" : "server" });
 });
 
-// Release rooms of meetings that were not checked in by the late limit.
-const releaseAbandonedTimer = setInterval(async () => {
-  try {
-    const releasedEventIds = await releaseAbandonedBookings();
-    if (releasedEventIds.length) {
-      emitEventInvalidation(io, await findEventAudience(releasedEventIds));
-    }
-  } catch (error) {
-    // logger only serialises allow-listed fields; error.message would be
-    // dropped. Keep the actionable code without leaking database text.
-    log("error", "auto_release_failed", { error_code: error.code || "AUTO_RELEASE_FAILED" });
-  }
-}, 60_000);
-releaseAbandonedTimer.unref();
-startBackupScheduler();
+// Timers run in every process. When more than one app instance is deployed,
+// set RUN_SCHEDULERS=false on all but one so the same sweep is not repeated.
+const runSchedulers = process.env.RUN_SCHEDULERS !== "false";
 
-// Keep the audit table bounded. A daily job is enough for the write volume of
-// this CMS; the retention is configurable for compliance requirements.
+// Release rooms of meetings that were not checked in by the late limit.
+if (runSchedulers) {
+  const releaseAbandonedTimer = setInterval(async () => {
+    try {
+      const releasedEventIds = await releaseAbandonedBookings();
+      if (releasedEventIds.length) {
+        emitEventInvalidation(io, await findEventAudience(releasedEventIds));
+      }
+    } catch (error) {
+      // logger only serialises allow-listed fields; error.message would be
+      // dropped. Keep the actionable code without leaking database text.
+      log("error", "auto_release_failed", { error_code: error.code || "AUTO_RELEASE_FAILED" });
+    }
+  }, 60_000);
+  releaseAbandonedTimer.unref();
+  startBackupScheduler();
+}
+
+// Keep the audit and face-verify tables bounded. A daily job is enough for the
+// write volume of this CMS; the retention is configurable.
 const pruneAudit = async () => {
   try {
     await deleteExpiredAudit(config.auditRetentionDays);
+    await deleteExpiredFaceVerifyLog(config.auditRetentionDays);
   } catch (error) {
     log("error", "audit_retention_failed", { error_code: error.code || "AUDIT_RETENTION_FAILED" });
   }
 };
-const auditRetentionTimer = setInterval(pruneAudit, 24 * 60 * 60_000);
-auditRetentionTimer.unref();
-setTimeout(pruneAudit, 60_000).unref();
+if (runSchedulers) {
+  const auditRetentionTimer = setInterval(pruneAudit, 24 * 60 * 60_000);
+  auditRetentionTimer.unref();
+  setTimeout(pruneAudit, 60_000).unref();
+}
 
 const shutdown = async (signal) => {
   log("info", "server_stopping", { operation: signal });

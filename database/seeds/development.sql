@@ -15,7 +15,9 @@ TRUNCATE TABLE
   tbl_app_settings,
   tbl_rooms,
   tbl_users,
-  tbl_role;
+  tbl_role,
+  tbl_face_templates,
+  tbl_face_verify_log;
 
 -- The receptionist role is part of the schema (015_receptionist_on_behalf.sql),
 -- but this seed truncates tbl_role, so the role has to be inserted again here.
