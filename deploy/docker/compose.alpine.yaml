@@ -47,7 +47,8 @@ services:
       FACE_EMBEDDING_KEY: ${ALPINE_FACE_EMBEDDING_KEY:?ALPINE_FACE_EMBEDDING_KEY is required}
       FACE_MATCH_THRESHOLD: ${ALPINE_FACE_MATCH_THRESHOLD:-0.60}
       FACE_MATCH_MARGIN: ${ALPINE_FACE_MATCH_MARGIN:-0.05}
-      # Shared secret with app; empty disables the header check (dev only).
+      # Shared secret with app. Required: when empty the face service answers
+      # 503 on every endpoint except /health, so the kiosk falls back to a card.
       FACE_INTERNAL_TOKEN: ${ALPINE_FACE_INTERNAL_TOKEN:-}
     volumes:
       - ../../face-service/models:/app/models:ro
@@ -105,6 +106,7 @@ services:
       # Internal face service for kiosk face unlock. Server-to-server only; the
       # face service is never exposed outside the Docker network.
       FACE_SERVICE_URL: ${ALPINE_FACE_SERVICE_URL:-http://face:8090}
+      # Must match the face service; an empty value leaves face unlock off.
       FACE_INTERNAL_TOKEN: ${ALPINE_FACE_INTERNAL_TOKEN:-}
       # Set to "false" on every instance except one when scaling out, so the
       # auto-release/backup/retention timers run once.

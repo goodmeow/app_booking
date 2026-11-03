@@ -5,7 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY face_engine.py matcher.py store.py app.py enroll.py selfcheck.py ./
+COPY face_engine.py matcher.py store.py app.py enroll.py selfcheck.py test_guards.py ./
 
 # Models are mounted at /app/models (see fetch-models.sh); they are not baked
 # into the image so the build stays reproducible and the image small.

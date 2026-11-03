@@ -74,6 +74,15 @@ Alur default setiap bump versi (wajib, bukan opsional):
   `ambiguous`/izin ditolak/service mati.
 - Versi CMS/API (`package.json`) belum dinaikkan untuk gelombang ini; perubahan
   API dan APK dicatat di sini sampai penutupan Ver berikutnya.
+- Hardening audit 2026-11-03: face service menolak melayani (`503`) bila
+  `FACE_INTERNAL_TOKEN` kosong, `/reload` ikut memeriksa token, token
+  dibandingkan dengan `hmac.compare_digest`, dan frame dibatasi 3 per request
+  serta 2.000.000 karakter base64 sebelum di-decode. Rate-limit dipindah ke
+  Postgres (`tbl_rate_limit_buckets`, migrasi
+  `028_rate_limit_buckets.sql`) dengan `scope` per limiter, sehingga batas
+  tetap satu meski app berjalan lebih dari satu proses. Bukti: unit server
+  **87/87**, guard face **6/6**, dua proses berbagi satu budget (proses kedua
+  langsung `429`), `/reload` tanpa token `401`, 4 frame `422`.
 - Bukti 2026-10-30 di checkout build `/home/goodmeow/build/app_booking`
   (tag `v3.13.0`): unit server **85/85**, unit kiosk **21/21**, client
   **99/99**, regresi **105/105** (0 skip), parity prepare **2/2**, parity

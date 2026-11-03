@@ -28,11 +28,12 @@ Order:
 024_audit_log.sql
 025_user_token_version.sql
 026_event_room_timezone.sql
+027_face_templates.sql
+028_rate_limit_buckets.sql
 029_kiosk_action_toggles.sql
 030_drop_legacy_functions.sql
+031_events_period_index.sql
 ```
-
-Numbers 027 and 028 are reserved for the face-unlock branch, so the list skips them.
 
 The first three files (001-003) were generated once from the immutable `bjb.sql`
 dump, which is no longer part of the repo, so those files are now maintained as
