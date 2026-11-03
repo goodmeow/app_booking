@@ -325,3 +325,4 @@ baris baru di bawah.
 | 2026-10-29 | Cleanup | Sync docs APK 1.4.5 + stack AntD; lisensi dicek; `eslint.config.js` masuk repo | `README.md`, `docs/*`, `client/domain/licenses.js`, `eslint.config.js` | review dokumen |
 | 2026-10-29 | Docs sync | Selaraskan distribusi APK di `VERSIONING.md` ke paket 1.4.5 (26) `941a537` dan hapus kalimat **Tentang** ganda | `docs/VERSIONING.md` | `git diff --check` bersih |
 | 2026-10-30 | Docs sync | Catat merge selesai (`9c96999`), angka final client 99/99 + regresi 105/105, UAT local/live current, migrasi 026, demo tidak dipakai; tag rilis belum ada | `docs/*`, `README.md` | `git diff --check` |
+| 2026-11-03 | Style | Garis jam sekarang di kalender FullCalendar memakai `colorError` (merah) agar tidak tertukar dengan agenda dan border | `client/core/ThemeShell.js` | build client OK |
