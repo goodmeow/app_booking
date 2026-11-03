@@ -27,7 +27,7 @@ const ThemeShell = ({ children }) => {
         "--fc-neutral-bg-color": token.colorFillTertiary,
         "--fc-neutral-text-color": token.colorTextSecondary,
         "--fc-today-bg-color": token.colorPrimaryBg,
-        "--fc-now-indicator-color": token.colorPrimary,
+        "--fc-now-indicator-color": token.colorError,
         "--fc-list-event-hover-bg-color": token.colorFillTertiary,
         "--fc-button-bg-color": token.colorFillTertiary,
         "--fc-button-border-color": token.colorBorder,
