@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, Stack, TextField } from "@mui/material";
+import { Alert, Form, Input, Space } from "antd";
 import FormDialog from "../../components/common/FormDialog.js";
 import { LoadingState } from "../../components/common/AsyncState.js";
 import { getApiError } from "../../domain/api-error.js";
@@ -36,21 +36,37 @@ const RoomFormDialog = ({
       onSubmit={onSubmit}
     >
       {isEditing && isDetailLoading ? <LoadingState label={t("rooms.loadingOne")} /> : (
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          {error ? <Alert severity="error">{error}</Alert> : null}
-          {isEditing && detailError ? (
-            <Alert severity="error">{getApiError(detailError, t("rooms.loadOneError"))}</Alert>
-          ) : null}
-          <TextField required label={t("common:fields.name")} value={form.name} onChange={changeField("name")} />
-          <TextField required type="email" label={t("common:fields.email")} value={form.email} onChange={changeField("email")} />
-          {isCreating ? (
-            <TextField required type="password" label={t("common:fields.password")} value={form.password} onChange={changeField("password")} />
-          ) : null}
-          <TextField label={t("rooms.floor")} value={form.floor} onChange={changeField("floor")} />
-          <TextField label={t("rooms.building")} value={form.building} onChange={changeField("building")} />
-          <TextField label={t("rooms.capacity")} value={form.capacity} onChange={changeField("capacity")} />
-          <TextField label={t("rooms.feature")} value={form.feature} onChange={changeField("feature")} />
-        </Stack>
+        <Form component={false} layout="vertical" style={{ marginTop: 8 }}>
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            {error ? <Alert type="error" showIcon message={error} /> : null}
+            {isEditing && detailError ? (
+              <Alert type="error" showIcon message={getApiError(detailError, t("rooms.loadOneError"))} />
+            ) : null}
+            <Form.Item label={t("common:fields.name")} required style={{ marginBottom: 0 }}>
+              <Input value={form.name} onChange={changeField("name")} />
+            </Form.Item>
+            <Form.Item label={t("common:fields.email")} required style={{ marginBottom: 0 }}>
+              <Input type="email" value={form.email} onChange={changeField("email")} />
+            </Form.Item>
+            {isCreating ? (
+              <Form.Item label={t("common:fields.password")} required style={{ marginBottom: 0 }}>
+                <Input.Password value={form.password} onChange={changeField("password")} />
+              </Form.Item>
+            ) : null}
+            <Form.Item label={t("rooms.floor")} style={{ marginBottom: 0 }}>
+              <Input value={form.floor} onChange={changeField("floor")} />
+            </Form.Item>
+            <Form.Item label={t("rooms.building")} style={{ marginBottom: 0 }}>
+              <Input value={form.building} onChange={changeField("building")} />
+            </Form.Item>
+            <Form.Item label={t("rooms.capacity")} style={{ marginBottom: 0 }}>
+              <Input value={form.capacity} onChange={changeField("capacity")} />
+            </Form.Item>
+            <Form.Item label={t("rooms.feature")} style={{ marginBottom: 0 }}>
+              <Input value={form.feature} onChange={changeField("feature")} />
+            </Form.Item>
+          </Space>
+        </Form>
       )}
     </FormDialog>
   );

@@ -18,7 +18,6 @@ for (const line of envText.split("\n")) {
   if (match && !process.env[match[1]]) process.env[match[1]] = match[2];
 }
 
-const ROLE_USER = "67e9500b-908a-497d-9d3b-54bc020700cb";
 const accounts = [
   // Cards here are dummies; real card UIDs are never stored in the repo and are
   // set directly in the local demo DB with private SQL when needed.

@@ -35,13 +35,17 @@ export const findAccountsByEmails = async (emails, client = { query }) => {
 };
 
 export const findAccountsByIds = async (ids, client = { query }) => {
-  if (!ids.length) return [];
+  // The request body supplies these IDs. Filter malformed values before the
+  // uuid[] cast so a bad participant ID becomes a 400 in the service instead of
+  // a PostgreSQL 22P02 that surfaces as a 500.
+  const validIds = (Array.isArray(ids) ? ids : []).filter(isUuid);
+  if (!validIds.length) return [];
   return (await client.query(
     `SELECT _id, name, email, type
      FROM tbl_users
      WHERE _id = ANY($1::uuid[])
        AND is_deleted IS NOT TRUE`,
-    [ids]
+    [validIds]
   )).rows;
 };
 
@@ -112,6 +116,38 @@ export const insertEventParticipant = async (client, eventId, participant) => (a
    RETURNING _id, event_id, attendee_email, attendee_user_id, room_id, visitor_email, is_visitor`,
   [eventId, participant.email, participant.userId || null, participant.roomId || null, participant.visitorEmail || null, Boolean(participant.visitorEmail)]
 )).rows[0];
+
+// One event can have up to 100 participants. Inserting them row by row turns a
+// recurring booking into thousands of round trips; unnest keeps it to one
+// statement per occurrence.
+export const insertEventParticipants = async (client, eventId, participants) => {
+  if (!participants.length) return [];
+  return (await client.query(
+    `INSERT INTO tbl_event_details
+       (event_id, attendee_email, attendee_user_id, room_id, visitor_email, is_visitor, is_deleted)
+     SELECT $1, input.attendee_email, input.attendee_user_id, input.room_id,
+            input.visitor_email, input.is_visitor, false
+     FROM unnest(
+       $2::text[],
+       $3::uuid[],
+       $4::uuid[],
+       $5::text[],
+       $6::boolean[]
+     ) WITH ORDINALITY AS input(
+       attendee_email, attendee_user_id, room_id, visitor_email, is_visitor, ordinal
+     )
+     ORDER BY input.ordinal
+     RETURNING _id, event_id, attendee_email, attendee_user_id, room_id, visitor_email, is_visitor`,
+    [
+      eventId,
+      participants.map((participant) => participant.email),
+      participants.map((participant) => participant.userId || null),
+      participants.map((participant) => participant.roomId || null),
+      participants.map((participant) => participant.visitorEmail || null),
+      participants.map((participant) => Boolean(participant.visitorEmail)),
+    ]
+  )).rows;
+};
 
 export const listEventsForPrincipal = async ({ principalId, role, floors, roomId, rangeStart, rangeEnd, allEvents = false }) => (await query(
   `SELECT DISTINCT

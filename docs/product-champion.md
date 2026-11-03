@@ -6,7 +6,7 @@ memanggil tim teknis. Aturan yang mengikat tetap
 [`business-processes.md`](business-processes.md); dokumen ini menjelaskan
 _apa yang harus dilakukan_, bukan detail kode.
 
-Versi acuan: CMS/API **3.12.0**, APK kiosk **1.4.4 (25)**.
+Versi acuan: CMS/API **3.13.0**, APK kiosk **1.4.5 (26)**.
 
 ## 1. Peran dan wewenang
 
@@ -156,7 +156,7 @@ dihapus dari CMS; untuk investigasi mendalam, tim teknis membaca
    tombol **Unduh APK Tablet** di tab Perangkat Tablet.
 2. Pindahkan file ke tablet, buka, dan izinkan instalasi (izinkan sekali dari
    browser/file manager).
-3. Buka aplikasi kiosk; cek footer `v1.4.4 (25) · CMS 3.12.0`.
+3. Buka aplikasi kiosk; cek footer `v1.4.5 (26) · CMS 3.13.0`.
 4. Cek status **Online** di tab Perangkat Tablet. Bila perangkat sudah tidak
    aktif, pairing ulang dari layar setup tablet.
 5. Catat versi yang dipasang di buku serah terima; satu tablet bisa berbeda
@@ -170,9 +170,9 @@ booking, mencabut perangkat tablet, mengunduh APK, membaca laporan.
 Khusus **Super Admin**: mengubah matrix menu per peran dan membaca log audit.
 Jangan membagikan akun Super Admin; pemegangnya sebaiknya satu orang/IT.
 
-Wajib melibatkan tim teknis: `docker compose down -v`, `npm run demo` pada
-mesin yang dipakai bersama, restore database, impor massal (`--apply`),
-mengubah `JWT_SECRET`/env produksi, rotasi sertifikat, dan pembersihan data.
+Wajib melibatkan tim teknis: `docker compose down -v`, rebuild/reset database
+UAT, restore database, impor massal (`--apply`), mengubah `JWT_SECRET`/env
+produksi, rotasi sertifikat, dan pembersihan data.
 
 ## 5. Bukti dan angka yang boleh dikutip
 
@@ -202,8 +202,8 @@ Kalau ragu, sebut commit/tanggal bukti, bukan angka.
 ## 7. Checklist sebelum operasi berisiko
 
 1. Backup terbaru ada dan bisa dibaca (`database/scripts/backup-db.sh`).
-2. Tahu apakah yang dijalankan `npm run demo` (menghapus DB demo + pairing)
-   atau `demo:resume` (aman untuk pairing).
+2. Tahu apakah yang dijalankan restart stack UAT lokal tanpa reset (data dan
+   pairing tetap) atau restore/rebuild database (data dan pairing hilang).
 3. Komunikasikan jendela gangguan ke pengguna ruangan.
 4. Setelah selesai: cek `GET /api/health` → `{"ok":true}`, lalu uji satu
    pairing tablet dan satu booking.

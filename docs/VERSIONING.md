@@ -15,13 +15,13 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
-## Posisi saat ini (Ver 3 Rev 13)
+## Posisi saat ini (Ver 3 Rev 14)
 
-- CMS + API: **Ver 3 Rev 13**, `package.json` `3.12.0`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 14**, `package.json` `3.13.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.4.4 / versionCode 25`, build tag
-  `1.4.4-25-04c7d80`. Footer kios menampilkan versi APK + **versi CMS**
-  (`v1.4.4 (25) · CMS 3.12.0`). Build membawa pill `TERSEDIA` 44 px, copy
+- APK kiosk: `versionName 1.4.5 / versionCode 26`, build tag
+  `1.4.5-26-a6390a2`. Footer kios menampilkan versi APK + **versi CMS**
+  (`v1.4.5 (26) · CMS 3.13.0`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
@@ -33,32 +33,52 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   dengan izin backend. Menu tablet (ketuk jam lima kali) punya tombol
   **Cek update**; bila manifest lebih baru, tombol berubah menjadi kuning
   **Perbarui**. Di sampingnya ada tombol **Tentang** yang membuka versi
-  aplikasi, versi CMS, dan lisensi pustaka APK. Di sampingnya ada tombol **Tentang** yang membuka versi
   aplikasi, versi CMS, dan lisensi pustaka APK.
-- Ver 3 Rev 13 mencakup matrix menu per role, `super_admin` dari akun setup,
+- Ver 3 Rev 14 mencakup revamp UI Ant Design 5, proteksi super admin, validasi API, dan hardening storage/kiosk. Ver 3 Rev 13 mencakup matrix menu per role, `super_admin` dari akun setup,
   multi-lantai (`tbl_users.floors`), akses resepsionis per lantai, audit log,
   dan pengerasan security: rate-limit proxy, reset sandi, pairing kiosk,
   backup retry, auto-release, serta filter status ruangan per floor.
-- Bukti 2026-10-27 di checkout build `/home/goodmeow/build/app_booking`:
-  unit server **85/85**, unit kiosk **21/21**, client **98/98**, regresi
-  **95/95** (0 skip), parity prepare **2/2**, parity **8/8**; `build:client`
-  dan `build:server:check` lulus. Unit izin event **9/9**, kontrak kalender
-  **14/14** setelah perubahan `can_mutate`.
-- Distribusi APK, 2026-10-28 (commit `04c7d80`): paket
-  `public/apk/kiosk-release.apk` 21.530.390 byte, SHA-256
-  `a0e4b9693fbfd2805700f9075f972fb8682f38398548999624fe7f94ce4a2c8c`,
-  plus halaman unduh `public/apk/index.html` (`/apk/index.html`).
-  Sebelumnya 1.4.2 (23) 21.521.724 byte, 1.4.1 (22) 21.521.483 byte,
-  1.4.0 (21) 21.521.436 byte.
-- Status UAT remote 2026-10-27: CMS/APK current aktif; `/api/health`, CMS
-  root, `/apk/index.html`, dan APK balas HTTP 200. `TRUST_PROXY=1`,
-  `FLOOR_RESTRICTION=true`; database UAT dipertahankan.
+- Bukti 2026-10-30 di checkout build `/home/goodmeow/build/app_booking`
+  (tag `v3.13.0`): unit server **85/85**, unit kiosk **21/21**, client
+  **99/99**, regresi **105/105** (0 skip), parity prepare **2/2**, parity
+  **8/8**; `build:client` dan `build:server:check` lulus, lint 0 error
+  (warning tersisa). Unit izin event **9/9**, kontrak kalender **14/14**
+  setelah perubahan `can_mutate`. Migrasi terakhir:
+  `026_event_room_timezone.sql`.
+- Distribusi APK, 2026-10-29 (commit `941a537`): paket
+  `public/apk/kiosk-release.apk` **1.4.5 (26)** 21.530.462 byte, SHA-256
+  `adb6af93a49f592f4c4767895605248ed963988d2875b0ff44ebe457c1a338d6`,
+  plus halaman unduh `public/apk/index.html` (`/apk/index.html`) dan
+  `public/apk/latest.json`. Isi patch: blok **NEXT UP** tidak lagi menabrak
+  teks status di panel merah/hijau.
+  Sebelumnya 1.4.4 (25) 21.530.390 byte, 1.4.2 (23) 21.521.724 byte,
+  1.4.1 (22) 21.521.483 byte, 1.4.0 (21) 21.521.436 byte.
+- Status UAT 2026-10-30: **UAT local test bed** `http://127.0.0.1:8082` dan
+  **UAT live** `http://<uat-host>:8082` sama-sama tag `v3.13.0`, app/web/db
+  sehat, `/api/health` 200. `TRUST_PROXY=1`, `FLOOR_RESTRICTION=true`;
+  database UAT dipertahankan. Alur `npm run demo` tidak lagi dipakai; skrip
+  demo hanya tersisa untuk harness unit/parity.
+- Revamp CMS Ant Design 5 sudah **merge ke `master`** dan dirilis sebagai
+  **`v3.13.0` / Ver 3 Rev 14** (2026-10-30). APK tetap 1.4.5 (26);
+  `public/apk` mengikuti paket kiosk yang sama.
 
 ## Riwayat
 
-### Ver 3 Rev 13 - 2026-10-28 (rilis saat ini)
+### Ver 3 Rev 14 - 2026-10-30 (rilis saat ini)
+Revamp UI CMS ke Ant Design 5 (light/dark), agenda/kalender, users, settings,
+branding, role matrix, audit, report, dan web kiosk. Hardening: proteksi super
+admin, validasi ID/payload, detail lantai khusus resepsionis, kartu lost,
+storage browser, refresh kiosk, backup advisory lock, audit retention, dan
+migrasi 026 timezone. Bukti: client 99/99, server 85/85, regresi 105/105,
+parity 8/8. APK tetap 1.4.5 (26).
+
+### Ver 3 Rev 13 - 2026-10-28 (rilis sebelumnya)
 Matrix menu, super admin, multi-lantai, audit, hardening security, dan halaman
-Tentang & Lisensi. APK 1.4.4 (25), build tag `1.4.4-25-04c7d80`.
+Tentang & Lisensi. APK 1.4.5 (26), build tag `1.4.5-26-a6390a2`.
+
+- Patch `3.12.1` (2026-10-28): tag rilis CMS untuk halaman Tentang &
+  Lisensi serta image UAT dengan perbaikan CVE. APK 1.4.5 (26) memperbaiki
+  tumpang tindih blok NEXT UP di panel status kiosk.
 
 ### Ver 3 Rev 12 - 2026-10-25 (rilis sebelumnya)
 Branding global (upload icon/logo/favicon/nama/judul tab), kalender 24 jam
@@ -82,8 +102,8 @@ tanggal DD-MMM-YYYY, language chip di footer, navbar sticky, dan APK 1.3.7
   menambah `tbl_users.is_protected`: akun admin hasil `/setup` dilindungi,
   `DELETE` mengembalikan `403 PROTECTED_ACCOUNT`, dan CMS menyembunyikan
   tombol Hapus untuk akun itu (UAT: ADMIN-001 terlindungi, delete 403).
-  Commit: server `db57d7a` (impor transaksi + floor) + `bfbb962` (proteksi
-  setup admin + LAST_ADMIN), test `99d0043`, APK `fbd48dc`, docs `af6a88b`.
+  Commit: server `37cebaa` (impor transaksi + floor) + `9eb8c37` (proteksi
+  setup admin + LAST_ADMIN), test `678ab49`, APK `6476efc`, docs `3d40836`.
 - Status UAT Docker, 2026-10-26 (tanpa naik versi): CMS/API di stack Docker
   Compose VM Linux port `8082`; setup admin + impor user bersih; tablet
   dipairing; akses pintu terbukti end-to-end lewat relay CH340. Angka tes
@@ -216,7 +236,7 @@ state warna) dan 10B UX (kalender, multi-day, recurring, i18n en/id).
     `/api/kiosk/schedule` mengirim `checkedInAt`;
     `/api/kiosk/context` mengirim `cmsVersion`.
   - Bukti: unit 79/79, client 92/92, regresi 83/83, parity 8/8 (commit
-    `00e39ed`, 2026-10-24); uji tablet +15 prompt kartu dan Finish easter egg.
+    `9d96805`, 2026-10-24); uji tablet +15 prompt kartu dan Finish easter egg.
 - Patch APK `1.3.5` (16): LED menjadi opsional. `getStatus()` melaporkan
   `led`, `nfcHardware`, dan `nfcEnabled`; `setLed` tidak menulis bila path LED
   tidak ada, sehingga tablet tanpa LED tetap berjalan.

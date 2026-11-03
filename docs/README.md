@@ -4,9 +4,16 @@ Peta seluruh dokumentasi proyek. Mulai dari
 [`handover/START-HERE.md`](handover/START-HERE.md) bila baru bergabung, atau
 dari [`../README.md`](../README.md) untuk instalasi cepat.
 
-Versi acuan dokumen: CMS/API **3.12.0** (Ver 3 Rev 13), APK kiosk **1.4.4**
-(versionCode 25, build tag `1.4.4-25-04c7d80`). Setiap perubahan versi dicatat
+Versi acuan dokumen: CMS/API **3.13.0** (Ver 3 Rev 14), APK kiosk **1.4.5**
+(versionCode 26, build tag `1.4.5-26-a6390a2`). Setiap perubahan versi dicatat
 di [`VERSIONING.md`](VERSIONING.md).
+
+Lingkungan saat ini (2026-10-30, commit `v3.13.0`, migrasi terakhir
+`026_event_room_timezone.sql`): UAT local test bed `http://127.0.0.1:8082` dan
+UAT live `http://<uat-host>:8082`, keduanya app/web/db sehat. Bukti uji
+terakhir: client **99/99**, unit server **85/85**, regresi **105/105**, parity
+**8/8**. Alur `npm run demo` sudah tidak dipakai; lihat
+[`operations-runbook.md`](operations-runbook.md) §3.
 
 ## Untuk product champion dan operator
 
@@ -19,13 +26,14 @@ di [`VERSIONING.md`](VERSIONING.md).
 | [`CMS.md`](CMS.md) | Peta halaman CMS, tombol, dan alur tiap layar (termasuk matrix peran dan log audit) |
 | [`user-import.md`](user-import.md) | Bulk import user dari CSV: employee_id sebagai master key, skip/overwrite, kartu |
 | [`scenarios.md`](scenarios.md) | Katalog skenario uji manual end-to-end |
-| [`training/RoomBooking-Panduan-CMS-Tablet.pptx`](training/RoomBooking-Panduan-CMS-Tablet.pptx) | Deck 22 slide: panduan CMS + tablet (termasuk Super Admin, multi-lantai, audit, update APK) |
+| [`training/RoomBooking-Panduan-CMS-Tablet.pptx`](training/RoomBooking-Panduan-CMS-Tablet.pptx) | Deck **31 slide**: panduan operasional CMS + tablet, bahasa non-teknis, termasuk screenshot tablet dan status |
+| [`training/RoomBooking-Panduan-CMS.pptx`](training/RoomBooking-Panduan-CMS.pptx) | Deck **28 slide**: panduan penggunaan CMS untuk admin/resepsionis (kalender, booking, users, rooms, devices, settings, audit, report) |
 
 ## Untuk developer
 
 | Dokumen | Isi |
 |---|---|
-| [`handover/START-HERE.md`](handover/START-HERE.md) | Orientasi 10 menit: apa ini, demo, peta repo, gate kualitas |
+| [`handover/START-HERE.md`](handover/START-HERE.md) | Orientasi 10 menit: apa ini, lingkungan uji, peta repo, gate kualitas |
 | [`architecture.md`](architecture.md) | Komponen, diagram, alur request, zona waktu, privasi proyeksi |
 | [`api-reference.md`](api-reference.md) | Endpoint, field, kode error, dan pemetaan ke UI |
 | [`erd.md`](erd.md) | ERD dan kamus data tabel utama |
@@ -37,6 +45,7 @@ di [`VERSIONING.md`](VERSIONING.md).
 |---|---|
 | [`project-status.md`](project-status.md) | Status kesiapan, blocker, dan prioritas go-live |
 | [`VERSIONING.md`](VERSIONING.md) | Skema `Ver.Rev`, posisi versi saat ini, riwayat tiap Rev |
+| [`release-v3.13.0.md`](release-v3.13.0.md) | Catatan rilis Ver 3 Rev 14 (v3.13.0) |
 | [`release-v3.12.0.md`](release-v3.12.0.md) | Catatan rilis Ver 3 Rev 13 + checklist sebelum tag |
 | [`release-v3.10.4.md`](release-v3.10.4.md) | Catatan rilis Ver 3 Rev 11 |
 | [`release-v3.10.3.md`](release-v3.10.3.md) | Catatan rilis Ver 3 Rev 10 (riwayat) |
@@ -51,7 +60,7 @@ di [`VERSIONING.md`](VERSIONING.md).
 | [`../database/README.md`](../database/README.md) | Batas aman database uji, rebuild migrasi, seed sanitized |
 | [`../database/scripts/README.md`](../database/scripts/README.md) | Skrip backup, restore, reset, preflight, dan impor |
 | [`../deploy/README.md`](../deploy/README.md) | Deploy Ubuntu 22.04 lewat `deploy/01`…`05` |
-| [`../deploy/docker/README.md`](../deploy/docker/README.md) | Stack Docker Alpine (`node:20-alpine`, `postgres:16-alpine`, `nginx:alpine`) |
+| [`../deploy/docker/README.md`](../deploy/docker/README.md) | Stack Docker Alpine (`node:22-alpine`, `postgres:16-alpine`, `nginx:alpine`) |
 | [`../public/apk/README.md`](../public/apk/README.md) | Riwayat APK yang ditebar di `/apk/kiosk-release.apk`; halaman unduh `/apk/index.html` |
 
 ## Catatan proyek

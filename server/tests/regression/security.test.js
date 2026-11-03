@@ -30,6 +30,75 @@ test("room schedule exposes only a safe busy projection to unrelated users", asy
   }
 });
 
+test("the floor query does not expose full details to an ordinary employee", async () => {
+  const viewerId = identities.viewer._id;
+  const roomId = identities.room._id;
+  await queryParityDatabase(`
+    UPDATE tbl_users SET floor = '1', floors = ARRAY['1'] WHERE _id = '${viewerId}';
+    UPDATE tbl_users SET floor = '1' WHERE _id = '${roomId}';
+  `);
+  try {
+    const response = await apiRequest(
+      targets.reconstructed,
+      "/api/events?floor=true&start=20300101&end=20300131",
+      { headers: bearer("viewer") }
+    );
+    assert.equal(response.status, 200);
+    const event = response.body.find((item) => item.id === ids.event);
+    // The event may disappear entirely for an unrelated employee; if it is
+    // returned, it must only be the busy projection.
+    if (event) {
+      assert.equal(event.visibility, "busy");
+      assert.equal(event.can_view_details, false);
+    }
+    assert.equal(response.body.some((item) => Object.hasOwn(item, "subject")), false);
+  } finally {
+    await queryParityDatabase(`
+      UPDATE tbl_users SET floor = NULL, floors = ARRAY[]::text[] WHERE _id = '${viewerId}';
+      UPDATE tbl_users SET floor = NULL WHERE _id = '${roomId}';
+    `);
+  }
+});
+
+test("settings rejects a non-numeric timer before writing", async () => {
+  const current = await apiRequest(targets.reconstructed, "/api/settings", {
+    headers: bearer("admin"),
+  });
+  assert.equal(current.status, 200);
+  const response = await apiRequest(targets.reconstructed, "/api/settings", {
+    method: "PUT",
+    headers: bearer("admin"),
+    body: JSON.stringify({ ...current.body, lock_timer: "not-a-number" }),
+  });
+  assert.equal(response.status, 400);
+  assert.equal(response.body.code, "INVALID_SETTINGS");
+});
+
+test("malformed participant identifiers do not crash PostgreSQL", async () => {
+  const response = await apiRequest(targets.reconstructed, "/api/events", {
+    method: "POST",
+    headers: bearer("admin"),
+    body: JSON.stringify({
+      bookingKind: "single",
+      subject: "Malformed identifier",
+      start: "2031-01-10T09:00:00.000Z",
+      end: "2031-01-10T09:30:00.000Z",
+      roomIds: ["not-a-uuid"],
+      attendeeIds: [],
+    }),
+  });
+  assert.equal(response.status, 400);
+  assert.equal(response.body.code, "ROOM_REQUIRED");
+
+  const nullParticipant = await apiRequest(targets.reconstructed, "/api/events", {
+    method: "POST",
+    headers: bearer("admin"),
+    body: JSON.stringify([null]),
+  });
+  assert.equal(nullParticipant.status, 400);
+  assert.equal(nullParticipant.body.code, "INVALID_EVENT");
+});
+
 test("personal schedule identity cannot be selected through query parameters", async () => {
   const response = await apiRequest(
     targets.reconstructed,
@@ -89,7 +158,7 @@ test("room discovery never exposes card or account internals", async () => {
   assert.equal(response.status, 200);
   assert.ok(response.body.length > 0);
   for (const room of response.body) {
-    for (const field of ["card_number", "password", "role_id", "is_deleted", "created_at", "updated_at"]) {
+    for (const field of ["card_number", "password", "username", "role_id", "is_deleted", "created_at", "updated_at"]) {
       assert.equal(Object.hasOwn(room, field), false, field);
     }
   }
@@ -243,6 +312,64 @@ test("room status respects the caller's floor scope", async () => {
   });
   assert.equal(adminStatus.status, 200);
   assert.ok(adminStatus.body.length > 0);
+});
+
+test("a malformed card-master identifier is a 404, not a database 500", async () => {
+  const response = await apiRequest(targets.reconstructed, "/api/settings/card-master/not-a-uuid", {
+    method: "PUT",
+    headers: bearer("admin"),
+    body: JSON.stringify({ card_number: "TEST-CARD" }),
+  });
+  assert.equal(response.status, 404);
+});
+
+test("a malformed kiosk device identifier is a 404, not a database 500", async () => {
+  const response = await apiRequest(
+    targets.reconstructed,
+    "/api/kiosk/devices/not-a-uuid/capabilities",
+    {
+      method: "PATCH",
+      headers: bearer("admin"),
+      body: JSON.stringify({ ledEnabled: true }),
+    }
+  );
+  assert.equal(response.status, 404);
+});
+
+test("an admin cannot demote or delete another super administrator", async () => {
+  const superId = "20000000-0000-4000-8000-000000000099";
+  const userRoleId = await queryParityDatabase(
+    "SELECT _id FROM tbl_role WHERE lower(role_name) = 'user';"
+  );
+  await queryParityDatabase(`
+    INSERT INTO tbl_users
+      (_id, name, email, password, role_id, employee_id, type, floors, is_deleted, is_protected)
+    VALUES
+      ('${superId}', 'Other Super', 'other.super@example.test', 'x',
+       (SELECT _id FROM tbl_role WHERE lower(role_name) = 'super_admin'),
+       'EMP-SUPER-2', 'employee', '{}', false, false);
+  `);
+
+  const demote = await apiRequest(targets.reconstructed, `/api/users/${superId}`, {
+    method: "PUT",
+    headers: bearer("admin"),
+    body: JSON.stringify({ roleId: userRoleId }),
+  });
+  assert.equal(demote.status, 403);
+
+  const remove = await apiRequest(targets.reconstructed, `/api/users/${superId}`, {
+    method: "DELETE",
+    headers: bearer("admin"),
+  });
+  assert.equal(remove.status, 403);
+
+  const role = await queryParityDatabase(`
+    SELECT lower(r.role_name)
+    FROM tbl_users u
+    JOIN tbl_role r ON r._id = u.role_id
+    WHERE u._id = '${superId}';
+  `);
+  assert.equal(role, "super_admin");
 });
 
 test("only an admin may delete another account and an admin cannot delete itself", async () => {

@@ -367,13 +367,22 @@ export const createUser = async (body, principal) => {
 };
 
 export const editUser = async (id, body, principal, { execute } = {}) => {
+  if (!UUID_PATTERN.test(String(id))) throw notFound("User not found");
   if (!execute) {
     return withTransaction((client) => editUser(id, body, principal, {
       execute: (text, values) => client.query(text, values),
     }));
   }
-  const values = cleanIdentity(body);
+  const values = cleanIdentity(body || {});
   const isAdmin = isAdminRole(principal.role);
+  const target = await findAccountById(id, "employee", execute);
+  if (!target) throw notFound("User not found");
+  const targetRole = target.role_id
+    ? await findRoleNameById(target.role_id, execute)
+    : null;
+  if (targetRole === "super_admin" && !isSuperAdminRole(principal?.role)) {
+    throw forbidden("Only a super administrator may modify a super administrator");
+  }
   if (!isAdmin) {
     // Only admins may change the role, employee ID, floor, cards, or the
     // forced-password-change flag.
@@ -408,11 +417,13 @@ export const editUser = async (id, body, principal, { execute } = {}) => {
       values.floors = normalizedFloorList(body.floors);
       values.floor = values.floors.includes("all") ? "all" : values.floors[0] || "";
     } else if (Object.hasOwn(body, "floor")) {
-      values.floors = body.floor ? [String(body.floor).trim()] : [];
+      const floor = body.floor ? String(body.floor).trim() : "";
+      values.floor = floor;
+      values.floors = floor ? [floor] : [];
     }
   }
   const cardNumber = isAdmin ? legacyCardNumber(body) : "";
-  const before = await findAccountById(id, "employee", execute);
+  const before = target;
   let cardAdded = false;
   try {
     const user = await updateAccount(id, values, "employee", execute);
@@ -425,6 +436,17 @@ export const editUser = async (id, body, principal, { execute } = {}) => {
       if (!hasCardNumber(cards, cardNumber)) {
         await addUserCard(id, cardNumber, { execute });
         cardAdded = true;
+      }
+      if (body.master_card === true) {
+        // A lost card must not be put back on the door master list by editing
+        // the profile. Only an active card of this user may be a master card.
+        const activeCard = (await listUserCards(id, execute)).find(
+          (card) => card.status === "active"
+            && card.card_number.trim().toLowerCase() === cardNumber.toLowerCase()
+        );
+        if (!activeCard) {
+          throw badRequest("INVALID_CARD", "Only an active card can be marked as a master card");
+        }
       }
       if (body.master_card !== undefined) {
         await setMasterCard(cardNumber, body.master_card === true, principal._id, execute);
@@ -528,8 +550,15 @@ export const deleteUser = async (id, principal, { execute } = {}) => {
   }
   if (!isAdminRole(principal?.role)) throw forbidden("Only an admin may delete a user");
   if (String(id) === String(principal?._id)) throw forbidden("You cannot delete your own account");
-  const cards = await listUserCards(id, execute);
   const before = await findAccountById(id, "employee", execute);
+  if (!before) throw notFound("User not found");
+  const targetRole = before.role_id
+    ? await findRoleNameById(before.role_id, execute)
+    : null;
+  if (targetRole === "super_admin" && !isSuperAdminRole(principal?.role)) {
+    throw forbidden("Only a super administrator may delete a super administrator");
+  }
+  const cards = await listUserCards(id, execute);
   const user = await softDeleteAccount(id, "employee", execute);
   if (!user) throw notFound("User not found");
   // A deleted account must not leave a card that still opens the door.

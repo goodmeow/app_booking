@@ -171,7 +171,15 @@
     "mustChangePassword": "Wajib ganti kata sandi saat login berikutnya",
     "mustChangePasswordHelp": "Pengguna harus membuat kata sandi baru sebelum memakai CMS.",
     "roleClear": "Hapus filter peran",
-    "protectedRoleHelp": "Akun setup selalu memakai peran Super Admin."
+    "protectedRoleHelp": "Akun setup selalu memakai peran Super Admin.",
+    "summary": "{{count}} pengguna · {{missing}} tanpa lantai",
+    "floorFilter": "Filter lantai",
+    "floorAllFilters": "Semua lantai",
+    "moreActions": "Aksi lainnya",
+    "masterFilter": "Kartu master",
+    "masterAll": "Semua kartu",
+    "masterYes": "Kartu master",
+    "masterNo": "Bukan master"
   },
   "settings": {
     "tab": "Pengaturan",
@@ -273,16 +281,18 @@
           "update": "Akses peran diubah"
         }
       }
-    }
+    },
+    "generalTitle": "Umum",
+    "kioskTitle": "Kiosk & pendaftaran"
   },
   "branding": {
     "tab": "Branding",
     "title": "Branding global",
-    "description": "Ganti nama, judul tab, icon, logo The Prasada, dan favicon tanpa rebuild.",
+    "description": "Ganti nama, judul tab, icon, logo, dan favicon tanpa rebuild.",
     "name": "Nama branding",
     "documentTitle": "Judul tab browser",
     "mark": "Icon",
-    "wordmark": "Logo The Prasada",
+    "wordmark": "Logo",
     "favicon": "Favicon",
     "upload": "Unggah gambar",
     "reset": "Kembalikan default",
@@ -309,6 +319,7 @@
     "license": "Lisensi",
     "source": "Sumber",
     "openSource": "Sumber terbuka",
-    "copyright": "© 2026 The Prasada. RoomBooking adalah aplikasi internal."
+    "copyright": "© 2026 The Prasada. RoomBooking adalah aplikasi internal.",
+    "versionTitle": "Versi"
   }
 }

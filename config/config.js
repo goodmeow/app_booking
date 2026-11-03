@@ -16,20 +16,15 @@ const trustProxy = !env.TRUST_PROXY || env.TRUST_PROXY === "false"
       ? Number(env.TRUST_PROXY)
       : env.TRUST_PROXY;
 const baseUrl = `${env.HTTPS === "true" ? "https" : "http"}://${host}:${clientPort}`;
-const serverBaseUrl = `${env.HTTPS === "true" ? "https" : "http"}://${host}:${serverPort}`;
 const corsOrigins = (env.CORS_ORIGINS || baseUrl || "http://localhost:3000")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
 const config = {
-  isProduction: nodeEnv === "production",
   ssrMode: env.SSR === "true",
   port: clientPort,
   serverPort,
-  base: env.BASE,
-  baseUrl: baseUrl || "http://localhost:3000",
-  serverBaseUrl: serverBaseUrl || "http://localhost:5000",
   isHttps: env.HTTPS === "true",
   jwtSecret: env.JWT_SECRET,
   jwtExpiry: env.JWT_EXPIRY_TOKEN || "1d",
@@ -38,6 +33,7 @@ const config = {
   kioskJwtAudience: env.KIOSK_JWT_AUDIENCE || "360-scheduler-kiosk",
   kioskJwtExpiry: env.KIOSK_JWT_EXPIRY || "15m",
   kioskRefreshDays: Number(env.KIOSK_REFRESH_DAYS || 30),
+  auditRetentionDays: Number(env.AUDIT_RETENTION_DAYS || 365),
   corsOrigins,
   trustProxy,
   tlsCertPath: env.TLS_CERT_PATH,
@@ -95,6 +91,9 @@ export const validateRuntimeConfig = () => {
   }
   if (!Number.isInteger(config.kioskRefreshDays) || config.kioskRefreshDays <= 0) {
     throw new Error("KIOSK_REFRESH_DAYS must be a positive integer");
+  }
+  if (!Number.isInteger(config.auditRetentionDays) || config.auditRetentionDays <= 0) {
+    throw new Error("AUDIT_RETENTION_DAYS must be a positive integer");
   }
   return config;
 };

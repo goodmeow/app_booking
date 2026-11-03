@@ -171,7 +171,15 @@
     "mustChangePassword": "Require password change at next login",
     "mustChangePasswordHelp": "The user must set a new password before using the CMS.",
     "roleClear": "Clear role filter",
-    "protectedRoleHelp": "The setup account keeps the Super Admin role."
+    "protectedRoleHelp": "The setup account keeps the Super Admin role.",
+    "summary": "{{count}} users · {{missing}} without floor",
+    "floorFilter": "Filter floor",
+    "floorAllFilters": "All floors",
+    "moreActions": "More actions",
+    "masterFilter": "Master card",
+    "masterAll": "All cards",
+    "masterYes": "Master card",
+    "masterNo": "Not master"
   },
   "settings": {
     "tab": "Settings",
@@ -273,16 +281,18 @@
           "update": "Role access updated"
         }
       }
-    }
+    },
+    "generalTitle": "General",
+    "kioskTitle": "Kiosk & signup"
   },
   "branding": {
     "tab": "Branding",
     "title": "Global branding",
-    "description": "Change the name, tab title, icon, The Prasada logo, and favicon without a rebuild.",
+    "description": "Change the name, tab title, icon, logo, and favicon without a rebuild.",
     "name": "Brand name",
     "documentTitle": "Browser tab title",
     "mark": "Icon",
-    "wordmark": "The Prasada logo",
+    "wordmark": "Logo",
     "favicon": "Favicon",
     "upload": "Upload image",
     "reset": "Reset to default",
@@ -309,6 +319,7 @@
     "license": "License",
     "source": "Source",
     "openSource": "Open source",
-    "copyright": "© 2026 The Prasada. RoomBooking is an internal application."
+    "copyright": "© 2026 The Prasada. RoomBooking is an internal application.",
+    "versionTitle": "Versions"
   }
 }

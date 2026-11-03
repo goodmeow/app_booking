@@ -13,6 +13,22 @@ Order:
 008_kiosk_capabilities.sql
 009_room_role_separation.sql
 010_kiosk_led_default.sql
+011_kiosk_show_subject.sql
+012_series_monthly_cadence.sql
+013_employee_id_and_user_cards.sql
+014_self_signup_toggle.sql
+015_receptionist_on_behalf.sql
+016_must_change_password.sql
+017_initial_setup.sql
+018_week_start_day.sql
+019_branding.sql
+020_backup_settings.sql
+021_protect_setup_admin.sql
+022_role_menu_access.sql
+023_user_floors.sql
+024_audit_log.sql
+025_user_token_version.sql
+026_event_room_timezone.sql
 ```
 
 Files are generated mechanically from immutable `bjb.sql`:

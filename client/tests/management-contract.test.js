@@ -54,7 +54,7 @@ test("receptionist role can book for employees but only on its own floor", () =>
   // The calendar must not open an empty "my schedule" for the front desk: the
   // default scope is the floor it serves, and every room in the dropdown comes
   // from that same scope.
-  assert.equal(defaultScheduleModeForRole("RECEPTIONIST"), "floor");
+  assert.equal(defaultScheduleModeForRole("RECEPTIONIST"), "mine");
   assert.equal(defaultScheduleModeForRole("ADMIN"), "all");
   assert.equal(defaultScheduleModeForRole("USER"), "mine");
   assert.equal(defaultScheduleModeForRole(undefined), "mine");
@@ -126,12 +126,12 @@ test("user grid and service expose employee ID and card management", () => {
   const section = fs.readFileSync(new URL("../management/UserManagementSection.js", import.meta.url), "utf8");
   const dialog = fs.readFileSync(new URL("../management/users/UserCardsDialog.js", import.meta.url), "utf8");
 
-  assert.match(userColumns, /field: "employee_id"/);
-  assert.ok(
-    userColumns.indexOf('field: "email"') < userColumns.indexOf('field: "employee_id"'),
-    "employee ID column follows email"
-  );
-  assert.match(userColumns, /field: "employee_id",[\s\S]{0,120}minWidth: 130/);
+  // Identity, e-mail, and employee ID share one readable cell instead of
+  // separate technical columns.
+  assert.match(userColumns, /row\.employee_id/);
+  assert.match(userColumns, /row\.email/);
+  assert.doesNotMatch(userColumns, /dataIndex: "employee_id"/);
+  assert.doesNotMatch(userColumns, /dataIndex: "email"/);
 
   assert.match(service, /users\/\$\{userId\}\/cards/);
   assert.match(service, /method: "PATCH"/);
@@ -170,6 +170,10 @@ test("normalizes RTK Query and Error messages", () => {
     getApiError({ data: { code: "FORBIDDEN", error: "Forbidden" } }, undefined, translate),
     "Not allowed"
   );
+  assert.equal(
+    getApiError({ data: { code: "RECURRENCE_LIMIT", error: "Recurrence cannot exceed 200 occurrences" } }, undefined, translate),
+    "Recurrence cannot exceed 200 occurrences"
+  );
   assert.equal(getApiError({ data: { error: "Database rejected request" } }), "Database rejected request");
   assert.equal(getApiError(new Error("Network failed")), "Network failed");
   assert.equal(getApiError(null, "Fallback"), "Fallback");
@@ -199,14 +203,15 @@ test("admin shell uses tabs, hides technical ID columns, and merges cards into u
   assert.match(appManagement, /value: "users"/);
   assert.match(appManagement, /value: "rooms"/);
   assert.match(appManagement, /value: "devices"/);
-  // Card access is merged into the Users tab (it has the master card flag), not a tab of its own.
+  // Card access is merged into the Users tab, not a tab of its own. The master
+  // flag lives in the edit/card dialogs, not as a one-click table toggle.
   assert.doesNotMatch(appManagement, /value: "cards"/);
-  assert.match(userColumns, /field: "card_number"/);
-  assert.match(userColumns, /field: "is_master_card"/);
-  assert.doesNotMatch(userColumns, /field: "_id"/);
-  assert.match(roomColumns, /field: "name"/);
+  assert.match(userColumns, /dataIndex: "card_number"/);
+  assert.doesNotMatch(userColumns, /dataIndex: "is_master_card"/);
+  assert.doesNotMatch(userColumns, /dataIndex: "_id"/);
+  assert.match(roomColumns, /dataIndex: "name"/);
   assert.doesNotMatch(rooms, /field: "_id"/);
-  assert.doesNotMatch(roomColumns, /field: "_id"/);
+  assert.doesNotMatch(roomColumns, /dataIndex: "_id"/);
 });
 
 test("Phase 10B resource errors are retryable and routes have a not-found page", () => {

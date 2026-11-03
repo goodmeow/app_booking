@@ -4,7 +4,7 @@
     "descriptor": "The Prasada meeting scheduler",
     "documentTitle": "RoomBooking — The Prasada",
     "kiosk": "RoomBooking · Room Kiosk",
-    "adminPanel": "Room meeting admin panel",
+    "adminPanel": "CMS",
     "footer": "RoomBooking CMS v{{version}}"
   },
   "language": {
@@ -65,7 +65,9 @@
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "openMenu": "Open menu",
-    "welcome": "Welcome, {{name}}"
+    "welcome": "Welcome, {{name}}",
+    "toggleTheme": "Toggle light / dark theme",
+    "accountMenu": "Account menu"
   },
   "roles": {
     "superAdmin": "Super Admin",

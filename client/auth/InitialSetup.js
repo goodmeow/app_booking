@@ -1,59 +1,40 @@
 import React, { useState } from "react";
+import {
+  Alert,
+  Button,
+  Card,
+  Form,
+  Input,
+  Typography,
+  theme,
+} from "antd";
+import { MoonOutlined, SunOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
-import SigninBrandPanel from "./SigninBrandPanel.js";
 import { authenticate, signin } from "./auth-helper.js";
 import { getApiError } from "../domain/api-error.js";
 import { buildSetupPayload, validateSetupForm } from "../domain/setup.js";
 import { useSubmitSetupMutation } from "../redux/services/setup.js";
-
-const focusStyles = `
-  .kiosk-auth button:focus-visible,
-  .kiosk-auth input:focus-visible { outline: 3px solid #FFB800; outline-offset: 3px; }
-  .kiosk-auth input::placeholder { color: #A9B3BF; opacity: 1; }
-`;
-
-const inputStyle = {
-  boxSizing: "border-box",
-  width: "100%",
-  height: 52,
-  padding: "0 18px",
-  border: "1px solid #5B6673",
-  borderRadius: 14,
-  background: "#1A2027",
-  fontSize: 17,
-  color: "#F4F6F8",
-};
-
-const SetupField = ({ id, label, help, type = "text", autoComplete, value, onChange, required = true, autoFocus = false }) => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-    <label htmlFor={id} style={{ fontSize: 17, fontWeight: 600 }}>{label}</label>
-    <input
-      id={id}
-      type={type}
-      autoComplete={autoComplete}
-      value={value}
-      onChange={onChange}
-      required={required}
-      autoFocus={autoFocus}
-      style={inputStyle}
-    />
-    {help ? <span style={{ fontSize: 15, color: "#A9B3BF" }}>{help}</span> : null}
-  </div>
-);
+import { useGetBrandingQuery } from "../redux/services/settings.js";
+import { brandAsset } from "../core/brand-assets.js";
+import { useThemeMode } from "../theme-mode.js";
 
 const InitialSetup = () => {
   const { t } = useTranslation(["auth", "common"]);
-  const [form, setForm] = useState({ name: "", email: "", employeeId: "", password: "", confirm: "" });
+  const { token } = theme.useToken();
+  const { mode, toggle } = useThemeMode();
+  const { data: branding } = useGetBrandingQuery();
   const [error, setError] = useState("");
   const [submitSetup, { isLoading }] = useSubmitSetupMutation();
 
-  const updateField = (field) => (event) => {
-    setForm((current) => ({ ...current, [field]: event.target.value }));
-  };
-
-  const submit = async (event) => {
-    event.preventDefault();
+  const submit = async (values) => {
     setError("");
+    const form = {
+      name: values.name.trim(),
+      email: values.email.trim(),
+      employeeId: values.employeeId?.trim() || "",
+      password: values.password,
+      confirm: values.confirm,
+    };
     const validationError = validateSetupForm(form);
     if (validationError) {
       setError(t(`auth:setup.errors.${validationError}`));
@@ -66,7 +47,7 @@ const InitialSetup = () => {
       // gate between /setup and /signin, and the operator lands on the
       // calendar without retyping the credentials.
       try {
-        const session = await signin({ email: form.email.trim(), password: form.password });
+        const session = await signin({ email: form.email, password: form.password });
         authenticate(session, () => window.location.assign("/"), false);
       } catch {
         window.location.assign("/signin");
@@ -78,120 +59,102 @@ const InitialSetup = () => {
 
   return (
     <div
-      className="kiosk-auth"
       style={{
-        minHeight: "100vh",
+        flex: 1,
         display: "flex",
-        flexWrap: "wrap",
-        background: "#11151B",
-        color: "#F4F6F8",
-        fontFamily: "'Inter', system-ui, sans-serif",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+        background: token.colorBgLayout,
       }}
     >
-      <style>{focusStyles}</style>
-      <SigninBrandPanel />
-
-      <main
+      <div
         style={{
-          flex: "1 1 480px",
-          boxSizing: "border-box",
-          padding: "56px 40px",
+          width: "100%",
+          maxWidth: 480,
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
+          justifyContent: "flex-end",
           alignItems: "center",
+          gap: 8,
+          marginBottom: 12,
         }}
       >
-        <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", gap: 28 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <h1 style={{ margin: 0, fontSize: 38, lineHeight: 1.15, fontWeight: 800, letterSpacing: "-0.02em" }}>
-              {t("auth:setup.title")}
-            </h1>
-            <p style={{ margin: 0, fontSize: 18, lineHeight: 1.5, color: "#A9B3BF" }}>{t("auth:setup.intro")}</p>
-          </div>
+        <Button
+          type="text"
+          icon={mode === "dark" ? <SunOutlined /> : <MoonOutlined />}
+          aria-label={t("common:nav.toggleTheme")}
+          title={t("common:nav.toggleTheme")}
+          onClick={toggle}
+        />
+      </div>
 
-          {error ? (
-            <div
-              role="alert"
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 14,
-                padding: "16px 18px",
-                borderRadius: 14,
-                background: "#B3261E",
-                color: "#FFFFFF",
-              }}
-            >
-              <div style={{ fontSize: 17, lineHeight: 1.4, fontWeight: 600 }}>{error}</div>
-            </div>
-          ) : null}
-
-          <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <SetupField
-              id="setup-name"
-              label={t("auth:setup.name")}
-              autoComplete="name"
-              value={form.name}
-              onChange={updateField("name")}
-              autoFocus
-            />
-            <SetupField
-              id="setup-email"
-              label={t("auth:setup.email")}
-              type="email"
-              autoComplete="email"
-              value={form.email}
-              onChange={updateField("email")}
-            />
-            <SetupField
-              id="setup-employee-id"
-              label={t("auth:setup.employeeId")}
-              help={t("auth:setup.employeeIdHelp")}
-              autoComplete="off"
-              value={form.employeeId}
-              onChange={updateField("employeeId")}
-              required={false}
-            />
-            <SetupField
-              id="setup-password"
-              label={t("auth:setup.password")}
-              help={t("auth:setup.passwordRule")}
-              type="password"
-              autoComplete="new-password"
-              value={form.password}
-              onChange={updateField("password")}
-            />
-            <SetupField
-              id="setup-confirm"
-              label={t("auth:setup.confirm")}
-              type="password"
-              autoComplete="new-password"
-              value={form.confirm}
-              onChange={updateField("confirm")}
-            />
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              style={{
-                height: 58,
-                marginTop: 4,
-                border: 0,
-                borderRadius: 16,
-                background: "#FFFFFF",
-                color: "#11151B",
-                fontSize: 20,
-                fontWeight: 800,
-                cursor: isLoading ? "progress" : "pointer",
-                opacity: isLoading ? 0.7 : 1,
-              }}
-            >
-              {isLoading ? t("auth:setup.loading") : t("auth:setup.submit")}
-            </button>
-          </form>
+      <Card style={{ width: "100%", maxWidth: 480 }}>
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <img
+            src={brandAsset(branding, "mark")}
+            alt={branding?.brand_name || t("common:brand.name")}
+            style={{ display: "block", height: 64, margin: "0 auto 12px" }}
+          />
+          <img
+            src={brandAsset(branding, "wordmark")}
+            alt=""
+            style={{ display: "block", height: 22, margin: "0 auto" }}
+          />
         </div>
-      </main>
+
+        <Typography.Title level={2} style={{ textAlign: "center", marginTop: 0 }}>
+          {t("auth:setup.title")}
+        </Typography.Title>
+        <Typography.Paragraph type="secondary" style={{ textAlign: "center" }}>
+          {t("auth:setup.intro")}
+        </Typography.Paragraph>
+
+        {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
+
+        <Form layout="vertical" onFinish={submit} requiredMark={false}>
+          <Form.Item
+            name="name"
+            label={t("auth:setup.name")}
+            rules={[{ required: true, message: t("auth:setup.errors.nameRequired") }]}
+          >
+            <Input autoComplete="name" autoFocus />
+          </Form.Item>
+          <Form.Item
+            name="email"
+            label={t("auth:setup.email")}
+            rules={[{ required: true, message: t("auth:setup.errors.emailRequired") }]}
+          >
+            <Input type="email" autoComplete="email" />
+          </Form.Item>
+          <Form.Item
+            name="employeeId"
+            label={t("auth:setup.employeeId")}
+            extra={t("auth:setup.employeeIdHelp")}
+          >
+            <Input autoComplete="off" />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            label={t("auth:setup.password")}
+            extra={t("auth:setup.passwordRule")}
+            rules={[{ required: true, message: t("auth:setup.errors.passwordTooShort") }]}
+          >
+            <Input.Password autoComplete="new-password" />
+          </Form.Item>
+          <Form.Item
+            name="confirm"
+            label={t("auth:setup.confirm")}
+            rules={[{ required: true, message: t("auth:setup.errors.passwordMismatch") }]}
+          >
+            <Input.Password autoComplete="new-password" />
+          </Form.Item>
+
+          <Button type="primary" htmlType="submit" size="large" block loading={isLoading}>
+            {isLoading ? t("auth:setup.loading") : t("auth:setup.submit")}
+          </Button>
+        </Form>
+      </Card>
     </div>
   );
 };

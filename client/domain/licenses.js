@@ -1,24 +1,17 @@
 // Direct runtime libraries and bundled fonts. Transitive dependencies are
 // covered by their parent packages; the source link is kept for the full text.
-export const KIOSK_APP_VERSION = "1.4.4 (25)";
+export const KIOSK_APP_VERSION = "1.4.5 (26)";
 
 export const CMS_LIBRARIES = [
-  { name: "@emotion/react", version: "11.14.0", license: "MIT", url: "https://github.com/emotion-js/emotion" },
-  { name: "@emotion/styled", version: "11.14.1", license: "MIT", url: "https://github.com/emotion-js/emotion" },
-  { name: "@fullcalendar/bootstrap5", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/bootstrap5" },
+  { name: "@ant-design/icons", version: "5.6.1", license: "MIT", url: "https://ant.design/components/icon" },
+  { name: "antd", version: "5.29.3", license: "MIT", url: "https://ant.design" },
   { name: "@fullcalendar/core", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io" },
   { name: "@fullcalendar/daygrid", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/month-view" },
   { name: "@fullcalendar/interaction", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/editable" },
   { name: "@fullcalendar/react", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/react" },
   { name: "@fullcalendar/timegrid", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/timegrid-view" },
-  { name: "@mui/icons-material", version: "5.18.0", license: "MIT", url: "https://mui.com/material-ui/material-icons/" },
-  { name: "@mui/material", version: "5.18.0", license: "MIT", url: "https://mui.com/material-ui/" },
-  { name: "@mui/x-data-grid", version: "6.20.4", license: "MIT", url: "https://mui.com/x/react-data-grid/" },
-  { name: "@mui/x-date-pickers", version: "6.20.2", license: "MIT", url: "https://mui.com/x/react-date-pickers/" },
   { name: "@reduxjs/toolkit", version: "1.9.7", license: "MIT", url: "https://redux-toolkit.js.org" },
   { name: "bcrypt", version: "6.0.0", license: "MIT", url: "https://github.com/kelektiv/node.bcrypt.js" },
-  { name: "body-parser", version: "1.20.9", license: "MIT", url: "https://github.com/expressjs/body-parser" },
-  { name: "bootstrap", version: "5.3.8", license: "MIT", url: "https://getbootstrap.com" },
   { name: "compression", version: "1.8.2", license: "MIT", url: "https://github.com/expressjs/compression" },
   { name: "cors", version: "2.8.6", license: "MIT", url: "https://github.com/expressjs/cors" },
   { name: "dayjs", version: "1.11.21", license: "MIT", url: "https://day.js.org" },
@@ -33,7 +26,6 @@ export const CMS_LIBRARIES = [
   { name: "react-dom", version: "17.0.2", license: "MIT", url: "https://react.dev" },
   { name: "react-i18next", version: "17.0.10", license: "MIT", url: "https://github.com/i18next/react-i18next" },
   { name: "react-redux", version: "8.1.3", license: "MIT", url: "https://github.com/reduxjs/react-redux" },
-  { name: "react-router", version: "5.3.4", license: "MIT", url: "https://reactrouter.com" },
   { name: "react-router-dom", version: "5.3.4", license: "MIT", url: "https://reactrouter.com" },
   { name: "socket.io", version: "4.8.3", license: "MIT", url: "https://socket.io" },
   { name: "socket.io-client", version: "4.8.3", license: "MIT", url: "https://socket.io" },

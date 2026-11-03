@@ -123,6 +123,13 @@ Riwayat isi paket:
   pustaka APK. Paket distribusi 21.530.390 byte, SHA-256
   `a0e4b9693fbfd2805700f9075f972fb8682f38398548999624fe7f94ce4a2c8c`.
 
+- 2026-10-29: naik 1.4.5 (versionCode 26)—build tag
+  `1.4.5-26-a6390a2`. Memperbaiki blok **NEXT UP** yang menabrak teks status
+  pada tampilan merah (occupied/waiting) dan hijau (available) dengan
+  mengecilkan tipografi/spacing saat preview tersedia. Paket distribusi
+  21.530.462 byte, SHA-256
+  `adb6af93a49f592f4c4767895605248ed963988d2875b0ff44ebe457c1a338d6`.
+
 ## Manifest update
 
 `latest.json` dibaca kiosk 1.4.0+ setiap 6 jam. Setiap rilis APK, isi:

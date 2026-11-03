@@ -4,15 +4,14 @@
     "filterTitle": "Room filter",
     "searchRoom": "Search for a room",
     "noRoomFilter": "No room filter",
-    "scheduleMode": "Schedule mode",
-    "mySchedule": "My Schedule",
-    "floorSchedule": "Floor Schedule",
-    "roomSchedule": "Room Schedule",
-    "mineHint": "Shows meetings connected to your account.",
+    "scheduleMode": "View",
+    "mySchedule": "Mine",
+    "roomSchedule": "Room",
+    "mineHint": "Meetings linked to your account.",
     "floorHint": "Shows every meeting in the rooms on your floor.",
-    "roomHint": "Choose a room to see only that room schedule.",
-    "allSchedule": "All schedules",
-    "allHint": "Shows bookings from every employee and room."
+    "roomHint": "Choose one room.",
+    "allSchedule": "All",
+    "allHint": "Every employee and room."
   },
   "editor": {
     "addTitle": "Add Meeting",
@@ -91,7 +90,9 @@
     "onBehalfSearchHint": "Type at least 2 characters to search employees.",
     "onBehalfSearching": "Searching employees...",
     "onBehalfNoOptions": "No employee matches this search.",
-    "floorRoomsEmpty": "Your floor has no bookable rooms yet. Ask an admin to add rooms for your floor in Management > Rooms."
+    "floorRoomsEmpty": "Your floor has no bookable rooms yet. Ask an admin to add rooms for your floor in Management > Rooms.",
+    "weekdaysLabel": "Days",
+    "monthlyPatternLabel": "Monthly pattern"
   },
   "validation": {
     "subjectRequired": "Enter a meeting title.",
@@ -118,7 +119,7 @@
     "agenda": "Agenda",
     "navigation": "Calendar navigation",
     "viewMode": "Calendar view",
-    "refreshTitle": "Schedule data",
+    "refreshTitle": "Schedule",
     "noMeetings": "No meetings in this range.",
     "untitled": "Untitled meeting",
     "roomsLoadError": "Unable to load rooms.",
@@ -130,7 +131,6 @@
     "floorScope": "Only rooms on floor {{floor}} are shown.",
     "floorScopeAdmin": "Admin mode: all floors are shown.",
     "floorMissing": "Your account has no work floor yet. Ask an admin to set it in Management > Users.",
-    "floorScheduleEmpty": "Your floor has no rooms yet, so there is no floor schedule to show.",
     "floorScopeAll": "All floors are shown.",
     "roomStatusTitle": "Room status",
     "roomOccupied": "In use",
@@ -159,6 +159,8 @@
     "noAlternatives": "No other rooms are free at this time.",
     "conflictTruncated": "Showing {{shown}} of {{total}} conflicts.",
     "detailBookedBy": "Booked by",
-    "bookedBy": "Booked by {{name}}"
+    "bookedBy": "Booked by {{name}}",
+    "floorShort": "Floor {{floor}}",
+    "floorAllShort": "All floors"
   }
 }

@@ -7,6 +7,7 @@ import { createHttpServer } from "./runtime/create-http-server.js";
 import { closePool } from "./db/pool.js";
 import { releaseAbandonedBookings } from "./features/events/event.service.js";
 import { startBackupScheduler } from "./features/settings/backup.service.js";
+import { deleteExpiredAudit } from "./features/audit/audit.repository.js";
 import { findEventAudience } from "./features/events/event.repository.js";
 import { emitEventInvalidation } from "./socket/event-invalidation.js";
 import { log } from "./observability/logger.js";
@@ -54,11 +55,26 @@ const releaseAbandonedTimer = setInterval(async () => {
       emitEventInvalidation(io, await findEventAudience(releasedEventIds));
     }
   } catch (error) {
-    log("error", "auto_release_failed", { message: error.message });
+    // logger only serialises allow-listed fields; error.message would be
+    // dropped. Keep the actionable code without leaking database text.
+    log("error", "auto_release_failed", { error_code: error.code || "AUTO_RELEASE_FAILED" });
   }
 }, 60_000);
 releaseAbandonedTimer.unref();
 startBackupScheduler();
+
+// Keep the audit table bounded. A daily job is enough for the write volume of
+// this CMS; the retention is configurable for compliance requirements.
+const pruneAudit = async () => {
+  try {
+    await deleteExpiredAudit(config.auditRetentionDays);
+  } catch (error) {
+    log("error", "audit_retention_failed", { error_code: error.code || "AUDIT_RETENTION_FAILED" });
+  }
+};
+const auditRetentionTimer = setInterval(pruneAudit, 24 * 60 * 60_000);
+auditRetentionTimer.unref();
+setTimeout(pruneAudit, 60_000).unref();
 
 const shutdown = async (signal) => {
   log("info", "server_stopping", { operation: signal });

@@ -13,7 +13,7 @@ import { LoadingState } from "./components/common/AsyncState.js";
 import ErrorBoundary from "./components/common/ErrorBoundary.js";
 import KioskApp from "./kiosk/KioskApp.js";
 import { MANAGEMENT_MENUS, useMenuAccess } from "./auth/use-menu-access.js";
-import { Alert, Typography } from "@mui/material";
+import { Alert } from "antd";
 
 const AppManagement = React.lazy(() => import("./management/AppManagement.js"));
 const UserProfile = React.lazy(() => import("./profile/UserProfile.js"));
@@ -66,9 +66,12 @@ const HomeRoute = () => {
   if (access.can("report")) return <Redirect to="/report" />;
   if (access.canManage) return <Redirect to="/app-management" />;
   return (
-    <Alert severity="warning" sx={{ m: 4 }}>
-      <Typography>{`This account has no menu access. Ask a super admin to open Management > Settings > User Role Management.`}</Typography>
-    </Alert>
+    <Alert
+      type="warning"
+      showIcon
+      style={{ margin: 32 }}
+      message="This account has no menu access. Ask a super admin to open Management > Settings > User Role Management."
+    />
   );
 };
 
@@ -85,23 +88,25 @@ const WebChrome = () => {
 };
 
 const WebRouter = () => (
-  <>
-    <WebChrome />
-    <SetupGate>
-      <Switch>
-        <Route path="/setup" component={SetupRoute} />
-        <Route path="/signup" component={Signup} />
-        <Route path="/signin" component={Signin} />
-        <ProtectedRoute path="/app-management" anyOf={MANAGEMENT_MENUS} component={AppManagement} />
-        <ProtectedRoute path="/report" anyOf={["report"]} component={RoomUsageReport} />
-        <ProtectedRoute path="/user/:userId" component={UserProfile} />
-        <ProtectedRoute exact path="/" component={HomeRoute} />
-        <Route component={NotFound} />
-      </Switch>
-    </SetupGate>
+  <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div style={{ flex: 1, minHeight: 0, overflow: "auto", display: "flex", flexDirection: "column" }}>
+      <WebChrome />
+      <SetupGate>
+        <Switch>
+          <Route path="/setup" component={SetupRoute} />
+          <Route path="/signup" component={Signup} />
+          <Route path="/signin" component={Signin} />
+          <ProtectedRoute path="/app-management" anyOf={MANAGEMENT_MENUS} component={AppManagement} />
+          <ProtectedRoute path="/report" anyOf={["report"]} component={RoomUsageReport} />
+          <ProtectedRoute path="/user/:userId" component={UserProfile} />
+          <ProtectedRoute exact path="/" component={HomeRoute} />
+          <Route component={NotFound} />
+        </Switch>
+      </SetupGate>
+    </div>
     {/* The CMS version number is shown on every web page: Ver.Rev from package.json. */}
     <VersionFooter />
-  </>
+  </div>
 );
 
 const MainRouter = () => (

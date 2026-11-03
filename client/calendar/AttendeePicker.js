@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Autocomplete, Box, TextField, Typography } from "@mui/material";
+import { Select, Spin, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { getApiError } from "../domain/api-error.js";
 import {
@@ -73,7 +73,10 @@ const AttendeePicker = ({
   );
 
   const options = useMemo(
-    () => directoryEmails(canListAllUsers ? users : activeQuery.data),
+    () => directoryEmails(canListAllUsers ? users : activeQuery.data).map((email) => ({
+      value: email,
+      label: email,
+    })),
     [canListAllUsers, users, activeQuery.data]
   );
 
@@ -94,50 +97,47 @@ const AttendeePicker = ({
     return { attendee_email: String(email ?? "").trim() };
   };
 
-  const changeInput = (_, nextValue, reason) => {
-    // "reset" is MUI clearing the field after a chip was added.
-    setInputValue(reason === "reset" ? "" : nextValue);
-  };
-
-  const changeSelection = (_, values) => {
+  const changeSelection = (values) => {
     onChange?.((Array.isArray(values) ? values : []).map((item) => resolveAttendee(item)));
   };
 
   return (
-    <Autocomplete
-      multiple
-      freeSolo
-      options={options}
-      value={value}
-      inputValue={inputValue}
-      onChange={changeSelection}
-      onInputChange={changeInput}
-      // Search results are already narrowed by the server; admin options are
-      // filtered locally as before.
-      filterOptions={canListAllUsers ? undefined : (available) => available}
-      getOptionLabel={(option) => (typeof option === "string" ? option : option?.email || "")}
-      loading={searching}
-      loadingText={t("editor.attendeeSearching")}
-      noOptionsText={noOptionsText}
-      disabled={disabled}
-      renderOption={(props, option) => {
-        const user = knownIndex.get(String(option).toLowerCase());
-        return (
-          <Box component="li" {...props} sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-            <Typography variant="body2" noWrap>{user?.name || option}</Typography>
-            {user?.name ? <Typography variant="caption" color="text.secondary" noWrap>{option}</Typography> : null}
-          </Box>
-        );
-      }}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label={t("editor.attendees")}
-          error={!canListAllUsers && searchQuery.isError}
-          helperText={helperText}
-        />
-      )}
-    />
+    <div>
+      <Typography.Text strong>{t("editor.attendees")}</Typography.Text>
+      <Select
+        mode="tags"
+        value={value}
+        options={options}
+        onChange={changeSelection}
+        onSearch={setInputValue}
+        tokenSeparators={[",", ";"]}
+        filterOption={canListAllUsers
+          ? (input, option) => option.value.toLowerCase().includes(String(input).toLowerCase())
+          : false}
+        loading={searching}
+        disabled={disabled}
+        status={!canListAllUsers && searchQuery.isError ? "error" : undefined}
+        notFoundContent={searching ? <Spin size="small" /> : noOptionsText}
+        optionLabelProp="value"
+        optionRender={(option) => {
+          const user = knownIndex.get(String(option.value).toLowerCase());
+          return (
+            <div>
+              <div>{user?.name || option.value}</div>
+              {user?.name ? (
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>{option.value}</Typography.Text>
+              ) : null}
+            </div>
+          );
+        }}
+        style={{ width: "100%" }}
+      />
+      {helperText ? (
+        <Typography.Text type={!canListAllUsers && searchQuery.isError ? "danger" : "secondary"}>
+          {helperText}
+        </Typography.Text>
+      ) : null}
+    </div>
   );
 };
 

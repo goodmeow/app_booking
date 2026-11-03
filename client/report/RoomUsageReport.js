@@ -1,29 +1,10 @@
 import React, { useState } from "react";
-import KeyboardArrowDownIconModule from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIconModule from "@mui/icons-material/KeyboardArrowUp";
-import FileDownloadIconModule from "@mui/icons-material/FileDownload";
-import {
-  Alert,
-  Box,
-  Button,
-  Collapse,
-  Container,
-  IconButton,
-  Paper,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Button, Card, DatePicker, Space, Table, Typography } from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 import ExcelJS from "exceljs/dist/exceljs.min.js";
 import { useTranslation } from "react-i18next";
 import { EmptyState, ErrorState, LoadingState } from "../components/common/AsyncState.js";
-import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import {
   currentMonthRange,
   formatDateDDMMMYYYY,
@@ -39,67 +20,6 @@ import {
 } from "../domain/report.js";
 import { useGetRoomUsageQuery } from "../redux/services/rooms.js";
 import { normalizeLanguage } from "../i18n/languages.js";
-
-const KeyboardArrowDownIcon = resolveMuiIcon(KeyboardArrowDownIconModule);
-const KeyboardArrowUpIcon = resolveMuiIcon(KeyboardArrowUpIconModule);
-const FileDownloadIcon = resolveMuiIcon(FileDownloadIconModule);
-
-const RoomUsageRow = ({ room, language }) => {
-  const { t } = useTranslation("report");
-  const [open, setOpen] = useState(false);
-  const meetings = reportMeetingsFor(room);
-
-  return (
-    <React.Fragment>
-      <TableRow>
-        <TableCell sx={{ width: 56 }}>
-          <IconButton
-            aria-label={open ? t("collapse") : t("expand")}
-            size="small"
-            onClick={() => setOpen((current) => !current)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell component="th" scope="row">{safeReportText(room?.room_name)}</TableCell>
-        <TableCell align="right">{safeReportText(room?.total_pemakaian)}</TableCell>
-      </TableRow>
-      <TableRow>
-        <TableCell sx={{ py: 0 }} colSpan={3}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box sx={{ m: 2 }}>
-              <Typography variant="h6" gutterBottom>{t("history")}</Typography>
-              {meetings.length ? (
-                <Table size="small" aria-label={t("history")}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>{t("subject")}</TableCell>
-                      <TableCell>{t("organizer")}</TableCell>
-                      <TableCell>{t("description")}</TableCell>
-                      <TableCell>{t("meetingStart")}</TableCell>
-                      <TableCell>{t("meetingEnd")}</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {meetings.map((meeting, index) => (
-                      <TableRow key={meeting?._id || `${room?.room_name || "room"}-${index}`}>
-                        <TableCell component="th" scope="row">{safeReportText(meeting?.subject)}</TableCell>
-                        <TableCell>{safeReportText(meeting?.organizer)}</TableCell>
-                        <TableCell>{safeReportDescription(meeting?.description)}</TableCell>
-                        <TableCell>{formatReportMeetingDate(meeting?.start_date, language)}</TableCell>
-                        <TableCell>{formatReportMeetingDate(meeting?.end_date, language)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : <EmptyState message={t("empty")} />}
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </React.Fragment>
-  );
-};
 
 const RoomUsageReport = () => {
   const { i18n, t } = useTranslation("report");
@@ -134,79 +54,116 @@ const RoomUsageReport = () => {
     }
   };
 
+  const meetingColumns = [
+    { title: t("subject"), dataIndex: "subject", key: "subject", render: safeReportText },
+    { title: t("organizer"), dataIndex: "organizer", key: "organizer", render: safeReportText },
+    { title: t("description"), dataIndex: "description", key: "description", render: safeReportDescription },
+    {
+      title: t("meetingStart"),
+      dataIndex: "start_date",
+      key: "start_date",
+      render: (value) => formatReportMeetingDate(value, language),
+    },
+    {
+      title: t("meetingEnd"),
+      dataIndex: "end_date",
+      key: "end_date",
+      render: (value) => formatReportMeetingDate(value, language),
+    },
+  ];
+
+  const columns = [
+    { title: t("roomName"), dataIndex: "room_name", key: "room_name", render: safeReportText },
+    {
+      title: t("totalUsage"),
+      dataIndex: "total_pemakaian",
+      key: "total_pemakaian",
+      align: "right",
+      render: safeReportText,
+    },
+  ];
+
   return (
-    <Container maxWidth={false} sx={{ py: 4 }}>
-    <Paper component="section" elevation={4} sx={{ p: 3 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>{t("title")}</Typography>
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ sm: "flex-start" }}>
-        <TextField
-          label={t("startDate")}
-          type="date"
-          value={start}
-          onChange={(event) => setStart(event.target.value)}
-          InputLabelProps={{ shrink: true }}
-        />
-        <TextField
-          label={t("endDate")}
-          type="date"
-          value={end}
-          error={!validRange}
-          helperText={!validRange ? t("invalidRange") : " "}
-          onChange={(event) => setEnd(event.target.value)}
-          inputProps={{ min: start }}
-          InputLabelProps={{ shrink: true }}
-        />
+    <div style={{ padding: 24, maxWidth: "100%" }}>
+      <Space
+        align="start"
+        style={{ width: "100%", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap" }}
+      >
+        <div>
+          <Typography.Title level={4} style={{ margin: 0 }}>{t("title")}</Typography.Title>
+          <Typography.Text type="secondary">
+            {t("period", {
+              start: formatDateDDMMMYYYY(new Date(`${start}T00:00:00`), language),
+              end: formatDateDDMMMYYYY(new Date(`${end}T00:00:00`), language),
+            })}
+          </Typography.Text>
+        </div>
         <Button
-          variant="contained"
-          color="success"
-          startIcon={<FileDownloadIcon />}
+          type="primary"
+          icon={<DownloadOutlined />}
           disabled={!validRange || query.isFetching || !rooms.length}
           onClick={() => void exportReport()}
-          sx={{ ml: { sm: "auto" }, minHeight: 40 }}
         >
           {t("export")}
         </Button>
-      </Stack>
+      </Space>
 
-      {!validRange ? <Alert severity="error" sx={{ mt: 1 }}>{t("invalidRange")}</Alert> : null}
-      {exportError ? <Alert severity="error" sx={{ mt: 1 }}>{exportError}</Alert> : null}
-      {validRange ? (
-        <Typography align="center" sx={{ my: 2 }}>
-          {t("period", {
-            start: formatDateDDMMMYYYY(new Date(`${start}T00:00:00`), language),
-            end: formatDateDDMMMYYYY(new Date(`${end}T00:00:00`), language),
-          })}
-        </Typography>
-      ) : null}
+      <Card size="small">
+        <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+          <Space wrap>
+            <Typography.Text strong>{t("startDate")} – {t("endDate")}</Typography.Text>
+            <DatePicker.RangePicker
+              allowClear={false}
+              format="YYYY-MM-DD"
+              value={[start ? dayjs(start) : null, end ? dayjs(end) : null]}
+              onChange={(values) => {
+                if (!values?.[0] || !values?.[1]) return;
+                setStart(values[0].format("YYYY-MM-DD"));
+                setEnd(values[1].format("YYYY-MM-DD"));
+              }}
+            />
+          </Space>
 
-      {validRange && refreshing ? <Alert severity="info" sx={{ mt: 1 }}>{t("common:states.refreshing")}</Alert> : null}
-      {validRange && initialLoading ? <LoadingState label={t("loading")} /> : null}
-      {validRange && query.isError ? (
-        <ErrorState message={t("loadError")} busy={query.isFetching} onAction={() => query.refetch()} />
-      ) : null}
-      {validRange && !initialLoading && (!query.isError || hasReportData) && !rooms.length ? (
-        <EmptyState message={t("empty")} />
-      ) : null}
-      {validRange && !initialLoading && (!query.isError || hasReportData) && rooms.length ? (
-        <TableContainer sx={{ maxHeight: 550 }}>
-          <Table stickyHeader aria-label={t("tableAria")}>
-            <TableHead>
-              <TableRow>
-                <TableCell />
-                <TableCell>{t("roomName")}</TableCell>
-                <TableCell align="right">{t("totalUsage")}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rooms.map((room, index) => (
-                <RoomUsageRow key={room?._id || room?.room_mail || `${room?.room_name || "room"}-${index}`} room={room} language={language} />
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      ) : null}
-    </Paper>
-    </Container>
+          {!validRange ? <Alert type="error" showIcon message={t("invalidRange")} /> : null}
+          {exportError ? <Alert type="error" showIcon message={exportError} /> : null}
+          {validRange && refreshing ? (
+            <Alert type="info" showIcon message={t("common:states.refreshing")} />
+          ) : null}
+          {validRange && initialLoading ? <LoadingState label={t("loading")} /> : null}
+          {validRange && query.isError ? (
+            <ErrorState message={t("loadError")} busy={query.isFetching} onAction={() => query.refetch()} />
+          ) : null}
+          {validRange && !initialLoading && (!query.isError || hasReportData) && !rooms.length ? (
+            <EmptyState message={t("empty")} />
+          ) : null}
+          {validRange && !initialLoading && (!query.isError || hasReportData) && rooms.length ? (
+            <Table
+              size="small"
+              rowKey={(room, index) => room?._id || room?.room_mail || `${room?.room_name || "room"}-${index}`}
+              columns={columns}
+              dataSource={rooms}
+              pagination={false}
+              scroll={{ y: 550 }}
+              expandable={{
+                expandedRowRender: (room) => {
+                  const meetings = reportMeetingsFor(room);
+                  if (!meetings.length) return <EmptyState message={t("empty")} />;
+                  return (
+                    <Table
+                      size="small"
+                      rowKey={(meeting, index) => meeting?._id || `${room?.room_name || "room"}-${index}`}
+                      columns={meetingColumns}
+                      dataSource={meetings}
+                      pagination={false}
+                    />
+                  );
+                },
+              }}
+            />
+          ) : null}
+        </Space>
+      </Card>
+    </div>
   );
 };
 

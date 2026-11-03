@@ -1,8 +1,8 @@
 {
-  "versionCode": 25,
-  "versionName": "1.4.4",
+  "versionCode": 26,
+  "versionName": "1.4.5",
   "url": "/apk/kiosk-release.apk",
-  "sha256": "a0e4b9693fbfd2805700f9075f972fb8682f38398548999624fe7f94ce4a2c8c",
+  "sha256": "adb6af93a49f592f4c4767895605248ed963988d2875b0ff44ebe457c1a338d6",
   "mandatory": false,
-  "notes": "Menambahkan halaman Tentang & Lisensi di menu tablet."
+  "notes": "Memperbaiki tumpang tindih blok NEXT UP pada status merah dan hijau."
 }

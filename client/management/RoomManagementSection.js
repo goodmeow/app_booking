@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, Box, Button, Stack, Typography } from "@mui/material";
+import { Alert, Button, Space, Table, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import PasswordDialog from "../components/common/PasswordDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
-import LocalizedDataGrid from "../components/common/LocalizedDataGrid.js";
 import { getApiError } from "../domain/api-error.js";
 import {
   useDeleteRoomByIdMutation,
@@ -16,7 +15,7 @@ import {
 import { useChangePasswordMutation } from "../redux/services/users.js";
 import { useGetKioskDevicesQuery } from "../redux/services/kiosk-devices.js";
 import RoomFormDialog from "./rooms/RoomFormDialog.js";
-import { buildRoomColumns } from "./rooms/room-columns.js";
+import { buildRoomColumns, devicesByRoom } from "./rooms/room-columns.js";
 
 const emptyForm = {
   name: "",
@@ -32,11 +31,7 @@ const RoomManagementSection = () => {
   const { t } = useTranslation(["management", "common"]);
   const rooms = useGetRoomsQuery();
   const devicesQuery = useGetKioskDevicesQuery(undefined, { pollingInterval: 15000 });
-  const deviceByRoom = useMemo(() => {
-    const map = new Map();
-    (devicesQuery.data || []).forEach((device) => map.set(String(device.roomId), device));
-    return map;
-  }, [devicesQuery.data]);
+  const deviceByRoom = useMemo(() => devicesByRoom(devicesQuery.data), [devicesQuery.data]);
   const [storeRoom, storeState] = useStoreRoomMutation();
   const [updateRoom, updateState] = useUpdateRoomMutation();
   const [deleteRoom, deleteState] = useDeleteRoomByIdMutation();
@@ -153,22 +148,28 @@ const RoomManagementSection = () => {
   const isEditing = dialog === "edit";
 
   return (
-    <Box component="section">
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <Typography variant="h5">{t("rooms.title")}</Typography>
-        <Button variant="contained" onClick={openCreate}>{t("rooms.add")}</Button>
-      </Stack>
-      {rooms.isFetching ? <Alert severity="info" sx={{ mb: 1 }}>{t("common:states.refreshing")}</Alert> : null}
-      {rooms.isError ? <ErrorState message={getApiError(rooms.error, t("rooms.loadError"))} busy={rooms.isFetching} onAction={rooms.refetch} /> : null}
-      <LocalizedDataGrid
-        autoHeight
-        rows={rooms.data || []}
+    <section>
+      <Space
+        align="center"
+        style={{ width: "100%", justifyContent: "space-between", marginBottom: 16 }}
+      >
+        <Typography.Title level={4} style={{ margin: 0 }}>{t("rooms.title")}</Typography.Title>
+        <Button type="primary" onClick={openCreate}>{t("rooms.add")}</Button>
+      </Space>
+      {rooms.isFetching ? (
+        <Alert type="info" showIcon message={t("common:states.refreshing")} style={{ marginBottom: 8 }} />
+      ) : null}
+      {rooms.isError ? (
+        <ErrorState message={getApiError(rooms.error, t("rooms.loadError"))} busy={rooms.isFetching} onAction={rooms.refetch} />
+      ) : null}
+      <Table
+        size="small"
+        rowKey="_id"
         columns={columns}
-        getRowId={(row) => row._id}
-        initialState={{ pagination: { paginationModel: { page: 0, pageSize: 5 } } }}
-        pageSizeOptions={[5]}
-        density="compact"
-        disableRowSelectionOnClick
+        dataSource={rooms.data || []}
+        loading={rooms.isFetching}
+        pagination={{ pageSize: 5, showSizeChanger: false }}
+        scroll={{ x: 1000 }}
       />
 
       <RoomFormDialog
@@ -203,7 +204,7 @@ const RoomManagementSection = () => {
         onCancel={close}
         onConfirm={confirmDelete}
       />
-    </Box>
+    </section>
   );
 };
 

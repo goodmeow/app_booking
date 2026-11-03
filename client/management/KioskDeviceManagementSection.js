@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import { Alert, Box, Button, Chip, Stack, Switch, Typography } from "@mui/material";
-import DownloadIconModule from "@mui/icons-material/Download";
+import { Alert, Button, Space, Switch, Table, Tag, Typography } from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
-import LocalizedDataGrid from "../components/common/LocalizedDataGrid.js";
-import { resolveMuiIcon } from "../components/common/resolve-mui-icon.js";
 import { getApiError } from "../domain/api-error.js";
 import { localeForLanguage } from "../i18n/languages.js";
 import {
@@ -13,8 +11,6 @@ import {
   useRevokeKioskDeviceMutation,
   useUpdateKioskDeviceCapabilitiesMutation,
 } from "../redux/services/kiosk-devices.js";
-
-const DownloadIcon = resolveMuiIcon(DownloadIconModule);
 
 const formatDateTime = (value, language, neverLabel) => value
   ? new Intl.DateTimeFormat(localeForLanguage(language), { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
@@ -60,78 +56,82 @@ const KioskDeviceManagementSection = () => {
     }
   };
 
+  const statusTag = (row) => {
+    if (row.status === "revoked") return <Tag color="red">{t("devices.status.revoked")}</Tag>;
+    if (row.status === "expired") return <Tag color="gold">{t("devices.status.expired")}</Tag>;
+    return row.online
+      ? <Tag color="green">{t("devices.status.online")}</Tag>
+      : <Tag>{t("devices.status.offline")}</Tag>;
+  };
+
   const columns = [
-    { field: "name", headerName: t("devices.device"), minWidth: 180, flex: 1 },
     {
-      field: "roomName",
-      headerName: t("devices.room"),
-      minWidth: 220,
-      flex: 1,
-      valueGetter: ({ row }) => row.roomName || row.roomEmail || t("devices.unknownRoom"),
+      title: t("devices.device"),
+      dataIndex: "name",
+      key: "name",
+      width: 200,
     },
     {
-      field: "status",
-      headerName: t("common:fields.status"),
-      minWidth: 110,
-      renderCell: ({ row }) => {
-        if (row.status === "revoked") return <Chip size="small" color="error" label={t("devices.status.revoked")} />;
-        if (row.status === "expired") return <Chip size="small" color="warning" label={t("devices.status.expired")} />;
-        return row.online
-          ? <Chip size="small" color="success" label={t("devices.status.online")} />
-          : <Chip size="small" label={t("devices.status.offline")} />;
-      },
+      title: t("devices.room"),
+      key: "roomName",
+      width: 240,
+      render: (_, row) => row.roomName || row.roomEmail || t("devices.unknownRoom"),
     },
     {
-      field: "ledEnabled",
-      headerName: "LED",
+      title: t("common:fields.status"),
+      key: "status",
+      width: 120,
+      render: (_, row) => statusTag(row),
+    },
+    {
+      title: "LED",
+      key: "ledEnabled",
       width: 90,
-      sortable: false,
-      renderCell: ({ row }) => (
+      render: (_, row) => (
         <Switch
+          size="small"
           checked={Boolean(row.ledEnabled)}
           disabled={row.status !== "active" || isUpdatingCapabilities}
-          inputProps={{ "aria-label": t("devices.ledAria", { name: row.name }) }}
-          onChange={(event) => void toggleCapability(row.id, "ledEnabled", event.target.checked)}
+          aria-label={t("devices.ledAria", { name: row.name })}
+          onChange={(checked) => void toggleCapability(row.id, "ledEnabled", checked)}
         />
       ),
     },
     {
-      field: "showSubject",
-      headerName: t("devices.subjectColumn"),
-      width: 100,
-      sortable: false,
-      renderCell: ({ row }) => (
+      title: t("devices.subjectColumn"),
+      key: "showSubject",
+      width: 110,
+      render: (_, row) => (
         <Switch
+          size="small"
           checked={Boolean(row.showSubject)}
           disabled={row.status !== "active" || isUpdatingCapabilities}
-          inputProps={{ "aria-label": t("devices.subjectAria", { name: row.name }) }}
-          onChange={(event) => void toggleCapability(row.id, "showSubject", event.target.checked)}
+          aria-label={t("devices.subjectAria", { name: row.name })}
+          onChange={(checked) => void toggleCapability(row.id, "showSubject", checked)}
         />
       ),
     },
     {
-      field: "lastSeenAt",
-      headerName: t("devices.lastSeen"),
-      minWidth: 190,
-      flex: 0.8,
-      valueFormatter: ({ value }) => formatDateTime(value, i18n.resolvedLanguage || "en", t("common:states.never")),
+      title: t("devices.lastSeen"),
+      dataIndex: "lastSeenAt",
+      key: "lastSeenAt",
+      width: 200,
+      render: (value) => formatDateTime(value, i18n.resolvedLanguage || "en", t("common:states.never")),
     },
     {
-      field: "createdAt",
-      headerName: t("devices.provisioned"),
-      minWidth: 190,
-      flex: 0.8,
-      valueFormatter: ({ value }) => formatDateTime(value, i18n.resolvedLanguage || "en", t("common:states.never")),
+      title: t("devices.provisioned"),
+      dataIndex: "createdAt",
+      key: "createdAt",
+      width: 200,
+      render: (value) => formatDateTime(value, i18n.resolvedLanguage || "en", t("common:states.never")),
     },
     {
-      field: "actions",
-      headerName: t("common:fields.action"),
-      width: 110,
-      sortable: false,
-      filterable: false,
-      renderCell: ({ row }) => row.status === "active" ? (
+      title: t("common:fields.action"),
+      key: "actions",
+      width: 120,
+      render: (_, row) => row.status === "active" ? (
         <Button
-          color="error"
+          danger
           size="small"
           onClick={() => openRevokeDialog(row)}
           aria-label={t("devices.revokeAria", { name: row.name })}
@@ -143,47 +143,48 @@ const KioskDeviceManagementSection = () => {
   ];
 
   return (
-    <Box component="section">
-      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ mb: 2 }}>
-        <Box>
-          <Typography variant="h5">{t("devices.title")}</Typography>
-          <Typography color="text.secondary">{t("devices.description")}</Typography>
-        </Box>
+    <section>
+      <Space
+        align="center"
+        style={{ width: "100%", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap" }}
+      >
+        <div>
+          <Typography.Title level={4} style={{ margin: 0 }}>{t("devices.title")}</Typography.Title>
+          <Typography.Text type="secondary">{t("devices.description")}</Typography.Text>
+        </div>
         {/* Plain download: the static file /apk/kiosk-release.apk shipped by Vite. */}
         <Button
-          component="a"
           href="/apk/kiosk-release.apk"
           download="kiosk-release.apk"
-          variant="outlined"
-          startIcon={<DownloadIcon />}
+          icon={<DownloadOutlined />}
           aria-label={t("devices.downloadApkAria")}
           title={t("devices.downloadApkHint")}
         >
           {t("devices.downloadApk")}
         </Button>
-      </Stack>
+      </Space>
 
-      {isFetching && !isLoading ? <Alert severity="info" sx={{ mb: 1 }}>{t("common:states.refreshing")}</Alert> : null}
+      {isFetching && !isLoading ? (
+        <Alert type="info" showIcon message={t("common:states.refreshing")} style={{ marginBottom: 8 }} />
+      ) : null}
       {isLoading && <LoadingState label={t("devices.loading")} />}
-      {queryError && !isLoading && !devices.length && (
-        <ErrorState message={getApiError(queryError, t("devices.loadError"))} busy={isFetching} onAction={refetch} />
-      )}
-      {queryError && !isLoading && devices.length ? (
+      {queryError && !isLoading ? (
         <ErrorState message={getApiError(queryError, t("devices.loadError"))} busy={isFetching} onAction={refetch} />
       ) : null}
-      {capabilityError ? <Alert severity="error" sx={{ mb: 2 }}>{capabilityError}</Alert> : null}
-      {!isLoading && (!queryError || devices.length > 0) && (
-        <LocalizedDataGrid
-          autoHeight
-          rows={devices}
+      {capabilityError ? (
+        <Alert type="error" showIcon message={capabilityError} style={{ marginBottom: 16 }} />
+      ) : null}
+      {!isLoading && (!queryError || devices.length > 0) ? (
+        <Table
+          size="small"
+          rowKey="id"
           columns={columns}
-          getRowId={(row) => row.id}
-          initialState={{ pagination: { paginationModel: { page: 0, pageSize: 5 } } }}
-          pageSizeOptions={[5]}
-          density="compact"
-          disableRowSelectionOnClick
+          dataSource={devices}
+          loading={isFetching}
+          pagination={{ pageSize: 5, showSizeChanger: false }}
+          scroll={{ x: 1200 }}
         />
-      )}
+      ) : null}
 
       <ConfirmDialog
         open={Boolean(revokeTarget)}
@@ -193,7 +194,7 @@ const KioskDeviceManagementSection = () => {
         onCancel={closeRevoke}
         onConfirm={confirmRevoke}
       />
-    </Box>
+    </section>
   );
 };
 

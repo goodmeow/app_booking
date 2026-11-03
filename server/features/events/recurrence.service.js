@@ -3,13 +3,19 @@ import { badRequest } from "../../lib/http-error.js";
 import { addLocalDays, daysBetweenLocalDates, isValidLocalDate, localDateKey, localWeekday, parseInstant, zonedParts, zonedPartsToDate } from "./event-time.js";
 
 const normalizeRecurrence = (recurrence = {}) => {
-  const cadence = String(recurrence.cadence || "").toLowerCase();
-  const interval = Number(recurrence.interval || 1);
-  const endDate = String(recurrence.endDate || "");
-  const weekdays = [...new Set((recurrence.weekdays || []).map(Number))].sort((a, b) => a - b);
-  const monthlyPattern = String(recurrence.monthlyPattern || "date").toLowerCase();
-  const monthWeekIndex = Number(recurrence.monthWeekIndex || 1);
-  const monthWeekday = Number(recurrence.monthWeekday || 0);
+  // The API accepts recurrence as JSON. A string, array, or null must fail the
+  // normal 400 validation instead of throwing on a property access.
+  const source = recurrence && typeof recurrence === "object" && !Array.isArray(recurrence)
+    ? recurrence
+    : {};
+  const cadence = String(source.cadence || "").toLowerCase();
+  const interval = Number(source.interval || 1);
+  const endDate = String(source.endDate || "");
+  const weekdays = [...new Set((Array.isArray(source.weekdays) ? source.weekdays : []).map(Number))]
+    .sort((a, b) => a - b);
+  const monthlyPattern = String(source.monthlyPattern || "date").toLowerCase();
+  const monthWeekIndex = Number(source.monthWeekIndex || 1);
+  const monthWeekday = Number(source.monthWeekday || 0);
   if (!['daily', 'weekly', 'monthly'].includes(cadence)) throw badRequest("INVALID_RECURRENCE", "Cadence must be daily, weekly, or monthly");
   if (!Number.isInteger(interval) || interval < 1 || interval > 52) throw badRequest("INVALID_RECURRENCE", "Recurrence interval must be between 1 and 52");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) throw badRequest("INVALID_RECURRENCE", "Recurrence end date is required");

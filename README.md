@@ -3,22 +3,40 @@
 ## Apa ini
 
 RoomBooking adalah aplikasi pemesanan ruang meeting: **CMS web** untuk admin,
-resepsionis, dan karyawan (React 17 + MUI 5), **API + realtime** berbasis
+resepsionis, dan karyawan (React 17 + Ant Design 5), **API + realtime** berbasis
 Express dan Socket.io, **PostgreSQL** sebagai basis data, dan **tablet kiosk**
 (APK React Native di repo `kioskapp`) yang menempel di depan tiap ruangan.
 Tablet menampilkan status ruangan hari itu, menerima check-in, perpanjangan,
 pemesanan mendadak, dan membuka pintu lewat kartu NFC.
 
-Versi saat ini: CMS/API **3.12.0** (Ver 3 Rev 13) · APK kiosk **1.4.4**
-(versionCode 25). Riwayat lengkap ada di [`docs/VERSIONING.md`](docs/VERSIONING.md).
+Versi saat ini: CMS/API **3.13.0** (Ver 3 Rev 14) · APK kiosk **1.4.5**
+(versionCode 26). Riwayat lengkap ada di [`docs/VERSIONING.md`](docs/VERSIONING.md).
 
 - Baru bergabung? Mulai dari [`docs/handover/START-HERE.md`](docs/handover/START-HERE.md).
 - Mencari dokumen tertentu? Lihat index [`docs/README.md`](docs/README.md).
 
+## Lingkungan saat ini (2026-10-30)
+
+| Lingkungan | URL | Commit | Migrasi terakhir | Status |
+|---|---|---|---|---|
+| UAT local test bed | `http://127.0.0.1:8082` | `v3.13.0` | `026_event_room_timezone.sql` | app/web/db sehat |
+| UAT live | `http://<uat-host>:8082` | `v3.13.0` | `026_event_room_timezone.sql` | app/web/db sehat |
+
+Bukti uji terakhir di checkout build `/home/goodmeow/build/app_booking`
+(2026-10-30): client **99/99**, unit server **85/85**, regresi **105/105**
+(0 skip), parity prepare **2/2**, parity **8/8**; `build:client` dan
+`build:server:check` lulus; lint 0 error (warning tersisa).
+
+Alur `npm run demo` tidak lagi dipakai sebagai prosedur kerja. Skrip demo masih
+ada di repo karena dipakai harness unit/parity; pengujian dilakukan di UAT
+local test bed dan UAT live. Detail di
+[`docs/operations-runbook.md`](docs/operations-runbook.md) §3 dan
+[`docs/handover/START-HERE.md`](docs/handover/START-HERE.md).
+
 ## Quick install (Docker Alpine)
 
 Stack ini menjalankan tiga container: `db` (`postgres:16-alpine`), `app`
-(`node:20-alpine`), dan `web` (`nginx:alpine`) yang menyajikan CMS sekaligus
+(`node:22-alpine`), dan `web` (`nginx:alpine`) yang menyajikan CMS sekaligus
 mem-proxy `/api` dan `/socket.io`.
 
 ```bash
@@ -70,8 +88,8 @@ jangan dicampur.
    kartu per user.
 3. Periksa **Manajemen → Pengaturan**: pendaftaran mandiri (default mati),
    timer check-in, timer kunci, timer LED, input meja.
-4. Cek tablet: layar menampilkan jadwal hari ini, versi `v1.4.4 (25) · CMS
-   3.12.0` di footer.
+4. Cek tablet: layar menampilkan jadwal hari ini, versi `v1.4.5 (26) · CMS
+   3.13.0` di footer.
 5. Uji satu booking, satu check-in kartu, satu buka pintu, dan satu laporan
    pemakaian ruangan.
 
@@ -115,11 +133,15 @@ Panduan harian dan eskalasi untuk pendamping produk:
 
 ## Operasional singkat
 
+UAT local test bed dan UAT live sama-sama memakai stack Docker Alpine di port
+`8082`:
+
 ```bash
 C="docker-compose -f deploy/docker/compose.alpine.yaml -p roombooking-alpine"
 
 # health check
-curl -fsS http://<ip-server>:8082/api/health        # {"ok":true}
+curl -fsS http://127.0.0.1:8082/api/health   # UAT local test bed
+curl -fsS http://<uat-host>:8082/api/health  # UAT live; harus {"ok":true}
 
 # status, log, restart satu service
 $C ps

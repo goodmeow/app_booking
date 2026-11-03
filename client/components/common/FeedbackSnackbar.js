@@ -1,10 +1,16 @@
-import React from "react";
-import { Alert, Snackbar } from "@mui/material";
+import React, { useEffect } from "react";
+import { App } from "antd";
 
-const FeedbackSnackbar = ({ open, message, severity = "error", onClose }) => (
-  <Snackbar open={open} autoHideDuration={5000} onClose={onClose} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
-    <Alert severity={severity} onClose={onClose}>{message}</Alert>
-  </Snackbar>
-);
+const FeedbackSnackbar = ({ open, message, severity = "error", onClose }) => {
+  const { message: messageApi } = App.useApp();
+
+  useEffect(() => {
+    if (!open || !message) return;
+    messageApi.open({ type: severity, content: message });
+    onClose?.();
+  }, [message, messageApi, onClose, open, severity]);
+
+  return null;
+};
 
 export default FeedbackSnackbar;

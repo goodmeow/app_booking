@@ -29,7 +29,9 @@ export const readStoredSession = () => {
   try {
     return window.sessionStorage?.getItem(sessionKey) || window.localStorage?.getItem(sessionKey) || null;
   } catch {
-    return sessionStorage.getItem(sessionKey);
+    // Storage can be blocked entirely (private mode / policy). Treat the
+    // session as absent instead of throwing during render.
+    return null;
   }
 };
 
@@ -50,8 +52,12 @@ export const isAuthenticated = () => {
 
 export const clearStoredSession = () => {
   if (typeof window === "undefined") return;
-  if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(sessionKey);
-  if (typeof localStorage !== "undefined") localStorage.removeItem(sessionKey);
+  try {
+    if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(sessionKey);
+    if (typeof localStorage !== "undefined") localStorage.removeItem(sessionKey);
+  } catch {
+    // Logout must still navigate even when storage is blocked.
+  }
 };
 
 export const clearJWT = (callback) => {

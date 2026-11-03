@@ -24,6 +24,7 @@ import {
   finishEventNow,
   insertEvent,
   insertEventParticipant,
+  insertEventParticipants,
   insertSeries,
   listEventParticipants,
   listEventsForPrincipal,
@@ -60,8 +61,14 @@ const validateHeader = ({ subject, start, end, timezone }) => {
 };
 
 const normalizedCreate = (body) => {
+  if (body == null || typeof body !== "object") {
+    throw badRequest("INVALID_EVENT", "Event payload must be an object or a non-empty array");
+  }
+  const asArray = (value) => (Array.isArray(value) ? value : []);
   if (Array.isArray(body)) {
-    if (!body.length) throw badRequest("INVALID_EVENT", "Event payload cannot be empty");
+    if (!body.length || !body[0] || typeof body[0] !== "object") {
+      throw badRequest("INVALID_EVENT", "Event payload cannot be empty");
+    }
     const first = body[0];
     return {
       legacy: true,
@@ -71,7 +78,7 @@ const normalizedCreate = (body) => {
       start: first.start_date,
       end: first.end_date,
       timezone: first.timezone || config.appTimezone,
-      attendeeEmails: unique(body.map((item) => item.attendee_email)),
+      attendeeEmails: unique(body.map((item) => item?.attendee_email)),
       organizerEmail: null,
     };
   }
@@ -83,9 +90,9 @@ const normalizedCreate = (body) => {
     start: body.start || body.start_date,
     end: body.end || body.end_date,
     timezone: body.timezone || config.appTimezone,
-    roomIds: unique([body.roomId, ...(body.roomIds || [])]),
-    attendeeIds: unique(body.attendeeIds || []),
-    visitorEmails: unique(body.visitorEmails || []),
+    roomIds: unique([body.roomId, ...asArray(body.roomIds)]),
+    attendeeIds: unique(asArray(body.attendeeIds)),
+    visitorEmails: unique(asArray(body.visitorEmails)),
     organizerEmail: body.organizer_email,
     recurrence: body.recurrence,
   };
@@ -260,10 +267,7 @@ export const createEvents = async (body, principal) => {
           seriesId: series?._id,
           occurrenceIndex: series ? occurrence.index : null,
         });
-        const participants = [];
-        for (const participant of plan.participants) {
-          participants.push(await insertEventParticipant(client, event._id, participant));
-        }
+        const participants = await insertEventParticipants(client, event._id, plan.participants);
         rows.push({ event, participants });
       }
       return { series, rows };
@@ -345,6 +349,7 @@ const projectCalendarEvent = (row, principal) => {
     created_at: row.created_at,
     checked_in: row.checked_in,
     late_threshold: row.late_threshold,
+    room_floors: Array.isArray(row.room_floors) ? row.room_floors : [],
     timezone: row.timezone,
     series_id: row.series_id,
     occurrence_index: row.occurrence_index,
@@ -357,7 +362,10 @@ export const listEvents = async (queryParams, principal) => {
   const room = queryParams.rooms ? await findActiveRoom(queryParams.rooms) : null;
   if (queryParams.rooms && !room) throw notFound("Room not found");
   const range = calendarRange(queryParams.start, queryParams.end, config.appTimezone);
-  const floorSchedule = isReceptionistRole(principal.role) || queryParams.floor === "true";
+  // Floor-wide details are a receptionist capability. Honouring a public
+  // `floor=true` query for everyone let an ordinary employee read the subject
+  // and description of every meeting on their floor.
+  const floorSchedule = isReceptionistRole(principal.role);
   const floors = floorSchedule ? effectiveFloors(principal) : [];
   const rows = await listEventsForPrincipal({
     principalId: principal._id,
@@ -437,7 +445,7 @@ const participantsForUpdate = async (body, eventId) => {
   if (Array.isArray(body.attendees)) {
     const request = {
       legacy: true,
-      attendeeEmails: unique(body.attendees.map((item) => item.attendee_email)),
+      attendeeEmails: unique(body.attendees.map((item) => item?.attendee_email)),
     };
     return resolveParticipants(request);
   }
@@ -445,6 +453,7 @@ const participantsForUpdate = async (body, eventId) => {
 };
 
 export const updateEvents = async (body, principal) => {
+  body = body || {};
   const eventId = body.id || body.eventId;
   const access = await findEventAccess(eventId, principal._id);
   if (!access) throw notFound("Event not found");
@@ -495,7 +504,7 @@ export const updateEvents = async (body, principal) => {
           timezone,
           isException: Boolean(target.series_id) && scope !== "series",
         });
-        for (const participant of participants) await insertEventParticipant(client, target._id, participant);
+        await insertEventParticipants(client, target._id, participants);
         updated.push({
           id: event._id,
           title: event.subject,

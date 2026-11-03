@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, Stack, TextField } from "@mui/material";
+import { Alert, Form, Input, Space } from "antd";
 import { useTranslation } from "react-i18next";
 import FormDialog from "../components/common/FormDialog.js";
 
@@ -19,11 +19,17 @@ const ProfileEditDialog = ({ open, form, setForm, error, isSaving, onClose, onSu
       onClose={onClose}
       onSubmit={onSubmit}
     >
-      <Stack spacing={2} sx={{ mt: 1 }}>
-        {error ? <Alert severity="error">{error}</Alert> : null}
-        <TextField required autoFocus label={t("common:fields.name")} value={form.name} onChange={changeField("name")} />
-        <TextField required type="email" label={t("common:fields.email")} value={form.email} onChange={changeField("email")} />
-      </Stack>
+      <Form component={false} layout="vertical" style={{ marginTop: 8 }}>
+        <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+          {error ? <Alert type="error" showIcon message={error} /> : null}
+          <Form.Item label={t("common:fields.name")} required style={{ marginBottom: 0 }}>
+            <Input autoFocus value={form.name} onChange={changeField("name")} />
+          </Form.Item>
+          <Form.Item label={t("common:fields.email")} required style={{ marginBottom: 0 }}>
+            <Input type="email" value={form.email} onChange={changeField("email")} />
+          </Form.Item>
+        </Space>
+      </Form>
     </FormDialog>
   );
 };

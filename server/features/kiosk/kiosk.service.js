@@ -346,8 +346,16 @@ export const finishKioskEvent = async ({ event_id: eventId, card_number: cardNum
 };
 
 // Release no-show bookings before reading the schedule or creating a booking.
+// Concurrent tablet polls share one in-flight scan, while a later request still
+// sees the result immediately (the UI test depends on that freshness).
+let abandonedReleasePromise = null;
 const maybeReleaseAbandonedBookings = async () => {
-  await releaseAbandonedRoomBookings().catch(() => {});
+  if (!abandonedReleasePromise) {
+    abandonedReleasePromise = releaseAbandonedRoomBookings()
+      .catch(() => [])
+      .finally(() => { abandonedReleasePromise = null; });
+  }
+  await abandonedReleasePromise;
 };
 
 const clampMinutes = (value, fallback, min, max) => {

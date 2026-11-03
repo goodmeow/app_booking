@@ -182,7 +182,7 @@ pairing ulang bila ruangan diaktifkan kembali.
 
 | Method & path | Akses | Body / query | Sukses | Error penting |
 |---|---|---|---|---|
-| `GET /api/events` | JWT user | `start`,`end` (`YYYYMMDD`), `rooms` (UUID/email), `all=true` (admin) | `200` event terproyeksi (`organizer`, `booked_by`, `booked_by_name`) | `400 INVALID_RANGE/RANGE_TOO_LARGE`, `404` ruangan |
+| `GET /api/events` | JWT user | `start`,`end` (`YYYYMMDD`), `rooms` (UUID/email), `all=true` (admin) | `200` event terproyeksi (`organizer`, `booked_by`, `booked_by_name`, `room_floors`) | `400 INVALID_RANGE/RANGE_TOO_LARGE`, `404` ruangan |
 | `POST /api/events` | JWT user | single: array `{organizer,subject,description,start_date,end_date,timezone?,attendee_email}`; recurring: `{bookingKind:"recurring",subject,description,start,end,timezone,roomIds[],attendeeIds[],visitorEmails[],organizer_email?,recurrence{...}}` | `200 {series, occurrences}` atau array event legacy | `400 INVALID_EVENT/INVALID_RANGE/BOOKING_DURATION_LIMIT/INVALID_TIME/INVALID_TIMEZONE/INVALID_LOCAL_TIME/ROOM_REQUIRED/INVALID_ATTENDEE/INVALID_VISITOR/INVALID_BOOKING_KIND/INVALID_RECURRENCE/RECURRENCE_LIMIT/INVALID_ORGANIZER`, `403 FLOOR_REQUIRED/FLOOR_RESTRICTED/FORBIDDEN`, `409 ROOM_CONFLICT` |
 | `POST /api/events/preview` | JWT user | body sama dengan create | `200 {occurrences, conflicts, conflictTotal, conflictsTruncated}` | `400` (semua validasi create), `401` |
 | `PUT /api/events` | JWT user | `{id\|eventId, scope:"occurrence"\|"following"\|"series", subject?, start?, end?, timezone?, attendees?:[{attendee_email}]}` | `200` daftar event terbarui | `400 INVALID_SCOPE`, `403`, `404`, `409 ROOM_CONFLICT` |

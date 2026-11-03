@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Stack, TextField } from "@mui/material";
+import { Alert, Input, Space } from "antd";
 import { useTranslation } from "react-i18next";
 import FormDialog from "./FormDialog.js";
 
@@ -31,18 +31,27 @@ const PasswordDialog = ({ open, requireOldPassword = true, loading = false, erro
         onSubmit(form);
       }}
     >
-      <Stack spacing={2} sx={{ mt: 1 }}>
-        {error && <Alert severity="error">{error}</Alert>}
-        {requireOldPassword && <TextField required type="password" label={t("common:fields.oldPassword")} {...field("oldPassword")} />}
-        <TextField
+      <Space direction="vertical" size="middle" style={{ width: "100%", marginTop: 8 }}>
+        {error && <Alert type="error" showIcon message={error} />}
+        {requireOldPassword && (
+          <Input.Password
+            required
+            placeholder={t("common:fields.oldPassword")}
+            {...field("oldPassword")}
+          />
+        )}
+        <Input.Password
           required
-          type="password"
-          label={t("common:fields.newPassword")}
-          helperText={t("common:messages.passwordRule")}
+          placeholder={t("common:fields.newPassword")}
           {...field("newPassword")}
         />
-        <TextField required type="password" label={t("common:fields.confirmPassword")} {...field("newPasswordConfirmation")} />
-      </Stack>
+        <Input.Password
+          required
+          placeholder={t("common:fields.confirmPassword")}
+          {...field("newPasswordConfirmation")}
+        />
+        <Alert type="info" message={t("common:messages.passwordRule")} />
+      </Space>
     </FormDialog>
   );
 };

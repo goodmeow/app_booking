@@ -1,27 +1,58 @@
 import React from "react";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { Button, Modal } from "antd";
 import { useTranslation } from "react-i18next";
 
-const FormDialog = ({ open, title, children, formId = "entity-form", loading = false, submitDisabled = false, submitLabel, onClose, onSubmit, maxWidth = "sm" }) => {
+const dialogWidth = {
+  xs: 420,
+  sm: 600,
+  md: 880,
+  lg: 1100,
+  xl: 1300,
+};
+
+const FormDialog = ({
+  open,
+  title,
+  children,
+  formId = "entity-form",
+  loading = false,
+  submitDisabled = false,
+  submitLabel,
+  onClose,
+  onSubmit,
+  maxWidth = "sm",
+}) => {
   const { t } = useTranslation("common");
 
   return (
-    <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth={maxWidth} fullWidth>
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent sx={{ pt: 1 }}>
-        {/* DialogContent is always a div, so the form element is created explicitly
-            so a submit button with the form={formId} attribute is really connected. */}
-        <Box component="form" id={formId} onSubmit={onSubmit} noValidate>
-          {children}
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>{t("actions.cancel")}</Button>
-        <Button type="submit" form={formId} variant="contained" disabled={loading || submitDisabled}>
+    <Modal
+      open={open}
+      title={title}
+      width={dialogWidth[maxWidth] || dialogWidth.sm}
+      onCancel={loading ? undefined : onClose}
+      maskClosable={!loading}
+      closable={!loading}
+      destroyOnHidden
+      footer={[
+        <Button key="cancel" onClick={onClose} disabled={loading}>
+          {t("actions.cancel")}
+        </Button>,
+        <Button
+          key="submit"
+          type="primary"
+          htmlType="submit"
+          form={formId}
+          loading={loading}
+          disabled={submitDisabled}
+        >
           {loading ? t("states.loading") : submitLabel ?? t("actions.save")}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </Button>,
+      ]}
+    >
+      <form id={formId} onSubmit={onSubmit} noValidate>
+        {children}
+      </form>
+    </Modal>
   );
 };
 

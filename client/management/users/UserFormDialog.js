@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  Alert,
-  FormControlLabel,
-  MenuItem,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Form, Input, Select, Space, Switch, Typography } from "antd";
 import FormDialog from "../../components/common/FormDialog.js";
 import { LoadingState } from "../../components/common/AsyncState.js";
 import { getApiError } from "../../domain/api-error.js";
@@ -39,6 +31,32 @@ const UserFormDialog = ({
     onChange: (event) => setForm((current) => ({ ...current, [name]: event.target.value })),
   });
 
+  const floorChoices = [
+    { value: "all", label: t("users.floorAll") },
+    ...floorOptions.map((floor) => ({
+      value: floor,
+      label: t("users.floorValue", { floor }),
+    })),
+    ...form.floors
+      .filter((floor) => floor !== "all" && !floorOptions.includes(floor))
+      .map((floor) => ({
+        value: floor,
+        label: t("users.floorValue", { floor }),
+      })),
+  ];
+
+  const roleChoices = ROLE_OPTIONS.map((role) => ({
+    value: role.value,
+    label: t(`common:${role.labelKey}`),
+  }));
+
+  if (isProtectedAccount && form.roleId === ROLE_IDS.SUPER_ADMIN) {
+    roleChoices.unshift({
+      value: ROLE_IDS.SUPER_ADMIN,
+      label: t(`common:${ROLE_LABELS[ROLE_IDS.SUPER_ADMIN]}`),
+    });
+  }
+
   return (
     <FormDialog
       open={open}
@@ -50,100 +68,107 @@ const UserFormDialog = ({
       onSubmit={onSubmit}
     >
       {isEditing && isDetailLoading ? <LoadingState label={t("users.loadingOne")} /> : (
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          {formError ? <Alert severity="error">{formError}</Alert> : null}
-          {isEditing && detailError ? (
-            <Alert severity="error">{getApiError(detailError, t("users.loadOneError"))}</Alert>
-          ) : null}
-          <TextField
-            required
-            autoFocus
-            label={t("users.employeeId")}
-            helperText={employeeIdError ? t(employeeIdError) : t("users.employeeIdHelp")}
-            error={Boolean(employeeIdError)}
-            inputProps={{ maxLength: EMPLOYEE_ID_MAX_LENGTH }}
-            {...formField("employee_id")}
-          />
-          <TextField required label={t("common:fields.name")} {...formField("name")} />
-          <TextField required type="email" label={t("common:fields.email")} {...formField("email")} />
-          <TextField label={t("common:fields.usernameOptional")} {...formField("username")} />
-          <TextField
-            select
-            label={t("users.floorGroup")}
-            helperText={t("users.floorHelp")}
-            value={form.floors}
-            onChange={(event) => setForm((current) => ({
-              ...current,
-              floors: typeof event.target.value === "string" ? event.target.value.split(",") : event.target.value,
-            }))}
-            SelectProps={{
-              multiple: true,
-              renderValue: (selected) => selected.length
-                ? selected.map((floor) => (floor === "all" ? t("users.floorAll") : t("users.floorValue", { floor }))).join(", ")
-                : t("users.floorUnset"),
-            }}
-          >
-            <MenuItem value="all">{t("users.floorAll")}</MenuItem>
-            {floorOptions.map((floor) => (
-              <MenuItem key={floor} value={floor}>{t("users.floorValue", { floor })}</MenuItem>
-            ))}
-            {form.floors.filter((floor) => floor !== "all" && !floorOptions.includes(floor)).map((floor) => (
-              <MenuItem key={floor} value={floor}>{t("users.floorValue", { floor })}</MenuItem>
-            ))}
-          </TextField>
-          {isCreating ? (
-            <TextField
+        <Form component={false} layout="vertical" style={{ marginTop: 8 }}>
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            {formError ? <Alert type="error" showIcon message={formError} /> : null}
+            {isEditing && detailError ? (
+              <Alert type="error" showIcon message={getApiError(detailError, t("users.loadOneError"))} />
+            ) : null}
+
+            <Form.Item
+              label={t("users.employeeId")}
               required
-              type="password"
-              label={t("common:fields.password")}
-              helperText={t("users.passwordRule")}
-              {...formField("password")}
-            />
-          ) : null}
-          <TextField
-            label={t("users.cardNumber")}
-            helperText={t("users.cardNumberHelp")}
-            {...formField("card_number")}
-          />
-          <FormControlLabel
-            control={(
+              validateStatus={employeeIdError ? "error" : undefined}
+              help={employeeIdError ? t(employeeIdError) : t("users.employeeIdHelp")}
+              style={{ marginBottom: 0 }}
+            >
+              <Input
+                autoFocus
+                maxLength={EMPLOYEE_ID_MAX_LENGTH}
+                {...formField("employee_id")}
+              />
+            </Form.Item>
+
+            <Form.Item label={t("common:fields.name")} required style={{ marginBottom: 0 }}>
+              <Input {...formField("name")} />
+            </Form.Item>
+
+            <Form.Item label={t("common:fields.email")} required style={{ marginBottom: 0 }}>
+              <Input type="email" {...formField("email")} />
+            </Form.Item>
+
+            <Form.Item label={t("common:fields.usernameOptional")} style={{ marginBottom: 0 }}>
+              <Input {...formField("username")} />
+            </Form.Item>
+
+            <Form.Item
+              label={t("users.floorGroup")}
+              help={t("users.floorHelp")}
+              style={{ marginBottom: 0 }}
+            >
+              <Select
+                mode="multiple"
+                value={form.floors}
+                options={floorChoices}
+                placeholder={t("users.floorUnset")}
+                onChange={(values) => setForm((current) => ({ ...current, floors: values }))}
+              />
+            </Form.Item>
+
+            {isCreating ? (
+              <Form.Item
+                label={t("common:fields.password")}
+                required
+                help={t("users.passwordRule")}
+                style={{ marginBottom: 0 }}
+              >
+                <Input.Password {...formField("password")} />
+              </Form.Item>
+            ) : null}
+
+            <Form.Item
+              label={t("users.cardNumber")}
+              help={t("users.cardNumberHelp")}
+              style={{ marginBottom: 0 }}
+            >
+              <Input {...formField("card_number")} />
+            </Form.Item>
+
+            <Form.Item label={t("users.masterCard")} style={{ marginBottom: 0 }}>
               <Switch
                 checked={Boolean(form.master_card)}
-                onChange={(event) => setForm((current) => ({ ...current, master_card: event.target.checked }))}
+                onChange={(checked) => setForm((current) => ({ ...current, master_card: checked }))}
               />
-            )}
-            label={t("users.masterCard")}
-          />
-          <TextField
-            required
-            select
-            label={t("common:fields.role")}
-            helperText={isProtectedAccount ? t("users.protectedRoleHelp") : undefined}
-            disabled={isProtectedAccount}
-            {...formField("roleId")}
-          >
-            {isProtectedAccount && form.roleId === ROLE_IDS.SUPER_ADMIN ? (
-              <MenuItem value={ROLE_IDS.SUPER_ADMIN}>{t(`common:${ROLE_LABELS[ROLE_IDS.SUPER_ADMIN]}`)}</MenuItem>
-            ) : null}
-            {ROLE_OPTIONS.map((role) => (
-              <MenuItem key={role.value} value={role.value}>{t(`common:${role.labelKey}`)}</MenuItem>
-            ))}
-          </TextField>
-          <div>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={Boolean(form.must_change_password)}
-                  onChange={(event) => setForm((current) => ({ ...current, must_change_password: event.target.checked }))}
-                />
-              }
-              label={t("users.mustChangePassword")}
-            />
-            <Typography variant="body2" color="text.secondary">
-              {t("users.mustChangePasswordHelp")}
-            </Typography>
-          </div>
-        </Stack>
+            </Form.Item>
+
+            <Form.Item
+              label={t("common:fields.role")}
+              required
+              help={isProtectedAccount ? t("users.protectedRoleHelp") : undefined}
+              style={{ marginBottom: 0 }}
+            >
+              <Select
+                value={form.roleId}
+                options={roleChoices}
+                disabled={isProtectedAccount}
+                onChange={(value) => setForm((current) => ({ ...current, roleId: value }))}
+              />
+            </Form.Item>
+
+            <Form.Item style={{ marginBottom: 0 }}>
+              <Space direction="vertical" size={2}>
+                <Space>
+                  <Switch
+                    checked={Boolean(form.must_change_password)}
+                    onChange={(checked) => setForm((current) => ({ ...current, must_change_password: checked }))}
+                  />
+                  <Typography.Text>{t("users.mustChangePassword")}</Typography.Text>
+                </Space>
+                <Typography.Text type="secondary">{t("users.mustChangePasswordHelp")}</Typography.Text>
+              </Space>
+            </Form.Item>
+          </Space>
+        </Form>
       )}
     </FormDialog>
   );

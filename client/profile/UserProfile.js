@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
-import { Box, Card, CardContent, Container } from "@mui/material";
+import { Card } from "antd";
 import { useTranslation } from "react-i18next";
 import { authenticate, isAuthenticated, signout } from "../auth/auth-helper.js";
 import FeedbackSnackbar from "../components/common/FeedbackSnackbar.js";
@@ -136,21 +136,19 @@ const UserProfile = () => {
   if (isError && !user) return <ErrorState message={getApiError(error, t("auth:profile.loadError"))} busy={isFetching} onAction={refetch} />;
 
   return (
-    <Container maxWidth="sm" sx={{ py: { xs: 3, md: 6 } }}>
+    <div style={{ maxWidth: 640, margin: "0 auto", padding: "24px 16px" }}>
       {isError ? (
-        <Box sx={{ mb: 2 }}>
+        <div style={{ marginBottom: 16 }}>
           <ErrorState message={getApiError(error, t("auth:profile.loadError"))} busy={isFetching} onAction={refetch} />
-        </Box>
+        </div>
       ) : null}
-      <Card component="main" elevation={2}>
-        <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
-          <ProfileSummaryCard
-            user={user}
-            isOwner={isOwner}
-            onEdit={openEdit}
-            onChangePassword={openPasswordDialog}
-          />
-        </CardContent>
+      <Card>
+        <ProfileSummaryCard
+          user={user}
+          isOwner={isOwner}
+          onEdit={openEdit}
+          onChangePassword={openPasswordDialog}
+        />
       </Card>
 
       <ProfileEditDialog
@@ -178,7 +176,7 @@ const UserProfile = () => {
         severity={feedback.severity}
         onClose={() => setFeedback((current) => ({ ...current, open: false }))}
       />
-    </Container>
+    </div>
   );
 };
 

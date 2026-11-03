@@ -1,8 +1,8 @@
 # CMS / Web Admin `app_booking` — breakdown halaman
 
 Dokumen ini memetakan halaman-halaman web admin (CMS) beserta isi, API, dan
-lokasi kodenya. Versi yang didokumentasikan: CMS/API **3.12.0** (Ver 3 Rev 13).
-Terakhir diperbarui: 2026-10-26.
+lokasi kodenya. Versi yang didokumentasikan: CMS/API **3.13.0** (Ver 3 Rev 14).
+Terakhir diperbarui: 2026-10-30.
 
 ## 1. Ringkasan teknis
 
@@ -15,14 +15,17 @@ versi yang ditampilkan di footer.
 |---|---|---|
 | Runtime | Node.js 22 | – |
 | API | Express 4 | `server/express.js`, `server/server.js` |
-| DB | PostgreSQL 14 (`pg`) | container `360booking-postgres-test` |
+| DB | PostgreSQL 14/16 (`pg`) | native: paket distro 14; Docker: `postgres:16-alpine` |
 | Realtime | Socket.io 4 | invalidasi data antar klien |
 | Auth | JWT + bcrypt | `server/features/auth/` |
-| Web | React 17 + MUI 5 + Redux Toolkit + Vite | `client/` |
+| Web | React 17 + Ant Design 5 + Redux Toolkit + Vite | `client/` |
 | Font | Inter (self-host) | `public/fonts/Inter-latin.woff2`, `client/fonts.css` |
 
-Menjalankan lokal: `npm run demo` → web `:8081`, API `:9091`, DB `:54320`.
-Login demo: `admin@example.test` (password di `.env.demo`).
+Menjalankan lokal: stack Docker Alpine (lihat
+[`operations-runbook.md`](operations-runbook.md) §3) → UAT local test bed
+`http://127.0.0.1:8082`, UAT live `http://<uat-host>:8082`. Akun dibuat lewat
+`/setup` lalu CMS → Manajemen; sandi dipegang operator dan tidak ditulis di
+dokumen. Alur `npm run demo` sudah tidak dipakai.
 
 ## 2. Peta rute
 
@@ -270,10 +273,10 @@ modal email + sandi ruangan.
 | `core/NotFound.js` | Halaman 404 |
 | `components/common/AsyncState.js` | State loading/error standar |
 | `components/common/ConfirmDialog.js`, `FormDialog.js`, `PasswordDialog.js` | Dialog standar |
-| `components/common/LocalizedDataGrid.js` | Pembungkus DataGrid dengan lokalisasi |
 | `components/common/FeedbackSnackbar.js` | Notifikasi |
 | `components/common/LanguageSwitcher.js` | Ganti bahasa id/en |
-| `theme.js` | Tema MUI (font Inter) |
+| `theme.js` | Tema AntD light/dark (algorithm + token, font Public Sans) |
+| `core/ThemeShell.js` | Menjembatani token AntD ke background body dan variabel FullCalendar |
 
 ## 5. Data & state
 

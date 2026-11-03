@@ -3,7 +3,7 @@ import { mkdir, readdir, rename, stat, unlink } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import config from "../../../config/config.js";
-import { query } from "../../db/pool.js";
+import { getPool, query } from "../../db/pool.js";
 import { badRequest } from "../../lib/http-error.js";
 import { getSettings } from "./setting.repository.js";
 
@@ -45,7 +45,20 @@ export const runBackup = async ({ force = false } = {}) => {
   // the check and start pg_dump together.
   RUNNING.current = true;
   let part = null;
+  let lockClient = null;
+  let hasLock = false;
   try {
+    // The in-process flag does not protect another app replica. Hold a
+    // database advisory lock so only one process can run pg_dump at a time.
+    lockClient = await getPool().connect();
+    const lock = await lockClient.query(
+      "SELECT pg_try_advisory_lock(hashtext('360booking_backup')) AS locked"
+    );
+    if (!lock.rows[0]?.locked) {
+      throw badRequest("BACKUP_RUNNING", "A backup is already running");
+    }
+    hasLock = true;
+
     const settings = await getSettings();
     if (!settings) throw badRequest("BACKUP_SETTINGS_MISSING", "Backup settings are not available");
     if (!force && !settings.backup_enabled) throw badRequest("BACKUP_DISABLED", "Backup is disabled");
@@ -85,6 +98,14 @@ export const runBackup = async ({ force = false } = {}) => {
     await markResult(`error ${error.message}`.slice(0, 500));
     throw error;
   } finally {
+    if (lockClient) {
+      if (hasLock) {
+        await lockClient
+          .query("SELECT pg_advisory_unlock(hashtext('360booking_backup'))")
+          .catch(() => {});
+      }
+      lockClient.release();
+    }
     RUNNING.current = false;
   }
 };

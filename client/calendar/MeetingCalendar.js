@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, Box, Button, Container, LinearProgress, Paper, Stack, Typography, useMediaQuery } from "@mui/material";
+import { Alert, Button, Card, Grid, Progress, Space, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { isAuthenticated } from "../auth/auth-helper.js";
@@ -30,7 +30,8 @@ const MeetingCalendar = () => {
   const { t } = useTranslation(["calendar", "common"]);
   const session = isAuthenticated();
   const dispatch = useDispatch();
-  const isNarrow = useMediaQuery("(max-width:900px)");
+  const screens = Grid.useBreakpoint();
+  const isNarrow = !screens.md;
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarView, setCalendarView] = useState(isNarrow ? "agenda" : "timeGridWeek");
   const [scheduleMode, setScheduleMode] = useState(defaultScheduleModeForRole(session?.user?.role));
@@ -42,7 +43,6 @@ const MeetingCalendar = () => {
   useEffect(() => {
     setCalendarView(isNarrow ? "agenda" : "timeGridWeek");
   }, [isNarrow]);
-  const floorMode = scheduleMode === "floor";
   const activeRoom = scheduleMode === "room" ? selectedRoom : null;
   const { data: publicSettings } = useGetPublicSettingsQuery();
   // The first day of the week stays in one place: the same value feeds the
@@ -58,15 +58,11 @@ const MeetingCalendar = () => {
   );
   const singleQuery = useGetEventsQuery(
     calendarEventFilters({ email: session.user.email, roomEmail: activeRoom?.email, range, all: scheduleMode === "all" }),
-    { skip: floorMode || (scheduleMode === "room" && !activeRoom) }
+    { skip: scheduleMode === "room" && !activeRoom }
   );
   const roomQuery = useGetRoomsQuery();
   const roomStatusQuery = useGetRoomStatusQuery(undefined, { pollingInterval: 30_000 });
   const isAdmin = isAdminRole(session?.user?.role);
-  const floorQuery = useGetEventsQuery(
-    { start: range.start, end: range.end, floor: true, ...(isAdmin ? { all: true } : {}) },
-    { skip: !floorMode }
-  );
   const { can: canMenu } = useMenuAccess();
   const canListAllUsers = canMenu("users");
   // Only a Users-menu role loads the full employee directory; everyone else
@@ -88,23 +84,19 @@ const MeetingCalendar = () => {
     return (Array.isArray(roomStatusQuery.data) ? roomStatusQuery.data : []).filter((room) => allowed.has(room.id));
   }, [bookableRooms, roomStatusQuery.data]);
 
-  const floorEvents = Array.isArray(floorQuery.data) ? floorQuery.data : [];
-  const floorFetching = floorMode && floorQuery.isFetching;
-  const floorFailed = floorMode && floorQuery.isError;
-
-  const events = floorMode ? floorEvents : (Array.isArray(singleQuery.data) ? singleQuery.data : []);
+  const events = Array.isArray(singleQuery.data) ? singleQuery.data : [];
   const hasEvents = events.length > 0;
-  const eventFetching = floorMode ? floorFetching : singleQuery.isFetching;
-  const eventError = floorMode ? floorFailed : singleQuery.isError;
+  const eventFetching = singleQuery.isFetching;
+  const eventError = singleQuery.isError;
   const eventInitialLoading = eventFetching && !hasEvents;
   const eventRefreshing = eventFetching && hasEvents;
-  const canLoadEvents = floorMode || !(scheduleMode === "room" && !activeRoom);
+  const canLoadEvents = !(scheduleMode === "room" && !activeRoom);
 
   const visibleRoomIds = useMemo(
-    () => (floorMode || scheduleMode === "all")
+    () => scheduleMode === "all"
       ? bookableRooms.map((room) => room._id).filter(Boolean)
       : (activeRoom?._id ? [activeRoom._id] : []),
-    [floorMode, scheduleMode, bookableRooms, activeRoom?._id]
+    [scheduleMode, bookableRooms, activeRoom?._id]
   );
 
   useEffect(() => {
@@ -135,18 +127,22 @@ const MeetingCalendar = () => {
   };
 
   const refreshEvents = () => {
-    if (floorMode) {
-      floorQuery.refetch();
-      return;
-    }
     singleQuery.refetch();
   };
 
   return (
-    <Container maxWidth={false} sx={{ py: 3 }}>
-      {!showAllFloors && !userFloor && !userFloors.length ? <Alert severity="warning" sx={{ mb: 2 }}>{t("calendar.floorMissing")}</Alert> : null}
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "340px minmax(0, 1fr)" }, gap: 2 }}>
-        <Paper sx={{ p: 2 }}>
+    <div style={{ padding: 24, maxWidth: "100%" }}>
+      {!showAllFloors && !userFloor && !userFloors.length ? (
+        <Alert type="warning" showIcon message={t("calendar.floorMissing")} style={{ marginBottom: 16 }} />
+      ) : null}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: isNarrow ? "1fr" : "340px minmax(0, 1fr)",
+          gap: 16,
+        }}
+      >
+        <Card size="small" styles={{ body: { padding: 16 } }}>
           <CalendarSidebar
             selectedDate={selectedDate}
             onDateChange={setSelectedDate}
@@ -154,7 +150,6 @@ const MeetingCalendar = () => {
             floor={userFloor}
             floors={userFloors}
             showAllFloors={showAllFloors}
-            showFloorSchedule={!showAllFloors && Boolean(userFloor || userFloors.length)}
             isAdmin={isAdmin}
             showTabletStatus={isAdmin}
             roomStatus={roomStatus}
@@ -164,18 +159,27 @@ const MeetingCalendar = () => {
             onRoomChange={changeRoomFilter}
             onAdd={addEvent}
           />
-        </Paper>
-        <Paper sx={{ p: 2, minWidth: 0 }}>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }} sx={{ mb: 1 }}>
-            <Box>
-              <Typography variant="subtitle2">{t("calendar.refreshTitle")}</Typography>
-              {eventRefreshing ? <Typography variant="caption" color="text.secondary">{t("common:states.refreshing")}</Typography> : null}
-            </Box>
-            <Button size="small" variant="outlined" disabled={!canLoadEvents || eventFetching} onClick={refreshEvents}>
+        </Card>
+        <Card size="small" styles={{ body: { padding: 16, minWidth: 0 } }}>
+          <Space
+            align="center"
+            style={{ width: "100%", justifyContent: "space-between", marginBottom: 8, flexWrap: "wrap" }}
+          >
+            <div>
+              <Typography.Text strong>{t("calendar.refreshTitle")}</Typography.Text>
+              {eventRefreshing ? (
+                <Typography.Text type="secondary" style={{ display: "block" }}>
+                  {t("common:states.refreshing")}
+                </Typography.Text>
+              ) : null}
+            </div>
+            <Button size="small" disabled={!canLoadEvents || eventFetching} onClick={refreshEvents}>
               {t("common:actions.refresh")}
             </Button>
-          </Stack>
-          {eventRefreshing ? <LinearProgress sx={{ mb: 1 }} /> : null}
+          </Space>
+          {eventRefreshing ? (
+            <Progress percent={100} status="active" showInfo={false} size="small" style={{ marginBottom: 8 }} />
+          ) : null}
           {roomQuery.isError ? (
             <ErrorState message={getApiError(roomQuery.error, t("calendar.roomsLoadError"))} busy={roomQuery.isFetching} onAction={() => roomQuery.refetch()} />
           ) : null}
@@ -185,13 +189,12 @@ const MeetingCalendar = () => {
           {eventInitialLoading ? <LoadingState label={t("calendar.loading")} /> : null}
           {eventError ? (
             <ErrorState
-              message={getApiError(floorMode ? floorQuery.error : singleQuery.error, t("calendar.loadError"))}
+              message={getApiError(singleQuery.error, t("calendar.loadError"))}
               busy={eventFetching}
               onAction={refreshEvents}
             />
           ) : null}
-          {scheduleMode === "room" && !activeRoom ? <Alert severity="info">{t("calendar.selectRoomPrompt")}</Alert> : null}
-          {floorMode && !bookableRooms.length ? <Alert severity="info">{t("calendar.floorScheduleEmpty")}</Alert> : null}
+          {scheduleMode === "room" && !activeRoom ? <Alert type="info" showIcon message={t("calendar.selectRoomPrompt")} /> : null}
           {!eventInitialLoading && (!eventError || hasEvents) && canLoadEvents ? (
             <MeetingWeek
               events={events}
@@ -210,8 +213,8 @@ const MeetingCalendar = () => {
               }}
             />
           ) : null}
-        </Paper>
-      </Box>
+        </Card>
+      </div>
 
       <EventDetailsDrawer
         open={Boolean(details)}
@@ -246,7 +249,7 @@ const MeetingCalendar = () => {
         initialRoom={activeRoom}
         onClose={() => setEditor({ open: false, event: null, start: null, end: null })}
       />
-    </Container>
+    </div>
   );
 };
 

@@ -446,16 +446,16 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
 
 - [x] `017_initial_setup.sql` + `GET /api/setup/status` + `POST /api/setup`;
   CMS `/setup` dan gate instalasi baru. Bukti: setup 201 → panggilan kedua
-  409, login 200 (commit `f88a86e`).
+  409, login 200 (commit `758d212`).
 - [x] Stack Docker Alpine `deploy/docker/` (`node:20-alpine`,
   `postgres:16-alpine`, `nginx:alpine`), entrypoint migrasi + seed role.
   Bukti: build sukses, DB kosong `required=true`, setup 201/409, 17 migrasi,
-  APK tersaji, restart idempoten (commit `b91091b`).
+  APK tersaji, restart idempoten (commit `d53a0d8`).
 - [x] Patch `3.10.1`: auto-login + hard redirect setelah setup (commit
-  `ef9fd8e`).
+  `02cd59a`).
 - [x] Patch `3.10.2`: `/api/kiosk/schedule` mengirim `checkedInAt`; tablet
   menampilkan jam check-in aktual; APK 1.3.3 (14). Regresi 83/83, parity 8/8
-  (commit `f0e6db7`).
+  (commit `869dafd`).
 - [x] Patch `3.10.3`: CMS Pengguna (pencarian nama/email/employee ID, kolom +
   filter role, tinggi viewport, pagination 25/50/100, admin list mengirim
   `role_id`), Pengaturan global menggantikan Floor groups, filter Building di
@@ -464,7 +464,7 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
   schedule retry 3x, footer versi APK + CMS. API: extend wajib `card_number`,
   context mengirim `cmsVersion`. Bukti: unit 79/79, client 92/92, regresi
   83/83, parity 8/8; uji tablet +15 prompt kartu dan Finish easter egg
-  (commit `00e39ed`).
+  (commit `9d96805`).
 - [x] Dokumentasi diselaraskan 2026-10-24: `docs/CMS.md`, `docs/api-reference.md`,
   `docs/erd.md`, `docs/architecture.md`, `docs/operations-runbook.md`,
   `docs/handover/START-HERE.md`, `docs/VERSIONING.md`, catatan rilis
@@ -738,9 +738,9 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
   di CMS. UAT ADMIN-001: delete 403.
 - [x] Bukti tes: regresi 87/87 (0 skip), client 98/98,
   server unit 79/79, parity prepare 2/2, parity 8/8, kiosk unit 21/21.
-- [x] Commit: `db57d7a` (impor transaksi + floor), `99d0043` (guard tes
+- [x] Commit: `37cebaa` (impor transaksi + floor), `678ab49` (guard tes
   tengah malam), kiosk `8277b93`.
-- [x] Commit perlindungan setup admin + migrasi 021 (`bfbb962`).
+- [x] Commit perlindungan setup admin + migrasi 021 (`9eb8c37`).
 
 ## UAT Docker + akses pintu (2026-10-26)
 
@@ -758,10 +758,10 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
 - [x] Perubahan UI terakhir (tombol clear filter role) lulus `build:client`
   + client 98/98; angka tes tetap: regresi 87/87 (0 skip), server unit 79/79,
   parity prepare 2/2, parity 8/8, kiosk unit 21/21.
-- [x] Commit: `2c064dd` (opsi external nginx), `85f57dd` (argumen wajib
-  origin/proxy-ip), `e2abf77` (split/validasi secret), `8e1854d` (origin
-  list), `dabbfbb` (script deploy executable), `5ae6b0b` (clear filter role),
-  `febd049` (placeholder IP di docs).
+- [x] Commit: `0d17a4f` (opsi external nginx), `6cb0704` (argumen wajib
+  origin/proxy-ip), `3b9f623` (split/validasi secret), `1ee10c7` (origin
+  list), `26691c8` (script deploy executable), `4f463fb` (clear filter role),
+  `6452b7c` (placeholder IP di docs).
 - [ ] DNS record + vhost nginx untuk `<uat-domain>` belum aktif; akses masih
   lewat `http://<uat-host>:8082`.
 - [ ] UAT formal / training pengguna (pemilik produk).
@@ -773,7 +773,7 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
 
 - [x] Role `super_admin` untuk akun `/setup` (migrasi `022_role_menu_access.sql`):
   akun dilindungi (`is_protected`, delete `403 PROTECTED_ACCOUNT`, role tidak
-  bisa diturunkan), selalu memegang semua menu. Commit `bed9c86` + `e165ed7`.
+  bisa diturunkan), selalu memegang semua menu. Commit `60af46e` + `45785a5`.
 - [x] Matrix menu per peran di Manajemen → Pengaturan:
   `GET /api/access/menus`, `GET/PUT /api/access/matrix` (Super Admin saja),
   cache 30 detik, perubahan dicatat sebagai `access.update`.
@@ -785,7 +785,7 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
   role/lantai, kartu, reset sandi, settings, master card, dan matrix;
   `GET /api/audit` hanya Super Admin. Nomor kartu disamarkan.
 - [x] Halaman unduh APK `public/apk/index.html` + paket rebuild `1.3.8` (19)
-  build tag `1.3.8-19-85ca335`, SHA-256 `ad21fbd7…735ab`. Commit `05c6020`.
+  build tag `1.3.8-19-85ca335`, SHA-256 `ad21fbd7…735ab`. Commit `c43be28`.
 - [x] Docs disinkronkan: `CMS.md`, `architecture.md`, `business-processes.md`,
   `api-reference.md`, `product-champion.md`, `scenarios.md`,
   `operations-runbook.md`, `handover/START-HERE.md`, `project-status.md`,

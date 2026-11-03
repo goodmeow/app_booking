@@ -1,22 +1,25 @@
 # Katalog Skenario Eksekusi
 
 Skenario manual dengan `curl` dan UI untuk membuktikan perilaku yang
-didokumentasikan. Semua akun adalah akun demo tersanitasi dari
-`database/seeds/development.sql` / `scripts/demo-accounts.js`; kartu nyata
-tidak boleh dipakai.
+didokumentasikan. Skenario membuat dan menghapus data, jadi jalankan di **UAT
+local test bed** (`http://127.0.0.1:8082`), bukan UAT live. Variabel di bawah
+berasal dari seed sanitized `database/seeds/development.sql` /
+`scripts/demo-accounts.js`; pada test bed, ganti dengan akun UAT yang berlaku.
+Kartu nyata tidak boleh dipakai.
 
 ## 0. Prasyarat
 
 ```bash
-cd app_booking
-npm run demo            # DB disposable + CMS :8081 + API :9091
-# hanya bila baru menjalankan regression (DB ter-reset):
-# npm run demo:accounts
+# UAT local test bed (stack Docker Alpine, port 8082) — lihat runbook §3
+curl -fsS http://127.0.0.1:8082/api/health    # {"ok":true}
 ```
+
+Alur `npm run demo`/`demo:accounts` sudah tidak dipakai. Suite regresi
+me-reset `360booking_parity_test`, bukan database UAT.
 
 | Variabel | Nilai |
 |---|---|
-| `API` | `http://localhost:9091/api` |
+| `API` | `http://127.0.0.1:8082/api` (test bed) |
 | `ROOM_ONE` | `30000000-0000-4000-8000-000000000001` (room-one, lantai 1) |
 | `ROOM_TWO` | `30000000-0000-4000-8000-000000000002` (room-two, lantai 2) |
 | `USER_ID` | `20000000-0000-4000-8000-000000000002` (user@example.test) |
@@ -24,7 +27,7 @@ npm run demo            # DB disposable + CMS :8081 + API :9091
 | `ROLE_USER` | `67e9500b-908a-497d-9d3b-54bc020700cb` |
 | `CARD` | `<kartu-uji>` — ganti dengan kartu dummy demo `TEST-USER-CARD` |
 
-Akun demo:
+Akun seed (referensi historis; **bukan** akun UAT saat ini):
 
 | Peran | Email | Sandi | Catatan |
 |---|---|---|---|
@@ -34,19 +37,20 @@ Akun demo:
 | Ruangan | `room-one@room.com` | `RoomTablet123!` | untuk pairing tablet |
 
 Sandi seed diverifikasi dengan `bcrypt.checkpw` terhadap hash di
-`database/seeds/development.sql` (bukan ditebak dari README).
+`database/seeds/development.sql` (bukan ditebak dari README). Di UAT local test
+bed, buat akun uji sendiri lewat CMS dan simpan sandinya di luar repo.
 
 Skenario kiosk yang memakai "hari ini" sebaiknya dijalankan pada jam kerja
 (08:00–21:00 `Asia/Jakarta`); menjelang tengah malam slot dapat terpotong atau
 ditolak karena aturan akhir hari.
 
 ```bash
-API=http://localhost:9091/api
+API=http://127.0.0.1:8082/api   # UAT local test bed
 ROOM_ONE=30000000-0000-4000-8000-000000000001
 ROOM_TWO=30000000-0000-4000-8000-000000000002
 USER_ID=20000000-0000-4000-8000-000000000002
 ROLE_USER=67e9500b-908a-497d-9d3b-54bc020700cb
-CARD='<kartu-uji>'   # demo dummy: TEST-USER-CARD
+CARD='<kartu-uji>'   # dummy: TEST-USER-CARD
 ```
 
 Parser token (butuh `python3`):
@@ -229,9 +233,10 @@ pembuatnya (`booked_by` lain). Buka detail event dengan token resepsionis →
 
 ### 6.2 Matrix menu dan log audit
 
-Kedua endpoint hanya untuk Super Admin. **Akun demo `admin@example.test`
-adalah ADMIN biasa**, jadi promosikan dulu di database disposable (cara yang
-sama dipakai `server/tests/regression/access.test.js`), lalu login ulang:
+Kedua endpoint hanya untuk Super Admin. Pada database seed sanitized,
+**`admin@example.test` adalah ADMIN biasa**, jadi promosikan dulu di database
+uji (cara yang sama dipakai `server/tests/regression/access.test.js`), lalu
+login ulang:
 
 ```sql
 UPDATE tbl_users
@@ -240,7 +245,7 @@ WHERE email = 'admin@example.test';
 ```
 
 Instalasi baru yang dibuat lewat `/setup` sudah otomatis Super Admin, jadi
-langkah di atas hanya untuk database demo.
+langkah di atas hanya untuk database seed sanitized.
 
 ```bash
 SUPER_TOKEN=$(curl -s -X POST "$API/auth/signin" \
@@ -265,7 +270,7 @@ curl -s -H "Authorization: Bearer $SUPER_TOKEN" "$API/audit?limit=5"
 
 `PUT /api/access/matrix` menerima kiriman sebagian (hanya sel yang diubah),
 tetapi CMS selalu mengirim seluruh matriks. Kembalikan matrix ke nilai semula
-setelah uji (`calendar` untuk `user` tercentang) agar akun demo tetap bisa
+setelah uji (`calendar` untuk `user` tercentang) agar akun uji tetap bisa
 dipakai.
 
 ## 7. Kiosk: pairing
@@ -543,13 +548,14 @@ curl -s -X PUT "$API/events/delete?event_id=$PRIV_EVENT&scope=occurrence" \
 curl -s -X DELETE -H "Authorization: Bearer $ADMIN_TOKEN" "$API/kiosk/devices/$DEVICE_ID"
 ```
 
-Alternatif paling bersih: `npm run demo` (reset DB) lalu pairing ulang.
+Alternatif paling bersih: pulihkan database UAT local test bed dari backup
+terbaru (runbook §5.2), lalu pairing ulang tablet (§7).
 
 ## 18. Belum dapat diverifikasi
 
-- Skenario matrix di §6.2 memerlukan akun Super Admin. Database demo tidak
-  punya satu pun (admin demo berperan ADMIN), jadi promosi SQL di awal §6.2
-  wajib; `/setup` pada instalasi baru menghasilkan Super Admin otomatis.
+- Skenario matrix di §6.2 memerlukan akun Super Admin. UAT local test bed dan
+  UAT live punya Super Admin dari `/setup`; pada database seed sanitized
+  (`admin@example.test` berperan ADMIN) promosi SQL di awal §6.2 wajib.
 - Perintah `date -d` mengasumsikan GNU date (Linux/WSL), bukan macOS.
 - Skenario relay/NFC/LED memerlukan tablet dan kartu fisik; katalog ini hanya
   membuktikan sisi server.

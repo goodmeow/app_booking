@@ -1,15 +1,24 @@
 import React from "react";
-import { Alert, Box, Button, CircularProgress, Typography } from "@mui/material";
+import { Alert, Button, Empty, Spin, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 
 export const LoadingState = ({ label }) => {
   const { t } = useTranslation("common");
 
   return (
-    <Box role="status" sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1.5, py: 4 }}>
-      <CircularProgress size={24} />
-      <Typography>{label ?? t("states.loading")}</Typography>
-    </Box>
+    <div
+      role="status"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 12,
+        padding: "32px 0",
+      }}
+    >
+      <Spin size="small" />
+      <Typography.Text>{label ?? t("states.loading")}</Typography.Text>
+    </div>
   );
 };
 
@@ -18,15 +27,15 @@ export const ErrorState = ({ message, actionLabel, onAction, busy = false }) => 
 
   return (
     <Alert
-      severity="error"
+      type="error"
+      showIcon
+      message={message ?? t("states.error")}
       action={onAction ? (
-        <Button color="inherit" size="small" disabled={busy} onClick={onAction}>
+        <Button size="small" disabled={busy} onClick={onAction}>
           {actionLabel ?? t("actions.retry")}
         </Button>
       ) : null}
-    >
-      {message ?? t("states.error")}
-    </Alert>
+    />
   );
 };
 
@@ -34,8 +43,10 @@ export const EmptyState = ({ message }) => {
   const { t } = useTranslation("common");
 
   return (
-    <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
-      {message ?? t("states.empty")}
-    </Typography>
+    <Empty
+      image={Empty.PRESENTED_IMAGE_SIMPLE}
+      description={message ?? t("states.empty")}
+      style={{ padding: "32px 0" }}
+    />
   );
 };
