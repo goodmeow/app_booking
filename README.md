@@ -9,7 +9,7 @@ Express dan Socket.io, **PostgreSQL** sebagai basis data, dan **tablet kiosk**
 Tablet menampilkan status ruangan hari itu, menerima check-in, perpanjangan,
 pemesanan mendadak, dan membuka pintu lewat kartu NFC.
 
-Versi saat ini: CMS/API **3.13.0** (Ver 3 Rev 14) · APK kiosk **1.4.5**
+Versi saat ini: CMS/API **3.13.1** (Ver 3 Rev 14) · APK kiosk **1.4.5**
 (versionCode 26). Riwayat lengkap ada di [`docs/VERSIONING.md`](docs/VERSIONING.md).
 
 - Baru bergabung? Mulai dari [`docs/handover/START-HERE.md`](docs/handover/START-HERE.md).

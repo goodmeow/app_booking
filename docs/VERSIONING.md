@@ -17,11 +17,11 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 ## Posisi saat ini (Ver 3 Rev 14)
 
-- CMS + API: **Ver 3 Rev 14**, `package.json` `3.13.0`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 14**, `package.json` `3.13.1`, ditampilkan di footer
   semua halaman CMS (dari package.json).
 - APK kiosk: `versionName 1.4.5 / versionCode 26`, build tag
   `1.4.5-26-a6390a2`. Footer kios menampilkan versi APK + **versi CMS**
-  (`v1.4.5 (26) · CMS 3.13.0`). Build membawa pill `TERSEDIA` 44 px, copy
+  (`v1.4.5 (26) · CMS 3.13.1`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
@@ -71,6 +71,10 @@ admin, validasi ID/payload, detail lantai khusus resepsionis, kartu lost,
 storage browser, refresh kiosk, backup advisory lock, audit retention, dan
 migrasi 026 timezone. Bukti: client 99/99, server 85/85, regresi 105/105,
 parity 8/8. APK tetap 1.4.5 (26).
+
+- Patch `3.13.1` (2026-11-03): penanda jam sekarang di kalender FullCalendar
+  memakai warna error (merah) agar tidak tertukar dengan agenda dan border.
+  Tidak ada perubahan API/migrasi; deploy ulang image `app`/`web` UAT.
 
 ### Ver 3 Rev 13 - 2026-10-28 (rilis sebelumnya)
 Matrix menu, super admin, multi-lantai, audit, hardening security, dan halaman
