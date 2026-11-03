@@ -13,6 +13,7 @@ Liveness is NOT implemented yet. Every response says so explicitly through
 """
 
 import base64
+import hmac
 import os
 import threading
 from contextlib import asynccontextmanager
@@ -35,6 +36,13 @@ MARGIN = float(os.environ.get("FACE_MATCH_MARGIN", matcher_module.DEFAULT_MARGIN
 ENROLL_MIN_DETECTION = 0.6
 ENROLL_MAX_YAW = 0.35
 ENROLL_MIN_AGREEMENT = 0.5
+
+# Bounds on caller-supplied frames. The app caps the JSON body at 1 MB, but this
+# service must not rely on that: a caller holding the internal token could send
+# an oversized frame, and base64 decoding happens before any image check.
+MAX_FRAMES_PER_REQUEST = 3
+MAX_FRAME_BASE64_CHARS = 2_000_000
+MAX_FRAME_PIXELS = 16_000_000
 
 engine = None
 matcher = None
@@ -60,19 +68,19 @@ app = FastAPI(title="360booking face service", version="0.1.0", lifespan=lifespa
 
 
 class IdentifyRequest(BaseModel):
-    frames: list[str] = Field(min_length=1)
+    frames: list[str] = Field(min_length=1, max_length=MAX_FRAMES_PER_REQUEST)
     device_id: str | None = None
 
 
 class VerifyRequest(BaseModel):
     employee_id: str
-    frames: list[str] = Field(min_length=1)
+    frames: list[str] = Field(min_length=1, max_length=MAX_FRAMES_PER_REQUEST)
     device_id: str | None = None
 
 
 class EnrollRequest(BaseModel):
     employee_id: str
-    frames: list[str] = Field(min_length=2)
+    frames: list[str] = Field(min_length=2, max_length=MAX_FRAMES_PER_REQUEST)
     device_id: str | None = None
 
 
@@ -89,7 +97,8 @@ def health():
 
 
 @app.post("/reload")
-def reload_templates():
+def reload_templates(x_face_token: str | None = Header(default=None)):
+    _check_internal_token(x_face_token)
     count = _reload_templates()
     return {"ok": True, "templates": count}
 
@@ -195,10 +204,14 @@ def _check_internal_token(received):
     """Shared secret between app_booking and this service.
 
     Enrollment changes who can log in as whom, so it must not be reachable just
-    because someone found the port. Unset variable = no check (dev only).
+    because someone found the port. An unset secret is a configuration error, not
+    a reason to disable the check: refuse to serve, and the kiosk falls back to
+    the card path until the operator sets the variable.
     """
     expected = os.environ.get("FACE_INTERNAL_TOKEN")
-    if expected and received != expected:
+    if not expected:
+        raise HTTPException(status_code=503, detail="FACE_INTERNAL_TOKEN not configured")
+    if not hmac.compare_digest(str(received or ""), expected):
         raise HTTPException(status_code=401, detail="invalid internal token")
 
 
@@ -217,13 +230,20 @@ def _read_frames(frames):
 
 
 def _decode(encoded):
+    # Check the encoded length before base64 decoding so an oversized payload is
+    # rejected without allocating the decoded buffer.
+    if len(encoded) > MAX_FRAME_BASE64_CHARS:
+        return None
     if "," in encoded[:64] and encoded.lstrip().startswith("data:"):
         encoded = encoded.split(",", 1)[1]
     try:
         raw = base64.b64decode(encoded)
     except Exception:
         return None
-    return cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
+    image = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
+    if image is None or image.shape[0] * image.shape[1] > MAX_FRAME_PIXELS:
+        return None
+    return image
 
 
 def _leading_employee(outcome):

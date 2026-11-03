@@ -29,6 +29,8 @@ Order:
 024_audit_log.sql
 025_user_token_version.sql
 026_event_room_timezone.sql
+027_face_templates.sql
+028_rate_limit_buckets.sql
 ```
 
 Files are generated mechanically from immutable `bjb.sql`:

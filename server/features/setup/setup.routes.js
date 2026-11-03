@@ -9,12 +9,12 @@ const router = express.Router();
 // the one-time account creation.
 router.get(
   "/status",
-  fixedWindowRateLimit({ windowMs: 15 * 60_000, max: 60 }),
+  fixedWindowRateLimit({ scope: "setup:status", windowMs: 15 * 60_000, max: 60 }),
   status
 );
 router.post(
   "/",
-  fixedWindowRateLimit({ windowMs: 60 * 60_000, max: 5 }),
+  fixedWindowRateLimit({ scope: "setup:claim", windowMs: 60 * 60_000, max: 5 }),
   create
 );
 

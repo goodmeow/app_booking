@@ -22,7 +22,7 @@ service ini tidak membaca tabel event sama sekali.
 | Simpan template terenkripsi | selesai |
 | Endpoint `/identify`, `/verify`, `/enroll`, `/health` | selesai |
 | **Liveness (anti-spoof)** | **belum** — lihat bagian Batasan |
-| Integrasi ke app_booking & kiosk | belum, sengaja ditunda |
+| Integrasi ke app_booking & kiosk | selesai (face-first, kartu sebagai fallback) |
 
 ## Model
 
@@ -43,6 +43,7 @@ Sertakan berkas lisensi kedua model saat men-deploy (kewajiban MIT dan Apache-2.
 |---|---|---|
 | `FACE_DB_DSN` | ya | koneksi Postgres, mis. `postgresql://booking@db/360booking` |
 | `FACE_EMBEDDING_KEY` | ya | base64 32 byte; kunci AES-GCM untuk kolom `embedding` |
+| `FACE_INTERNAL_TOKEN` | ya | shared secret dengan app_booking (`X-Face-Token`). Kalau kosong, semua endpoint selain `/health` menjawab `503` — service menolak melayani, kiosk otomatis memakai kartu |
 | `FACE_MATCH_THRESHOLD` | tidak | default `0.60` |
 | `FACE_MATCH_MARGIN` | tidak | default `0.05` |
 | `FACE_YUNET_PATH`, `FACE_SFACE_PATH` | tidak | default `models/*.onnx` |
@@ -89,9 +90,17 @@ dari `<folder>/<employee_id>.jpg` dan didekripsi di memori (AES-CBC, PKCS7,
 format `eav101$`).
 
 Foto tidak disimpan. Yang masuk database hanya embedding terenkripsi.
-Setelah enrollment, panggil `POST /reload` agar service memuat template baru.
+Setelah enrollment, panggil `POST /reload` (dengan `X-Face-Token`) agar service
+memuat template baru.
 
 ## API
+
+Semua endpoint selain `/health` wajib mengirim header `X-Face-Token` berisi
+`FACE_INTERNAL_TOKEN`. Token yang salah atau tidak dikirim → `401`; variabel yang
+tidak di-set → `503`.
+
+`frames` dibatasi maksimal 3 per request, dan satu frame base64 maksimal
+2.000.000 karakter. Lebih dari itu ditolak sebelum di-decode.
 
 **GET /health**
 
@@ -126,6 +135,11 @@ Kalau `candidates` berisi lebih dari satu akun, semuanya orang yang sama
 ```
 
 Dipakai setelah tap kartu, saat identitas sudah diketahui.
+
+**POST /reload** — internal, butuh header `X-Face-Token`
+
+Memuat ulang semua template dari database. Tidak dipanggil app_booking; hanya
+untuk operator setelah enrollment manual.
 
 **POST /enroll** — internal, butuh header `X-Face-Token`
 
@@ -182,7 +196,14 @@ pip install -r requirements.txt
 ./fetch-models.sh
 export FACE_DB_DSN=postgresql://booking@127.0.0.1:54320/360booking_reconstruction_test
 export FACE_EMBEDDING_KEY=$(openssl rand -base64 32)
+export FACE_INTERNAL_TOKEN=$(openssl rand -hex 24)
 uvicorn app:app --port 8090
+```
+
+Uji guard (batas frame + token), tanpa database:
+
+```sh
+python -m unittest test_guards -v
 ```
 
 Uji cepat tanpa database:
