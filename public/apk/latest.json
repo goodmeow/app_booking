@@ -1,8 +1,8 @@
 {
-  "versionCode": 26,
-  "versionName": "1.4.5",
+  "versionCode": 27,
+  "versionName": "1.5.0",
   "url": "/apk/kiosk-release.apk",
-  "sha256": "adb6af93a49f592f4c4767895605248ed963988d2875b0ff44ebe457c1a338d6",
+  "sha256": "be42fd3599658724db41ddb16f82c12bde90f29d914f6c023c6dcaa49ac98c96",
   "mandatory": false,
-  "notes": "Memperbaiki tumpang tindih blok NEXT UP pada status merah dan hijau."
+  "notes": "Toggle 30 menit/Pilih waktu per tablet, toast status hijau/merah, dan pintu hanya untuk attendee meeting atau kartu master."
 }

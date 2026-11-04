@@ -160,3 +160,9 @@ Halaman APK juga menyediakan RustDesk untuk akses tablet dari jauh:
 
 RK3288 adalah ARM 32-bit, jadi gunakan ARMv7. Ganti berkas ini bila versi
 RustDesk dinaikkan, lalu perbarui teks versi di `index.html` dan hash di atas.
+
+- 2026-11-04: naik 1.5.0 (versionCode 27)—toggle **30 menit/sampai jam X**
+  dan **Pilih waktu** dapat dimatikan per tablet dari CMS Tablet Devices;
+  toast hasil aksi di panel kanan (hijau sukses, merah ditolak); buka pintu
+  saat meeting aktif hanya untuk attendee/organizer meeting itu atau kartu
+  master. SHA-256 `be42fd3599658724db41ddb16f82c12bde90f29d914f6c023c6dcaa49ac98c96`, 21.531.173 byte.
