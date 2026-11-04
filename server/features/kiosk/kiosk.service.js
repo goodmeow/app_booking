@@ -20,6 +20,7 @@ import {
   findActiveKioskDeviceForRoom,
   findEmployeeByCard,
   findKioskEventActionContext,
+  findKioskDoorContext,
   findKioskRoomEvent,
   findKioskRoomByLogin,
   listKioskDevices,
@@ -105,6 +106,8 @@ export const publicKioskDevice = (device) => ({
   nfcEnabled: Boolean(device.nfc_enabled),
   ledEnabled: Boolean(device.led_enabled),
   showSubject: Boolean(device.show_subject),
+  instantEnabled: Boolean(device.instant_enabled),
+  scheduleEnabled: Boolean(device.schedule_enabled),
 });
 
 export const authenticateKioskCredentials = async (login, password) => {
@@ -228,10 +231,27 @@ export const getKioskContext = async (room) => {
   };
 };
 
+// The door belongs to the meeting that covers "now": from its check-in window
+// until its end. Before that window (or after the meeting) the room counts as
+// free, so the card check falls back to the plain employee-card rule.
+export const activeDoorMeeting = (meetings, now = Date.now()) => meetings.find((meeting) => {
+  const start = new Date(meeting.start_at).getTime();
+  const end = new Date(meeting.end_at).getTime();
+  const opens = start - Number(meeting.early_minutes || 0) * MILLISECONDS_PER_MINUTE;
+  return now >= opens && now < end;
+}) || null;
+
 export const authorizeKioskDoor = async (cardNumber, room) => {
   const value = String(cardNumber ?? "").trim();
   if (!value) throw badRequest("INVALID_CARD", "Card number is required");
   if (!(await hasDoorCard(value))) throw badRequest("INVALID_CARD", "Card number not found");
+  // While a meeting owns the room, only its organizer/attendees and a master
+  // card may open the door; a colleague outside the meeting is refused.
+  const meetings = await findKioskDoorContext({ roomId: room._id, cardNumber: value });
+  const meeting = activeDoorMeeting(meetings);
+  if (meeting && !meeting.card_allowed) {
+    throw forbidden("Card is not authorized for this meeting");
+  }
   return { roomId: room._id, deviceId: room.deviceId };
 };
 
@@ -249,24 +269,38 @@ export const revokeManagedKioskDevice = async (deviceId, principalId) => {
   return device;
 };
 
-export const updateManagedKioskCapabilities = async (deviceId, input = {}) => {
+// A setting the admin left out of the PATCH body stays null, so the repository
+// keeps the stored value untouched.
+export const kioskCapabilityFlags = (input = {}) => {
   const flags = {
     nfcEnabled: Object.hasOwn(input, "nfcEnabled") ? input.nfcEnabled : null,
     ledEnabled: Object.hasOwn(input, "ledEnabled") ? input.ledEnabled : null,
     showSubject: Object.hasOwn(input, "showSubject") ? input.showSubject : null,
+    instantEnabled: Object.hasOwn(input, "instantEnabled") ? input.instantEnabled : null,
+    scheduleEnabled: Object.hasOwn(input, "scheduleEnabled") ? input.scheduleEnabled : null,
   };
   const changedKeys = Object.keys(flags).filter((key) => flags[key] !== null);
   if (!changedKeys.length) {
-    throw badRequest("INVALID_KIOSK_CAPABILITIES", "NFC, LED, or subject visibility setting is required");
+    throw badRequest(
+      "INVALID_KIOSK_CAPABILITIES",
+      "NFC, LED, subject visibility, instant booking, or schedule booking setting is required"
+    );
   }
   for (const key of changedKeys) {
     if (typeof flags[key] !== "boolean") throw badRequest("INVALID_KIOSK_CAPABILITIES", `${key} setting must be boolean`);
   }
+  return flags;
+};
+
+export const updateManagedKioskCapabilities = async (deviceId, input = {}) => {
+  const flags = kioskCapabilityFlags(input);
   const device = await updateKioskDeviceCapabilities({
     deviceId,
     nfcEnabled: flags.nfcEnabled,
     ledEnabled: flags.ledEnabled,
     showSubject: flags.showSubject,
+    instantEnabled: flags.instantEnabled,
+    scheduleEnabled: flags.scheduleEnabled,
   });
   if (!device) throw notFound("Kiosk device not found");
   return publicKioskDevice(device);

@@ -41,6 +41,10 @@
     "ledAria": "LED untuk {{name}}",
     "subjectColumn": "Judul",
     "subjectAria": "Judul meeting untuk {{name}}",
+    "instantColumn": "30 mnt",
+    "instantAria": "Opsi cepat 30 menit untuk {{name}}",
+    "scheduleColumn": "Pilih waktu",
+    "scheduleAria": "Opsi pilih waktu untuk {{name}}",
     "revokeAria": "Cabut kiosk {{name}}",
     "status": {
       "active": "Aktif",

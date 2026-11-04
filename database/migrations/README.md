@@ -29,7 +29,10 @@ Order:
 024_audit_log.sql
 025_user_token_version.sql
 026_event_room_timezone.sql
+029_kiosk_action_toggles.sql
 ```
+
+Numbers 027 and 028 are reserved for the face-unlock branch, so the list skips them.
 
 Files are generated mechanically from immutable `bjb.sql`:
 

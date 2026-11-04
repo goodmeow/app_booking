@@ -189,6 +189,9 @@ test("tablet management keeps the LED toggle and lets admin hide meeting titles"
   assert.match(section, /"ledEnabled"/);
   // The meeting title toggle (migration 011) sits next to the LED.
   assert.match(section, /"showSubject"/);
+  // The kiosk action switches: quick 30-minute options and "pick time".
+  assert.match(section, /"instantEnabled"/);
+  assert.match(section, /"scheduleEnabled"/);
   // The service just forwards any capability (PATCH passthrough).
   assert.match(service, /capabilities/);
   assert.match(section, /row\.online/);

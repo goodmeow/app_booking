@@ -125,6 +125,42 @@ test("kiosk door accepts master and employee cards but not unknown cards", async
   assert.equal(employeeSession.status, 401);
 });
 
+test("kiosk door only accepts the meeting's people while it is running", async () => {
+  const now = Date.now();
+  const created = await createMeeting({
+    room: identities.room.email,
+    subject: "Door window meeting",
+    start: new Date(now - 5 * 60_000).toISOString(),
+    end: new Date(now + 25 * 60_000).toISOString(),
+  });
+  assert.equal(created.status, 200);
+  const eventId = created.body[0].id;
+
+  const attempt = (card_number) => apiRequest(targets.reconstructed, "/api/kiosk/door-open", {
+    method: "POST",
+    headers: kioskHeaders(),
+    body: JSON.stringify({ card_number }),
+  });
+
+  // Master card may represent anyone; the organizer/attendee may open.
+  assert.equal((await attempt("TEST-MASTER-CARD")).status, 200);
+  assert.equal((await attempt("TEST-ADMIN-CARD")).status, 200);
+
+  // An employee outside the attendee list is refused while the meeting runs.
+  const outsider = await attempt("TEST-USER-CARD");
+  assert.equal(outsider.status, 403);
+  assert.equal(outsider.body.error, "Card is not authorized for this meeting");
+
+  const cancelled = await apiRequest(targets.reconstructed, `/api/events/delete?event_id=${eventId}`, {
+    method: "PUT",
+    headers: bearer("admin"),
+    body: JSON.stringify({ scope: "occurrence" }),
+  });
+  assert.equal(cancelled.status, 200);
+  // With the room free again, any active employee card still opens the door.
+  assert.equal((await attempt("TEST-USER-CARD")).status, 200);
+});
+
 test("kiosk refresh tolerates one lost response then rejects replay", async () => {
   const previousToken = kioskToken;
   const previousRefresh = kioskRefreshToken;
@@ -181,6 +217,9 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
   assert.equal(current.ledEnabled, true);
   // Migration 011: the meeting title is shown by default; an admin can hide it.
   assert.equal(current.showSubject, true);
+  // Migration 029: both booking actions are offered by default.
+  assert.equal(current.instantEnabled, true);
+  assert.equal(current.scheduleEnabled, true);
   assert.equal(Object.hasOwn(current, "refreshTokenHash"), false);
 
   const capabilityDenied = await apiRequest(
@@ -203,24 +242,38 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
     }
   );
   assert.equal(invalidCapability.status, 400);
+  const invalidActionToggle = await apiRequest(
+    targets.reconstructed,
+    `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
+    {
+      method: "PATCH",
+      headers: bearer("admin"),
+      body: JSON.stringify({ instantEnabled: "yes" }),
+    }
+  );
+  assert.equal(invalidActionToggle.status, 400);
   const capability = await apiRequest(
     targets.reconstructed,
     `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
     {
       method: "PATCH",
       headers: bearer("admin"),
-      body: JSON.stringify({ nfcEnabled: true, ledEnabled: true }),
+      body: JSON.stringify({ nfcEnabled: true, ledEnabled: true, instantEnabled: false, scheduleEnabled: false }),
     }
   );
   assert.equal(capability.status, 200);
   assert.equal(capability.body.nfcEnabled, true);
   assert.equal(capability.body.ledEnabled, true);
   assert.equal(capability.body.showSubject, true);
+  assert.equal(capability.body.instantEnabled, false);
+  assert.equal(capability.body.scheduleEnabled, false);
   const capabilityContext = await apiRequest(targets.reconstructed, "/api/kiosk/context", { headers: kioskHeaders() });
   assert.equal(capabilityContext.status, 200);
   assert.equal(capabilityContext.body.device.nfcEnabled, true);
   assert.equal(capabilityContext.body.device.ledEnabled, true);
   assert.equal(capabilityContext.body.device.showSubject, true);
+  assert.equal(capabilityContext.body.device.instantEnabled, false);
+  assert.equal(capabilityContext.body.device.scheduleEnabled, false);
 
   const hideTitle = await apiRequest(
     targets.reconstructed,
@@ -235,18 +288,20 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
   assert.equal(hideTitle.body.showSubject, false);
   const hiddenContext = await apiRequest(targets.reconstructed, "/api/kiosk/context", { headers: kioskHeaders() });
   assert.equal(hiddenContext.body.device.showSubject, false);
-  // Restore the default so later tests always get the title shown.
+  // Restore the defaults so later tests still see the title and both actions.
   const restoreTitle = await apiRequest(
     targets.reconstructed,
     `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
     {
       method: "PATCH",
       headers: bearer("admin"),
-      body: JSON.stringify({ showSubject: true }),
+      body: JSON.stringify({ showSubject: true, instantEnabled: true, scheduleEnabled: true }),
     }
   );
   assert.equal(restoreTitle.status, 200);
   assert.equal(restoreTitle.body.showSubject, true);
+  assert.equal(restoreTitle.body.instantEnabled, true);
+  assert.equal(restoreTitle.body.scheduleEnabled, true);
 
   // The second room is used to test device revocation without disturbing the
   // room-one device that later tests still use.
