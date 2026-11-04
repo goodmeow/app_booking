@@ -70,6 +70,11 @@ meeting aktif hanya menerima kartu organizer/attendee meeting itu atau kartu
 master. Toast hasil aksi di panel kanan (hijau sukses, merah ditolak) dengan
 teks tetap dan warna berbeda. Bukti: unit server 93/93, client 99/99, regresi
 106/106, kiosk tsc + 21/21 + 3/3 + 3/3. Deploy ke UAT live 10.10.42.8.
+- APK distribusi: `public/apk/kiosk-release.apk` **1.5.0 (27)** 21.531.173
+  byte, SHA-256
+  `be42fd3599658724db41ddb16f82c12bde90f29d914f6c023c6dcaa49ac98c96`,
+  build tag `1.5.0-27-982a4df`. `latest.json` diperbarui sehingga tablet
+  menawarkan update otomatis.
 
 ### Ver 3 Rev 14 - 2026-10-30 (rilis sebelumnya)
 Revamp UI CMS ke Ant Design 5 (light/dark), agenda/kalender, users, settings,
