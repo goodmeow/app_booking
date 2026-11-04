@@ -10,6 +10,7 @@ const kioskDeviceColumns = `
   d._id AS device_id, d.room_id, d.name AS device_name,
   d.token_version, d.refresh_expires_at, d.last_seen_at,
   d.nfc_enabled, d.led_enabled, d.show_subject,
+  d.instant_enabled, d.schedule_enabled,
   d.revoked_at, d.created_at, d.updated_at,
   u.name AS room_name, u.email AS room_email, u.type AS room_type,
   u.floor, u.capacity, u.building, u.feature, u.is_deleted AS room_deleted
@@ -115,6 +116,7 @@ export const listKioskDevices = async (roomId = null) => {
      d._id AS device_id, d.room_id, d.name AS device_name,
      d.refresh_expires_at, d.last_seen_at, d.revoked_at,
      d.nfc_enabled, d.led_enabled, d.show_subject,
+     d.instant_enabled, d.schedule_enabled,
      d.created_at, d.updated_at,
      u.name AS room_name, u.email AS room_email
    FROM tbl_kiosk_devices d
@@ -125,7 +127,14 @@ export const listKioskDevices = async (roomId = null) => {
 )).rows;
 };
 
-export const updateKioskDeviceCapabilities = async ({ deviceId, nfcEnabled = null, ledEnabled = null, showSubject = null }) => {
+export const updateKioskDeviceCapabilities = async ({
+  deviceId,
+  nfcEnabled = null,
+  ledEnabled = null,
+  showSubject = null,
+  instantEnabled = null,
+  scheduleEnabled = null,
+}) => {
   if (!isUuid(deviceId)) return null;
   return (await query(
   `WITH updated AS (
@@ -133,6 +142,8 @@ export const updateKioskDeviceCapabilities = async ({ deviceId, nfcEnabled = nul
      SET nfc_enabled = COALESCE($2::boolean, nfc_enabled),
          led_enabled = COALESCE($3::boolean, led_enabled),
          show_subject = COALESCE($4::boolean, show_subject),
+         instant_enabled = COALESCE($5::boolean, instant_enabled),
+         schedule_enabled = COALESCE($6::boolean, schedule_enabled),
          updated_at = now()
      WHERE _id = $1 AND revoked_at IS NULL
      RETURNING *
@@ -140,7 +151,7 @@ export const updateKioskDeviceCapabilities = async ({ deviceId, nfcEnabled = nul
    SELECT ${kioskDeviceColumns}
    FROM updated d
    JOIN tbl_users u ON u._id = d.room_id`,
-  [deviceId, nfcEnabled, ledEnabled, showSubject]
+  [deviceId, nfcEnabled, ledEnabled, showSubject, instantEnabled, scheduleEnabled]
 )).rows[0] || null;
 };
 
@@ -217,6 +228,50 @@ export const findKioskEventActionContext = async ({ eventId, roomId, cardNumber 
    FOR UPDATE OF e`,
   [eventId, roomId, String(cardNumber || "")]
 )).rows[0] || null;
+
+// Meetings in this room whose door window may still be open. The caller picks
+// the one covering "now" (see activeDoorMeeting); a card only passes while its
+// owner is the organizer, an attendee, or the card is a master card.
+export const findKioskDoorContext = async ({ roomId, cardNumber }) => (await query(
+  `SELECT
+     e._id,
+     e.start_date AT TIME ZONE e.timezone AS start_at,
+     e.end_date AT TIME ZONE e.timezone AS end_at,
+     settings.time_of_event_start_soon AS early_minutes,
+     (
+       EXISTS (SELECT 1 FROM tbl_card_masters master WHERE lower(master.card_number) = lower($2))
+       OR EXISTS (
+         SELECT 1
+         FROM tbl_user_cards card
+         JOIN tbl_users owner ON owner._id = card.user_id
+         WHERE lower(btrim(card.card_number)) = lower(btrim($2))
+           AND card.status = 'active'
+           AND owner.type = 'employee'
+           AND owner.is_deleted IS NOT TRUE
+           AND (
+             owner._id = e.organizer_id
+             OR EXISTS (
+               SELECT 1
+               FROM tbl_event_details attendee
+               WHERE attendee.event_id = e._id
+                 AND attendee.attendee_user_id = owner._id
+                 AND attendee.is_deleted IS NOT TRUE
+             )
+           )
+       )
+     ) AS card_allowed
+   FROM tbl_events e
+   JOIN tbl_event_rooms booking
+     ON booking.event_id = e._id
+    AND booking.room_id = $1
+    AND booking.active
+   CROSS JOIN LATERAL (SELECT * FROM tbl_app_settings ORDER BY created_at LIMIT 1) settings
+   WHERE e.is_cancel IS NOT TRUE
+     AND (e.end_date AT TIME ZONE e.timezone) > now()
+   ORDER BY start_at
+   LIMIT 5`,
+  [roomId, String(cardNumber || "")]
+)).rows;
 
 // Only an active card of an active employee resolves to a person. A card that
 // was reported lost keeps its row (status 'lost') and is ignored here, which is

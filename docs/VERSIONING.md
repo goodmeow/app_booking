@@ -15,13 +15,12 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
-## Posisi saat ini (Ver 3 Rev 14)
+## Posisi saat ini (Ver 3 Rev 15)
 
-- CMS + API: **Ver 3 Rev 14**, `package.json` `3.13.1`, ditampilkan di footer
+- CMS + API: **Ver 3 Rev 15**, `package.json` `3.14.0`, ditampilkan di footer
   semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.4.5 / versionCode 26`, build tag
-  `1.4.5-26-a6390a2`. Footer kios menampilkan versi APK + **versi CMS**
-  (`v1.4.5 (26) · CMS 3.13.1`). Build membawa pill `TERSEDIA` 44 px, copy
+- APK kiosk: `versionName 1.5.0 / versionCode 27`. Footer kios menampilkan
+  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.14.0`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
@@ -64,7 +63,15 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 ## Riwayat
 
-### Ver 3 Rev 14 - 2026-10-30 (rilis saat ini)
+### Ver 3 Rev 15 - 2026-11-04 (rilis saat ini)
+Toggle aksi per tablet: tombol **30 menit/sampai jam X** dan **Pilih waktu**
+dapat dimatikan dari CMS Tablet Devices (migrasi 029). Buka pintu saat ada
+meeting aktif hanya menerima kartu organizer/attendee meeting itu atau kartu
+master. Toast hasil aksi di panel kanan (hijau sukses, merah ditolak) dengan
+teks tetap dan warna berbeda. Bukti: unit server 93/93, client 99/99, regresi
+106/106, kiosk tsc + 21/21 + 3/3 + 3/3. Deploy ke UAT live 10.10.42.8.
+
+### Ver 3 Rev 14 - 2026-10-30 (rilis sebelumnya)
 Revamp UI CMS ke Ant Design 5 (light/dark), agenda/kalender, users, settings,
 branding, role matrix, audit, report, dan web kiosk. Hardening: proteksi super
 admin, validasi ID/payload, detail lantai khusus resepsionis, kartu lost,

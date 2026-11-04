@@ -112,6 +112,34 @@ const KioskDeviceManagementSection = () => {
       ),
     },
     {
+      title: t("devices.instantColumn"),
+      key: "instantEnabled",
+      width: 90,
+      render: (_, row) => (
+        <Switch
+          size="small"
+          checked={Boolean(row.instantEnabled)}
+          disabled={row.status !== "active" || isUpdatingCapabilities}
+          aria-label={t("devices.instantAria", { name: row.name })}
+          onChange={(checked) => void toggleCapability(row.id, "instantEnabled", checked)}
+        />
+      ),
+    },
+    {
+      title: t("devices.scheduleColumn"),
+      key: "scheduleEnabled",
+      width: 100,
+      render: (_, row) => (
+        <Switch
+          size="small"
+          checked={Boolean(row.scheduleEnabled)}
+          disabled={row.status !== "active" || isUpdatingCapabilities}
+          aria-label={t("devices.scheduleAria", { name: row.name })}
+          onChange={(checked) => void toggleCapability(row.id, "scheduleEnabled", checked)}
+        />
+      ),
+    },
+    {
       title: t("devices.lastSeen"),
       dataIndex: "lastSeenAt",
       key: "lastSeenAt",

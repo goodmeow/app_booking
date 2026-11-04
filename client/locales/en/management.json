@@ -41,6 +41,10 @@
     "ledAria": "LED for {{name}}",
     "subjectColumn": "Subject",
     "subjectAria": "Meeting title for {{name}}",
+    "instantColumn": "30 min",
+    "instantAria": "30-minute quick options for {{name}}",
+    "scheduleColumn": "Pick time",
+    "scheduleAria": "Pick-time option for {{name}}",
     "revokeAria": "Revoke kiosk {{name}}",
     "status": {
       "active": "Active",
