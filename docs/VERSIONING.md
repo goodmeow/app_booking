@@ -25,11 +25,11 @@ Alur default setiap bump versi (wajib, bukan opsional):
    tes client, dan tes unit server.
 3. Naikkan versi, lalu tambah baris riwayat di bawah.
 
-## Posisi saat ini (Ver 3 Rev 31)
+## Posisi saat ini (Ver 3 Rev 32)
 
-- CMS + API: **Ver 3 Rev 31**, `package.json` `3.15.15`, ditampilkan di footer
-  semua halaman CMS (dari package.json). Rev 31 menampilkan nama brand di halaman
-  login saat aset custom belum lengkap. Rev 26 menata tombol aksi Pengaturan Global
+- CMS + API: **Ver 3 Rev 32**, `package.json` `3.15.16`, ditampilkan di footer
+  semua halaman CMS (dari package.json). Rev 32 membatasi tumpukan event di
+  kalender mingguan. Rev 26 menata tombol aksi Pengaturan Global
   dan menampilkan nomor kartu penuh di log audit. Rev 24 menghapus mock logo bawaan di halaman Branding. Rev 23 menambah favicon huruf awal saat aset favicon kosong. Rev 22 melengkapi aturan aset di halaman login (tampilkan
   yang ada, lockup resmi hanya bila kosong). Rev 21 memakai lockup
   Prasada berwarna di halaman login. Rev 20 mengatur teks brand di navbar berdasarkan aset custom. Rev 19 menambahkan baris audit untuk rilis ruangan otomatis. Rev 18 hanya mengecualikan folder tes dari Prettier. Gelombang Rev 17 berisi perbaikan
@@ -40,7 +40,7 @@ Alur default setiap bump versi (wajib, bukan opsional):
   APK RustDesk dihapus. Detail di riwayat 2026-11-05.
 - APK kiosk: **tidak berubah di Rev 16/17** — tetap `versionName 1.5.0 /
   versionCode 27`, tidak perlu rebuild atau tebar ulang. Footer kios menampilkan
-  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.15`). Build membawa pill `TERSEDIA` 44 px, copy
+  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.16`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
@@ -84,7 +84,15 @@ Alur default setiap bump versi (wajib, bukan opsional):
 
 ## Riwayat
 
-### Ver 3 Rev 31 - 2026-11-05 (rilis saat ini)
+### Ver 3 Rev 32 - 2026-11-05 (rilis saat ini)
+- **Kalender mingguan tidak lagi pecah jadi strip tipis**: `eventMaxStack={3}`
+  membatasi tiga event per tumpukan, sisanya masuk tautan `+N` bawaan
+  FullCalendar. Sebelumnya enam meeting pada jam yang sama menjadi enam kolom
+  sempit dan memanjang. `package.json` 3.15.16; APK tetap 1.5.0 (27).
+- Verifikasi: cek visual UAT lokal dengan enam event tumpang tindih → 3 event +
+  `+3`; data uji dihapus lagi.
+
+### Ver 3 Rev 31 - 2026-11-05 (rilis sebelumnya)
 - **Halaman login mengikuti aturan navbar**: bila aset custom belum lengkap
   (mis. hanya ikon), nama brand tampil di bawah aset; bila keduanya lengkap,
   nama disembunyikan; bila tidak ada aset sama sekali, tetap memakai lockup

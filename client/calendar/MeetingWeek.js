@@ -252,6 +252,9 @@ const MeetingWeek = ({
             selectMirror
             weekends
             dayMaxEvents
+            // A busy day otherwise splits one column into a dozen thin strips;
+            // three stacks plus the built-in "+N more" popover stays readable.
+            eventMaxStack={3}
             selectOverlap={false}
             // The day grid is the full 24 hours: meetings before 07:00 or after
             // 20:00 must stay visible instead of silently disappearing.
