@@ -21,8 +21,8 @@ const formatDateTime = (value, language, neverLabel) =>
 
 // The room account carries either the multi-floor list or the legacy single value.
 const deviceFloors = (device) => {
-  if (device.room_floors?.length) return device.room_floors;
-  return device.room_floor ? [device.room_floor] : [];
+  if (device.roomFloors?.length) return device.roomFloors;
+  return device.roomFloor ? [device.roomFloor] : [];
 };
 
 const KioskDeviceManagementSection = () => {
@@ -91,8 +91,8 @@ const KioskDeviceManagementSection = () => {
     },
     {
       title: t("devices.floor"),
-      dataIndex: "room_floors",
-      key: "room_floors",
+      dataIndex: "roomFloors",
+      key: "roomFloors",
       render: (_, record) => {
         const floors = deviceFloors(record);
         if (!floors.length) return "-";

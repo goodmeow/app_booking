@@ -121,11 +121,17 @@ const RoleAccessMatrix = () => {
 
   return (
     <section>
-      <Space
-        align="start"
-        style={{ width: "100%", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap" }}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 12,
+          flexWrap: "wrap",
+          marginBottom: 16,
+        }}
       >
-        <div>
+        <div style={{ flex: "1 1 240px", minWidth: 0 }}>
           <Typography.Title level={5} style={{ margin: 0 }}>
             {t("settings.roleAccess.title")}
           </Typography.Title>
@@ -134,7 +140,7 @@ const RoleAccessMatrix = () => {
         <Button type="primary" onClick={save} loading={saving}>
           {saving ? t("settings.roleAccess.saving") : t("settings.roleAccess.save")}
         </Button>
-      </Space>
+      </div>
 
       <Table
         size="small"

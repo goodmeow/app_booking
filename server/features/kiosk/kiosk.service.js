@@ -95,6 +95,8 @@ export const publicKioskDevice = (device) => ({
   roomId: device.room_id,
   roomName: device.room_name,
   roomEmail: device.room_email,
+  roomFloor: device.room_floor,
+  roomFloors: device.room_floors,
   status: deviceStatus(device),
   online: Boolean(
     !device.revoked_at &&

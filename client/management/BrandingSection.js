@@ -90,11 +90,17 @@ const BrandingSection = () => {
 
   return (
     <div>
-      <Space
-        align="start"
-        style={{ width: "100%", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap" }}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 12,
+          flexWrap: "wrap",
+          marginBottom: 16,
+        }}
       >
-        <div>
+        <div style={{ flex: "1 1 240px", minWidth: 0 }}>
           <Typography.Title level={5} style={{ margin: 0 }}>
             {t("branding.title")}
           </Typography.Title>
@@ -103,7 +109,7 @@ const BrandingSection = () => {
         <Button type="primary" onClick={saveText} disabled={saving} loading={saving}>
           {t("branding.save")}
         </Button>
-      </Space>
+      </div>
 
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
         <div>
@@ -131,7 +137,9 @@ const BrandingSection = () => {
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
         {ASSETS.map(({ kind, label, previewHeight }) => (
           <div key={kind}>
-            <Typography.Text strong>{t(label)}</Typography.Text>
+            <Typography.Text strong style={{ display: "block" }}>
+              {t(label)}
+            </Typography.Text>
             <Space wrap size="middle" align="center" style={{ marginTop: 8 }}>
               {/* No bundled mock: an empty slot must look empty, not like a default logo. */}
               {branding?.assets?.[kind] ? (
