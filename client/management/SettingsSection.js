@@ -79,9 +79,6 @@ const SettingsSection = () => {
           </Typography.Title>
           <Typography.Text type="secondary">{t("settings.description")}</Typography.Text>
         </div>
-        <Button type="primary" htmlType="submit" form="settings-form" disabled={saving || !settings} loading={saving}>
-          {t("settings.save")}
-        </Button>
       </Space>
 
       {feedback ? (
@@ -97,7 +94,21 @@ const SettingsSection = () => {
       >
         <Form component={false} layout="vertical">
           <Space direction="vertical" size="large" style={{ width: "100%" }}>
-            <Card size="small" title={t("settings.generalTitle")}>
+            <Card
+              size="small"
+              title={t("settings.generalTitle")}
+              extra={
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  form="settings-form"
+                  disabled={saving || !settings}
+                  loading={saving}
+                >
+                  {t("settings.save")}
+                </Button>
+              }
+            >
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
                 {SETTINGS_NUMBER_FIELDS.map((field) => (
                   <Form.Item
@@ -141,6 +152,7 @@ const SettingsSection = () => {
               title={t("settings.backupTitle")}
               extra={
                 <Button
+                  type="primary"
                   htmlType="button"
                   onClick={backupNow}
                   disabled={saving || backingUp || !settings}
@@ -237,7 +249,7 @@ const SettingsSection = () => {
 
             {isSuperAdmin ? (
               <>
-                <Card size="small" title={t("settings.roleAccess.title")}>
+                <Card size="small">
                   <RoleAccessMatrix />
                 </Card>
                 <Card size="small" title={t("settings.audit.title")}>

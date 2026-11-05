@@ -121,7 +121,20 @@ const RoleAccessMatrix = () => {
 
   return (
     <section>
-      <Typography.Paragraph type="secondary">{t("settings.roleAccess.description")}</Typography.Paragraph>
+      <Space
+        align="start"
+        style={{ width: "100%", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap" }}
+      >
+        <div>
+          <Typography.Title level={5} style={{ margin: 0 }}>
+            {t("settings.roleAccess.title")}
+          </Typography.Title>
+          <Typography.Text type="secondary">{t("settings.roleAccess.description")}</Typography.Text>
+        </div>
+        <Button type="primary" onClick={save} loading={saving}>
+          {saving ? t("settings.roleAccess.saving") : t("settings.roleAccess.save")}
+        </Button>
+      </Space>
 
       <Table
         size="small"
@@ -139,12 +152,6 @@ const RoleAccessMatrix = () => {
       {feedback ? (
         <Alert type={feedback.severity} showIcon message={feedback.message} style={{ marginTop: 16 }} />
       ) : null}
-
-      <Space style={{ width: "100%", justifyContent: "flex-end", marginTop: 16 }}>
-        <Button type="primary" onClick={save} loading={saving}>
-          {saving ? t("settings.roleAccess.saving") : t("settings.roleAccess.save")}
-        </Button>
-      </Space>
     </section>
   );
 };

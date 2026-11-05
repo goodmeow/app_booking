@@ -210,7 +210,7 @@ perubahan, dan penghapusan pengguna (termasuk perubahan role dan lantai),
 kartu (tambah, hilang/aktif, master), reset kata sandi oleh admin, perubahan
 dan backup pengaturan, master card, serta perubahan matrix akses. Nama pelaku
 disalin saat kejadian sehingga riwayat tetap terbaca bila akunnya dihapus.
-Nomor kartu disamarkan (`****` + 4 digit terakhir). Login/logout, pembuatan
+Nomor kartu ditampilkan penuh karena tab ini hanya untuk `super_admin`. Login/logout, pembuatan
 meeting, dan check-in kiosk **tidak** masuk audit ini.
 
 Form **Pengguna** juga memiliki switch **Wajib ganti kata sandi** (bisa

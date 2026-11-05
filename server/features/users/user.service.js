@@ -106,11 +106,6 @@ const mapCardError = (error) => {
   throw error;
 };
 
-const maskedCard = (cardNumber) => {
-  const value = String(cardNumber ?? "").trim();
-  return value ? `****${value.slice(-4)}` : null;
-};
-
 const auditUserValues = (user) => ({
   role_id: user?.role_id || null,
   floor: user?.floor || null,
@@ -167,7 +162,7 @@ export const addUserCard = async (userId, cardNumber, { execute, principal } = {
         action: "user.card.add",
         entityType: "user",
         entityId: userId,
-        newValues: { card_id: card.id, card: maskedCard(normalized) },
+        newValues: { card_id: card.id, card: normalized },
       },
       execute,
     );
@@ -202,8 +197,8 @@ export const markUserCardLost = async (userId, cardId, principal, { execute } = 
       action: "user.card.status",
       entityType: "user",
       entityId: userId,
-      oldValues: { card_id: cardId, status: "active", card: maskedCard(lost.card_number) },
-      newValues: { card_id: cardId, status: "lost", card: maskedCard(lost.card_number) },
+      oldValues: { card_id: cardId, status: "active", card: lost.card_number },
+      newValues: { card_id: cardId, status: "lost", card: lost.card_number },
     },
     execute,
   );
@@ -243,8 +238,8 @@ export const reactivateUserCard = async (userId, cardId, principal, { execute } 
       action: "user.card.status",
       entityType: "user",
       entityId: userId,
-      oldValues: { card_id: cardId, status: "lost", card: maskedCard(active.card_number) },
-      newValues: { card_id: cardId, status: "active", card: maskedCard(active.card_number) },
+      oldValues: { card_id: cardId, status: "lost", card: active.card_number },
+      newValues: { card_id: cardId, status: "active", card: active.card_number },
     },
     execute,
   );
@@ -373,7 +368,7 @@ export const createUser = async (body, principal) => {
           action: "user.create",
           entityType: "user",
           entityId: user._id,
-          newValues: { ...auditUserValues(fullUser), ...(cardNumber ? { card: maskedCard(cardNumber) } : {}) },
+          newValues: { ...auditUserValues(fullUser), ...(cardNumber ? { card: cardNumber } : {}) },
         },
         execute,
       );
@@ -492,7 +487,7 @@ export const editUser = async (id, body, principal, { execute } = {}) => {
           action: "user.card.add",
           entityType: "user",
           entityId: id,
-          newValues: { card: maskedCard(cardNumber) },
+          newValues: { card: cardNumber },
         },
         execute,
       );
@@ -504,7 +499,7 @@ export const editUser = async (id, body, principal, { execute } = {}) => {
           action: "user.card.master",
           entityType: "user",
           entityId: id,
-          newValues: { card: maskedCard(cardNumber), enabled: body.master_card === true },
+          newValues: { card: cardNumber, enabled: body.master_card === true },
         },
         execute,
       );

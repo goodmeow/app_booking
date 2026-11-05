@@ -146,7 +146,7 @@ atas, berisi waktu, pelaku, aksi, dan ringkasan nilai lama/baru.
 |---|---|
 | Buat/ubah/hapus pengguna (termasuk role & lantai), kartu (tambah, hilang/aktif, master), reset sandi oleh admin, pengaturan & backup, master card, matrix akses | Login/logout, pembuatan meeting, check-in kiosk, buka pintu |
 
-Nomor kartu disamarkan (hanya 4 digit terakhir). Audit tidak bisa diubah atau
+Nomor kartu ditampilkan penuh (audit hanya bisa dibuka admin). Audit tidak bisa diubah atau
 dihapus dari CMS; untuk investigasi mendalam, tim teknis membaca
 `tbl_audit_log` langsung dari database.
 

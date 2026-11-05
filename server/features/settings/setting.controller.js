@@ -6,11 +6,6 @@ import { isSuperAdminRole } from "../../lib/roles.js";
 import { roleAllowsMenu } from "../access/menu-access.repository.js";
 import { writeAudit } from "../audit/audit.repository.js";
 
-const maskedCard = (value) =>
-  `****${String(value ?? "")
-    .trim()
-    .slice(-4)}`;
-
 const settingsAuditValues = (settings) => {
   if (!settings) return {};
   const ignored = new Set(["_id", "created_at", "updated_at", "backup_last_at", "backup_last_status"]);
@@ -160,7 +155,7 @@ export const createCard = run(async (req, res) => {
         action: "card_master.create",
         entityType: "card_master",
         entityId: created._id,
-        newValues: { card: maskedCard(created.card_number) },
+        newValues: { card: created.card_number },
       },
       execute,
     );
@@ -180,7 +175,7 @@ export const editCard = run(async (req, res) => {
         action: "card_master.update",
         entityType: "card_master",
         entityId: updated._id,
-        newValues: { card: maskedCard(updated.card_number) },
+        newValues: { card: updated.card_number },
       },
       execute,
     );
