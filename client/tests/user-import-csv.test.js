@@ -4,8 +4,8 @@ import { parseUserCsv } from "../domain/users/user-import-csv.js";
 
 test("parses quoted CSV fields and normalizes headers", () => {
   const rows = parseUserCsv(
-    '\uFEFFemployee_id,Name,email,role,floor,card_number\r\n'
-    + 'EMP-001,"Doe, Jane",jane@example.test,user,3,"123,456"\r\n',
+    "\uFEFFemployee_id,Name,email,role,floor,card_number\r\n" +
+      'EMP-001,"Doe, Jane",jane@example.test,user,3,"123,456"\r\n',
   );
   assert.equal(rows.length, 1);
   assert.equal(rows[0].employee_id, "EMP-001");

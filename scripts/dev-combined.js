@@ -24,7 +24,7 @@ const children = childScripts.map((script) =>
     stdio: "inherit",
     cwd: projectDir,
     env: process.env,
-  })
+  }),
 );
 
 let runningChildren = children.length;
@@ -61,9 +61,7 @@ for (const [index, child] of children.entries()) {
     if (!stopping) {
       const failed = code !== 0 || signal !== null;
       finalExitCode = failed ? code || 1 : 0;
-      console.log(
-        `${script} exited ${signal ? `from ${signal}` : `with code ${code}`}`
-      );
+      console.log(`${script} exited ${signal ? `from ${signal}` : `with code ${code}`}`);
       beginShutdown("SIGTERM", finalExitCode);
     }
 

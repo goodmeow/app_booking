@@ -27,14 +27,11 @@ export function normalizeLanguage(language) {
   }
 
   const normalized = language.trim().replace("_", "-");
-  const exact = SUPPORTED_LANGUAGES.find(
-    ({ code }) => code.toLowerCase() === normalized.toLowerCase()
-  );
+  const exact = SUPPORTED_LANGUAGES.find(({ code }) => code.toLowerCase() === normalized.toLowerCase());
   if (exact) return exact.code;
 
   const base = normalized.split("-")[0].toLowerCase();
-  return SUPPORTED_LANGUAGES.find(({ code }) => code.toLowerCase() === base)?.code
-    || DEFAULT_LANGUAGE;
+  return SUPPORTED_LANGUAGES.find(({ code }) => code.toLowerCase() === base)?.code || DEFAULT_LANGUAGE;
 }
 
 export function localeForLanguage(language) {

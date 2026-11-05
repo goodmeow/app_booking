@@ -30,11 +30,13 @@ export const ErrorState = ({ message, actionLabel, onAction, busy = false }) => 
       type="error"
       showIcon
       message={message ?? t("states.error")}
-      action={onAction ? (
-        <Button size="small" disabled={busy} onClick={onAction}>
-          {actionLabel ?? t("actions.retry")}
-        </Button>
-      ) : null}
+      action={
+        onAction ? (
+          <Button size="small" disabled={busy} onClick={onAction}>
+            {actionLabel ?? t("actions.retry")}
+          </Button>
+        ) : null
+      }
     />
   );
 };

@@ -7,9 +7,19 @@ export const CMS_LIBRARIES = [
   { name: "antd", version: "5.29.3", license: "MIT", url: "https://ant.design" },
   { name: "@fullcalendar/core", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io" },
   { name: "@fullcalendar/daygrid", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/month-view" },
-  { name: "@fullcalendar/interaction", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/editable" },
+  {
+    name: "@fullcalendar/interaction",
+    version: "6.1.21",
+    license: "MIT",
+    url: "https://fullcalendar.io/docs/editable",
+  },
   { name: "@fullcalendar/react", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/react" },
-  { name: "@fullcalendar/timegrid", version: "6.1.21", license: "MIT", url: "https://fullcalendar.io/docs/timegrid-view" },
+  {
+    name: "@fullcalendar/timegrid",
+    version: "6.1.21",
+    license: "MIT",
+    url: "https://fullcalendar.io/docs/timegrid-view",
+  },
   { name: "@reduxjs/toolkit", version: "1.9.7", license: "MIT", url: "https://redux-toolkit.js.org" },
   { name: "bcrypt", version: "6.0.0", license: "MIT", url: "https://github.com/kelektiv/node.bcrypt.js" },
   { name: "compression", version: "1.8.2", license: "MIT", url: "https://github.com/expressjs/compression" },
@@ -31,13 +41,28 @@ export const CMS_LIBRARIES = [
   { name: "socket.io-client", version: "4.8.3", license: "MIT", url: "https://socket.io" },
   { name: "Inter", version: "bundled", license: "OFL-1.1", url: "https://github.com/rsms/inter" },
   { name: "Public Sans", version: "bundled", license: "OFL-1.1", url: "https://github.com/uswds/public-sans" },
-  { name: "Source Serif 4", version: "bundled", license: "OFL-1.1", url: "https://github.com/adobe-fonts/source-serif" },
+  {
+    name: "Source Serif 4",
+    version: "bundled",
+    license: "OFL-1.1",
+    url: "https://github.com/adobe-fonts/source-serif",
+  },
 ];
 
 export const KIOSK_LIBRARIES = [
-  { name: "@react-native-async-storage/async-storage", version: "1.21.0", license: "MIT", url: "https://github.com/react-native-async-storage/async-storage" },
+  {
+    name: "@react-native-async-storage/async-storage",
+    version: "1.21.0",
+    license: "MIT",
+    url: "https://github.com/react-native-async-storage/async-storage",
+  },
   { name: "react", version: "18.2.0", license: "MIT", url: "https://react.dev" },
   { name: "react-native", version: "0.73.11", license: "MIT", url: "https://reactnative.dev" },
   { name: "Public Sans", version: "bundled", license: "OFL-1.1", url: "https://github.com/uswds/public-sans" },
-  { name: "Source Serif 4", version: "bundled", license: "OFL-1.1", url: "https://github.com/adobe-fonts/source-serif" },
+  {
+    name: "Source Serif 4",
+    version: "bundled",
+    license: "OFL-1.1",
+    url: "https://github.com/adobe-fonts/source-serif",
+  },
 ];

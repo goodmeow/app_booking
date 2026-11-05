@@ -23,16 +23,7 @@ process.env.HOST = host;
 
 const nodemonProcess = spawn(
   process.execPath,
-  [
-    nodemonCli,
-    "--watch",
-    "server",
-    "--watch",
-    "config",
-    "--ext",
-    "js,json",
-    "./server/server.js",
-  ],
+  [nodemonCli, "--watch", "server", "--watch", "config", "--ext", "js,json", "./server/server.js"],
   {
     stdio: "inherit",
     cwd: path.resolve(__dirname, "../"),

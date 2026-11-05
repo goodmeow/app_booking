@@ -21,22 +21,27 @@ test("weekly recurrence is deterministic and includes the end date", () => {
     recurrence: { cadence: "weekly", interval: 1, weekdays: [2, 4], endDate: "2031-04-10" },
   });
 
-  assert.deepEqual(result.occurrences.map((item) => item.localDate), [
-    "2031-04-01",
-    "2031-04-03",
-    "2031-04-08",
-    "2031-04-10",
-  ]);
-  assert.deepEqual(result.occurrences.map((item) => item.index), [0, 1, 2, 3]);
+  assert.deepEqual(
+    result.occurrences.map((item) => item.localDate),
+    ["2031-04-01", "2031-04-03", "2031-04-08", "2031-04-10"],
+  );
+  assert.deepEqual(
+    result.occurrences.map((item) => item.index),
+    [0, 1, 2, 3],
+  );
 });
 
 test("recurrence rejects impossible local dates", () => {
-  assert.throws(() => buildOccurrences({
-    start: "2031-04-01T02:00:00.000Z",
-    end: "2031-04-01T03:00:00.000Z",
-    timezone: "Asia/Jakarta",
-    recurrence: { cadence: "daily", endDate: "2031-02-30" },
-  }), (error) => error.code === "INVALID_RECURRENCE");
+  assert.throws(
+    () =>
+      buildOccurrences({
+        start: "2031-04-01T02:00:00.000Z",
+        end: "2031-04-01T03:00:00.000Z",
+        timezone: "Asia/Jakarta",
+        recurrence: { cadence: "daily", endDate: "2031-02-30" },
+      }),
+    (error) => error.code === "INVALID_RECURRENCE",
+  );
 });
 
 test("recurrence preserves wall-clock end across a DST transition", () => {
@@ -51,14 +56,22 @@ test("recurrence preserves wall-clock end across a DST transition", () => {
 });
 
 test("instant parser rejects timestamps without an explicit offset", () => {
-  assert.throws(() => parseInstant("2031-03-02T06:30:00", "start"), (error) => error.code === "INVALID_TIME");
-  assert.throws(() => parseInstant(1_930_374_600_000, "start"), (error) => error.code === "INVALID_TIME");
+  assert.throws(
+    () => parseInstant("2031-03-02T06:30:00", "start"),
+    (error) => error.code === "INVALID_TIME",
+  );
+  assert.throws(
+    () => parseInstant(1_930_374_600_000, "start"),
+    (error) => error.code === "INVALID_TIME",
+  );
 });
 
 test("logger emits only allowlisted telemetry fields", () => {
   const original = console.log;
   let output = "";
-  console.log = (value) => { output = value; };
+  console.log = (value) => {
+    output = value;
+  };
   try {
     log("info", "test_event", {
       request_id: "request-1",
@@ -163,7 +176,10 @@ test("parity reset is separated from the demo database", () => {
 test("reconstruction helper refuses implicit or live-server output", () => {
   const script = path.join(root, "scripts/reconstruct-server.mjs");
   const implicit = spawnSync(process.execPath, [script], { cwd: root, encoding: "utf8" });
-  const live = spawnSync(process.execPath, [script, "--output", "server/recovered.js"], { cwd: root, encoding: "utf8" });
+  const live = spawnSync(process.execPath, [script, "--output", "server/recovered.js"], {
+    cwd: root,
+    encoding: "utf8",
+  });
   assert.equal(implicit.status, 1);
   assert.equal(live.status, 1);
   assert.equal(fs.existsSync(path.join(root, "server/recovered.js")), false);

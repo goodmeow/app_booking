@@ -18,29 +18,22 @@ const SECOND_ADMIN_ID = "20000000-0000-4000-8000-000000000009";
 const SECOND_ADMIN_EMAIL = "second.admin@example.test";
 
 const secondAdminBearer = () => {
-  const token = jwt.sign(
-    { email: SECOND_ADMIN_EMAIL, name: "Second Admin", role: "ADMIN" },
-    testSecret,
-    {
-      algorithm: "HS256",
-      subject: SECOND_ADMIN_ID,
-      issuer: "360-scheduler",
-      audience: "360-scheduler-web",
-      expiresIn: "1h",
-    }
-  );
+  const token = jwt.sign({ email: SECOND_ADMIN_EMAIL, name: "Second Admin", role: "ADMIN" }, testSecret, {
+    algorithm: "HS256",
+    subject: SECOND_ADMIN_ID,
+    issuer: "360-scheduler",
+    audience: "360-scheduler-web",
+    expiresIn: "1h",
+  });
   return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 };
 
-const setMenu = (roleName, menuKey, allowed) => apiRequest(
-  targets.reconstructed,
-  "/api/access/matrix",
-  {
+const setMenu = (roleName, menuKey, allowed) =>
+  apiRequest(targets.reconstructed, "/api/access/matrix", {
     method: "PUT",
     headers: bearer("admin"),
     body: JSON.stringify({ access: [{ role_name: roleName, menu_key: menuKey, allowed }] }),
-  }
-);
+  });
 
 before(async () => {
   await resetParityDatabase();
@@ -89,9 +82,7 @@ test("disabling the Users menu blocks user management and is audited", async () 
   });
   assert.equal(create.status, 403);
 
-  const audit = await queryParityDatabase(
-    "SELECT count(*) FROM tbl_audit_log WHERE action = 'access.update';"
-  );
+  const audit = await queryParityDatabase("SELECT count(*) FROM tbl_audit_log WHERE action = 'access.update';");
   assert.ok(Number(audit) >= 1);
 });
 

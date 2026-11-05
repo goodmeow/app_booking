@@ -7,8 +7,11 @@ export const createHttpServer = (app, config) => {
   if (!config.isHttps) return http.createServer(app);
   const keyPath = path.resolve(config.tlsKeyPath);
   const certPath = path.resolve(config.tlsCertPath);
-  return https.createServer({
-    key: fs.readFileSync(keyPath),
-    cert: fs.readFileSync(certPath),
-  }, app);
+  return https.createServer(
+    {
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(certPath),
+    },
+    app,
+  );
 };

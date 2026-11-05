@@ -93,7 +93,9 @@ const RoomManagementSection = () => {
   const submitRoom = async (event) => {
     event.preventDefault();
     setError("");
-    const body = Object.fromEntries(Object.entries(form).map(([key, value]) => [key, typeof value === "string" ? value.trim() : value]));
+    const body = Object.fromEntries(
+      Object.entries(form).map(([key, value]) => [key, typeof value === "string" ? value.trim() : value]),
+    );
     if (!body.name || !body.email || (dialog === "create" && !body.password)) {
       setError(t("rooms.required"));
       return;
@@ -143,24 +145,36 @@ const RoomManagementSection = () => {
 
   if (rooms.isLoading) return <LoadingState label={t("rooms.loading")} />;
   const hasRoomRows = Array.isArray(rooms.data) && rooms.data.length > 0;
-  if (rooms.isError && !hasRoomRows) return <ErrorState message={getApiError(rooms.error, t("rooms.loadError"))} busy={rooms.isFetching} onAction={rooms.refetch} />;
+  if (rooms.isError && !hasRoomRows)
+    return (
+      <ErrorState
+        message={getApiError(rooms.error, t("rooms.loadError"))}
+        busy={rooms.isFetching}
+        onAction={rooms.refetch}
+      />
+    );
 
   const isEditing = dialog === "edit";
 
   return (
     <section>
-      <Space
-        align="center"
-        style={{ width: "100%", justifyContent: "space-between", marginBottom: 16 }}
-      >
-        <Typography.Title level={4} style={{ margin: 0 }}>{t("rooms.title")}</Typography.Title>
-        <Button type="primary" onClick={openCreate}>{t("rooms.add")}</Button>
+      <Space align="center" style={{ width: "100%", justifyContent: "space-between", marginBottom: 16 }}>
+        <Typography.Title level={4} style={{ margin: 0 }}>
+          {t("rooms.title")}
+        </Typography.Title>
+        <Button type="primary" onClick={openCreate}>
+          {t("rooms.add")}
+        </Button>
       </Space>
       {rooms.isFetching ? (
         <Alert type="info" showIcon message={t("common:states.refreshing")} style={{ marginBottom: 8 }} />
       ) : null}
       {rooms.isError ? (
-        <ErrorState message={getApiError(rooms.error, t("rooms.loadError"))} busy={rooms.isFetching} onAction={rooms.refetch} />
+        <ErrorState
+          message={getApiError(rooms.error, t("rooms.loadError"))}
+          busy={rooms.isFetching}
+          onAction={rooms.refetch}
+        />
       ) : null}
       <Table
         size="small"

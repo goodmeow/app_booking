@@ -12,13 +12,22 @@ import {
   useUpdateKioskDeviceCapabilitiesMutation,
 } from "../redux/services/kiosk-devices.js";
 
-const formatDateTime = (value, language, neverLabel) => value
-  ? new Intl.DateTimeFormat(localeForLanguage(language), { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
-  : neverLabel;
+const formatDateTime = (value, language, neverLabel) =>
+  value
+    ? new Intl.DateTimeFormat(localeForLanguage(language), { dateStyle: "medium", timeStyle: "short" }).format(
+        new Date(value),
+      )
+    : neverLabel;
 
 const KioskDeviceManagementSection = () => {
   const { t, i18n } = useTranslation(["management", "common"]);
-  const { data: devices = [], error: queryError, isLoading, isFetching, refetch } = useGetKioskDevicesQuery(undefined, { pollingInterval: 15000 });
+  const {
+    data: devices = [],
+    error: queryError,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetKioskDevicesQuery(undefined, { pollingInterval: 15000 });
   const [revokeDevice, { isLoading: isRevoking }] = useRevokeKioskDeviceMutation();
   const [updateCapabilities, { isLoading: isUpdatingCapabilities }] = useUpdateKioskDeviceCapabilitiesMutation();
   const [revokeTarget, setRevokeTarget] = useState(null);
@@ -59,9 +68,11 @@ const KioskDeviceManagementSection = () => {
   const statusTag = (row) => {
     if (row.status === "revoked") return <Tag color="red">{t("devices.status.revoked")}</Tag>;
     if (row.status === "expired") return <Tag color="gold">{t("devices.status.expired")}</Tag>;
-    return row.online
-      ? <Tag color="green">{t("devices.status.online")}</Tag>
-      : <Tag>{t("devices.status.offline")}</Tag>;
+    return row.online ? (
+      <Tag color="green">{t("devices.status.online")}</Tag>
+    ) : (
+      <Tag>{t("devices.status.offline")}</Tag>
+    );
   };
 
   const columns = [
@@ -157,16 +168,17 @@ const KioskDeviceManagementSection = () => {
       title: t("common:fields.action"),
       key: "actions",
       width: 120,
-      render: (_, row) => row.status === "active" ? (
-        <Button
-          danger
-          size="small"
-          onClick={() => openRevokeDialog(row)}
-          aria-label={t("devices.revokeAria", { name: row.name })}
-        >
-          {t("devices.revoke")}
-        </Button>
-      ) : null,
+      render: (_, row) =>
+        row.status === "active" ? (
+          <Button
+            danger
+            size="small"
+            onClick={() => openRevokeDialog(row)}
+            aria-label={t("devices.revokeAria", { name: row.name })}
+          >
+            {t("devices.revoke")}
+          </Button>
+        ) : null,
     },
   ];
 
@@ -177,7 +189,9 @@ const KioskDeviceManagementSection = () => {
         style={{ width: "100%", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap" }}
       >
         <div>
-          <Typography.Title level={4} style={{ margin: 0 }}>{t("devices.title")}</Typography.Title>
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            {t("devices.title")}
+          </Typography.Title>
           <Typography.Text type="secondary">{t("devices.description")}</Typography.Text>
         </div>
         {/* Plain download: the static file /apk/kiosk-release.apk shipped by Vite. */}
@@ -199,9 +213,7 @@ const KioskDeviceManagementSection = () => {
       {queryError && !isLoading ? (
         <ErrorState message={getApiError(queryError, t("devices.loadError"))} busy={isFetching} onAction={refetch} />
       ) : null}
-      {capabilityError ? (
-        <Alert type="error" showIcon message={capabilityError} style={{ marginBottom: 16 }} />
-      ) : null}
+      {capabilityError ? <Alert type="error" showIcon message={capabilityError} style={{ marginBottom: 16 }} /> : null}
       {!isLoading && (!queryError || devices.length > 0) ? (
         <Table
           size="small"

@@ -18,62 +18,61 @@ let holderCards = [];
 before(async () => {
   await resetParityDatabase();
   server = await startServer(targets.reconstructed);
-  kioskToken = (await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: identities.room.email, password: "RoomTablet123!", deviceName: "Card Model Tablet" }),
-  })).body.token;
+  kioskToken = (
+    await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: identities.room.email,
+        password: "RoomTablet123!",
+        deviceName: "Card Model Tablet",
+      }),
+    })
+  ).body.token;
 });
 
 after(async () => stopServer(server));
 
-const createEmployee = (body) => apiRequest(targets.reconstructed, "/api/users", {
-  method: "POST",
-  headers: bearer("admin"),
-  body: JSON.stringify({
-    name: "Card Holder",
-    email: "card.holder@example.test",
-    password: "Password123!",
-    roleId: USER_ROLE_ID,
-    ...body,
-  }),
-});
+const createEmployee = (body) =>
+  apiRequest(targets.reconstructed, "/api/users", {
+    method: "POST",
+    headers: bearer("admin"),
+    body: JSON.stringify({
+      name: "Card Holder",
+      email: "card.holder@example.test",
+      password: "Password123!",
+      roleId: USER_ROLE_ID,
+      ...body,
+    }),
+  });
 
-const addCard = (userId, cardNumber, token = "admin") => apiRequest(
-  targets.reconstructed,
-  `/api/users/${userId}/cards`,
-  {
+const addCard = (userId, cardNumber, token = "admin") =>
+  apiRequest(targets.reconstructed, `/api/users/${userId}/cards`, {
     method: "POST",
     headers: bearer(token),
     body: JSON.stringify({ card_number: cardNumber }),
-  }
-);
+  });
 
-const markLost = (userId, cardId, token = "admin") => apiRequest(
-  targets.reconstructed,
-  `/api/users/${userId}/cards/${cardId}`,
-  {
+const markLost = (userId, cardId, token = "admin") =>
+  apiRequest(targets.reconstructed, `/api/users/${userId}/cards/${cardId}`, {
     method: "PATCH",
     headers: bearer(token),
     body: JSON.stringify({ status: "lost" }),
-  }
-);
+  });
 
-const reactivate = (userId, cardId, token = "admin") => apiRequest(
-  targets.reconstructed,
-  `/api/users/${userId}/cards/${cardId}`,
-  {
+const reactivate = (userId, cardId, token = "admin") =>
+  apiRequest(targets.reconstructed, `/api/users/${userId}/cards/${cardId}`, {
     method: "PATCH",
     headers: bearer(token),
     body: JSON.stringify({ status: "active" }),
-  }
-);
+  });
 
-const doorOpen = (cardNumber) => apiRequest(targets.reconstructed, "/api/kiosk/door-open", {
-  method: "POST",
-  headers: { Authorization: `Bearer ${kioskToken}`, "Content-Type": "application/json" },
-  body: JSON.stringify({ card_number: cardNumber }),
-});
+const doorOpen = (cardNumber) =>
+  apiRequest(targets.reconstructed, "/api/kiosk/door-open", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${kioskToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ card_number: cardNumber }),
+  });
 
 test("creating a user requires an employee ID", async () => {
   const missing = await createEmployee({ email: "no.employee.id@example.test" });
@@ -190,7 +189,9 @@ test("the user detail keeps lost cards and hides the employee ID from non-admins
   assert.ok(lostCards[0].lost_at);
 
   // An employee still sees their own cards but never the employee ID field.
-  const self = await apiRequest(targets.reconstructed, `/api/users/${identities.user._id}`, { headers: bearer("user") });
+  const self = await apiRequest(targets.reconstructed, `/api/users/${identities.user._id}`, {
+    headers: bearer("user"),
+  });
   assert.equal(self.status, 200);
   assert.ok(Array.isArray(self.body.cards));
   assert.equal(Object.hasOwn(self.body, "employee_id"), false);
@@ -206,15 +207,11 @@ test("only admins may change cards", async () => {
   const forbiddenActive = await reactivate(holder._id, holderCards[0].id, "user");
   assert.equal(forbiddenActive.status, 403);
 
-  const wrongStatus = await apiRequest(
-    targets.reconstructed,
-    `/api/users/${holder._id}/cards/${holderCards[0].id}`,
-    {
-      method: "PATCH",
-      headers: bearer("admin"),
-      body: JSON.stringify({ status: "stolen" }),
-    }
-  );
+  const wrongStatus = await apiRequest(targets.reconstructed, `/api/users/${holder._id}/cards/${holderCards[0].id}`, {
+    method: "PATCH",
+    headers: bearer("admin"),
+    body: JSON.stringify({ status: "stolen" }),
+  });
   assert.equal(wrongStatus.status, 400);
   assert.equal(wrongStatus.body.code, "INVALID_CARD_STATUS");
 });

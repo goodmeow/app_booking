@@ -39,10 +39,7 @@ const RoleAccessMatrix = () => {
     setForm(formFromMatrix(data));
   }, [data]);
 
-  const rows = useMemo(
-    () => (data?.roles || []).filter((role) => role.role_id),
-    [data]
-  );
+  const rows = useMemo(() => (data?.roles || []).filter((role) => role.role_id), [data]);
 
   const toggle = (roleName, menuKey) => {
     setForm((current) => ({
@@ -79,7 +76,11 @@ const RoleAccessMatrix = () => {
         type="error"
         showIcon
         message={getApiError(error, t("settings.roleAccess.loadError"))}
-        action={<Button size="small" onClick={refetch}>{t("common:actions.retry")}</Button>}
+        action={
+          <Button size="small" onClick={refetch}>
+            {t("common:actions.retry")}
+          </Button>
+        }
       />
     );
   }
@@ -92,9 +93,7 @@ const RoleAccessMatrix = () => {
       fixed: "left",
       width: 180,
       render: (roleName) => (
-        <Typography.Text strong={roleName === "super_admin"}>
-          {t(roleLabelKey[roleName] || roleName)}
-        </Typography.Text>
+        <Typography.Text strong={roleName === "super_admin"}>{t(roleLabelKey[roleName] || roleName)}</Typography.Text>
       ),
     },
     ...(data?.menus || []).map((menuKey) => ({

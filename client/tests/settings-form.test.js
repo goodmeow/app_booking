@@ -20,8 +20,8 @@ const settings = {
   self_signup_enabled: false,
   week_start_day: 1,
   backup_enabled: false,
-  backup_path: '/backups',
-  backup_time: '02:30',
+  backup_path: "/backups",
+  backup_time: "02:30",
   backup_retention_days: 14,
 };
 

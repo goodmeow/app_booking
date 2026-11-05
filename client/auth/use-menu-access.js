@@ -10,7 +10,7 @@ export const useMenuAccess = () => {
   const session = isAuthenticated();
   const { data, isLoading, isError } = useGetMyMenusQuery(undefined, { skip: !session });
   const isSuperAdmin = data?.super_admin === true || isSuperAdminRole(session?.user?.role);
-  const menus = isSuperAdmin ? [...MANAGEMENT_MENUS, "calendar", "report"] : (data?.menus || []);
+  const menus = isSuperAdmin ? [...MANAGEMENT_MENUS, "calendar", "report"] : data?.menus || [];
   const can = (menuKey) => menus.includes(menuKey);
   return {
     menus,

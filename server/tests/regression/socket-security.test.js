@@ -13,13 +13,14 @@ before(async () => {
 
 after(async () => stopServer(server));
 
-const once = (socket, event, timeout = 1_500) => new Promise((resolve, reject) => {
-  const timer = setTimeout(() => reject(new Error(`${event} timeout`)), timeout);
-  socket.once(event, (value) => {
-    clearTimeout(timer);
-    resolve(value);
+const once = (socket, event, timeout = 1_500) =>
+  new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${event} timeout`)), timeout);
+    socket.once(event, (value) => {
+      clearTimeout(timer);
+      resolve(value);
+    });
   });
-});
 
 const join = (socket, room) => new Promise((resolve) => socket.emit("room:join", room, resolve));
 const leave = (socket, room) => new Promise((resolve) => socket.emit("room:leave", room, resolve));
@@ -133,32 +134,53 @@ test("Socket.io binds a kiosk token to its own room", async () => {
 });
 
 test("event invalidations reach only affected room channels", async () => {
-  const authenticateRoom = (email, deviceName) => apiRequest(targets.reconstructed, "/api/kiosk/auth", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password: "RoomTablet123!", deviceName }),
-  });
+  const authenticateRoom = (email, deviceName) =>
+    apiRequest(targets.reconstructed, "/api/kiosk/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password: "RoomTablet123!", deviceName }),
+    });
   const [roomOne, roomTwo] = await Promise.all([
     authenticateRoom("room-one@room.com", "Scoped One"),
     authenticateRoom("room-two@room.com", "Scoped Two"),
   ]);
   const socketOne = createClient(`http://127.0.0.1:${targets.reconstructed.port}`, {
-    transports: ["websocket"], reconnection: false, auth: { token: roomOne.body.token },
+    transports: ["websocket"],
+    reconnection: false,
+    auth: { token: roomOne.body.token },
   });
   const socketTwo = createClient(`http://127.0.0.1:${targets.reconstructed.port}`, {
-    transports: ["websocket"], reconnection: false, auth: { token: roomTwo.body.token },
+    transports: ["websocket"],
+    reconnection: false,
+    auth: { token: roomTwo.body.token },
   });
   try {
     await Promise.all([once(socketOne, "connect"), once(socketTwo, "connect")]);
     let unrelatedHits = 0;
-    socketTwo.on("response:event", () => { unrelatedHits += 1; });
+    socketTwo.on("response:event", () => {
+      unrelatedHits += 1;
+    });
     const relatedNotification = once(socketOne, "response:event");
     const created = await apiRequest(targets.reconstructed, "/api/events", {
       method: "POST",
       headers: bearer("admin"),
       body: JSON.stringify([
-        { organizer: "admin@example.test", subject: "Scoped socket", description: "", start_date: "2032-01-15T03:00:00.000Z", end_date: "2032-01-15T04:00:00.000Z", attendee_email: "admin@example.test" },
-        { organizer: "admin@example.test", subject: "Scoped socket", description: "", start_date: "2032-01-15T03:00:00.000Z", end_date: "2032-01-15T04:00:00.000Z", attendee_email: "room-one@room.com" },
+        {
+          organizer: "admin@example.test",
+          subject: "Scoped socket",
+          description: "",
+          start_date: "2032-01-15T03:00:00.000Z",
+          end_date: "2032-01-15T04:00:00.000Z",
+          attendee_email: "admin@example.test",
+        },
+        {
+          organizer: "admin@example.test",
+          subject: "Scoped socket",
+          description: "",
+          start_date: "2032-01-15T03:00:00.000Z",
+          end_date: "2032-01-15T04:00:00.000Z",
+          attendee_email: "room-one@room.com",
+        },
       ]),
     });
     assert.equal(created.status, 200);

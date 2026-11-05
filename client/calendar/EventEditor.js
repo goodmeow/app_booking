@@ -66,12 +66,18 @@ const safeDecode = (value) => {
 
 const EditorField = ({ label, help, required = false, children }) => (
   <Form.Item
-    label={required ? (
-      <span>
-        {label}
-        <span aria-hidden="true" style={{ color: "#ff4d4f", marginLeft: 4 }}>*</span>
-      </span>
-    ) : label}
+    label={
+      required ? (
+        <span>
+          {label}
+          <span aria-hidden="true" style={{ color: "#ff4d4f", marginLeft: 4 }}>
+            *
+          </span>
+        </span>
+      ) : (
+        label
+      )
+    }
     help={help}
     style={{ marginBottom: 0 }}
   >
@@ -79,8 +85,8 @@ const EditorField = ({ label, help, required = false, children }) => (
   </Form.Item>
 );
 
-const emailOf = (value) => typeof value === "string" ? value : value?.email || value?.attendee_email || "";
-const idOf = (value) => typeof value === "string" ? "" : value?._id || value?.attendee_user_id || value?.userId || "";
+const emailOf = (value) => (typeof value === "string" ? value : value?.email || value?.attendee_email || "");
+const idOf = (value) => (typeof value === "string" ? "" : value?._id || value?.attendee_user_id || value?.userId || "");
 
 const uniqueAttendees = (values) => {
   const seen = new Set();
@@ -147,7 +153,15 @@ const EventEditor = ({
     endTime: "23:59",
     description: "",
     bookingKind: "single",
-    recurrence: { cadence: "daily", interval: 1, endDate: "", weekdays: [], monthlyPattern: "date", monthWeekIndex: 1, monthWeekday: 1 },
+    recurrence: {
+      cadence: "daily",
+      interval: 1,
+      endDate: "",
+      weekdays: [],
+      monthlyPattern: "date",
+      monthWeekIndex: 1,
+      monthWeekday: 1,
+    },
     scope: "occurrence",
     attendees: [],
   });
@@ -175,13 +189,13 @@ const EventEditor = ({
   // stay stable between renders.
   const availableRooms = useMemo(
     () => roomsForRole(rooms, { role, floor: userFloor, floors: userFloors, isAdmin }),
-    [rooms, role, userFloor, userFloors, isAdmin]
+    [rooms, role, userFloor, userFloors, isAdmin],
   );
   const floorRoomsEmpty = !editing && isReceptionistRole(role) && availableRooms.length === 0;
   // "Organizer on behalf" is a create-only field for the front desk and admins.
   const showOnBehalf = !editing && canBookForEmployees(role);
-  const locationValue = availableRooms.find((room) => room.email === location)
-    || (location ? { name: location, email: location } : null);
+  const locationValue =
+    availableRooms.find((room) => room.email === location) || (location ? { name: location, email: location } : null);
   const organizer = eventField(event, "organizer") || sessionEmail || "";
   const eventEnd = eventField(event, "end");
   const isOrganizer = !editing || canManageBooking({ event, sessionEmail, sessionUserId, isAdmin });
@@ -210,16 +224,24 @@ const EventEditor = ({
     setDraft({
       subject: event?.title || eventField(event, "subject") || "",
       startDate: startDay,
-      startTime: freshForm ? "00:00" : (storedStart.slice(11, 16) || "00:00"),
+      startTime: freshForm ? "00:00" : storedStart.slice(11, 16) || "00:00",
       endDate: freshForm ? startDay : storedEnd.slice(0, 10),
-      endTime: freshForm ? "23:59" : (storedEnd.slice(11, 16) || "23:59"),
+      endTime: freshForm ? "23:59" : storedEnd.slice(11, 16) || "23:59",
       description: safeDecode(eventField(event, "description")),
       // The user does not choose a time zone: the server uses the application time zone.
       // When editing, the stored time zone is sent along so existing occurrences
       // do not shift.
       ...(eventField(event, "timezone") ? { timezone: eventField(event, "timezone") } : {}),
       bookingKind: "single",
-      recurrence: { cadence: "daily", interval: 1, endDate: "", weekdays: [], monthlyPattern: "date", monthWeekIndex: 1, monthWeekday: 1 },
+      recurrence: {
+        cadence: "daily",
+        interval: 1,
+        endDate: "",
+        weekdays: [],
+        monthlyPattern: "date",
+        monthWeekIndex: 1,
+        monthWeekday: 1,
+      },
       scope: "occurrence",
       attendees: initialAttendees,
     });
@@ -327,7 +349,7 @@ const EventEditor = ({
               .filter((room) => freeEmails.has(String(room.email).toLowerCase()))
               .filter((room) => String(room.email).toLowerCase() !== String(location).toLowerCase())
               .filter((room) => !room.capacity || Number(room.capacity) >= peopleCount)
-              .slice(0, 4)
+              .slice(0, 4),
           );
         } catch {
           setAlternatives([]);
@@ -339,10 +361,23 @@ const EventEditor = ({
     }, 600);
     return () => clearTimeout(timer);
   }, [
-    open, editing, readOnly, location, organizer, availableRooms,
-    startValue, endValue, draft.timezone, draft.subject, draft.description,
-    draft.bookingKind, draft.recurrence, draft.scope, draft.attendees,
-    previewEvents, fetchAvailableRooms,
+    open,
+    editing,
+    readOnly,
+    location,
+    organizer,
+    availableRooms,
+    startValue,
+    endValue,
+    draft.timezone,
+    draft.subject,
+    draft.description,
+    draft.bookingKind,
+    draft.recurrence,
+    draft.scope,
+    draft.attendees,
+    previewEvents,
+    fetchAvailableRooms,
   ]);
 
   const close = () => {
@@ -354,21 +389,27 @@ const EventEditor = ({
     const attendees = uniqueAttendees(draft.attendees);
     // Highlight the invalid chip so users can see which attendee was mistyped,
     // instead of showing a generic server message.
-    const invalidGuest = attendees.find((attendee) => !isRoomAttendee(attendee)
-      && !(attendee.attendee_user_id || attendee.userId)
-      && !isValidGuestEmail(emailOf(attendee)));
+    const invalidGuest = attendees.find(
+      (attendee) =>
+        !isRoomAttendee(attendee) &&
+        !(attendee.attendee_user_id || attendee.userId) &&
+        !isValidGuestEmail(emailOf(attendee)),
+    );
     if (invalidGuest) {
       setError(t("editor.guestInvalid", { value: emailOf(invalidGuest).trim() }));
       return;
     }
-    const validationError = validateEventDraft({
-      subject: draft.subject,
-      startDate: startValue,
-      endDate: endValue,
-      attendees,
-      bookingKind: draft.bookingKind,
-      recurrence: draft.recurrence,
-    }, { editing });
+    const validationError = validateEventDraft(
+      {
+        subject: draft.subject,
+        startDate: startValue,
+        endDate: endValue,
+        attendees,
+        bookingKind: draft.bookingKind,
+        recurrence: draft.recurrence,
+      },
+      { editing },
+    );
     if (validationError) {
       setError(t(validationError));
       return;
@@ -396,7 +437,9 @@ const EventEditor = ({
         const preview = await previewEvents(buildModernEventPayload(eventDraft)).unwrap();
         const conflictTotal = Number.isFinite(Number(preview.conflictTotal))
           ? Number(preview.conflictTotal)
-          : (Array.isArray(preview.conflicts) ? preview.conflicts.length : 0);
+          : Array.isArray(preview.conflicts)
+            ? preview.conflicts.length
+            : 0;
         if (conflictTotal > 0) {
           setError(t("editor.conflictSummary", { count: conflictTotal }));
           return;
@@ -408,9 +451,10 @@ const EventEditor = ({
       }
       if (editing) await updateEvent(buildUpdateEventPayload(eventDraft)).unwrap();
       else await storeEvent(buildCreateEventPayload(eventDraft)).unwrap();
-      const successMessage = editing || !previewSummary
-        ? t(editing ? "editor.updated" : "editor.created")
-        : `${t("editor.created")} ${previewSummary}`;
+      const successMessage =
+        editing || !previewSummary
+          ? t(editing ? "editor.updated" : "editor.created")
+          : `${t("editor.created")} ${previewSummary}`;
       setFeedback({ open: true, message: successMessage, severity: "success" });
       onClose();
     } catch (reason) {
@@ -444,7 +488,9 @@ const EventEditor = ({
         closable={!saving}
         styles={{ body: { maxHeight: "70vh", overflowY: "auto" } }}
         footer={[
-          <Button key="close" onClick={close} disabled={saving}>{t("common:actions.close")}</Button>,
+          <Button key="close" onClick={close} disabled={saving}>
+            {t("common:actions.close")}
+          </Button>,
           editing && !readOnly ? (
             <Button
               key="delete"
@@ -470,7 +516,9 @@ const EventEditor = ({
         ].filter(Boolean)}
       >
         {editing && details.isFetching && !details.data ? <LoadingState label={t("editor.loading")} /> : null}
-        {editing && details.isFetching && details.data ? <Alert type="info" showIcon message={t("common:states.refreshing")} /> : null}
+        {editing && details.isFetching && details.data ? (
+          <Alert type="info" showIcon message={t("common:states.refreshing")} />
+        ) : null}
         {editing && details.isError ? (
           <ErrorState
             message={getApiError(details.error, t("editor.loadError"))}
@@ -478,311 +526,311 @@ const EventEditor = ({
             onAction={() => details.refetch()}
           />
         ) : null}
-        {(!editing || details.data || (!details.isFetching && !details.isError)) ? (
+        {!editing || details.data || (!details.isFetching && !details.isError) ? (
           <form id="event-editor-form" onSubmit={submit}>
             <Form component={false} layout="vertical">
-            <Space direction="vertical" size="middle" style={{ width: "100%", marginTop: 8 }}>
-              {error ? <Alert type="error" showIcon message={error} /> : null}
-              {guidance ? <Alert type="success" showIcon message={guidance} /> : null}
-              {readOnly ? <Alert type="info" showIcon message={t("editor.readOnly")} /> : null}
+              <Space direction="vertical" size="middle" style={{ width: "100%", marginTop: 8 }}>
+                {error ? <Alert type="error" showIcon message={error} /> : null}
+                {guidance ? <Alert type="success" showIcon message={guidance} /> : null}
+                {readOnly ? <Alert type="info" showIcon message={t("editor.readOnly")} /> : null}
 
-              <EditorField label={t("editor.title")} required>
-                <Input
-                  autoFocus={!editing}
-                  value={draft.subject}
-                  onChange={change("subject")}
+                <EditorField label={t("editor.title")} required>
+                  <Input
+                    autoFocus={!editing}
+                    value={draft.subject}
+                    onChange={change("subject")}
+                    disabled={fieldDisabled}
+                  />
+                </EditorField>
+
+                {showOnBehalf ? (
+                  <OnBehalfPicker
+                    value={onBehalf}
+                    disabled={saving}
+                    onChange={(employee) => {
+                      setOnBehalf(employee);
+                      setError("");
+                      setGuidance("");
+                    }}
+                  />
+                ) : null}
+
+                {floorRoomsEmpty ? <Alert type="warning" showIcon message={t("editor.floorRoomsEmpty")} /> : null}
+
+                <AttendeePicker
+                  users={users}
+                  attendees={draft.attendees}
+                  value={attendeeEmails}
                   disabled={fieldDisabled}
-                />
-              </EditorField>
-
-              {showOnBehalf ? (
-                <OnBehalfPicker
-                  value={onBehalf}
-                  disabled={saving}
-                  onChange={(employee) => {
-                    setOnBehalf(employee);
+                  onChange={(people) => {
+                    setDraft((current) => {
+                      const room = current.attendees.find(isRoomAttendee);
+                      return { ...current, attendees: uniqueAttendees([...people, ...(room ? [room] : [])]) };
+                    });
                     setError("");
                     setGuidance("");
                   }}
                 />
-              ) : null}
 
-              {floorRoomsEmpty ? <Alert type="warning" showIcon message={t("editor.floorRoomsEmpty")} /> : null}
-
-              <AttendeePicker
-                users={users}
-                attendees={draft.attendees}
-                value={attendeeEmails}
-                disabled={fieldDisabled}
-                onChange={(people) => {
-                  setDraft((current) => {
-                    const room = current.attendees.find(isRoomAttendee);
-                    return { ...current, attendees: uniqueAttendees([...people, ...(room ? [room] : [])]) };
-                  });
-                  setError("");
-                  setGuidance("");
-                }}
-              />
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <EditorField label={t("editor.startDate")} required>
-                  <DatePicker
-                    value={draft.startDate ? dayjs(draft.startDate) : null}
-                    onChange={(value) => changeValue("startDate")(value ? value.format("YYYY-MM-DD") : "")}
-                    format="YYYY-MM-DD"
-                    disabled={fieldDisabled}
-                    style={{ width: "100%" }}
-                  />
-                </EditorField>
-                <EditorField label={t("editor.startTime")} required>
-                  <TimePicker
-                    value={draft.startTime ? dayjs(`2000-01-01T${draft.startTime}`) : null}
-                    onChange={(value) => changeValue("startTime")(value ? value.format("HH:mm") : "")}
-                    format="HH:mm"
-                    minuteStep={1}
-                    disabled={fieldDisabled}
-                    style={{ width: "100%" }}
-                  />
-                </EditorField>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <EditorField label={t("editor.endDate")} required>
-                  {!(!editing && draft.bookingKind === "recurring") ? (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <EditorField label={t("editor.startDate")} required>
                     <DatePicker
-                      value={draft.endDate ? dayjs(draft.endDate) : null}
-                      onChange={(value) => changeValue("endDate")(value ? value.format("YYYY-MM-DD") : "")}
+                      value={draft.startDate ? dayjs(draft.startDate) : null}
+                      onChange={(value) => changeValue("startDate")(value ? value.format("YYYY-MM-DD") : "")}
                       format="YYYY-MM-DD"
                       disabled={fieldDisabled}
                       style={{ width: "100%" }}
                     />
-                  ) : (
-                    <Input value={t("editor.endDateFollowsRepeat")} disabled />
-                  )}
-                </EditorField>
-                <EditorField label={t("editor.endTime")} required>
-                  <TimePicker
-                    value={draft.endTime ? dayjs(`2000-01-01T${draft.endTime}`) : null}
-                    onChange={(value) => changeValue("endTime")(value ? value.format("HH:mm") : "")}
-                    format="HH:mm"
-                    minuteStep={1}
-                    disabled={fieldDisabled}
-                    style={{ width: "100%" }}
-                  />
-                </EditorField>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
-                {!editing ? (
-                  <EditorField label={t("editor.bookingKind")} help={t("editor.bookingKindHelp")} required>
-                    <Select
-                      value={draft.bookingKind}
-                      onChange={changeValue("bookingKind")}
+                  </EditorField>
+                  <EditorField label={t("editor.startTime")} required>
+                    <TimePicker
+                      value={draft.startTime ? dayjs(`2000-01-01T${draft.startTime}`) : null}
+                      onChange={(value) => changeValue("startTime")(value ? value.format("HH:mm") : "")}
+                      format="HH:mm"
+                      minuteStep={1}
                       disabled={fieldDisabled}
+                      style={{ width: "100%" }}
+                    />
+                  </EditorField>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <EditorField label={t("editor.endDate")} required>
+                    {!(!editing && draft.bookingKind === "recurring") ? (
+                      <DatePicker
+                        value={draft.endDate ? dayjs(draft.endDate) : null}
+                        onChange={(value) => changeValue("endDate")(value ? value.format("YYYY-MM-DD") : "")}
+                        format="YYYY-MM-DD"
+                        disabled={fieldDisabled}
+                        style={{ width: "100%" }}
+                      />
+                    ) : (
+                      <Input value={t("editor.endDateFollowsRepeat")} disabled />
+                    )}
+                  </EditorField>
+                  <EditorField label={t("editor.endTime")} required>
+                    <TimePicker
+                      value={draft.endTime ? dayjs(`2000-01-01T${draft.endTime}`) : null}
+                      onChange={(value) => changeValue("endTime")(value ? value.format("HH:mm") : "")}
+                      format="HH:mm"
+                      minuteStep={1}
+                      disabled={fieldDisabled}
+                      style={{ width: "100%" }}
+                    />
+                  </EditorField>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
+                  {!editing ? (
+                    <EditorField label={t("editor.bookingKind")} help={t("editor.bookingKindHelp")} required>
+                      <Select
+                        value={draft.bookingKind}
+                        onChange={changeValue("bookingKind")}
+                        disabled={fieldDisabled}
+                        options={[
+                          { value: "single", label: t("editor.singleBooking") },
+                          { value: "recurring", label: t("editor.recurringBooking") },
+                        ]}
+                      />
+                    </EditorField>
+                  ) : null}
+                  <Typography.Text type="secondary">
+                    {duration ? t("editor.duration", { count: duration }) : t("editor.durationHelp")}
+                  </Typography.Text>
+                </div>
+
+                {!editing && draft.bookingKind === "recurring" ? (
+                  <div>
+                    <Divider style={{ margin: "4px 0 12px" }} />
+                    <Typography.Title level={5} style={{ marginTop: 0 }}>
+                      {t("editor.recurrenceTitle")}
+                    </Typography.Title>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                      <EditorField label={t("editor.recurrenceCadence")} required>
+                        <Select
+                          value={draft.recurrence.cadence}
+                          onChange={changeRecurrenceValue("cadence")}
+                          disabled={saving}
+                          options={[
+                            { value: "daily", label: t("editor.daily") },
+                            { value: "weekly", label: t("editor.weekly") },
+                            { value: "monthly", label: t("editor.monthly") },
+                          ]}
+                        />
+                      </EditorField>
+                      <EditorField label={t("editor.recurrenceInterval")} required>
+                        <InputNumber
+                          min={1}
+                          value={draft.recurrence.interval}
+                          onChange={(value) => changeRecurrenceValue("interval")(value ?? 1)}
+                          disabled={saving}
+                          style={{ width: "100%" }}
+                        />
+                      </EditorField>
+                      <EditorField label={t("editor.recurrenceEnd")} required>
+                        <DatePicker
+                          value={draft.recurrence.endDate ? dayjs(draft.recurrence.endDate) : null}
+                          onChange={(value) =>
+                            changeRecurrenceValue("endDate")(value ? value.format("YYYY-MM-DD") : "")
+                          }
+                          format="YYYY-MM-DD"
+                          disabled={saving}
+                          style={{ width: "100%" }}
+                        />
+                      </EditorField>
+                    </div>
+
+                    {draft.recurrence.cadence === "weekly" ? (
+                      <EditorField label={t("editor.weekdaysLabel")} help={t("editor.weekdayHelp")} required>
+                        <Checkbox.Group
+                          value={draft.recurrence.weekdays}
+                          disabled={saving}
+                          options={[0, 1, 2, 3, 4, 5, 6].map((day) => ({
+                            value: day,
+                            label: t(`editor.weekdays.${day}`),
+                          }))}
+                          onChange={(values) => {
+                            setDraft((current) => ({
+                              ...current,
+                              recurrence: { ...current.recurrence, weekdays: [...values].sort((a, b) => a - b) },
+                            }));
+                            setError("");
+                            setGuidance("");
+                          }}
+                        />
+                      </EditorField>
+                    ) : null}
+
+                    {draft.recurrence.cadence === "monthly" ? (
+                      <div style={{ marginTop: 12 }}>
+                        <EditorField label={t("editor.monthlyPatternLabel")} required>
+                          <Radio.Group
+                            value={draft.recurrence.monthlyPattern}
+                            onChange={(event) => changeRecurrenceValue("monthlyPattern")(event.target.value)}
+                            options={[
+                              { value: "date", label: t("editor.monthlyByDate") },
+                              { value: "weekday", label: t("editor.monthlyByWeekday") },
+                            ]}
+                          />
+                        </EditorField>
+                        {draft.recurrence.monthlyPattern === "weekday" ? (
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 12 }}>
+                            <EditorField label={t("editor.monthWeekLabel")} required>
+                              <Select
+                                value={draft.recurrence.monthWeekIndex}
+                                onChange={changeRecurrenceValue("monthWeekIndex")}
+                                disabled={saving}
+                                options={[
+                                  { value: 1, label: t("editor.monthWeek.1") },
+                                  { value: 2, label: t("editor.monthWeek.2") },
+                                  { value: 3, label: t("editor.monthWeek.3") },
+                                  { value: 4, label: t("editor.monthWeek.4") },
+                                  { value: -1, label: t("editor.monthWeek.last") },
+                                ]}
+                              />
+                            </EditorField>
+                            <EditorField label={t("editor.monthWeekdayLabel")} required>
+                              <Select
+                                value={draft.recurrence.monthWeekday}
+                                onChange={changeRecurrenceValue("monthWeekday")}
+                                disabled={saving}
+                                options={[0, 1, 2, 3, 4, 5, 6].map((day) => ({
+                                  value: day,
+                                  label: t(`editor.weekdays.${day}`),
+                                }))}
+                              />
+                            </EditorField>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    <Typography.Text type="secondary">{t("editor.previewHelp")}</Typography.Text>
+                  </div>
+                ) : null}
+
+                {editing && recurringEvent && !readOnly ? (
+                  <EditorField label={t("editor.scopeTitle")} help={t("editor.scopeHelp")} required>
+                    <Radio.Group
+                      value={draft.scope}
+                      onChange={(event) => changeValue("scope")(event.target.value)}
                       options={[
-                        { value: "single", label: t("editor.singleBooking") },
-                        { value: "recurring", label: t("editor.recurringBooking") },
+                        { value: "occurrence", label: t("editor.scopeOccurrence") },
+                        { value: "following", label: t("editor.scopeFollowing") },
+                        { value: "series", label: t("editor.scopeSeries") },
                       ]}
                     />
                   </EditorField>
                 ) : null}
-                <Typography.Text type="secondary">
-                  {duration ? t("editor.duration", { count: duration }) : t("editor.durationHelp")}
-                </Typography.Text>
-              </div>
 
-              {!editing && draft.bookingKind === "recurring" ? (
-                <div>
-                  <Divider style={{ margin: "4px 0 12px" }} />
-                  <Typography.Title level={5} style={{ marginTop: 0 }}>
-                    {t("editor.recurrenceTitle")}
-                  </Typography.Title>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-                    <EditorField label={t("editor.recurrenceCadence")} required>
-                      <Select
-                        value={draft.recurrence.cadence}
-                        onChange={changeRecurrenceValue("cadence")}
-                        disabled={saving}
-                        options={[
-                          { value: "daily", label: t("editor.daily") },
-                          { value: "weekly", label: t("editor.weekly") },
-                          { value: "monthly", label: t("editor.monthly") },
-                        ]}
-                      />
-                    </EditorField>
-                    <EditorField label={t("editor.recurrenceInterval")} required>
-                      <InputNumber
-                        min={1}
-                        value={draft.recurrence.interval}
-                        onChange={(value) => changeRecurrenceValue("interval")(value ?? 1)}
-                        disabled={saving}
-                        style={{ width: "100%" }}
-                      />
-                    </EditorField>
-                    <EditorField label={t("editor.recurrenceEnd")} required>
-                      <DatePicker
-                        value={draft.recurrence.endDate ? dayjs(draft.recurrence.endDate) : null}
-                        onChange={(value) => changeRecurrenceValue("endDate")(value ? value.format("YYYY-MM-DD") : "")}
-                        format="YYYY-MM-DD"
-                        disabled={saving}
-                        style={{ width: "100%" }}
-                      />
-                    </EditorField>
-                  </div>
-
-                  {draft.recurrence.cadence === "weekly" ? (
-                    <EditorField
-                      label={t("editor.weekdaysLabel")}
-                      help={t("editor.weekdayHelp")}
-                      required
-                    >
-                      <Checkbox.Group
-                        value={draft.recurrence.weekdays}
-                        disabled={saving}
-                        options={[0, 1, 2, 3, 4, 5, 6].map((day) => ({
-                          value: day,
-                          label: t(`editor.weekdays.${day}`),
-                        }))}
-                        onChange={(values) => {
-                          setDraft((current) => ({
-                            ...current,
-                            recurrence: { ...current.recurrence, weekdays: [...values].sort((a, b) => a - b) },
-                          }));
-                          setError("");
-                          setGuidance("");
-                        }}
-                      />
-                    </EditorField>
-                  ) : null}
-
-                  {draft.recurrence.cadence === "monthly" ? (
-                    <div style={{ marginTop: 12 }}>
-                      <EditorField label={t("editor.monthlyPatternLabel")} required>
-                        <Radio.Group
-                          value={draft.recurrence.monthlyPattern}
-                          onChange={(event) => changeRecurrenceValue("monthlyPattern")(event.target.value)}
-                          options={[
-                            { value: "date", label: t("editor.monthlyByDate") },
-                            { value: "weekday", label: t("editor.monthlyByWeekday") },
-                          ]}
-                        />
-                      </EditorField>
-                      {draft.recurrence.monthlyPattern === "weekday" ? (
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 12 }}>
-                          <EditorField label={t("editor.monthWeekLabel")} required>
-                            <Select
-                              value={draft.recurrence.monthWeekIndex}
-                              onChange={changeRecurrenceValue("monthWeekIndex")}
-                              disabled={saving}
-                              options={[
-                                { value: 1, label: t("editor.monthWeek.1") },
-                                { value: 2, label: t("editor.monthWeek.2") },
-                                { value: 3, label: t("editor.monthWeek.3") },
-                                { value: 4, label: t("editor.monthWeek.4") },
-                                { value: -1, label: t("editor.monthWeek.last") },
-                              ]}
-                            />
-                          </EditorField>
-                          <EditorField label={t("editor.monthWeekdayLabel")} required>
-                            <Select
-                              value={draft.recurrence.monthWeekday}
-                              onChange={changeRecurrenceValue("monthWeekday")}
-                              disabled={saving}
-                              options={[0, 1, 2, 3, 4, 5, 6].map((day) => ({
-                                value: day,
-                                label: t(`editor.weekdays.${day}`),
-                              }))}
-                            />
-                          </EditorField>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  <Typography.Text type="secondary">{t("editor.previewHelp")}</Typography.Text>
-                </div>
-              ) : null}
-
-              {editing && recurringEvent && !readOnly ? (
-                <EditorField label={t("editor.scopeTitle")} help={t("editor.scopeHelp")} required>
-                  <Radio.Group
-                    value={draft.scope}
-                    onChange={(event) => changeValue("scope")(event.target.value)}
+                <EditorField label={t("editor.location")} required>
+                  <Select
+                    showSearch
+                    allowClear
+                    optionFilterProp="label"
+                    value={locationValue?.email}
                     options={[
-                      { value: "occurrence", label: t("editor.scopeOccurrence") },
-                      { value: "following", label: t("editor.scopeFollowing") },
-                      { value: "series", label: t("editor.scopeSeries") },
+                      ...availableRooms.map((room) => ({ value: room.email, label: room.name || room.email })),
+                      ...(locationValue && !availableRooms.some((room) => room.email === locationValue.email)
+                        ? [{ value: locationValue.email, label: locationValue.name || locationValue.email }]
+                        : []),
                     ]}
+                    onChange={(email) => {
+                      if (!email) {
+                        selectRoom(null);
+                        return;
+                      }
+                      selectRoom(
+                        availableRooms.find((room) => room.email === email) ||
+                          (locationValue?.email === email ? locationValue : null),
+                      );
+                    }}
+                    disabled={fieldDisabled || floorRoomsEmpty}
+                    aria-required="true"
+                    placeholder={t("editor.location")}
+                    style={{ width: "100%" }}
                   />
                 </EditorField>
-              ) : null}
 
-              <EditorField label={t("editor.location")} required>
-                <Select
-                  showSearch
-                  allowClear
-                  optionFilterProp="label"
-                  value={locationValue?.email}
-                  options={[
-                    ...availableRooms.map((room) => ({ value: room.email, label: room.name || room.email })),
-                    ...(locationValue && !availableRooms.some((room) => room.email === locationValue.email)
-                      ? [{ value: locationValue.email, label: locationValue.name || locationValue.email }]
-                      : []),
-                  ]}
-                  onChange={(email) => {
-                    if (!email) {
-                      selectRoom(null);
-                      return;
-                    }
-                    selectRoom(
-                      availableRooms.find((room) => room.email === email)
-                      || (locationValue?.email === email ? locationValue : null)
-                    );
-                  }}
-                  disabled={fieldDisabled || floorRoomsEmpty}
-                  aria-required="true"
-                  placeholder={t("editor.location")}
-                  style={{ width: "100%" }}
-                />
-              </EditorField>
-
-              {conflictCount > 0 ? (
-                <Alert
-                  type="warning"
-                  showIcon
-                  message={t("calendar.conflictDetected")}
-                  description={(
-                    <div>
-                      {conflictTruncated ? (
-                        <Typography.Text type="secondary" style={{ display: "block" }}>
-                          {t("calendar.conflictTruncated", { shown: conflictShown, total: conflictCount })}
+                {conflictCount > 0 ? (
+                  <Alert
+                    type="warning"
+                    showIcon
+                    message={t("calendar.conflictDetected")}
+                    description={
+                      <div>
+                        {conflictTruncated ? (
+                          <Typography.Text type="secondary" style={{ display: "block" }}>
+                            {t("calendar.conflictTruncated", { shown: conflictShown, total: conflictCount })}
+                          </Typography.Text>
+                        ) : null}
+                        <Typography.Text type="secondary" style={{ display: "block", marginTop: 4 }}>
+                          {t("calendar.alternativesTitle")}
                         </Typography.Text>
-                      ) : null}
-                      <Typography.Text type="secondary" style={{ display: "block", marginTop: 4 }}>
-                        {t("calendar.alternativesTitle")}
-                      </Typography.Text>
-                      <Space wrap style={{ marginTop: 8 }}>
-                        {alternatives.length ? alternatives.map((room) => (
-                          <Button key={room._id} size="small" onClick={() => selectRoom(room)}>
-                            {room.name}
-                          </Button>
-                        )) : (
-                          <Typography.Text type="secondary">{t("calendar.noAlternatives")}</Typography.Text>
-                        )}
-                      </Space>
-                    </div>
-                  )}
-                />
-              ) : null}
+                        <Space wrap style={{ marginTop: 8 }}>
+                          {alternatives.length ? (
+                            alternatives.map((room) => (
+                              <Button key={room._id} size="small" onClick={() => selectRoom(room)}>
+                                {room.name}
+                              </Button>
+                            ))
+                          ) : (
+                            <Typography.Text type="secondary">{t("calendar.noAlternatives")}</Typography.Text>
+                          )}
+                        </Space>
+                      </div>
+                    }
+                  />
+                ) : null}
 
-              <EditorField label={t("editor.description")}>
-                <Input.TextArea
-                  rows={3}
-                  value={draft.description}
-                  onChange={change("description")}
-                  disabled={fieldDisabled}
-                />
-              </EditorField>
-            </Space>
+                <EditorField label={t("editor.description")}>
+                  <Input.TextArea
+                    rows={3}
+                    value={draft.description}
+                    onChange={change("description")}
+                    disabled={fieldDisabled}
+                  />
+                </EditorField>
+              </Space>
             </Form>
           </form>
         ) : null}

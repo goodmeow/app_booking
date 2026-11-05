@@ -9,7 +9,10 @@ const clientAddress = (req) => req.ip || req.socket?.remoteAddress || "unknown";
 // that shares an IP or proxy is not locked out by other people's attempts.
 export const ipAndLoginKey = (req) => {
   const body = req.body && typeof req.body === "object" ? req.body : {};
-  const login = String(body.email || body.username || "").trim().toLowerCase().slice(0, 254);
+  const login = String(body.email || body.username || "")
+    .trim()
+    .toLowerCase()
+    .slice(0, 254);
   return `${clientAddress(req)}|${login}`;
 };
 
@@ -36,9 +39,7 @@ export const fixedWindowRateLimit = ({
     const current = clients.get(key);
     if (!current && clients.size >= maxKeys) clients.delete(clients.keys().next().value);
 
-    const entry = !current || current.resetAt <= now
-      ? { count: 0, resetAt: now + windowMs }
-      : current;
+    const entry = !current || current.resetAt <= now ? { count: 0, resetAt: now + windowMs } : current;
     entry.count += 1;
     clients.set(key, entry);
 

@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { apiRequest, queryParityDatabase, resetParityDatabase, startServer, stopServer, targets } from "../parity/harness.js";
+import {
+  apiRequest,
+  queryParityDatabase,
+  resetParityDatabase,
+  startServer,
+  stopServer,
+  targets,
+} from "../parity/harness.js";
 import { bearer, identities } from "../parity/fixtures.js";
 
 let server;
@@ -17,14 +24,29 @@ after(async () => stopServer(server));
 
 const kioskHeaders = () => ({ Authorization: `Bearer ${kioskToken}`, "Content-Type": "application/json" });
 
-const createMeeting = async ({ room, subject, start, end }) => apiRequest(targets.reconstructed, "/api/events", {
-  method: "POST",
-  headers: bearer("admin"),
-  body: JSON.stringify([
-    { organizer: identities.admin.email, subject, description: "private", start_date: start, end_date: end, attendee_email: identities.admin.email },
-    { organizer: identities.admin.email, subject, description: "private", start_date: start, end_date: end, attendee_email: room },
-  ]),
-});
+const createMeeting = async ({ room, subject, start, end }) =>
+  apiRequest(targets.reconstructed, "/api/events", {
+    method: "POST",
+    headers: bearer("admin"),
+    body: JSON.stringify([
+      {
+        organizer: identities.admin.email,
+        subject,
+        description: "private",
+        start_date: start,
+        end_date: end,
+        attendee_email: identities.admin.email,
+      },
+      {
+        organizer: identities.admin.email,
+        subject,
+        description: "private",
+        start_date: start,
+        end_date: end,
+        attendee_email: room,
+      },
+    ]),
+  });
 
 test("room credentials create an isolated kiosk session", async () => {
   const invalid = await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
@@ -37,7 +59,11 @@ test("room credentials create an isolated kiosk session", async () => {
   const authenticated = await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: identities.room.email, password: "RoomTablet123!", deviceName: "Room One Test Tablet" }),
+    body: JSON.stringify({
+      email: identities.room.email,
+      password: "RoomTablet123!",
+      deviceName: "Room One Test Tablet",
+    }),
   });
   assert.equal(authenticated.status, 200);
   assert.ok(authenticated.body.token);
@@ -51,7 +77,9 @@ test("room credentials create an isolated kiosk session", async () => {
 
   const employeeToken = await apiRequest(targets.reconstructed, "/api/kiosk/context", { headers: bearer("admin") });
   assert.equal(employeeToken.status, 401);
-  const webEndpoint = await apiRequest(targets.reconstructed, "/api/events?start=20300101&end=20300131", { headers: kioskHeaders() });
+  const webEndpoint = await apiRequest(targets.reconstructed, "/api/events?start=20300101&end=20300131", {
+    headers: kioskHeaders(),
+  });
   assert.equal(webEndpoint.status, 401);
 });
 
@@ -78,26 +106,28 @@ test("concurrent pairing cannot create two active tablets for one room", async (
   });
   assert.equal(created.status, 201);
 
-  const attempt = () => apiRequest(targets.reconstructed, "/api/kiosk/auth", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email: "concurrent-pairing@room.test",
-      password: "RoomTablet123!",
-      deviceName: "Concurrent Tablet",
-    }),
-  });
+  const attempt = () =>
+    apiRequest(targets.reconstructed, "/api/kiosk/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: "concurrent-pairing@room.test",
+        password: "RoomTablet123!",
+        deviceName: "Concurrent Tablet",
+      }),
+    });
   const results = await Promise.all([attempt(), attempt()]);
   assert.deepEqual(results.map((result) => result.status).sort(), [200, 409]);
   assert.equal(results.find((result) => result.status === 409).body.code, "ROOM_ALREADY_PAIRED");
 });
 
 test("kiosk door accepts master and employee cards but not unknown cards", async () => {
-  const attempt = (card_number) => apiRequest(targets.reconstructed, "/api/kiosk/door-open", {
-    method: "POST",
-    headers: kioskHeaders(),
-    body: JSON.stringify({ card_number }),
-  });
+  const attempt = (card_number) =>
+    apiRequest(targets.reconstructed, "/api/kiosk/door-open", {
+      method: "POST",
+      headers: kioskHeaders(),
+      body: JSON.stringify({ card_number }),
+    });
 
   const master = await attempt("TEST-MASTER-CARD");
   assert.equal(master.status, 200);
@@ -136,11 +166,12 @@ test("kiosk door only accepts the meeting's people while it is running", async (
   assert.equal(created.status, 200);
   const eventId = created.body[0].id;
 
-  const attempt = (card_number) => apiRequest(targets.reconstructed, "/api/kiosk/door-open", {
-    method: "POST",
-    headers: kioskHeaders(),
-    body: JSON.stringify({ card_number }),
-  });
+  const attempt = (card_number) =>
+    apiRequest(targets.reconstructed, "/api/kiosk/door-open", {
+      method: "POST",
+      headers: kioskHeaders(),
+      body: JSON.stringify({ card_number }),
+    });
 
   // Master card may represent anyone; the organizer/attendee may open.
   assert.equal((await attempt("TEST-MASTER-CARD")).status, 200);
@@ -164,11 +195,12 @@ test("kiosk door only accepts the meeting's people while it is running", async (
 test("kiosk refresh tolerates one lost response then rejects replay", async () => {
   const previousToken = kioskToken;
   const previousRefresh = kioskRefreshToken;
-  const refreshPrevious = () => apiRequest(targets.reconstructed, "/api/kiosk/refresh", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken: previousRefresh }),
-  });
+  const refreshPrevious = () =>
+    apiRequest(targets.reconstructed, "/api/kiosk/refresh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken: previousRefresh }),
+    });
   const [refreshed, concurrentRetry] = await Promise.all([refreshPrevious(), refreshPrevious()]);
   assert.equal(refreshed.status, 200);
   assert.equal(concurrentRetry.status, 200);
@@ -229,7 +261,7 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
       method: "PATCH",
       headers: bearer("user"),
       body: JSON.stringify({ nfcEnabled: true }),
-    }
+    },
   );
   assert.equal(capabilityDenied.status, 403);
   const invalidCapability = await apiRequest(
@@ -239,7 +271,7 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
       method: "PATCH",
       headers: bearer("admin"),
       body: JSON.stringify({ ledEnabled: "yes" }),
-    }
+    },
   );
   assert.equal(invalidCapability.status, 400);
   const invalidActionToggle = await apiRequest(
@@ -249,18 +281,14 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
       method: "PATCH",
       headers: bearer("admin"),
       body: JSON.stringify({ instantEnabled: "yes" }),
-    }
+    },
   );
   assert.equal(invalidActionToggle.status, 400);
-  const capability = await apiRequest(
-    targets.reconstructed,
-    `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
-    {
-      method: "PATCH",
-      headers: bearer("admin"),
-      body: JSON.stringify({ nfcEnabled: true, ledEnabled: true, instantEnabled: false, scheduleEnabled: false }),
-    }
-  );
+  const capability = await apiRequest(targets.reconstructed, `/api/kiosk/devices/${kioskDevice.id}/capabilities`, {
+    method: "PATCH",
+    headers: bearer("admin"),
+    body: JSON.stringify({ nfcEnabled: true, ledEnabled: true, instantEnabled: false, scheduleEnabled: false }),
+  });
   assert.equal(capability.status, 200);
   assert.equal(capability.body.nfcEnabled, true);
   assert.equal(capability.body.ledEnabled, true);
@@ -275,29 +303,21 @@ test("administrators manage capabilities and revoke individual kiosk devices", a
   assert.equal(capabilityContext.body.device.instantEnabled, false);
   assert.equal(capabilityContext.body.device.scheduleEnabled, false);
 
-  const hideTitle = await apiRequest(
-    targets.reconstructed,
-    `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
-    {
-      method: "PATCH",
-      headers: bearer("admin"),
-      body: JSON.stringify({ showSubject: false }),
-    }
-  );
+  const hideTitle = await apiRequest(targets.reconstructed, `/api/kiosk/devices/${kioskDevice.id}/capabilities`, {
+    method: "PATCH",
+    headers: bearer("admin"),
+    body: JSON.stringify({ showSubject: false }),
+  });
   assert.equal(hideTitle.status, 200);
   assert.equal(hideTitle.body.showSubject, false);
   const hiddenContext = await apiRequest(targets.reconstructed, "/api/kiosk/context", { headers: kioskHeaders() });
   assert.equal(hiddenContext.body.device.showSubject, false);
   // Restore the defaults so later tests still see the title and both actions.
-  const restoreTitle = await apiRequest(
-    targets.reconstructed,
-    `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
-    {
-      method: "PATCH",
-      headers: bearer("admin"),
-      body: JSON.stringify({ showSubject: true, instantEnabled: true, scheduleEnabled: true }),
-    }
-  );
+  const restoreTitle = await apiRequest(targets.reconstructed, `/api/kiosk/devices/${kioskDevice.id}/capabilities`, {
+    method: "PATCH",
+    headers: bearer("admin"),
+    body: JSON.stringify({ showSubject: true, instantEnabled: true, scheduleEnabled: true }),
+  });
   assert.equal(restoreTitle.status, 200);
   assert.equal(restoreTitle.body.showSubject, true);
   assert.equal(restoreTitle.body.instantEnabled, true);
@@ -357,35 +377,47 @@ test("kiosk context and schedule are bound to one room with a safe projection", 
   const schedule = await apiRequest(
     targets.reconstructed,
     "/api/kiosk/schedule?start=20300101&end=20300131&rooms=room-two%40room.com",
-    { headers: kioskHeaders() }
+    { headers: kioskHeaders() },
   );
   assert.equal(schedule.status, 200);
   assert.ok(schedule.body.some((event) => event.id === "60000000-0000-4000-8000-000000000001"));
-  assert.equal(schedule.body.some((event) => event.id === roomTwoEvent.body[0].id), false);
+  assert.equal(
+    schedule.body.some((event) => event.id === roomTwoEvent.body[0].id),
+    false,
+  );
   for (const event of schedule.body) {
     assert.deepEqual(Object.keys(event).sort(), [
-      "canCheckIn", "canFinish", "checkedIn", "checkedInAt", "end", "id", "organizerFirstName", "organizerName", "start", "subject", "timezone", "title",
+      "canCheckIn",
+      "canFinish",
+      "checkedIn",
+      "checkedInAt",
+      "end",
+      "id",
+      "organizerFirstName",
+      "organizerName",
+      "start",
+      "subject",
+      "timezone",
+      "title",
     ]);
     assert.equal(event.title.includes("Private"), false);
   }
-  const seededRoomOneEvent = schedule.body.find(
-    (event) => event.id === "60000000-0000-4000-8000-000000000001"
-  );
+  const seededRoomOneEvent = schedule.body.find((event) => event.id === "60000000-0000-4000-8000-000000000001");
   // Device default: the title is shown, as set by the database seed.
   assert.equal(seededRoomOneEvent.subject, "Test Meeting");
   assert.ok(seededRoomOneEvent.organizerName);
 
   // Admin menyembunyikan judul: schedule memasok null, personalisasi hilang.
-  const hideTitles = await apiRequest(
-    targets.reconstructed,
-    `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
-    { method: "PATCH", headers: bearer("admin"), body: JSON.stringify({ showSubject: false }) }
-  );
+  const hideTitles = await apiRequest(targets.reconstructed, `/api/kiosk/devices/${kioskDevice.id}/capabilities`, {
+    method: "PATCH",
+    headers: bearer("admin"),
+    body: JSON.stringify({ showSubject: false }),
+  });
   assert.equal(hideTitles.status, 200);
   const hiddenSchedule = await apiRequest(
     targets.reconstructed,
     "/api/kiosk/schedule?start=20300101&end=20300131&rooms=room-two%40room.com",
-    { headers: kioskHeaders() }
+    { headers: kioskHeaders() },
   );
   assert.equal(hiddenSchedule.status, 200);
   for (const event of hiddenSchedule.body) {
@@ -396,11 +428,11 @@ test("kiosk context and schedule are bound to one room with a safe projection", 
   }
 
   // Show it again so the device setting returns to the default (shown).
-  const showTitles = await apiRequest(
-    targets.reconstructed,
-    `/api/kiosk/devices/${kioskDevice.id}/capabilities`,
-    { method: "PATCH", headers: bearer("admin"), body: JSON.stringify({ showSubject: true }) }
-  );
+  const showTitles = await apiRequest(targets.reconstructed, `/api/kiosk/devices/${kioskDevice.id}/capabilities`, {
+    method: "PATCH",
+    headers: bearer("admin"),
+    body: JSON.stringify({ showSubject: true }),
+  });
   assert.equal(showTitles.status, 200);
 });
 
@@ -412,7 +444,9 @@ test("kiosk device status reflects live last-seen", async () => {
   assert.equal(online.status, 200);
   assert.equal(online.body.find((item) => item.id === kioskDevice.id).online, true);
 
-  await queryParityDatabase(`UPDATE tbl_kiosk_devices SET last_seen_at = now() - interval '10 minutes' WHERE _id = '${kioskDevice.id}';`);
+  await queryParityDatabase(
+    `UPDATE tbl_kiosk_devices SET last_seen_at = now() - interval '10 minutes' WHERE _id = '${kioskDevice.id}';`,
+  );
   const stale = await apiRequest(targets.reconstructed, "/api/kiosk/devices", { headers: bearer("admin") });
   assert.equal(stale.body.find((item) => item.id === kioskDevice.id).online, false);
 });
@@ -461,7 +495,12 @@ test("kiosk check-in and early finish require room ownership and an authorized c
     body: JSON.stringify({ event_id: own.body[0].id, card_number: "TEST-MASTER-CARD" }),
   });
   assert.equal(finished.status, 200);
-  assert.equal(await queryParityDatabase(`SELECT end_date <= now() AT TIME ZONE timezone FROM tbl_events WHERE _id='${own.body[0].id}';`), "t");
+  assert.equal(
+    await queryParityDatabase(
+      `SELECT end_date <= now() AT TIME ZONE timezone FROM tbl_events WHERE _id='${own.body[0].id}';`,
+    ),
+    "t",
+  );
 });
 
 test("kiosk instant booking starts for an employee card and refuses a second overlap", async () => {
@@ -485,7 +524,7 @@ test("kiosk instant booking starts for an employee card and refuses a second ove
   assert.equal(created.body.checkedIn, true);
   assert.equal(
     await queryParityDatabase(`SELECT checked_in IS NOT NULL FROM tbl_events WHERE _id = '${created.body.id}';`),
-    "t"
+    "t",
   );
 
   const status = await apiRequest(targets.reconstructed, "/api/rooms/status", { headers: bearer("admin") });
@@ -577,4 +616,3 @@ test("changing a room password revokes every paired device", async () => {
   });
   assert.equal(refresh.status, 401);
 });
-

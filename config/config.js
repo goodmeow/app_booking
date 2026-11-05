@@ -8,13 +8,14 @@ const env = process.env;
 const host = env.HOST || "localhost";
 const clientPort = env.PORT || "8081";
 const serverPort = env.SERVER_PORT || "9091";
-const trustProxy = !env.TRUST_PROXY || env.TRUST_PROXY === "false"
-  ? false
-  : env.TRUST_PROXY === "true"
-    ? true
-    : /^\d+$/.test(env.TRUST_PROXY)
-      ? Number(env.TRUST_PROXY)
-      : env.TRUST_PROXY;
+const trustProxy =
+  !env.TRUST_PROXY || env.TRUST_PROXY === "false"
+    ? false
+    : env.TRUST_PROXY === "true"
+      ? true
+      : /^\d+$/.test(env.TRUST_PROXY)
+        ? Number(env.TRUST_PROXY)
+        : env.TRUST_PROXY;
 const baseUrl = `${env.HTTPS === "true" ? "https" : "http"}://${host}:${clientPort}`;
 const corsOrigins = (env.CORS_ORIGINS || baseUrl || "http://localhost:3000")
   .split(",")

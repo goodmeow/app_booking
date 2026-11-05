@@ -7,10 +7,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
-const viteCli = path.join(
-  path.dirname(require.resolve("vite/package.json")),
-  "bin/vite.js",
-);
+const viteCli = path.join(path.dirname(require.resolve("vite/package.json")), "bin/vite.js");
 
 // Load environment variables
 config({ path: path.resolve(__dirname, "../.env") });

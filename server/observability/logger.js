@@ -9,9 +9,8 @@ const allowedFields = new Set([
   "count",
 ]);
 
-const safeFields = (fields = {}) => Object.fromEntries(
-  Object.entries(fields).filter(([key, value]) => allowedFields.has(key) && value !== undefined)
-);
+const safeFields = (fields = {}) =>
+  Object.fromEntries(Object.entries(fields).filter(([key, value]) => allowedFields.has(key) && value !== undefined));
 
 export const log = (severity, event, fields) => {
   const entry = {

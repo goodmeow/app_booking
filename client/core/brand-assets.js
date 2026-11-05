@@ -4,5 +4,4 @@ export const BRAND_FALLBACKS = {
   favicon: "/the-prasada-mark.png",
 };
 
-export const brandAsset = (branding, kind) =>
-  branding?.assets?.[kind] || BRAND_FALLBACKS[kind] || "";
+export const brandAsset = (branding, kind) => branding?.assets?.[kind] || BRAND_FALLBACKS[kind] || "";

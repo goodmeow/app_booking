@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-import {
-  Alert,
-  Button,
-  Card,
-  Form,
-  Input,
-  Typography,
-  theme,
-} from "antd";
+import { Alert, Button, Card, Form, Input, Typography, theme } from "antd";
 import { MoonOutlined, SunOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { authenticate, signin } from "./auth-helper.js";
@@ -127,11 +119,7 @@ const InitialSetup = () => {
           >
             <Input type="email" autoComplete="email" />
           </Form.Item>
-          <Form.Item
-            name="employeeId"
-            label={t("auth:setup.employeeId")}
-            extra={t("auth:setup.employeeIdHelp")}
-          >
+          <Form.Item name="employeeId" label={t("auth:setup.employeeId")} extra={t("auth:setup.employeeIdHelp")}>
             <Input autoComplete="off" />
           </Form.Item>
           <Form.Item

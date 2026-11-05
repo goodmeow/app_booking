@@ -87,9 +87,7 @@ const UserCardsDialog = ({
           value={cardNumber}
           onChange={(event) => setCardNumber(event.target.value)}
         />
-        {limitReached ? (
-          <Typography.Text type="secondary">{t("users.cardLimit")}</Typography.Text>
-        ) : null}
+        {limitReached ? <Typography.Text type="secondary">{t("users.cardLimit")}</Typography.Text> : null}
       </div>
     </Space>
   </FormDialog>

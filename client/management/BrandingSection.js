@@ -18,12 +18,13 @@ const ASSETS = [
 const MAX_BYTES = 512 * 1024;
 const ALLOWED = new Set(["image/png", "image/jpeg", "image/webp", "image/x-icon", "image/vnd.microsoft.icon"]);
 
-const fileToDataUrl = (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = () => resolve(String(reader.result || ""));
-  reader.onerror = () => reject(new Error("read failed"));
-  reader.readAsDataURL(file);
-});
+const fileToDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("read failed"));
+    reader.readAsDataURL(file);
+  });
 
 const BrandingSection = () => {
   const { t } = useTranslation("management");
@@ -148,7 +149,9 @@ const BrandingSection = () => {
                 <Button disabled={uploading}>{t("branding.upload")}</Button>
               </Upload>
               {branding?.assets?.[kind] ? (
-                <Button onClick={() => reset(kind)} disabled={uploading}>{t("branding.reset")}</Button>
+                <Button onClick={() => reset(kind)} disabled={uploading}>
+                  {t("branding.reset")}
+                </Button>
               ) : null}
             </Space>
           </div>

@@ -62,9 +62,5 @@ export const getApiError = (error, fallback, translate = i18n.t.bind(i18n)) => {
   if (translationKey) return translate(`common:${translationKey}`);
   if (code) return fallback || translate("common:apiErrors.requestFailed");
 
-  return error?.data?.error
-    || error?.error
-    || error?.message
-    || fallback
-    || translate("common:states.error");
+  return error?.data?.error || error?.error || error?.message || fallback || translate("common:states.error");
 };

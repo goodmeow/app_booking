@@ -14,14 +14,16 @@ const ProfileSummaryCard = ({ user, isOwner, onEdit, onChangePassword }) => {
 
   return (
     <Space direction="vertical" size="large" align="center" style={{ width: "100%" }}>
-      <Avatar size={88} icon={<UserOutlined />} style={{ background: token.colorPrimary, color: token.colorTextLightSolid }} />
+      <Avatar
+        size={88}
+        icon={<UserOutlined />}
+        style={{ background: token.colorPrimary, color: token.colorTextLightSolid }}
+      />
       <div style={{ textAlign: "center" }}>
         <Typography.Title level={3} style={{ marginBottom: 0 }}>
           {user?.name || t("common:states.unknown")}
         </Typography.Title>
-        <Typography.Text type="secondary">
-          {user?.email || t("common:states.unknown")}
-        </Typography.Text>
+        <Typography.Text type="secondary">{user?.email || t("common:states.unknown")}</Typography.Text>
       </div>
       <Divider style={{ margin: 0 }} />
       <Typography.Text type="secondary">

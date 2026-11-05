@@ -55,7 +55,7 @@ test("an admin may also book for another employee", async () => {
   const organizer = await resolveOrganizer(
     requestedOrganizer("employee.one@example.test", admin),
     admin,
-    findEmployeeReturning(employeeAccount)
+    findEmployeeReturning(employeeAccount),
   );
   assert.equal(organizer.organizerId, employeeAccount._id);
   assert.equal(organizer.bookedBy, admin._id);
@@ -66,7 +66,7 @@ test("naming your own email stays a self booking without booked_by", async () =>
   const organizer = await resolveOrganizer(
     requestedOrganizer(receptionist.email, receptionist),
     receptionist,
-    findEmployeeReturning(ownAccount)
+    findEmployeeReturning(ownAccount),
   );
   assert.equal(organizer.organizerId, receptionist._id);
   assert.equal(organizer.bookedBy, null);
@@ -76,14 +76,14 @@ test("a plain employee may not name another organizer", () => {
   const employee = { _id: "principal-employee", email: "employee.two@example.test", role: "USER" };
   assert.throws(
     () => requestedOrganizer("employee.one@example.test", employee),
-    (error) => error.status === 403 && error.code === "FORBIDDEN"
+    (error) => error.status === 403 && error.code === "FORBIDDEN",
   );
 });
 
 test("a malformed organizer email is rejected before the role check", () => {
   assert.throws(
     () => requestedOrganizer("not-an-email", receptionist),
-    (error) => error.status === 400 && error.code === "INVALID_ORGANIZER"
+    (error) => error.status === 400 && error.code === "INVALID_ORGANIZER",
   );
 });
 
@@ -91,6 +91,6 @@ test("an unknown or non-employee organizer is a 400 INVALID_ORGANIZER", async ()
   const requested = requestedOrganizer("nobody@example.test", receptionist);
   await assert.rejects(
     resolveOrganizer(requested, receptionist, findEmployeeReturning(null)),
-    (error) => error.status === 400 && error.code === "INVALID_ORGANIZER"
+    (error) => error.status === 400 && error.code === "INVALID_ORGANIZER",
   );
 });

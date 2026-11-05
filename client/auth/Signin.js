@@ -1,14 +1,5 @@
 import React, { useState } from "react";
-import {
-  Alert,
-  Button,
-  Card,
-  Checkbox,
-  Form,
-  Input,
-  Typography,
-  theme,
-} from "antd";
+import { Alert, Button, Card, Checkbox, Form, Input, Typography, theme } from "antd";
 import { LockOutlined, MailOutlined, MoonOutlined, SunOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, Link } from "react-router-dom";
@@ -28,9 +19,7 @@ const Signin = () => {
   const { data: branding } = useGetBrandingQuery();
   const { data: publicSettings } = useGetPublicSettingsQuery();
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState(
-    location.state?.setupComplete ? t("auth:setup.success") : ""
-  );
+  const [notice, setNotice] = useState(location.state?.setupComplete ? t("auth:setup.success") : "");
   const [loading, setLoading] = useState(false);
   const signupEnabled = publicSettings?.self_signup_enabled === true;
 
@@ -41,20 +30,28 @@ const Signin = () => {
     try {
       const data = await signin({ email: values.email, password: values.password });
       setLoading(false);
-      authenticate(data, () => {
-        const destination = location.state?.from || "/";
-        history.replace(typeof destination === "string" ? destination : {
-          pathname: destination.pathname || "/",
-          search: destination.search || "",
-          hash: destination.hash || "",
-        });
-      }, values.remember);
+      authenticate(
+        data,
+        () => {
+          const destination = location.state?.from || "/";
+          history.replace(
+            typeof destination === "string"
+              ? destination
+              : {
+                  pathname: destination.pathname || "/",
+                  search: destination.search || "",
+                  hash: destination.hash || "",
+                },
+          );
+        },
+        values.remember,
+      );
     } catch (reason) {
       const message = String(reason?.message || "");
       const networkFailure = /fetch|network|timeout/i.test(message);
       // Keep the server/CORS message visible; hiding it behind "wrong password"
       // sends users chasing credentials when the origin allowlist is the cause.
-      setError(networkFailure ? t("common:states.error") : (message || t("auth:signin.errorInvalid")));
+      setError(networkFailure ? t("common:states.error") : message || t("auth:signin.errorInvalid"));
       setLoading(false);
     }
   };
@@ -119,20 +116,17 @@ const Signin = () => {
             showIcon
             message={notice}
             style={{ marginBottom: 16 }}
-            description={notice === t("auth:signin.forgotNotice") ? (
-              <a href={`mailto:${HELPDESK_EMAIL}`} style={{ color: token.colorWarning, fontWeight: 700 }}>
-                {HELPDESK_EMAIL}
-              </a>
-            ) : null}
+            description={
+              notice === t("auth:signin.forgotNotice") ? (
+                <a href={`mailto:${HELPDESK_EMAIL}`} style={{ color: token.colorWarning, fontWeight: 700 }}>
+                  {HELPDESK_EMAIL}
+                </a>
+              ) : null
+            }
           />
         ) : null}
 
-        <Form
-          layout="vertical"
-          initialValues={{ remember: false }}
-          onFinish={submit}
-          requiredMark={false}
-        >
+        <Form layout="vertical" initialValues={{ remember: false }} onFinish={submit} requiredMark={false}>
           <Form.Item
             name="email"
             label={t("auth:signin.emailLabel")}
@@ -141,12 +135,7 @@ const Signin = () => {
               { type: "email", message: t("auth:signin.emailInvalid") },
             ]}
           >
-            <Input
-              size="large"
-              autoComplete="username"
-              placeholder="email@example.com"
-              prefix={<MailOutlined />}
-            />
+            <Input size="large" autoComplete="username" placeholder="email@example.com" prefix={<MailOutlined />} />
           </Form.Item>
 
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
@@ -164,11 +153,7 @@ const Signin = () => {
             rules={[{ required: true, message: t("auth:signin.passwordRequired") }]}
             style={{ marginTop: 4 }}
           >
-            <Input.Password
-              size="large"
-              autoComplete="current-password"
-              prefix={<LockOutlined />}
-            />
+            <Input.Password size="large" autoComplete="current-password" prefix={<LockOutlined />} />
           </Form.Item>
 
           <Form.Item name="remember" valuePropName="checked" style={{ marginBottom: 16 }}>

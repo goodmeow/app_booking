@@ -8,11 +8,15 @@ const summary = (row) => {
   const values = row.new_values || row.old_values;
   if (!values) return "-";
   const entries = Array.isArray(values) ? values : [values];
-  return entries.map((entry) => (
-    typeof entry === "object" && entry !== null
-      ? Object.entries(entry).map(([key, value]) => `${key}: ${value}`).join(" ")
-      : String(entry)
-  )).join("; ");
+  return entries
+    .map((entry) =>
+      typeof entry === "object" && entry !== null
+        ? Object.entries(entry)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(" ")
+        : String(entry),
+    )
+    .join("; ");
 };
 
 const AuditLogSection = () => {
@@ -26,7 +30,11 @@ const AuditLogSection = () => {
         type="error"
         showIcon
         message={getApiError(error, t("settings.audit.loadError"))}
-        action={<Button size="small" onClick={refetch}>{t("common:actions.retry")}</Button>}
+        action={
+          <Button size="small" onClick={refetch}>
+            {t("common:actions.retry")}
+          </Button>
+        }
       />
     );
   }
@@ -51,16 +59,12 @@ const AuditLogSection = () => {
       dataIndex: "action",
       key: "action",
       width: 160,
-      render: (value) => (
-        <Tag color="green">{t(`settings.audit.actions.${value}`, { defaultValue: value })}</Tag>
-      ),
+      render: (value) => <Tag color="green">{t(`settings.audit.actions.${value}`, { defaultValue: value })}</Tag>,
     },
     {
       title: t("settings.audit.details"),
       key: "details",
-      render: (_, row) => (
-        <Typography.Text style={{ wordBreak: "break-word" }}>{summary(row)}</Typography.Text>
-      ),
+      render: (_, row) => <Typography.Text style={{ wordBreak: "break-word" }}>{summary(row)}</Typography.Text>,
     },
   ];
 

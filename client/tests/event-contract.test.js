@@ -43,61 +43,86 @@ test("returns semantic meeting validation keys", () => {
   assert.equal(validateEventDraft({ ...validDraft, subject: "" }, { now }), "validation.subjectRequired");
   assert.equal(
     validateEventDraft({ ...validDraft, startDate: endDate, endDate: startDate }, { now }),
-    "validation.endBeforeStart"
+    "validation.endBeforeStart",
   );
-  assert.equal(
-    validateEventDraft({ ...validDraft, endDate: new Date("2030-01-16T10:00:00") }, { now }),
-    null
-  );
-  assert.equal(
-    validateEventDraft({ ...validDraft, attendees: [] }, { now }),
-    "validation.roomRequired"
-  );
+  assert.equal(validateEventDraft({ ...validDraft, endDate: new Date("2030-01-16T10:00:00") }, { now }), null);
+  assert.equal(validateEventDraft({ ...validDraft, attendees: [] }, { now }), "validation.roomRequired");
   assert.equal(
     validateEventDraft({ ...validDraft, attendees: [...attendees, { attendee_email: "harun" }] }, { now }),
-    "validation.guestEmail"
+    "validation.guestEmail",
   );
   assert.equal(
     validateEventDraft({ ...validDraft, attendees: [...attendees, { attendee_email: "harun@contoh.id" }] }, { now }),
-    null
+    null,
   );
   assert.equal(
     validateEventDraft(validDraft, { now: new Date("2030-01-15T11:00:00"), editing: true }),
-    "validation.pastEdit"
+    "validation.pastEdit",
+  );
+  assert.equal(validateEventDraft(validDraft, { now: new Date("2030-01-15T09:30:00") }), "validation.startInPast");
+  assert.equal(
+    validateEventDraft(
+      {
+        ...validDraft,
+        bookingKind: "recurring",
+        recurrence: { cadence: "weekly", endDate: "2030-02-01", weekdays: [] },
+      },
+      { now },
+    ),
+    "validation.recurrenceWeekday",
   );
   assert.equal(
-    validateEventDraft(validDraft, { now: new Date("2030-01-15T09:30:00") }),
-    "validation.startInPast"
+    validateEventDraft(
+      {
+        ...validDraft,
+        bookingKind: "recurring",
+        recurrence: { cadence: "monthly", endDate: "2030-02-15", monthlyPattern: "yearly" },
+      },
+      { now },
+    ),
+    "validation.recurrenceMonthly",
   );
   assert.equal(
-    validateEventDraft({ ...validDraft, bookingKind: "recurring", recurrence: { cadence: "weekly", endDate: "2030-02-01", weekdays: [] } }, { now }),
-    "validation.recurrenceWeekday"
+    validateEventDraft(
+      {
+        ...validDraft,
+        bookingKind: "recurring",
+        recurrence: {
+          cadence: "monthly",
+          endDate: "2030-02-15",
+          monthlyPattern: "weekday",
+          monthWeekIndex: 2,
+          monthWeekday: 1,
+        },
+      },
+      { now },
+    ),
+    null,
   );
   assert.equal(
-    validateEventDraft({ ...validDraft, bookingKind: "recurring", recurrence: { cadence: "monthly", endDate: "2030-02-15", monthlyPattern: "yearly" } }, { now }),
-    "validation.recurrenceMonthly"
-  );
-  assert.equal(
-    validateEventDraft({
-      ...validDraft,
-      bookingKind: "recurring",
-      recurrence: { cadence: "monthly", endDate: "2030-02-15", monthlyPattern: "weekday", monthWeekIndex: 2, monthWeekday: 1 },
-    }, { now }),
-    null
-  );
-  assert.equal(
-    validateEventDraft({
-      ...validDraft,
-      bookingKind: "recurring",
-      recurrence: { cadence: "monthly", endDate: "2030-02-15", monthlyPattern: "date" },
-    }, { now }),
-    null
+    validateEventDraft(
+      {
+        ...validDraft,
+        bookingKind: "recurring",
+        recurrence: { cadence: "monthly", endDate: "2030-02-15", monthlyPattern: "date" },
+      },
+      { now },
+    ),
+    null,
   );
 });
 
 test("builds recovered create and update payload shapes with encoded description state", () => {
   const description = encodeEventDescription("Quarterly plan + notes");
-  const draft = { id: "event-1", organizer: "owner@example.test", subject: "Planning", description, startDate, endDate, attendees };
+  const draft = {
+    id: "event-1",
+    organizer: "owner@example.test",
+    subject: "Planning",
+    description,
+    startDate,
+    endDate,
+    attendees,
+  };
   const create = buildCreateEventPayload(draft);
   assert.equal(create.length, 2);
   assert.equal(create[0].attendee_email, "guest@example.test");
@@ -107,7 +132,10 @@ test("builds recovered create and update payload shapes with encoded description
 
   const update = buildUpdateEventPayload(draft);
   assert.equal(update.id, "event-1");
-  assert.deepEqual(update.attendees, attendees.map(({ attendee_email }) => ({ attendee_email })));
+  assert.deepEqual(
+    update.attendees,
+    attendees.map(({ attendee_email }) => ({ attendee_email })),
+  );
   assert.equal(update.end_date, endDate);
   assert.equal(update.description, "Quarterly%20plan%20%2B%20notes");
 });
@@ -143,19 +171,15 @@ test("builds modern recurrence payload for preview and create", () => {
 });
 
 test("builds array payload required by add-attendee endpoint", () => {
-  assert.deepEqual(
-    buildAddAttendeePayload({ eventId: "event-1", attendeeEmail: "guest@example.test" }),
-    [{ event_id: "event-1", attendee_email: "guest@example.test" }]
-  );
+  assert.deepEqual(buildAddAttendeePayload({ eventId: "event-1", attendeeEmail: "guest@example.test" }), [
+    { event_id: "event-1", attendee_email: "guest@example.test" },
+  ]);
 });
 
 test("on-behalf organizer email is sent on create only", () => {
   assert.deepEqual(organizerEmailField({}), {});
   assert.deepEqual(organizerEmailField({ organizerEmail: "   " }), {});
-  assert.deepEqual(
-    organizerEmailField({ organizerEmail: " budi@contoh.id " }),
-    { organizer_email: "budi@contoh.id" }
-  );
+  assert.deepEqual(organizerEmailField({ organizerEmail: " budi@contoh.id " }), { organizer_email: "budi@contoh.id" });
 
   const single = {
     id: "event-1",
@@ -211,10 +235,14 @@ test("a booking without an on-behalf employee sends no organizer email", () => {
   assert.equal(Object.hasOwn(plain[0], "organizer_email"), false);
   assert.equal(
     Object.hasOwn(
-      buildCreateEventPayload({ ...draft, bookingKind: "recurring", recurrence: { cadence: "daily", endDate: "2030-01-17" } }),
-      "organizer_email"
+      buildCreateEventPayload({
+        ...draft,
+        bookingKind: "recurring",
+        recurrence: { cadence: "daily", endDate: "2030-01-17" },
+      }),
+      "organizer_email",
     ),
-    false
+    false,
   );
 });
 

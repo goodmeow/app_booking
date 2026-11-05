@@ -10,11 +10,11 @@ const NotFound = () => {
       status="404"
       title={t("states.notFoundTitle")}
       subTitle={t("states.notFoundMessage")}
-      extra={(
+      extra={
         <Link to="/">
           <Button type="primary">{t("nav.calendar")}</Button>
         </Link>
-      )}
+      }
     />
   );
 };

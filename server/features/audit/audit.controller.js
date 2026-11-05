@@ -9,9 +9,11 @@ const run = (handler) => async (req, res, next) => {
 };
 
 export const readAudit = run(async (req, res) => {
-  res.json(await listAudit({
-    limit: req.query.limit,
-    entityType: req.query.entity_type || null,
-    entityId: req.query.entity_id || null,
-  }));
+  res.json(
+    await listAudit({
+      limit: req.query.limit,
+      entityType: req.query.entity_type || null,
+      entityId: req.query.entity_id || null,
+    }),
+  );
 });

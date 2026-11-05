@@ -25,7 +25,10 @@ export const ROLE_OPTIONS = [
 // The session carries the role name ("ADMIN", "RECEPTIONIST", "USER"), while
 // the user form carries the role id. Both are normalised to upper case here so
 // callers can pass either.
-const normalizedRole = (role) => String(role ?? "").trim().toUpperCase();
+const normalizedRole = (role) =>
+  String(role ?? "")
+    .trim()
+    .toUpperCase();
 
 export const isAdminRole = (role) => ["ADMIN", "SUPER_ADMIN"].includes(normalizedRole(role));
 
@@ -65,5 +68,11 @@ export const roomsForRole = (rooms, { role, floor, floors, isAdmin = false } = {
   if (canUseAllFloors({ role, floor, floors, isAdmin })) return list;
   const allowed = new Set(effectiveFloorsList({ floor, floors }));
   if (!allowed.size) return [];
-  return list.filter((room) => allowed.has(String(room?.floor ?? "").trim().toLowerCase()));
+  return list.filter((room) =>
+    allowed.has(
+      String(room?.floor ?? "")
+        .trim()
+        .toLowerCase(),
+    ),
+  );
 };

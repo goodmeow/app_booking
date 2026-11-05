@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { clearStoredSession, isAuthenticated, readStoredSession, signin, signout, signup } from "../auth/auth-helper.js";
+import {
+  clearStoredSession,
+  isAuthenticated,
+  readStoredSession,
+  signin,
+  signout,
+  signup,
+} from "../auth/auth-helper.js";
 import i18n from "../i18n/index.js";
 
 test("auth errors prefer localized stable codes over server text", async () => {
@@ -19,18 +26,15 @@ test("auth errors prefer localized stable codes over server text", async () => {
 
   try {
     await i18n.changeLanguage("id");
-    await assert.rejects(
-      signin({ login: "test", password: "wrong" }),
-      { message: "Login atau kata sandi tidak valid" },
-    );
-    await assert.rejects(
-      signup({ email: "used@example.com" }),
-      { message: "Email atau nama pengguna sudah terdaftar" },
-    );
-    await assert.rejects(
-      signin({ email: "test@example.com", password: "secret" }),
-      { message: "Alamat browser ini belum diizinkan server. Hubungi admin." },
-    );
+    await assert.rejects(signin({ login: "test", password: "wrong" }), {
+      message: "Login atau kata sandi tidak valid",
+    });
+    await assert.rejects(signup({ email: "used@example.com" }), {
+      message: "Email atau nama pengguna sudah terdaftar",
+    });
+    await assert.rejects(signin({ email: "test@example.com", password: "secret" }), {
+      message: "Alamat browser ini belum diizinkan server. Hubungi admin.",
+    });
   } finally {
     await i18n.changeLanguage(originalLanguage);
     globalThis.fetch = originalFetch;
@@ -42,9 +46,15 @@ test("blocked browser storage is treated as no session", () => {
   const originalSessionStorage = globalThis.sessionStorage;
   const originalLocalStorage = globalThis.localStorage;
   const blocked = {
-    getItem: () => { throw new Error("blocked"); },
-    setItem: () => { throw new Error("blocked"); },
-    removeItem: () => { throw new Error("blocked"); },
+    getItem: () => {
+      throw new Error("blocked");
+    },
+    setItem: () => {
+      throw new Error("blocked");
+    },
+    removeItem: () => {
+      throw new Error("blocked");
+    },
   };
 
   globalThis.window = { sessionStorage: blocked, localStorage: blocked };
@@ -72,7 +82,9 @@ test("signout clears local auth and navigates before the network resolves", asyn
   globalThis.sessionStorage = { removeItem: (key) => calls.push(`remove:${key}`) };
   globalThis.fetch = () => {
     calls.push("fetch");
-    return new Promise((resolve) => { resolveFetch = resolve; });
+    return new Promise((resolve) => {
+      resolveFetch = resolve;
+    });
   };
 
   try {

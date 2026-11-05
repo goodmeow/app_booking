@@ -39,10 +39,13 @@ const App = () => {
     }
   }, [themeMode]);
 
-  const themeContext = useMemo(() => ({
-    mode: themeMode,
-    toggle: () => setThemeMode((current) => (current === "dark" ? "light" : "dark")),
-  }), [themeMode]);
+  const themeContext = useMemo(
+    () => ({
+      mode: themeMode,
+      toggle: () => setThemeMode((current) => (current === "dark" ? "light" : "dark")),
+    }),
+    [themeMode],
+  );
 
   return (
     <ThemeModeContext.Provider value={themeContext}>

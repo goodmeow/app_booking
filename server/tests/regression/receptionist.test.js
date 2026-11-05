@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { apiRequest, queryParityDatabase, resetParityDatabase, startServer, stopServer, targets } from "../parity/harness.js";
+import {
+  apiRequest,
+  queryParityDatabase,
+  resetParityDatabase,
+  startServer,
+  stopServer,
+  targets,
+} from "../parity/harness.js";
 import { bearer, identities } from "../parity/fixtures.js";
 
 // Demo values only: dummy accounts created by the test itself.
@@ -25,22 +32,21 @@ const floorTwoBearer = () => ({
   "Content-Type": "application/json",
 });
 
-const bookingBody = ({ roomId, organizerEmail, start, end, subject = "Rapat lantai dua" }) => JSON.stringify({
-  subject,
-  description: "Dipesan resepsionis untuk karyawan",
-  start,
-  end,
-  timezone: "Asia/Jakarta",
-  roomIds: [roomId],
-  ...(organizerEmail ? { organizer_email: organizerEmail } : {}),
-});
+const bookingBody = ({ roomId, organizerEmail, start, end, subject = "Rapat lantai dua" }) =>
+  JSON.stringify({
+    subject,
+    description: "Dipesan resepsionis untuk karyawan",
+    start,
+    end,
+    timezone: "Asia/Jakarta",
+    roomIds: [roomId],
+    ...(organizerEmail ? { organizer_email: organizerEmail } : {}),
+  });
 
 const calendarEvents = async (date) => {
-  const response = await apiRequest(
-    targets.reconstructed,
-    `/api/events?start=${date}&end=${date}`,
-    { headers: bearer("user") }
-  );
+  const response = await apiRequest(targets.reconstructed, `/api/events?start=${date}&end=${date}`, {
+    headers: bearer("user"),
+  });
   assert.equal(response.status, 200);
   return response.body;
 };
@@ -50,7 +56,7 @@ before(async () => {
   server = await startServer(targets.reconstructed);
 
   const receptionistRoleId = await queryParityDatabase(
-    "SELECT _id FROM tbl_role WHERE lower(role_name) = 'receptionist';"
+    "SELECT _id FROM tbl_role WHERE lower(role_name) = 'receptionist';",
   );
   assert.match(receptionistRoleId, /^[0-9a-f-]{36}$/);
 
@@ -80,9 +86,7 @@ before(async () => {
   assert.equal(signin.body.user.role, "RECEPTIONIST");
   receptionistToken = signin.body.token;
 
-  const userRoleId = await queryParityDatabase(
-    "SELECT _id FROM tbl_role WHERE lower(role_name) = 'user';"
-  );
+  const userRoleId = await queryParityDatabase("SELECT _id FROM tbl_role WHERE lower(role_name) = 'user';");
   const floorUser = await apiRequest(targets.reconstructed, "/api/users/", {
     method: "POST",
     headers: bearer("admin"),
@@ -133,7 +137,7 @@ test("a receptionist books a room on their floor for an employee from another fl
      FROM tbl_events e
      JOIN tbl_users u ON u._id = e.organizer_id
      LEFT JOIN tbl_users b ON b._id = e.booked_by
-     WHERE e._id = '${eventId}';`
+     WHERE e._id = '${eventId}';`,
   );
   assert.equal(stored, `${identities.user.email}|${receptionistId}|${RECEPTIONIST_EMAIL}`);
 
@@ -148,11 +152,9 @@ test("a receptionist books a room on their floor for an employee from another fl
   assert.equal(booking.booked_by_name, "Front Desk Floor Two");
 
   // The receptionist also sees it, because booked_by grants visibility.
-  const receptionistList = await apiRequest(
-    targets.reconstructed,
-    "/api/events?start=20310701&end=20310701",
-    { headers: receptionistBearer() }
-  );
+  const receptionistList = await apiRequest(targets.reconstructed, "/api/events?start=20310701&end=20310701", {
+    headers: receptionistBearer(),
+  });
   assert.equal(receptionistList.status, 200);
   assert.ok(receptionistList.body.some((event) => event.id === eventId));
 });
@@ -223,11 +225,9 @@ test("a receptionist edits the booking they created, an unrelated user cannot", 
   assert.equal(outsider.status, 403);
   assert.equal(outsider.body.code, "FORBIDDEN");
 
-  const details = await apiRequest(
-    targets.reconstructed,
-    `/api/events/details?event_id=${eventId}`,
-    { headers: bearer("viewer") }
-  );
+  const details = await apiRequest(targets.reconstructed, `/api/events/details?event_id=${eventId}`, {
+    headers: bearer("viewer"),
+  });
   assert.equal(details.status, 403);
 });
 
@@ -275,28 +275,26 @@ test("a receptionist may cancel an employee self-booking on their floor", async 
   assert.equal(created.status, 200);
   const eventId = created.body.occurrences[0].id;
 
-  const list = await apiRequest(
-    targets.reconstructed,
-    "/api/events?start=20310707&end=20310707",
-    { headers: receptionistBearer() }
-  );
+  const list = await apiRequest(targets.reconstructed, "/api/events?start=20310707&end=20310707", {
+    headers: receptionistBearer(),
+  });
   assert.equal(list.status, 200);
   const booking = list.body.find((event) => event.id === eventId);
   assert.ok(booking, "the receptionist must see the floor booking");
   assert.equal(booking.can_mutate, true);
 
-  const canceled = await apiRequest(
-    targets.reconstructed,
-    `/api/events/${eventId}?scope=occurrence`,
-    { method: "DELETE", headers: receptionistBearer() }
-  );
+  const canceled = await apiRequest(targets.reconstructed, `/api/events/${eventId}?scope=occurrence`, {
+    method: "DELETE",
+    headers: receptionistBearer(),
+  });
   assert.equal(canceled.status, 200);
 
-  const after = await apiRequest(
-    targets.reconstructed,
-    "/api/events?start=20310707&end=20310707",
-    { headers: receptionistBearer() }
-  );
+  const after = await apiRequest(targets.reconstructed, "/api/events?start=20310707&end=20310707", {
+    headers: receptionistBearer(),
+  });
   assert.equal(after.status, 200);
-  assert.equal(after.body.some((event) => event.id === eventId), false);
+  assert.equal(
+    after.body.some((event) => event.id === eventId),
+    false,
+  );
 });

@@ -10,9 +10,10 @@ import { calendarLocaleForLanguage } from "../i18n/languages.js";
 const roomKey = (room) => room?._id || room?.id || room?.email || room?.name || "";
 const roomLabel = (room) => room?.name || room?.email || "";
 
-const formatClock = (value, locale) => value
-  ? new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(value))
-  : "";
+const formatClock = (value, locale) =>
+  value
+    ? new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(value))
+    : "";
 
 const CalendarSidebar = ({
   selectedDate,
@@ -71,7 +72,7 @@ const CalendarSidebar = ({
                 ? "sidebar.roomHint"
                 : scheduleMode === "all"
                   ? "sidebar.allHint"
-                  : "sidebar.mineHint"
+                  : "sidebar.mineHint",
             )}
           </Typography.Text>
         </div>
@@ -124,10 +125,16 @@ const CalendarSidebar = ({
                 {t("calendar.roomStatusTitle")}
               </Typography.Title>
               <Space size={4} wrap>
-                <Tag color="red">{t("calendar.roomUsedCount", { count: roomStatus.filter((room) => room.occupied).length })}</Tag>
-                <Tag color="green">{t("calendar.roomFreeCount", { count: roomStatus.filter((room) => !room.occupied).length })}</Tag>
+                <Tag color="red">
+                  {t("calendar.roomUsedCount", { count: roomStatus.filter((room) => room.occupied).length })}
+                </Tag>
+                <Tag color="green">
+                  {t("calendar.roomFreeCount", { count: roomStatus.filter((room) => !room.occupied).length })}
+                </Tag>
                 {roomStatus.some((room) => !room.tabletOnline) ? (
-                  <Tag color="gold">{t("calendar.roomOfflineCount", { count: roomStatus.filter((room) => !room.tabletOnline).length })}</Tag>
+                  <Tag color="gold">
+                    {t("calendar.roomOfflineCount", { count: roomStatus.filter((room) => !room.tabletOnline).length })}
+                  </Tag>
                 ) : null}
               </Space>
             </Space>
@@ -139,7 +146,9 @@ const CalendarSidebar = ({
                   .map((room) => (
                     <Card key={room.id} size="small" style={{ borderColor: token.colorError }}>
                       <Space align="center" style={{ width: "100%", justifyContent: "space-between" }} wrap>
-                        <Typography.Text strong ellipsis>{room.name}</Typography.Text>
+                        <Typography.Text strong ellipsis>
+                          {room.name}
+                        </Typography.Text>
                         <Tag color="red">{t("calendar.roomOccupied")}</Tag>
                       </Space>
                       <Typography.Text type="secondary" style={{ display: "block" }}>

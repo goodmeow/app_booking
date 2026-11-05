@@ -5,7 +5,9 @@ const USERNAME_PATTERN = /^[\p{L}\p{N}._-]{3,64}$/u;
 
 export const normalizedEmail = (value, { required = true } = {}) => {
   if (value == null && !required) return undefined;
-  const email = String(value || "").trim().toLowerCase();
+  const email = String(value || "")
+    .trim()
+    .toLowerCase();
   if (!EMAIL_PATTERN.test(email)) throw badRequest("INVALID_EMAIL", "A valid email address is required");
   return email;
 };

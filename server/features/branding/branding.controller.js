@@ -1,7 +1,17 @@
-import { publicBranding, readBrandAsset, removeBrandAsset, saveBranding, uploadBrandAsset } from "./branding.service.js";
+import {
+  publicBranding,
+  readBrandAsset,
+  removeBrandAsset,
+  saveBranding,
+  uploadBrandAsset,
+} from "./branding.service.js";
 
 const run = (handler) => async (req, res, next) => {
-  try { await handler(req, res); } catch (error) { next(error); }
+  try {
+    await handler(req, res);
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const read = run(async (req, res) => res.json(await publicBranding()));

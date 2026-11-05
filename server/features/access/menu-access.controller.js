@@ -1,6 +1,12 @@
 import { badRequest } from "../../lib/http-error.js";
 import { isSuperAdminRole } from "../../lib/roles.js";
-import { allowedMenusForRole, listMenuAccess, MATRIX_ROLES, MENU_KEYS, saveMenuAccess } from "./menu-access.repository.js";
+import {
+  allowedMenusForRole,
+  listMenuAccess,
+  MATRIX_ROLES,
+  MENU_KEYS,
+  saveMenuAccess,
+} from "./menu-access.repository.js";
 
 const matrixPayload = (rows) => ({
   menus: MENU_KEYS,
@@ -20,9 +26,7 @@ const run = (handler) => async (req, res, next) => {
 };
 
 export const myMenus = run(async (req, res) => {
-  const menus = isSuperAdminRole(req.auth.role)
-    ? MENU_KEYS
-    : await allowedMenusForRole(req.auth.role);
+  const menus = isSuperAdminRole(req.auth.role) ? MENU_KEYS : await allowedMenusForRole(req.auth.role);
   res.json({ menus, role: req.auth.role, super_admin: isSuperAdminRole(req.auth.role) });
 });
 

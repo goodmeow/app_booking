@@ -16,8 +16,8 @@ export const createEmptyUserForm = () => ({
 
 // An empty or whitespace-only floor counts as not filled in.
 export const hasFloor = (user) =>
-  (Array.isArray(user?.floors) && user.floors.some((floor) => String(floor ?? "").trim() !== ""))
-  || String(user?.floor ?? "").trim() !== "";
+  (Array.isArray(user?.floors) && user.floors.some((floor) => String(floor ?? "").trim() !== "")) ||
+  String(user?.floor ?? "").trim() !== "";
 
 export const EMPLOYEE_ID_MAX_LENGTH = 40;
 

@@ -21,7 +21,7 @@ test("employee_id is required when the caller asks for it", () => {
   for (const value of [undefined, null, "", "   "]) {
     assert.throws(
       () => normalizedEmployeeId(value, { required: true }),
-      (error) => error.status === 400 && error.code === "INVALID_EMPLOYEE_ID"
+      (error) => error.status === 400 && error.code === "INVALID_EMPLOYEE_ID",
     );
   }
   // An edit that omits the field leaves the stored value alone.
@@ -32,7 +32,7 @@ test("employee_id accepts letters, digits, dots, dashes, and underscores", () =>
   for (const value of ["EMP 001", "x".repeat(41), "EMP/001", "EMP@001"]) {
     assert.throws(
       () => normalizedEmployeeId(value, { required: true }),
-      (error) => error.status === 400 && error.code === "INVALID_EMPLOYEE_ID"
+      (error) => error.status === 400 && error.code === "INVALID_EMPLOYEE_ID",
     );
   }
   assert.equal(normalizedEmployeeId("A".repeat(40)).length, 40);
@@ -63,10 +63,7 @@ test("at most two active cards are allowed per user", () => {
 });
 
 test("a lost card stays in the list but does not count towards the limit", () => {
-  const cards = [
-    { status: "active" },
-    { status: "lost" },
-  ];
+  const cards = [{ status: "active" }, { status: "lost" }];
   assert.equal(activeCardCount(cards), 1);
   // The spare card slot is free again, so a replacement can be issued.
   assert.equal(activeCardLimitReached(cards), false);
@@ -78,7 +75,7 @@ test("adding a card rejects an empty number before touching the database", async
   for (const value of [undefined, "", "   "]) {
     await assert.rejects(
       () => addUserCard("20000000-0000-4000-8000-000000000002", value),
-      (error) => error.status === 400 && error.code === "INVALID_CARD"
+      (error) => error.status === 400 && error.code === "INVALID_CARD",
     );
   }
 });
@@ -86,11 +83,11 @@ test("adding a card rejects an empty number before touching the database", async
 test("card helpers reject an identifier that is not a UUID", async () => {
   await assert.rejects(
     () => addUserCard("not-a-uuid", "DEMO-CARD"),
-    (error) => error.status === 404 && error.code === "NOT_FOUND"
+    (error) => error.status === 404 && error.code === "NOT_FOUND",
   );
   await assert.rejects(
     () => markUserCardLost("not-a-uuid", "also-not-a-uuid", { _id: null, role: "ADMIN" }),
-    (error) => error.status === 404 && error.code === "NOT_FOUND"
+    (error) => error.status === 404 && error.code === "NOT_FOUND",
   );
 });
 

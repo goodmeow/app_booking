@@ -14,11 +14,7 @@ export const requireSignin = async (req, res, next) => {
     if (!token) throw new HttpError(401, "AUTH_REQUIRED", "Authentication required");
     req.auth = await verifyPrincipalToken(token);
     if (req.auth.mustChangePassword && !passwordChangeAllowed(req)) {
-      throw new HttpError(
-        403,
-        "PASSWORD_CHANGE_REQUIRED",
-        "Change the default password before using the application"
-      );
+      throw new HttpError(403, "PASSWORD_CHANGE_REQUIRED", "Change the default password before using the application");
     }
     next();
   } catch (error) {
@@ -29,7 +25,9 @@ export const requireSignin = async (req, res, next) => {
 // The gate only lets the two endpoints needed to leave it through: changing the
 // password itself and signing out. Everything else waits for the new password.
 const passwordChangeAllowed = (req) => {
-  const path = String(req.originalUrl || "").split("?")[0].replace(/\/+$/, "");
+  const path = String(req.originalUrl || "")
+    .split("?")[0]
+    .replace(/\/+$/, "");
   if (req.method === "PUT" && path === "/api/users/change-password") return true;
   if (req.method === "GET" && path === "/api/auth/signout") return true;
   return false;
@@ -44,7 +42,7 @@ export const superAdminOnly = (req, res, next) => {
 // bypasses the matrix; every other role needs the row allowed in Settings.
 export const menuAccess = (menuKey) => async (req, res, next) => {
   try {
-    if (isSuperAdminRole(req.auth?.role) || await roleAllowsMenu(req.auth?.role, menuKey)) {
+    if (isSuperAdminRole(req.auth?.role) || (await roleAllowsMenu(req.auth?.role, menuKey))) {
       return next();
     }
     next(forbidden(`Menu access required: ${menuKey}`));
@@ -54,7 +52,9 @@ export const menuAccess = (menuKey) => async (req, res, next) => {
 };
 
 // Self-service stays open, but changing someone else needs the matching menu.
-export const selfOrMenu = (menuKey, param = "userId") => async (req, res, next) => {
-  if (String(req.auth?._id) === String(req.params[param])) return next();
-  return menuAccess(menuKey)(req, res, next);
-};
+export const selfOrMenu =
+  (menuKey, param = "userId") =>
+  async (req, res, next) => {
+    if (String(req.auth?._id) === String(req.params[param])) return next();
+    return menuAccess(menuKey)(req, res, next);
+  };

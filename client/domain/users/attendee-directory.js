@@ -44,5 +44,4 @@ export const mergeUserIndex = (current, users) => {
 
 // Autocomplete options are the e-mail strings so selected chips keep showing
 // addresses; names are looked up from the same index while rendering.
-export const directoryEmails = (users) => [...userIndexByEmail(users).values()]
-  .map((user) => trimmed(user.email));
+export const directoryEmails = (users) => [...userIndexByEmail(users).values()].map((user) => trimmed(user.email));

@@ -15,10 +15,14 @@ import { roleAllowsMenu } from "../access/menu-access.repository.js";
 import { isSuperAdminRole } from "../../lib/roles.js";
 
 const canManageUsers = async (principal) =>
-  isSuperAdminRole(principal?.role) || await roleAllowsMenu(principal?.role, "users");
+  isSuperAdminRole(principal?.role) || (await roleAllowsMenu(principal?.role, "users"));
 
 const run = (handler) => async (req, res, next) => {
-  try { await handler(req, res); } catch (error) { next(error); }
+  try {
+    await handler(req, res);
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const list = run(async (req, res) => {

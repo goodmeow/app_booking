@@ -1,7 +1,4 @@
-import {
-  formatDateDDMMMYYYY,
-  formatDateDDMMYYYY,
-} from "./dates.js";
+import { formatDateDDMMMYYYY, formatDateDDMMYYYY } from "./dates.js";
 import i18n from "../i18n/index.js";
 import { localeForLanguage } from "../i18n/languages.js";
 
@@ -31,9 +28,7 @@ export const sanitizeWorkbookFilename = (value) => {
   return `${basename || "report"}.xlsx`;
 };
 
-export const safeReportText = (value) => (
-  value === null || value === undefined || value === "" ? "-" : String(value)
-);
+export const safeReportText = (value) => (value === null || value === undefined || value === "" ? "-" : String(value));
 
 export const safeReportDescription = (value) => {
   const description = safeReportText(value);
@@ -57,9 +52,7 @@ export const formatReportMeetingDate = (value, language) => {
   return `${formatDateDDMMMYYYY(date, activeLanguage(language))} ${time}`;
 };
 
-export const reportMeetingsFor = (room) => (
-  Array.isArray(room?.list_meeting) ? room.list_meeting : []
-);
+export const reportMeetingsFor = (room) => (Array.isArray(room?.list_meeting) ? room.list_meeting : []);
 
 export const roomUsageExportRows = (rooms = [], language) => {
   const t = reportTranslator(language);
@@ -79,15 +72,16 @@ export const roomUsageExportRows = (rooms = [], language) => {
         safeReportDescription(meeting?.description),
         formatReportMeetingDate(meeting?.start_date, language),
         formatReportMeetingDate(meeting?.end_date, language),
-      ])
+      ]),
     );
   });
   return rows;
 };
 
-const dynamicColumnWidths = (rows, count = 6) => Array.from({ length: count }, (_, column) => ({
-  width: Math.max(12, ...rows.map((row) => String(row[column] ?? "").length + 2)),
-}));
+const dynamicColumnWidths = (rows, count = 6) =>
+  Array.from({ length: count }, (_, column) => ({
+    width: Math.max(12, ...rows.map((row) => String(row[column] ?? "").length + 2)),
+  }));
 
 export const buildRoomUsageWorkbook = (XLSX, rooms, start, end, language) => {
   const t = reportTranslator(language);
@@ -95,15 +89,13 @@ export const buildRoomUsageWorkbook = (XLSX, rooms, start, end, language) => {
   const workbook = new XLSX.Workbook();
   const formattedStart = formatDateDDMMYYYY(new Date(`${start}T00:00:00`));
   const formattedEnd = formatDateDDMMYYYY(new Date(`${end}T00:00:00`));
-  const worksheet = workbook.addWorksheet(sanitizeWorksheetName(
-    t("workbook.sheet", { start: formattedStart, end: formattedEnd })
-  ));
+  const worksheet = workbook.addWorksheet(
+    sanitizeWorksheetName(t("workbook.sheet", { start: formattedStart, end: formattedEnd })),
+  );
   worksheet.addRows(rows);
   worksheet.columns = dynamicColumnWidths(rows);
   return {
     workbook,
-    filename: sanitizeWorkbookFilename(
-      t("workbook.filename", { start: formattedStart, end: formattedEnd })
-    ),
+    filename: sanitizeWorkbookFilename(t("workbook.filename", { start: formattedStart, end: formattedEnd })),
   };
 };

@@ -85,6 +85,8 @@ const shutdown = async (signal) => {
 
 for (const signal of ["SIGTERM", "SIGINT"]) {
   process.once(signal, () => {
-    shutdown(signal).then(() => process.exit(0)).catch(() => process.exit(1));
+    shutdown(signal)
+      .then(() => process.exit(0))
+      .catch(() => process.exit(1));
   });
 }

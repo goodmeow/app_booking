@@ -14,11 +14,11 @@ test("rentang melebihi batas konfigurasi ditolak", () => {
   assert.equal(config.maxCalendarRangeDays, 366);
   assert.throws(
     () => calendarRange("20300101", "20310102", timezone),
-    (error) => error.status === 400 && error.code === "RANGE_TOO_LARGE"
+    (error) => error.status === 400 && error.code === "RANGE_TOO_LARGE",
   );
   assert.throws(
     () => calendarRange("20000101", "20991231", timezone),
-    (error) => error.code === "RANGE_TOO_LARGE"
+    (error) => error.code === "RANGE_TOO_LARGE",
   );
 });
 
@@ -26,11 +26,17 @@ test("batas maksimum menghitung kedua tanggal ujung", () => {
   assert.doesNotThrow(() => calendarRange("20280101", "20281231", timezone));
   assert.throws(
     () => calendarRange("20280101", "20290101", timezone),
-    (error) => error.code === "RANGE_TOO_LARGE"
+    (error) => error.code === "RANGE_TOO_LARGE",
   );
 });
 
 test("badly formatted or non-existent dates are still INVALID_RANGE", () => {
-  assert.throws(() => calendarRange("2030-01-01", "20300131", timezone), (error) => error.code === "INVALID_RANGE");
-  assert.throws(() => calendarRange("20300230", "20300301", timezone), (error) => error.code === "INVALID_RANGE");
+  assert.throws(
+    () => calendarRange("2030-01-01", "20300131", timezone),
+    (error) => error.code === "INVALID_RANGE",
+  );
+  assert.throws(
+    () => calendarRange("20300230", "20300301", timezone),
+    (error) => error.code === "INVALID_RANGE",
+  );
 });

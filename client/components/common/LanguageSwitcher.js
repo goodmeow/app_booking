@@ -1,16 +1,11 @@
 import React from "react";
 import { Select } from "antd";
 import { useTranslation } from "react-i18next";
-import {
-  normalizeLanguage,
-  SUPPORTED_LANGUAGES,
-} from "../../i18n/languages.js";
+import { normalizeLanguage, SUPPORTED_LANGUAGES } from "../../i18n/languages.js";
 
 const LanguageSwitcher = () => {
   const { i18n, t } = useTranslation("common");
-  const currentLanguage = normalizeLanguage(
-    i18n.resolvedLanguage || i18n.language
-  );
+  const currentLanguage = normalizeLanguage(i18n.resolvedLanguage || i18n.language);
 
   const options = SUPPORTED_LANGUAGES.map(({ code, labelKey, nativeName }) => ({
     value: code,

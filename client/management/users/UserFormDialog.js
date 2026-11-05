@@ -67,7 +67,9 @@ const UserFormDialog = ({
       onClose={onClose}
       onSubmit={onSubmit}
     >
-      {isEditing && isDetailLoading ? <LoadingState label={t("users.loadingOne")} /> : (
+      {isEditing && isDetailLoading ? (
+        <LoadingState label={t("users.loadingOne")} />
+      ) : (
         <Form component={false} layout="vertical" style={{ marginTop: 8 }}>
           <Space direction="vertical" size="middle" style={{ width: "100%" }}>
             {formError ? <Alert type="error" showIcon message={formError} /> : null}
@@ -82,11 +84,7 @@ const UserFormDialog = ({
               help={employeeIdError ? t(employeeIdError) : t("users.employeeIdHelp")}
               style={{ marginBottom: 0 }}
             >
-              <Input
-                autoFocus
-                maxLength={EMPLOYEE_ID_MAX_LENGTH}
-                {...formField("employee_id")}
-              />
+              <Input autoFocus maxLength={EMPLOYEE_ID_MAX_LENGTH} {...formField("employee_id")} />
             </Form.Item>
 
             <Form.Item label={t("common:fields.name")} required style={{ marginBottom: 0 }}>
@@ -101,11 +99,7 @@ const UserFormDialog = ({
               <Input {...formField("username")} />
             </Form.Item>
 
-            <Form.Item
-              label={t("users.floorGroup")}
-              help={t("users.floorHelp")}
-              style={{ marginBottom: 0 }}
-            >
+            <Form.Item label={t("users.floorGroup")} help={t("users.floorHelp")} style={{ marginBottom: 0 }}>
               <Select
                 mode="multiple"
                 value={form.floors}
@@ -126,11 +120,7 @@ const UserFormDialog = ({
               </Form.Item>
             ) : null}
 
-            <Form.Item
-              label={t("users.cardNumber")}
-              help={t("users.cardNumberHelp")}
-              style={{ marginBottom: 0 }}
-            >
+            <Form.Item label={t("users.cardNumber")} help={t("users.cardNumberHelp")} style={{ marginBottom: 0 }}>
               <Input {...formField("card_number")} />
             </Form.Item>
 

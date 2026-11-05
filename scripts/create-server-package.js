@@ -13,9 +13,7 @@ const SERVER_PORT = process.env.SERVER_PORT || 9091;
 const HOST = process.env.HOST || "localhost";
 
 // Read original package.json
-const originalPackage = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "../package.json"), "utf8")
-);
+const originalPackage = JSON.parse(fs.readFileSync(path.join(__dirname, "../package.json"), "utf8"));
 
 // Ensure directories exist
 const serverDir = path.join(__dirname, "../build/server");
@@ -58,10 +56,7 @@ const serverPackage = {
   },
 };
 
-fs.writeFileSync(
-  path.join(serverDir, "package.json"),
-  JSON.stringify(serverPackage, null, 2)
-);
+fs.writeFileSync(path.join(serverDir, "package.json"), JSON.stringify(serverPackage, null, 2));
 
 // Create README files
 const serverReadme = `# ${originalPackage.name} - Server

@@ -15,13 +15,7 @@ import { useMenuAccess } from "../auth/use-menu-access.js";
 // Long enough to skip most keystrokes, short enough to feel responsive.
 const SEARCH_DEBOUNCE_MS = 300;
 
-const AttendeePicker = ({
-  users = [],
-  attendees = [],
-  value = [],
-  disabled = false,
-  onChange,
-}) => {
+const AttendeePicker = ({ users = [], attendees = [], value = [], disabled = false, onChange }) => {
   const { t } = useTranslation(["calendar", "common"]);
   const { can } = useMenuAccess();
   // The full management list is a Users-menu capability, not an admin-role
@@ -61,37 +55,44 @@ const AttendeePicker = ({
   // Selected attendees from an edited meeting already carry their user id;
   // remember them so toggling other chips does not drop it.
   const previousIndex = useMemo(
-    () => userIndexByEmail(attendees
-      .filter((attendee) => attendee?.attendee_user_id && attendee?.attendee_email)
-      .map((attendee) => ({ _id: attendee.attendee_user_id, email: attendee.attendee_email }))),
-    [attendees]
+    () =>
+      userIndexByEmail(
+        attendees
+          .filter((attendee) => attendee?.attendee_user_id && attendee?.attendee_email)
+          .map((attendee) => ({ _id: attendee.attendee_user_id, email: attendee.attendee_email })),
+      ),
+    [attendees],
   );
 
   const knownIndex = useMemo(
     () => mergeUserIndex(userIndexByEmail(users), [...knownUsers.values()]),
-    [users, knownUsers]
+    [users, knownUsers],
   );
 
   const options = useMemo(
-    () => directoryEmails(canListAllUsers ? users : activeQuery.data).map((email) => ({
-      value: email,
-      label: email,
-    })),
-    [canListAllUsers, users, activeQuery.data]
+    () =>
+      directoryEmails(canListAllUsers ? users : activeQuery.data).map((email) => ({
+        value: email,
+        label: email,
+      })),
+    [canListAllUsers, users, activeQuery.data],
   );
 
   const typedTerm = directoryQuery(inputValue);
   const needsMoreCharacters = !canListAllUsers && typedTerm.length < MIN_DIRECTORY_QUERY_LENGTH;
   const searching = !canListAllUsers && !needsMoreCharacters && (activeQuery.isFetching || !searchTerm);
-  const noOptionsText = needsMoreCharacters
-    ? t("editor.attendeeSearchHint")
-    : t("editor.attendeeNoOptions");
-  const helperText = !canListAllUsers && searchQuery.isError
-    ? getApiError(searchQuery.error, t("calendar.usersLoadError"))
-    : (needsMoreCharacters ? t("editor.attendeeSearchHint") : undefined);
+  const noOptionsText = needsMoreCharacters ? t("editor.attendeeSearchHint") : t("editor.attendeeNoOptions");
+  const helperText =
+    !canListAllUsers && searchQuery.isError
+      ? getApiError(searchQuery.error, t("calendar.usersLoadError"))
+      : needsMoreCharacters
+        ? t("editor.attendeeSearchHint")
+        : undefined;
 
   const resolveAttendee = (email) => {
-    const key = String(email ?? "").trim().toLowerCase();
+    const key = String(email ?? "")
+      .trim()
+      .toLowerCase();
     const user = knownIndex.get(key) || previousIndex.get(key);
     if (user?._id) return { attendee_email: user.email, attendee_user_id: user._id };
     return { attendee_email: String(email ?? "").trim() };
@@ -111,9 +112,9 @@ const AttendeePicker = ({
         onChange={changeSelection}
         onSearch={setInputValue}
         tokenSeparators={[",", ";"]}
-        filterOption={canListAllUsers
-          ? (input, option) => option.value.toLowerCase().includes(String(input).toLowerCase())
-          : false}
+        filterOption={
+          canListAllUsers ? (input, option) => option.value.toLowerCase().includes(String(input).toLowerCase()) : false
+        }
         loading={searching}
         disabled={disabled}
         status={!canListAllUsers && searchQuery.isError ? "error" : undefined}
@@ -125,7 +126,9 @@ const AttendeePicker = ({
             <div>
               <div>{user?.name || option.value}</div>
               {user?.name ? (
-                <Typography.Text type="secondary" style={{ fontSize: 12 }}>{option.value}</Typography.Text>
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  {option.value}
+                </Typography.Text>
               ) : null}
             </div>
           );

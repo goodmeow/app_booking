@@ -23,8 +23,7 @@ export const createAppTheme = (mode = "dark") => {
       colorBorder: dark ? "#2A3540" : "#D9E0E7",
       colorSplit: dark ? "rgba(235,244,240,0.10)" : "rgba(17,21,27,0.10)",
       borderRadius: 10,
-      fontFamily:
-        '"Public Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+      fontFamily: '"Public Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
     },
     components: {
       Layout: {
@@ -32,12 +31,14 @@ export const createAppTheme = (mode = "dark") => {
         bodyBg: dark ? "#11151B" : "#F3F6F9",
         siderBg: dark ? "#0C1014" : "#FFFFFF",
       },
-      Menu: dark ? {
-        darkItemBg: "#0C1014",
-        darkSubMenuItemBg: "#0C1014",
-        darkItemSelectedBg: "#2FB46A",
-        darkItemSelectedColor: "#0A1F14",
-      } : {},
+      Menu: dark
+        ? {
+            darkItemBg: "#0C1014",
+            darkSubMenuItemBg: "#0C1014",
+            darkItemSelectedBg: "#2FB46A",
+            darkItemSelectedColor: "#0A1F14",
+          }
+        : {},
       Table: {
         headerBg: dark ? "#171E26" : "#F5F7FA",
         rowHoverBg: dark ? "#1C2530" : "#F0F4F8",

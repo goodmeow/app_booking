@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { apiRequest, queryParityDatabase, resetParityDatabase, startServer, stopServer, targets } from "../parity/harness.js";
+import {
+  apiRequest,
+  queryParityDatabase,
+  resetParityDatabase,
+  startServer,
+  stopServer,
+  targets,
+} from "../parity/harness.js";
 import { bearer } from "../parity/fixtures.js";
 
 // Imported accounts (and admin password resets) carry must_change_password.
@@ -35,11 +42,12 @@ before(async () => {
 
 after(async () => stopServer(server));
 
-const signin = (password) => apiRequest(targets.reconstructed, "/api/auth/signin", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ email: "forced.password@example.test", password }),
-});
+const signin = (password) =>
+  apiRequest(targets.reconstructed, "/api/auth/signin", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "forced.password@example.test", password }),
+  });
 
 test("first login is blocked until the default password is replaced", async () => {
   const login = await signin(DEFAULT_PASSWORD);
@@ -47,12 +55,16 @@ test("first login is blocked until the default password is replaced", async () =
   assert.equal(login.body.user.mustChangePassword, true);
   const token = login.body.token;
 
-  const blocked = await apiRequest(targets.reconstructed, "/api/users", { headers: { Authorization: `Bearer ${token}` } });
+  const blocked = await apiRequest(targets.reconstructed, "/api/users", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   assert.equal(blocked.status, 403);
   assert.equal(blocked.body.code, "PASSWORD_CHANGE_REQUIRED");
 
   // Sign-out must stay reachable from the forced screen.
-  const out = await apiRequest(targets.reconstructed, "/api/auth/signout", { headers: { Authorization: `Bearer ${token}` } });
+  const out = await apiRequest(targets.reconstructed, "/api/auth/signout", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   assert.equal(out.status, 200);
 
   const mismatch = await apiRequest(targets.reconstructed, "/api/users/change-password", {
@@ -79,13 +91,17 @@ test("first login is blocked until the default password is replaced", async () =
   assert.equal(changed.status, 200);
   assert.ok(changed.body.token, "a self password change must return a replacement token");
 
-  const oldToken = await apiRequest(targets.reconstructed, "/api/users", { headers: { Authorization: `Bearer ${token}` } });
+  const oldToken = await apiRequest(targets.reconstructed, "/api/users", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   assert.equal(oldToken.status, 401);
-  const allowed = await apiRequest(targets.reconstructed, "/api/users", { headers: { Authorization: `Bearer ${changed.body.token}` } });
+  const allowed = await apiRequest(targets.reconstructed, "/api/users", {
+    headers: { Authorization: `Bearer ${changed.body.token}` },
+  });
   assert.equal(allowed.status, 200);
   assert.equal(
     String(await queryParityDatabase(`SELECT must_change_password FROM tbl_users WHERE _id = '${employee._id}';`)),
-    "f"
+    "f",
   );
 
   const relogin = await signin(NEW_PASSWORD);
@@ -94,24 +110,25 @@ test("first login is blocked until the default password is replaced", async () =
 });
 
 test("an admin can toggle the forced change flag without resetting the password", async () => {
-  const setFlag = (value) => apiRequest(targets.reconstructed, `/api/users/${employee._id}`, {
-    method: "PUT",
-    headers: { ...bearer("admin"), "Content-Type": "application/json" },
-    body: JSON.stringify({ must_change_password: value }),
-  });
+  const setFlag = (value) =>
+    apiRequest(targets.reconstructed, `/api/users/${employee._id}`, {
+      method: "PUT",
+      headers: { ...bearer("admin"), "Content-Type": "application/json" },
+      body: JSON.stringify({ must_change_password: value }),
+    });
 
   const enabled = await setFlag(true);
   assert.equal(enabled.status, 200);
   assert.equal(
     String(await queryParityDatabase(`SELECT must_change_password FROM tbl_users WHERE _id = '${employee._id}';`)),
-    "t"
+    "t",
   );
 
   const disabled = await setFlag(false);
   assert.equal(disabled.status, 200);
   assert.equal(
     String(await queryParityDatabase(`SELECT must_change_password FROM tbl_users WHERE _id = '${employee._id}';`)),
-    "f"
+    "f",
   );
 });
 
@@ -129,7 +146,7 @@ test("an admin password reset puts the flag back", async () => {
   assert.equal(reset.status, 200);
   assert.equal(
     String(await queryParityDatabase(`SELECT must_change_password FROM tbl_users WHERE _id = '${employee._id}';`)),
-    "t"
+    "t",
   );
 
   const login = await signin(resetPassword);

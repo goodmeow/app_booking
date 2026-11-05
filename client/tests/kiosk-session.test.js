@@ -37,9 +37,15 @@ test("kiosk session can be deprovisioned", () => {
 
 test("kiosk session tolerates blocked browser storage", () => {
   const blocked = {
-    getItem: () => { throw new Error("blocked"); },
-    setItem: () => { throw new Error("blocked"); },
-    removeItem: () => { throw new Error("blocked"); },
+    getItem: () => {
+      throw new Error("blocked");
+    },
+    setItem: () => {
+      throw new Error("blocked");
+    },
+    removeItem: () => {
+      throw new Error("blocked");
+    },
   };
   assert.doesNotThrow(() => saveKioskSession(session(Date.now() + 60_000), blocked));
   assert.equal(readKioskSession(blocked), null);
