@@ -56,6 +56,10 @@ Tiga jenis aset, semuanya diunggah dari CMS:
 | `wordmark` | tulisan "The Prasada" (navbar, login, signup) | `/the-prasada-wordmark.png` | 28 px |
 | `favicon` | ikon tab browser; bila kosong dipakai huruf awal `brand_name` sebagai tile SVG (gunmetal + emas) | `/the-prasada-mark.png` (sebelum JS jalan) | 32 px |
 
+Preview di CMS (**Pengaturan → Branding**) tidak menampilkan mock logo bawaan:
+slot yang kosong tertulis "Belum ada", dan tombol reset bernama **Hapus gambar**
+karena tindakannya memang menghapus aset, bukan memulihkan gambar bawaan.
+
 Batas unggah (ditegakkan di client **dan** server):
 
 - Format: PNG, JPEG, WebP, ICO (`image/png`, `image/jpeg`, `image/webp`,

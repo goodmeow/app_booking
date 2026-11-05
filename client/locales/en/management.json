@@ -287,7 +287,7 @@
     "wordmark": "Logo",
     "favicon": "Favicon",
     "upload": "Upload image",
-    "reset": "Reset to default",
+    "reset": "Remove image",
     "help": "PNG, JPEG, WebP, or ICO, up to 512 KB. Changes apply immediately after upload.",
     "save": "Save branding",
     "saved": "Branding saved.",
@@ -296,8 +296,9 @@
     "uploadError": "Unable to upload the image.",
     "invalidType": "Use PNG, JPEG, WebP, or ICO.",
     "tooLarge": "Image size must be 512 KB or less.",
-    "resetDone": "Image reset to default.",
-    "loading": "Loading branding..."
+    "resetDone": "Image removed.",
+    "loading": "Loading branding...",
+    "empty": "Not set"
   },
   "about": {
     "tab": "About",

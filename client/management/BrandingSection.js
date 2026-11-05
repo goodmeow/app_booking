@@ -10,9 +10,9 @@ import {
 } from "../redux/services/settings.js";
 
 const ASSETS = [
-  { kind: "mark", label: "branding.mark", fallback: "/the-prasada-mark.png", previewHeight: 64 },
-  { kind: "wordmark", label: "branding.wordmark", fallback: "/the-prasada-wordmark.png", previewHeight: 28 },
-  { kind: "favicon", label: "branding.favicon", fallback: "/the-prasada-mark.png", previewHeight: 32 },
+  { kind: "mark", label: "branding.mark", previewHeight: 64 },
+  { kind: "wordmark", label: "branding.wordmark", previewHeight: 28 },
+  { kind: "favicon", label: "branding.favicon", previewHeight: 32 },
 ];
 
 const MAX_BYTES = 512 * 1024;
@@ -121,22 +121,27 @@ const BrandingSection = () => {
       <Divider style={{ margin: "24px 0" }} />
 
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
-        {ASSETS.map(({ kind, label, fallback, previewHeight }) => (
+        {ASSETS.map(({ kind, label, previewHeight }) => (
           <div key={kind}>
             <Typography.Text strong>{t(label)}</Typography.Text>
             <Space wrap size="middle" align="center" style={{ marginTop: 8 }}>
-              <img
-                src={branding?.assets?.[kind] || fallback}
-                alt=""
-                style={{
-                  height: previewHeight,
-                  width: "auto",
-                  maxWidth: 240,
-                  objectFit: "contain",
-                  background: token.colorBgContainer,
-                  padding: 4,
-                }}
-              />
+              {/* No bundled mock: an empty slot must look empty, not like a default logo. */}
+              {branding?.assets?.[kind] ? (
+                <img
+                  src={branding.assets[kind]}
+                  alt=""
+                  style={{
+                    height: previewHeight,
+                    width: "auto",
+                    maxWidth: 240,
+                    objectFit: "contain",
+                    background: token.colorBgContainer,
+                    padding: 4,
+                  }}
+                />
+              ) : (
+                <Typography.Text type="secondary">{t("branding.empty")}</Typography.Text>
+              )}
               <Upload
                 accept="image/png,image/jpeg,image/webp,image/x-icon"
                 showUploadList={false}

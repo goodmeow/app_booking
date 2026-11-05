@@ -287,7 +287,7 @@
     "wordmark": "Logo",
     "favicon": "Favicon",
     "upload": "Unggah gambar",
-    "reset": "Kembalikan default",
+    "reset": "Hapus gambar",
     "help": "PNG, JPEG, WebP, atau ICO, maksimal 512 KB. Perubahan langsung berlaku setelah unggah.",
     "save": "Simpan branding",
     "saved": "Branding tersimpan.",
@@ -296,8 +296,9 @@
     "uploadError": "Tidak dapat mengunggah gambar.",
     "invalidType": "Gunakan PNG, JPEG, WebP, atau ICO.",
     "tooLarge": "Ukuran gambar maksimal 512 KB.",
-    "resetDone": "Gambar dikembalikan ke default.",
-    "loading": "Memuat branding..."
+    "resetDone": "Gambar dihapus.",
+    "loading": "Memuat branding...",
+    "empty": "Belum ada"
   },
   "about": {
     "tab": "Tentang",
