@@ -4,8 +4,9 @@ Format versi: **`Ver.Rev`** (diucapkan "Ver tiga Rev lima").
 
 - **Ver** = gelombang fitur besar yang menyelesaikan kemampuan baru bagi
   pemakai (milestone). Naik ketika gelombang tertutup dengan bukti siap.
-- **Rev** = gelombang perbaikan di dalam Ver yang sama (patch review,
-  perbaikan rilis). Naik per gelombang, bukan per commit.
+- **Rev** = gelombang perbaikan di dalam Ver yang sama. **Naik setiap ada
+  perubahan yang dikirim** (satu gelombang perubahan = satu Rev), bukan
+  menunggu rilis besar.
 
 Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
@@ -15,12 +16,25 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
-## Posisi saat ini (Ver 3 Rev 15)
+Alur default setiap bump versi (wajib, bukan opsional):
 
-- CMS + API: **Ver 3 Rev 15**, `package.json` `3.14.0`, ditampilkan di footer
-  semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.5.0 / versionCode 27`. Footer kios menampilkan
-  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.14.0`). Build membawa pill `TERSEDIA` 44 px, copy
+1. `npm run format` — rapikan seluruh file JS/JSON/CSS/HTML dengan Prettier.
+2. `npm run verify` — sudah mencakup `format:check`, build client, build server,
+   tes client, dan tes unit server.
+3. Naikkan versi, lalu tambah baris riwayat di bawah.
+
+## Posisi saat ini (Ver 3 Rev 17)
+
+- CMS + API: **Ver 3 Rev 17**, `package.json` `3.15.1`, ditampilkan di footer
+  semua halaman CMS (dari package.json). Gelombang Rev 17 berisi perbaikan
+  audit kode (respons bentrok ruangan 409, check-in booking instan dalam satu
+  transaksi, pelaku pada audit kartu, CSP, indeks rentang jadwal, hapus kode
+  mati). Rev 16 di dalamnya: rilis booking no-show yang transaksional, 28
+  fungsi PL/pgSQL legacy dihapus, `/apk/index.html` membaca `latest.json`, dan
+  APK RustDesk dihapus. Detail di riwayat 2026-11-05.
+- APK kiosk: **tidak berubah di Rev 16/17** — tetap `versionName 1.5.0 /
+  versionCode 27`, tidak perlu rebuild atau tebar ulang. Footer kios menampilkan
+  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.1`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
@@ -33,7 +47,8 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   **Cek update**; bila manifest lebih baru, tombol berubah menjadi kuning
   **Perbarui**. Di sampingnya ada tombol **Tentang** yang membuka versi
   aplikasi, versi CMS, dan lisensi pustaka APK.
-- Ver 3 Rev 14 mencakup revamp UI Ant Design 5, proteksi super admin, validasi API, dan hardening storage/kiosk. Ver 3 Rev 13 mencakup matrix menu per role, `super_admin` dari akun setup,
+- Ver 3 Rev 15 mencakup toggle aksi per tablet, buka pintu hanya untuk kartu
+  meeting aktif/kartu master, dan toast hasil aksi di panel kanan. Ver 3 Rev 14 mencakup revamp UI Ant Design 5, proteksi super admin, validasi API, dan hardening storage/kiosk. Ver 3 Rev 13 mencakup matrix menu per role, `super_admin` dari akun setup,
   multi-lantai (`tbl_users.floors`), akses resepsionis per lantai, audit log,
   dan pengerasan security: rate-limit proxy, reset sandi, pairing kiosk,
   backup retry, auto-release, serta filter status ruangan per floor.
@@ -63,7 +78,47 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 ## Riwayat
 
-### Ver 3 Rev 15 - 2026-11-04 (rilis saat ini)
+### Ver 3 Rev 17 - 2026-11-05 (rilis saat ini)
+- **Perbaikan audit kode**: `addAttendee` memetakan pelanggaran jadwal ruangan
+  ke `409 ROOM_CONFLICT` (sebelumnya 500); booking instan kiosk menandai
+  check-in di transaksi yang sama dengan pembuatan booking; audit
+  tambah-kartu kini mencatat pelaku; CSP diaktifkan di API dan nginx; migrasi
+  `031_events_period_index.sql` menambah indeks GiST untuk rentang jadwal;
+  kode mati (5 export + 140 entri locale) dihapus; `.env.example` dan
+  `dist/` baseline diperbaiki (`SHA256SUMS` kini lolos verifikasi).
+- `package.json` naik ke `3.15.1`; APK tidak berubah (tetap 1.5.0 / 27).
+- Verifikasi 2026-11-05: `test:server:unit` 95/95, `test:client` 96/96,
+  `build:client` dan `build:server:check` lolos, lint 0 error (48 warning).
+  UAT lokal: migrasi 030 + 031 terpasang (31 baris `schema_migrations`),
+  123 event utuh, semua container `healthy`, CSP aktif di `/`,
+  `/index.html`, dan `/api/health`, `/apk/kiosk-release.apk` tetap
+  21.531.173 byte. Uji DB terpisah: `addAttendee` yang bentrok ruangan kini
+  `409 ROOM_CONFLICT`, booking instan tersimpan dengan `checked_in` terisi.
+
+### Ver 3 Rev 16 - 2026-11-05 (rilis sebelumnya)
+- **Rilis booking no-show diperbaiki**: `releaseAbandonedRoomBookings` kini
+  melepas ruangan dan menandai detail booking dalam satu transaksi, sehingga
+  ruangan tidak bisa "terkunci kembali" oleh meeting yang tidak check-in bila
+  proses terputus di tengah.
+- **28 fungsi PL/pgSQL legacy dari `bjb.sql` dihapus dari skema**:
+  `database/migrations/004_functions.sql` dan
+  `database/tests/003_function_contracts.sql` dihapus dari repo, dan migrasi
+  `030_drop_legacy_functions.sql` menghapus fungsi itu di database yang sudah
+  terpasang. Alasan: tidak pernah dipanggil aplikasi dan menerima potongan SQL
+  sebagai argumen.
+- **Halaman `/apk/index.html` membaca `public/apk/latest.json`** (versi,
+  versionCode, sha256, url), sehingga teks versi tidak lagi diedit manual di
+  beberapa tempat.
+- **APK RustDesk dihapus** dari halaman distribusi: berkas
+  `public/apk/rustdesk-armv7.apk` dan tombol unduhnya tidak ada lagi.
+- **Catatan cakupan**: antarmuka pengguna hanya APK; admin memakai CMS. Web
+  kiosk `/kiosk` tetap ada sebagai referensi, bukan produk yang didistribusikan.
+- **APK tidak berubah di gelombang ini**: tetap `versionName 1.5.0 /
+  versionCode 27` (paket `public/apk/kiosk-release.apk` yang sama). Tidak ada
+  rebuild APK yang diperlukan untuk Rev 16.
+- Verifikasi Rev 16 dilaporkan di baris Rev 17 (satu rangkaian uji).
+
+### Ver 3 Rev 15 - 2026-11-04 (rilis sebelumnya)
 Toggle aksi per tablet: tombol **30 menit/sampai jam X** dan **Pilih waktu**
 dapat dimatikan dari CMS Tablet Devices (migrasi 029). Buka pintu saat ada
 meeting aktif hanya menerima kartu organizer/attendee meeting itu atau kartu

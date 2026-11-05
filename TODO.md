@@ -1,130 +1,7 @@
 # 360 Scheduler Reconstruction TODO
 
-## Phase 1 — Preserve baseline
-
-- [x] Initialize Git repository.
-- [x] Preserve `dist/` as behavioral reference.
-- [x] Record SHA-256 checksums for every dist artifact.
-- [x] Add `.gitignore` for secrets, dependencies, logs, and local files.
-- [x] Add sanitized `.env.example`.
-- [x] Record runtime and dependency baseline.
-- [x] Document `JWT_SECRET_KEY` versus `JWT_SECRET` mismatch.
-- [x] Verify checksums.
-- [x] Review baseline; ensure `.env` and `node_modules/` excluded.
-- [x] Create initial baseline commit.
-
-## Phase 2 — Extract specification
-
-- [x] Extract backend module map from `server.bundle.js`.
-- [x] Document endpoints, middleware, payloads, statuses, and errors.
-- [x] Map controllers to PostgreSQL functions.
-- [x] Document Socket.io rooms, events, and payloads.
-- [x] Extract frontend routes, screens, Redux state, and API calls.
-- [x] Build screen-action-endpoint matrix.
-- [x] Document proposed Android WebView, RGB LED, and NFC integration boundary. *(Hipotesis WebView dibantah 2026-10-21: APK asli React Native tanpa WebView; lihat `docs/reconstruction/tablet-integration-notes.md` dan `production-defects.md`.)*
-
-## Phase 3 — Reconstruct database
-
-- [x] Prepare database migration, seed, and test structure.
-- [x] Add dedicated test environment template and safety notes.
-- [x] Check local PostgreSQL/container prerequisites.
-- [x] Install PostgreSQL 14 or container runtime.
-- [x] Validate clean import of `bjb.sql`.
-- [x] Document tables, constraints, and relations.
-- [x] Test stored functions.
-- [x] Convert dump into ordered migrations.
-- [x] Add sanitized minimum seed data.
-
-Phase 3 complete: disposable database rebuilds from migrations and passes all SQL suites.
-
-## Phase 4 — Reconstruct server
-
-- [x] Restore config and startup flow.
-- [x] Restore PostgreSQL pool and compatibility model layer.
-- [x] Restore Express middleware and error handling.
-- [x] Restore auth, users, rooms, events, settings, card master, and door-open.
-- [x] Restore Socket.io behavior.
-
-Phase 4 complete: source builds and authenticated API reaches reconstructed PostgreSQL.
-
-## Phase 5 — Verify server parity
-
-- [x] Prepare differential child-process harness and deterministic fixtures.
-- [x] Prepare serial parity database reset and Socket.io test plan.
-- [x] Build API contract tests.
-- [x] Compare old bundle and reconstructed server responses.
-- [x] Test database mutations, authorization, and Socket.io behavior.
-- [x] Publish parity report.
-
-Phase 5 complete: legacy/reconstructed differential suite passes 12/12 tests across all 32 route boundaries and representative deep contracts.
-
-## Phase 6 — Reconstruct client foundation
-
-- [x] Restore Vite and React entrypoints.
-- [x] Restore router, Redux store, API layer, and auth persistence.
-- [x] Restore theme, layout, navigation, and Socket.io client.
-
-Phase 6 complete: production build and all recovered SPA route fallbacks pass.
-
-## Phase 7 — Reconstruct screens
-
-- [x] Publish implementation slices, evidence gates, and acceptance checks.
-- [x] Add shared dialogs, validation/payload helpers, and confirmed missing service contracts.
-- [x] Finish signin and signup visual/behavioral parity.
-- [x] Rebuild card master, user, and room management.
-- [x] Rebuild user profile and self-service actions.
-- [x] Rebuild room usage report and XLSX export.
-- [x] Rebuild calendar, room finder, filters, and realtime refresh.
-- [x] Rebuild event create, edit, detail, cancel, and attendee workflows.
-- [x] Pass Phase 7 production build and route/workflow smoke checks.
-
-Phase 7 complete: all recovered web screens build, contract helpers pass, and public/protected/admin route plus lazy-chunk smoke checks pass. Settings remains a recovered latent capability excluded from visible UI pending evidence; tablet check-in/NFC/LED remains outside the recovered web-client scope.
-
-## Phase 8 — Verify client parity
-
-- [x] Compare routes, network payloads, validation, and permissions.
-- [x] Compare calendar and realtime behavior.
-- [x] Compare responsive layout and reports.
-
-Phase 8 complete: active route/network mismatches are corrected, calendar and Socket.io behavior plus XLSX contracts have regression coverage, and responsive/validation compatibility repairs are recorded in `docs/reconstruction/client-parity-report.md`. Pixel-level screenshot parity remains unclaimed because no sanitized legacy captures or browser engine are available in the repository environment.
-
-## Phase 9 — Security and identity hardening
-
-- [x] Allow arbitrary email domains; make explicit account `type` authoritative for users and rooms.
-- [x] Add normalized case-insensitive email uniqueness and keep optional username separate from email.
-- [x] Migrate organizer/attendee identity toward UUID/type references; keep external visitor email separate.
-- [x] Parameterize SQL, including event array payload construction.
-- [x] Require strong `JWT_SECRET`.
-- [x] Restrict signup role assignment.
-- [x] Add missing admin guards.
-- [x] Authenticate Socket.io and restrict rooms.
-- [x] Derive personal-schedule identity only from the authenticated principal; ignore or reject caller-selected user identities.
-- [x] Resolve selected-room filters only to active accounts with explicit `type=room`.
-- [x] Let authenticated users query every occupied slot for a selected room while applying server-side privacy projection to bookings owned by others.
-- [x] Limit other-user booking projections to organizer first name, start/end time, and minimal capability metadata; never expose subject, description, email, attendees, or check-in data.
-- [x] Authorize event details and every mutation (update, attendee add/delete, cancel, early finish) from stored organizer/participant/admin relationships, never organizer identity supplied in the payload; return `403` otherwise.
-- [x] Make Socket.io emit invalidations or the same safe projection as HTTP responses, never full private event payloads.
-- [x] Test privacy projections, forbidden fields, unauthorized detail access, and guessed event IDs across API and Socket.io payloads.
-- [x] Apply CORS allowlist.
-- [x] Prevent password fields leaving database/API.
-- [x] Repair HTTPS startup.
-- [x] Replace raw SQL/result/payload logs with structured allowlisted logging; redact emails, UUIDs, meeting content, and attendee data.
-- [x] Add safe request telemetry: timestamp, severity, status, duration, and correlation ID.
-- [x] Remove `shell: true` from development child-process launches and pass argument arrays directly.
-- [x] Limit nodemon watch paths to server/config sources to prevent startup restarts.
-- [x] Upgrade dependency chain still using deprecated `util._extend`.
-- [x] Split `server/routes/index.js` into repository, service, controller, and route modules while preserving regression parity.
-- [x] Archive or guard `scripts/reconstruct-server.mjs` so it cannot overwrite post-recovery fixes.
-- [x] Support continuous overnight/multi-day bookings with a configurable maximum duration; use half-open overlap checks for create, update, room availability, and visible-range queries; protect concurrent room bookings.
-- [x] Define one timezone policy and enforce temporal invariants, check-in/early-finish windows, cross-week listing, and clipped report durations for continuous multi-day meetings.
-- [x] Add recurrence series identity and occurrence data contracts with explicit supported cadences and deterministic generation through recurrence end date.
-- [x] Create recurring occurrences transactionally: validate every room collision and roll back the entire series when any occurrence fails.
-- [x] Define timezone-safe edit/cancel semantics for one occurrence, this-and-future occurrences, and the full series.
-- [x] Add bounded recurrence safety limits and testable contracts for generation, collision, rollback, mutation scope, and authorization.
-
-Phase 9 log-review evidence (2026-07-13): demo completed without runtime failures; two event creations succeeded, including empty-description normalization. Review found SQL interpolation risk, sensitive-data logging, unsafe shell spawning, broad nodemon watching, missing request telemetry, and one deprecated dependency path.
-
-Phase 9 complete: identity and authorization are server-authoritative, unrelated room bookings use a privacy-safe busy projection, Socket.io is authenticated, runtime and dependency paths are hardened, and atomic multi-day/daily/weekly scheduling passes collision, rollback, DST, mutation-scope, and report-boundary regression gates.
+Riwayat lengkap pekerjaan yang sudah selesai ada di
+[`docs/history/todo-archive-through-2026-11-05.md`](docs/history/todo-archive-through-2026-11-05.md).
 
 ## Phase 10 — Product experience
 
@@ -170,34 +47,8 @@ Phase 10A software complete: a provisioned tablet is cryptographically bound to 
 - [x] Replace mobile navbar overflow with a drawer and simplify admin navigation.
 - [x] Rework admin tables for mobile; hide technical IDs and use Users/Rooms/Access Cards tabs.
 - [ ] Run usability tests with five first-time users covering create, edit, and cancel workflows.
-
-## Phase 11 — Finalize
-
-- [ ] Clean client/server builds.
-- [ ] Unit, contract, integration, and smoke tests.
-- [ ] Cover cross-midnight, cross-week, containing-overlap, adjacent-slot, report-boundary, timezone, and concurrent multi-day booking cases.
-- [x] Add `npm run verify` (build client + build server /tmp + test client +
-  unit server). Lint belum ada tooling; smoke manual via demo.
-- [x] Add CI (`.github/workflows/ci.yml`) + pin Node via `.nvmrc` (20).
-  Lint/format enforcement BELUM (belum ada eslint/prettier config).
-- [x] Add `docs/handover/START-HERE.md` + README/quickstart sudah sesuai
-  perintah dan layout sekarang.
-- [x] Document current architecture and UI-to-API-to-DB-to-Socket.io sequence diagrams.
-  Bukti: `docs/architecture.md` (komponen, alur login/create/check-in,
-  invalidasi Socket.io, zona waktu, privasi, dev vs prod).
-- [x] Document business processes: auth/roles, user/room lifecycle, meeting create/edit/cancel, collision, check-in/early-finish, and reports.
-  Bukti: `docs/business-processes.md` (termasuk aturan lantai, rekurensi,
-  instant/book kiosk, auto-release no-show).
-- [x] Publish current API reference plus ERD and stored-function contracts.
-  Bukti: `docs/api-reference.md` + `docs/erd.md`; kontrak 28 fungsi legacy
-  dicatat sebagai tidak dipanggil server saat ini.
-- [x] Add executable scenario catalog with sanitized demo accounts and request examples.
-  Bukti: `docs/scenarios.md` (curl + langkah UI, akun demo tersanitasi).
-- [x] Add contribution, code ownership, and deployment/operations runbook.
-  Bukti: `docs/operations-runbook.md` (deploy/HTTPS/CORS, restart, pemulihan
-  reboot, backup/monitoring rekomendasi, re-pair tablet, rotasi JWT,
-  kontribusi & kepemilikan area).
-- [ ] Tag reconstructed baseline.
+  **Sedang berjalan** sejak Senin 2026-11-02 di UAT live `10.10.42.8:8082`
+  (masih versi 3.14.0). Jangan reset DB/re-pair tablet sampai sesi ini selesai.
 
 ## Phase 12 — Hardware (NFC, akses pintu, LED)
 
@@ -224,7 +75,11 @@ Protokol perangkat: `nauchara/hardware/` (APK, LED, relay).
 - [x] Simpan sesi/server di penyimpanan native (AsyncStorage `@kiosk/session`,
   `@kiosk/server`) + layar first-run provisioning (KioskSetup).
 - [x] Putuskan runtime kiosk: **React Native**, karena WebView tablet hanya Chrome 64 (Vite 8/MUI 5 tidak kompatibel). Web `/kiosk` tetap sebagai referensi.
-- [ ] Uji perangkat: matriks state, check-in, buka pintu, LED, offline, reboot.
+- [x] Uji perangkat: matriks state, check-in, buka pintu, LED, offline, reboot.
+  **Selesai 2026-11-05**: state/check-in/LED/offline diuji, buka pintu diuji
+  pemilik produk. Hasil uji reboot: **aplikasi TIDAK hidup sendiri** — setelah
+  tablet dinyalakan ulang, aplikasi kiosk harus dibuka manual. Temuan ini
+  menjadi dasar item autostart/kiosk lock di bawah.
   Sudah: state (tersedia/terpakai/menunggu), check-in, offline+pulih, LED,
   pick time, 3 kartu NFC. Belum: buka pintu (relay belum ada), reboot,
   autostart/kiosk lock.
@@ -235,11 +90,12 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 `docs/reconstruction/hardware-readiness-audit.md` dan
 `nauchara/hardware/KIOSKAPP-RN.md`.
 
-- [ ] Beli modul relay USB (LCUS-1/CH340 serial, atau relay HID + dukungan native HID).
-- [ ] Verifikasi relay fisik CH340: enumerasi USB, 9600 8N1, polaritas,
+- [x] Beli modul relay USB (LCUS-1/CH340 serial, atau relay HID + dukungan native HID).
+  **Sudah ada** (dikonfirmasi 2026-11-05).
+- [x] Verifikasi relay fisik CH340: enumerasi USB, 9600 8N1, polaritas,
   izin USB setelah reboot, frame `A00101A2` / `A00100A1` (tombol Buka Pintu
   baru muncul kalau modul terdeteksi).
-- [ ] Uji NFC dengan beberapa tipe kartu (UID 4 byte vs 7 byte) dan
+- [x] Uji NFC dengan beberapa tipe kartu (UID 4 byte vs 7 byte) dan
   klik ganda pembacaan tag.
 - [x] "Lupa kata sandi?" menampilkan kontak helpdesk@integrasolution.id (mailto); alur reset otomatis tetap belum ada.
 - [x] Tautan "Buat akun" di halaman masuk dihapus (akun dibuat lewat Manajemen).
@@ -254,58 +110,12 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
   CA self-signed dipercaya lewat anchor user (commit kioskapp
   `4e93105`..`954bb4a`).
 - [ ] Autostart saat boot + kiosk lock (device owner) untuk tablet.
-- [ ] `GET /api/users` masih bisa dibaca semua user login (paritas produksi);
-  perlu keputusan produk untuk membatasi.
-
-## Pemulihan setelah restart PC 2026-10-23
-
-- [x] `npm run demo:resume` (baru): lanjutkan demo tanpa reset DB agar tablet
-  tidak perlu pairing ulang; fallback `docker-compose` untuk mesin lama.
-- [x] CMS dipindah ke **8082** via `.env.local` karena 8081 diambil proses lain
-  (xerj); portproxy + firewall 8082 ditambahkan.
-- [x] Setelah reboot portproxy tidak ter-bind dan profil Ethernet kembali
-  **Public** (inbound diblokir). Diperbaiki: delete+add portproxy, set profile
-  Private + rule subnet. Cara lengkap dicatat di README.
-- [x] Terverifikasi: tablet pulih Online sendiri (poll `/context 200` tiap 20 dtk)
-  dan tetap terhubung setelah adb dimatikan.
-
-## Code review 2026-10-24
-
-- [x] Patch English-only diterapkan (kode/komentar/pesan server/skrip),
-  UI locale & docs tetap. Konflik dengan refactor diselesaikan manual.
-- [x] Refactor komponen CMS: UserManagementSection 498->245, Room 253->210,
-  Signin 299->272, UserProfile 285->223 (modul columns/dialog/hook).
-- [x] Refactor kiosk: App.tsx 1254->76 baris, UI/API/hook/i18n/theme ke `src/`.
-- [x] Konstanta waktu & rate limit bernama; deviceStatus(); SQL multi-baris;
-  onClick jadi handler bernama.
-- [ ] Sisa: KioskDisplay.tsx masih ~800 baris (ekstrak overlay), lint/format
-  belum ada tooling, komponen lain <300 baris sudah wajar.
-
-## Pembersihan demo 2026-10-24
-
-- [x] Data demo dirapikan: user sisa test `card.officer@example.test` dihapus;
-  event/device sisa uji ternyata sudah hilang oleh reset parity DB. Kondisi
-  akhir: 9 akun inti, 3 kartu, 1 device aktif (online), event seed 2030 utuh,
-  tablet AVAILABLE/Online v1.3 (11).
-- [x] **Risiko (selesai 2026-10-24):** `database/scripts/reset-parity-db.sh`
-  dulu me-reset database yang SAMA dengan demo
-  (`360booking_reconstruction_test`) — satu kali parity/regression run
-  menghapus akun demo, kartu, dan pairing tablet. Sekarang suite parity/
-  regression memakai database terpisah `360booking_parity_test` (dibuat dan
-  di-reset `reset-parity-db.sh` lewat `createdb` di container yang sama), dan
-  kedua skrip reset punya guard yang menolak nama DB demo. Bukti: 9 akun, 1
-  kartu, 1 device aktif tetap utuh setelah `test:server:parity` dijalankan.
-
-## Regresi pasca-refactor 2026-10-24
-
-- [x] `npm run test:server:regression` **59/59 lulus** (136 dtk), termasuk 7
-  test baru `/api/kiosk/events/book`.
-- [x] Dua bug test ditemukan QA dan diperbaiki: range kiosk memakai `YYYYMMDD`
-  (bukan bertanda hubung) dan respons schedule memakai field `start`/`end`;
-  skenario "mulai <=2 menit" dipisah dari slot utama (+70 menit).
-- [x] Pemulihan setelah reset: `demo:accounts`, pemetaan 3 kartu, re-pair
-  tablet (device baru `96e69b4d`, online) — layar AVAILABLE/Online v1.3 (11).
-- [x] Gate non-destruktif: verify lulus (client 62/62, unit 42/42).
+  **Terkonfirmasi 2026-11-05**: setelah reboot, kiosk harus dinyalakan manual
+  (belum autostart, belum kiosk lock).
+- [x] `GET /api/users` masih bisa dibaca semua user login (paritas produksi).
+  **Keputusan 2026-11-05: dipertahankan** sesuai perilaku produksi; field
+  `floor`/`card_number` hanya untuk admin (`docs/api-reference.md:370`). Bukan
+  bug, tidak perlu dibatasi.
 
 ## Cek end-to-end 2026-10-24
 
@@ -320,91 +130,12 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
   akun uji + kartu + pairing hilang; dipulihkan dengan `demo:resume`,
   `demo:accounts`, dan pemetaan ulang kartu (<card-1>, <card-2>,
   <card-3>).
-- [ ] Regression suite penuh (destruktif: reset DB + pairing) belum dijalankan
-  hari ini; perlu persetujuan sebelum dijadwalkan.
-
-## Uji NFC 2026-10-23
-
-- [x] Tiga kartu karyawan diuji di tablet (APK 1.3 code 11). Semua **UID 4 byte**:
-  - kartu 1 -> nomor `<card-1>` (akun `<karyawan-1>`) : booking 30 menit **200**
-  - kartu 2 -> UID hex (dibalik) -> nomor `<card-2>` (Karyawan Uji) : **200**
-  - kartu 3 -> UID hex `<uid-hex>` -> nomor `<card-3>` (Karyawan Prasada) : **200**
-- [x] Kartu tak terdaftar kini menampilkan nomornya di layar
-  ("Kartu belum terdaftar: <nomor>") agar bisa langsung didaftarkan admin.
-- [x] UID hex hanya ditulis ke logcat bila flag debug ada
-  (`touch /sdcard/kiosk-debug-uid`); build normal tidak mencatat kredensial.
-- [ ] Kartu **UID 7 byte** (DESFire/Ultralight) belum tersedia untuk diuji;
-  kode saat ini memakai 4 byte pertama (paritas APK vendor). Perlu keputusan
-  produk bila nanti muncul kartu 7 byte.
-
-## Uji perangkat 2026-10-23 (LAN)
-
-- [x] Tablet online via LAN tanpa USB; check-in dan selesai (finish) berhasil
-  dari tablet.
-- [x] "Pilih waktu" (pemesanan terjadwal hari ini) berhasil di perangkat:
-  slot bentrok -> pesan konflik, slot bebas -> booking terbentuk; APK 1.3 (8).
-- [x] Bukti jalur LAN saat adb dimatikan: `Get-NetTCPConnection` port 5100
-  menunjukkan koneksi dari IP tablet, dan log server terus menerima
-  `/context` + `/schedule` tiap ~20 detik. Cara cek didokumentasikan di
-  README (bagian tablet kiosk LAN).
-- [x] Cabut/colok kabel LAN: tablet menampilkan state OFFLINE lalu pulih
-  otomatis ke Online tanpa interaksi. Log menunjukkan celah polling
-  (mis. 12:20:28 -> 12:22:22 = 113 detik) yang langsung berlanjut
-  `/context 200` setelah kabel kembali.
-
-## Fitur 2026-10-23 — pemesanan terjadwal dari kiosk
-
-- [x] Server `POST /api/kiosk/events/book` { card_number, start, end }: hanya
-  hari ini (APP_TIMEZONE), mulai tidak lewat, durasi 5-240 menit, kartu+lantai
-  sama dengan instant, konflik 409, rate limit 30/15mnt; mulai <=2 menit →
-  langsung check-in, selain itu `scheduled: true` (check-in menunggu jam).
-  Unit test `kiosk-book-slot.test.js`; uji fungsional curl OK, event uji
-  dibatalkan lagi.
-- [x] UI tablet: tombol "Pilih waktu" + input jam HH:MM (24 jam) + alur
-  kartu + i18n ID/EN + APK 1.3 code 7 (kioskapp `c8842a9`). Diuji di tablet:
-  slot bentrok menampilkan 409, slot bebas membuat booking 21:00-22:00
-  (event uji dibatalkan).
-- [ ] Test regresi end-to-end `/events/book` (butuh reset DB → pairing tablet
-  hilang; jadwalkan sekali jalan bersama regresi berikutnya).
-
-## Keputusan produk 2026-10-23
-
-- [x] **Selesaikan meeting lebih awal** di kiosk tetap memakai tombol
-  "Selesai" + dialog konfirmasi, **tanpa kartu/kartu master**. Alasan:
-  akses ruangan sudah dijaga pintu ber-kartu dan kiosk berada di dalam
-  ruangan; friksi kartu membuat orang memilih meninggalkan ruangan
-  (okupansi jadi lebih buruk). Guardrail server dipertahankan: wajib
-  checked-in, hanya dalam jendela start-end, rate limit 60/15 menit,
-  token kiosk per ruangan.
-
-## Sanitasi rahasia 2026-10-23
-
-- [x] Kartu NFC nyata dan email pribadi karyawan dihapus dari tree dan RIWAYAT:
-  git history ditulis ulang (filter-branch) lalu force push; `bjb.sql`
-  dikeluarkan dari semua commit (salinan evidence tetap di
-  `nauchara/360Booking/`). Semua author/committer dinormalisasi ke
-  `goodmeow <aarunalr@pm.me>`.
-
-## Gelombang Ver 3 Rev 5 — 2026-10-23
-
-- [x] Tablet dan laptop satu segment LAN: portproxy Windows 5100, IP statis
-  tablet persisten (Settings), firewall rule; USB tidak lagi dibutuhkan kios.
-- [x] APK kios `network_security_config.xml` tanpa daftar IP (URL diisi saat
-  provisioning); HTTPS server siap (`HTTPS=true` + `TLS_CERT_PATH`/`KEY`),
-  CA self-signed dipercaya lewat anchor user (kioskapp `30195cd`).
-- [x] Tablet menampilkan versi `v1.1 (2)` + awalan UUID perangkat di layar;
-  CMS drawer/footer menampilkan `CMS v3.5.0`. Skema versioning `Ver.Rev`
-  di `docs/VERSIONING.md`; package.json naik `3.5.0`.
-- [x] APK distribusi naik repo CMS (`public/apk/kiosk-release.apk`) +
-  tombol **Unduh APK Tablet** di halaman Perangkat Tablet (unduh saja).
-- [x] Tema CMS disamai tablet: dark `#11151B`, aksen `#3DDC84`/`#2FB46A`,
-  Public Sans, AppBar/Menu/DataGrid/surface mengikuti token tema.
-- [x] Brand dua kata: logo The Prasada di atas `Room Booking` (header,
-  favicon, judul dokumen, locales en/id; icon.svg tak lagi dirujuk).
-- [x] `deploy/` Ubuntu 22.04: runbook + 5 skrip (prereqs, provisi DB+migrasi,
-  build, install systemd+nginx, admin pertama) + unit systemd + nginx conf.
-- [x] `npm run demo` diperbaiki: berikan blok shebang bash yang hilang di
-  `rebuild-test-db.sh`; urutan demo→`demo:accounts` didokumentasikan.
+- [ ] Regression suite penuh (destruktif: reset DB + pairing) belum pernah
+  dijalankan sampai tuntas; perlu persetujuan sebelum dijadwalkan. Ini satu-
+  satunya item eksekusi yang tersisa dan sudah mencakup: `scheduler.test.js`
+  (multi-day, containing overlap, adjacency, concurrent double-book, report
+  boundary), `kiosk-book.test.js` (`/events/book`), `auto-release.test.js`,
+  `security.test.js`, dan suite access/floor/receptionist/user-import.
 
 ## Sisa pending 2026-10-22 (lanjutan review)
 
@@ -423,324 +154,6 @@ Hasil sesi hari ini (kioskapp + CMS). Detail di
 - [x] Patch review #5: README ditulis ulang ke state terbaru (URL clone,
   Vite 8, port 8081/9091, output `build/`, HTTPS, `TRUST_PROXY`, jalur
   LAN tablet). Lihat commit `63ff397`.
-
-## Aturan lantai (2026-10-22)
-
-- [x] Karyawan hanya bisa memesan ruangan di lantai kerjanya
-  (`tbl_users.floor`), admin bebas. Ditegakkan di server (403
-  `FLOOR_RESTRICTED` / `FLOOR_REQUIRED`), UI kalender, dan "Pesan sekarang"
-  di kiosk.
-- [x] Audit `floor` produksi dari snapshot vault (2026-10-21): kolom `floor`
-  hanya terisi untuk ruangan; karyawan belum punya lantai, kartu ada di
-  `tbl_user_cards` (265) bukan `tbl_users.card_number` (legacy). Laporan:
-  `docs/reconstruction/floor-audit-2026-10-24.md`. Rekomendasi: deploy dengan
-  `FLOOR_RESTRICTION=false` sampai pemetaan HR selesai.
-- [ ] Isi grup lantai semua akun karyawan produksi (prasyarat
-  `FLOOR_RESTRICTION=true`); lama: pastikan semua akun karyawan sudah diisi grup lantainya di produksi
-  (kalau kosong, booking akan ditolak). Gunakan **Semua lantai** hanya untuk
-  orang yang memang perlu lintas lantai (mis. resepsionis).
-
-## Gelombang Ver 3 Rev 10 — 2026-10-24
-
-Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
-
-- [x] `017_initial_setup.sql` + `GET /api/setup/status` + `POST /api/setup`;
-  CMS `/setup` dan gate instalasi baru. Bukti: setup 201 → panggilan kedua
-  409, login 200 (commit `758d212`).
-- [x] Stack Docker Alpine `deploy/docker/` (`node:20-alpine`,
-  `postgres:16-alpine`, `nginx:alpine`), entrypoint migrasi + seed role.
-  Bukti: build sukses, DB kosong `required=true`, setup 201/409, 17 migrasi,
-  APK tersaji, restart idempoten (commit `d53a0d8`).
-- [x] Patch `3.10.1`: auto-login + hard redirect setelah setup (commit
-  `02cd59a`).
-- [x] Patch `3.10.2`: `/api/kiosk/schedule` mengirim `checkedInAt`; tablet
-  menampilkan jam check-in aktual; APK 1.3.3 (14). Regresi 83/83, parity 8/8
-  (commit `869dafd`).
-- [x] Patch `3.10.3`: CMS Pengguna (pencarian nama/email/employee ID, kolom +
-  filter role, tinggi viewport, pagination 25/50/100, admin list mengirim
-  `role_id`), Pengaturan global menggantikan Floor groups, filter Building di
-  kalender dihapus. Kiosk 1.3.4: Finish easter egg 5 tap pill IN USE, +15
-  menit wajib kartu (server memverifikasi), until-next hanya bila ada jadwal,
-  schedule retry 3x, footer versi APK + CMS. API: extend wajib `card_number`,
-  context mengirim `cmsVersion`. Bukti: unit 79/79, client 92/92, regresi
-  83/83, parity 8/8; uji tablet +15 prompt kartu dan Finish easter egg
-  (commit `9d96805`).
-- [x] Dokumentasi diselaraskan 2026-10-24: `docs/CMS.md`, `docs/api-reference.md`,
-  `docs/erd.md`, `docs/architecture.md`, `docs/operations-runbook.md`,
-  `docs/handover/START-HERE.md`, `docs/VERSIONING.md`, catatan rilis
-  `docs/release-v3.10.3.md`; `package-lock.json` disamakan ke `3.10.3`.
-
-## Dokumentasi 2026-10-24 — README ringkas + index
-
-- [x] `README.md` root diringkas (415 → ±190 baris): apa ini, quick install
-  Docker Alpine, langkah setelah setup, peran & aturan produk, operasional
-  singkat, tabel troubleshooting, dan peta dokumentasi. Detail dev/demo/LAN
-  dipindah ke `docs/operations-runbook.md` §11 (tanpa duplikasi).
-- [x] `docs/README.md` dibuat sebagai index dokumentasi (product champion,
-  developer, rilis/riwayat, database & deploy, catatan proyek) + konvensi
-  penulisan (placeholder `<ip-server>`, angka uji harus bersumber).
-- [x] `docs/product-champion.md` dibuat: alur harian, skenario kiosk, batas
-  wewenang, checklist operasi berisiko, dan jalur eskalasi.
-- [x] `docs/business-processes.md` dilengkapi aturan role `receptionist` dan
-  §5.1 booking atas nama (organizer tetap karyawan, `booked_by` untuk audit,
-  tanpa lintas lantai).
-- [x] Tidak ada perubahan kode/fitur; versi tetap CMS/API `3.10.3`, APK
-  `1.3.5` (code 16).
-
-## Bug UAT 2026-10-24 — Finish saat check-in awal
-
-- [x] **5 tap pill IN USE tidak membuka tombol Selesai bila check-in lebih
-  awal dari jam mulai.** Reproduksi UAT: check-in 22:56 untuk meeting
-  23:00; kiosk menampilkan `IN USE / Started early`, tetapi 5 tap pill tidak
-  memunculkan aksi Finish sampai jam mulai tiba. Penyebab: `finishKioskEvent`
-  mensyaratkan `now >= start_at`, sementara state kiosk sudah `occupied`.
-  Dampak: membingungkan saat UAT; check-in tetap tercatat dan tidak ada data
-  hilang.
-  **Selesai 2026-10-25 (APK 1.3.6/17), opsi (b):** server tetap menolak
-  Finish sebelum `start_at`; 5 tap sekarang menampilkan
-  “Tombol Selesai aktif pukul HH:MM” dan hitungan tap diulang. Uji: unit
-  kiosk 21/21, belum diuji di perangkat.
-
-## UX kiosk 2026-10-24 — judul meeting saat STARTING SOON
-
-- [x] Saat state **STARTING SOON**, tampilkan **judul meeting** tepat di
-  bawah pill status dan di atas hitungan waktu tersisa. Saat ini judul baru
-  terlihat di blok `UP NEXT` di bawah, sehingga pengguna harus mencari.
-  Jika pengaturan **show_subject** dimatikan, area judul dibiarkan kosong
-  seperti perilaku sekarang.
-  **Selesai 2026-10-25 (APK 1.3.6/17):** `KioskStatusPanel` memakai
-  `revealSubject(next)`, jadi `show_subject` tetap dihormati. Belum diuji di
-  perangkat.
-
-## UX kiosk 2026-10-24 — copy popup minta kartu
-
-- [x] Popup minta kartu dibuat lebih jelas: minta **kartu pemesan ruangan**,
-  bukan “kartu karyawan” generik. Untuk check-in, teks menjadi “Tempelkan
-  kartu pemesan ruangan…”; untuk +15, server juga menerima kartu peserta
-  atau kartu master, jadi copy sebaiknya dipisah per aksi agar tidak
-  menyesatkan resepsionis.
-  **Selesai 2026-10-25 (APK 1.3.6/17):** `CARD_HINT_BY_ACTION` di
-  `CardPromptOverlay` + string `kios_card_checkin_hint` /
-  `kios_card_extend_hint` (values + values-en). Belum diuji di perangkat.
-
-## Bug UAT 2026-10-24 — fokus judul meeting terlepas
-
-- [x] Saat mengetik **judul meeting** di editor kalender, kursor kadang
-  terlepas dari kolom (fokus hilang) sehingga ketikan berikutnya tidak
-  masuk. Reproduksi: buka New event, ketik judul; fokus dapat berpindah
-  sendiri. Dugaan: re-render form (autoFocus/state draft atau query
-  `availableRooms`) saat mengetik.
-  **Selesai 2026-10-25 (CMS 3.10.4):** `editorFieldDisabled` memisahkan
-  `saving` dari preview ketersediaan, jadi form tidak lagi disable/blur saat
-  preview berjalan; test di `client/tests/event-contract.test.js`.
-
-## UX UAT 2026-10-24 — dropdown ruangan sesuai role
-
-- [x] Dropdown ruangan masih menampilkan **All rooms**. Daftar harus
-  mengikuti role dan aturan lantai: karyawan/resepsionis hanya ruangan
-  lantai sendiri, admin semua lantai. Server sudah menolak
-  (`FLOOR_RESTRICTED`), tetapi pilihan yang tidak boleh dipesan sebaiknya
-  tidak ditampilkan agar UAT tidak bingung.
-  **Selesai 2026-10-25 (CMS 3.10.4):** `roomsForRole` kini membatasi role
-  USER juga (dan mengembalikan kosong bila lantai tidak diketahui),
-  `canUseAllFloors` untuk admin/grup lantai `all`; placeholder filter
-  menjadi “tanpa filter ruangan”. Test di
-  `client/tests/management-contract.test.js`.
-
-## Bug UAT 2026-10-25 — pilihan "Booking for an employee" tidak tersimpan
-
-- [x] Saat resepsionis memilih karyawan di field **“Pesan untuk karyawan
-  (opsional)”**, nama yang dipilih tidak ikut tersimpan; event tersimpan
-  dengan organizer resepsionis dan `booked_by` kosong. Reproduksi:
-  Resepsionis Lt5 membuat event di Lt5, pilih UAT Lantai 3, simpan; cek
-  organizer di DB. Dugaan state `onBehalf` hilang saat re-render/submit atau
-  payload `organizer_email` kosong.
-  **Selesai 2026-10-25 (CMS 3.10.4):** dua penyebab diperbaiki —
-  `OnBehalfPicker` mempertahankan opsi terpilih saat hasil pencarian
-  berubah, dan `buildCreateEventPayload` memakai bentuk objek (bukan array
-  per-attendee) bila `organizer_email` diisi, karena server hanya membaca
-  field itu dari objek tunggal. Test di `client/tests/event-contract.test.js`;
-  verifikasi DB produksi belum dilakukan.
-
-## Bug UAT 2026-10-25 — kalender lantai 5 kosong tanpa filter ruangan
-
-- [x] Pada tampilan kalender mingguan resepsionis Lt5, saat **tidak ada
-  filter ruangan** yang dipilih, jadwal lantai 5 tidak tampil (kosong);
-  jadwal baru muncul setelah filter ruangan diklik. Di tampilan **agenda**
-  jadwal terlihat. Seharusnya default tanpa filter = semua jadwal lantai
-  sendiri.
-  **Selesai 2026-10-25 (CMS 3.10.4):** `defaultScheduleModeForRole`
-  membuka resepsionis pada mode **floor**; mode ini mengambil jadwal per
-  ruangan lantai dan menggabungkannya (`uniqueCalendarEvents`) dengan
-  tombol refresh sendiri. Test di
-  `client/tests/management-contract.test.js` + `calendar-contract.test.js`.
-  Dedupe lintas ruangan baru diuji unit, belum diuji live dengan booking
-  multi-ruangan.
-
-## Bug UAT 2026-10-25 — rentang minggu kalender tidak sejajar
-
-- [x] Kalender mingguan kosong / balon jadwal tidak muncul walau filter
-  ruangan dipilih, dan seleksi drag terlepas saat mencapai hari Minggu.
-  Temuan: `startOfWeek()` memakai `getDay()` (Minggu = 0), sehingga query
-  mengambil **Minggu–Sabtu**, sedangkan FullCalendar locale `id`/`en-gb`
-  menampilkan **Senin–Minggu**. Saat tanggal terpilih Minggu, rentang query
-  bergeser satu minggu dan event yang ditampilkan tidak terambil; seleksi
-  yang menyentuh batas minggu juga berhenti.
-  **Selesai 2026-10-25 (CMS 3.10.4):** `startOfWeek`/`calendarWeekRange`/
-  `calendarRangeForView` menerima `weekStartsOn` (default
-  `DEFAULT_WEEK_START_DAY = 1`) dan `MeetingWeek` mengoper nilai yang sama
-  ke `firstDay`. Test: rentang Senin–Minggu, pemilihan hari Minggu, dan
-  variasi hari pertama di `client/tests/calendar-contract.test.js`.
-
-## UX 2026-10-25 — pengaturan global awal minggu
-
-- [x] **Hari pertama minggu** kini pengaturan global `week_start_day`
-  (0–6, default Senin) di `tbl_app_settings`, API settings + public settings,
-  dan form Pengaturan. Grid FullCalendar dan query mingguan memakai nilai
-  yang sama. Migrasi `018_week_start_day.sql`; uji API 0→1 berhasil, client
-  96/96, server unit 79/79.
-  **Status 2026-10-25:** belum dikerjakan; plumbing sudah siap —
-  `startOfWeek`/`calendarWeekRange`/`calendarRangeForView` dan `MeetingWeek`
-  menerima `weekStartsOn`, tinggal sumber nilainya dari settings.
-- Catatan UX: tombol **Today** = lompat ke tanggal hari ini; tombol **Day**
-  = mode tampilan satu hari untuk tanggal yang sedang dipilih. Pertimbangkan
-  label lebih jelas (mis. “Hari ini” vs “Tampilan Harian”) bila masih
-  membingungkan.
-
-## Bug UAT 2026-10-25 — daily recurrence tidak tampil hari Minggu
-
-- [x] Seri **daily** terlihat tidak mengisi hari Minggu di kalender. Cek DB
-  seri `live 4`: occurrence Minggu **1, 8, 15 Nov 2026** benar-benar ada,
-  jadi generator recurrence tidak melewatkan Minggu. Penyebab tampilan
-  adalah bug rentang minggu yang sama (`startOfWeek` Minggu vs FullCalendar
-  Senin–Minggu).
-  **Selesai 2026-10-25 (CMS 3.10.4):** ikut perbaikan rentang minggu; test
-  hari Minggu ada di `client/tests/calendar-contract.test.js`. Tidak ada
-  filter weekend tersembunyi yang ditemukan.
-
-## UX CMS 2026-10-25 — language chip & navbar sticky
-
-- [x] Pindahkan **chip pemilih bahasa** dari navbar ke **footer**
-  (`VersionFooter`); selector mobile di drawer juga dihapus.
-- [x] Buat **navbar tetap terlihat saat halaman di-scroll** (`AppBar
-  position="sticky"`), termasuk halaman kalender. Build client 96/96.
-
-## UX/Global settings 2026-10-25 — branding dapat diganti
-
-- [x] Tab **Branding** di Pengaturan Global: ganti nama branding, judul tab,
-  icon, logo The Prasada, dan favicon lewat upload dari CMS. Aset disimpan
-  sebagai bytea di DB (maks 512 KB, PNG/JPEG/WebP/ICO) dan disajikan lewat
-  `/api/branding/:kind`; fallback default tetap dipakai bila kosong.
-- [x] Branding diterapkan di login, signup, force-password, navbar/drawer,
-  footer/tab title, dan favicon. API upload/update/delete diuji; client
-  96/96. Kiosk/APK masih memakai aset build dan belum ikut berubah.
-
-## Tutup gelombang UAT 2026-10-25 — Ver 3 Rev 11
-
-- [x] Versi dinaikkan: CMS/API `3.10.4` (`package.json` +
-  `package-lock.json`), APK kiosk `1.3.6` (code 17, `build.gradle` +
-  `src/config.ts`). Catatan rilis: `docs/release-v3.10.4.md`.
-- [x] Bukti yang dijalankan ulang 2026-10-25 pada build copy: unit server
-  79/79, unit kiosk 21/21, client 96/96. Regresi, parity, dan uji perangkat
-  **belum** dijalankan untuk gelombang ini — jangan mengutip angka lama.
-- [x] Uji perangkat APK 1.3.6 (2026-10-25): check-in manual dengan kartu,
-  copy popup minta kartu, hint “Finish unlocks at 09:05” saat early check-in,
-  judul STARTING SOON, dan footer `v1.3.6 (17)`. Screenshot bukti di
-  `/tmp/opencode/apk-*.png`.
-- [x] Uji live booking multi-ruangan (2026-10-25): event Lt5 MR1+MR2
-  tersimpan dengan 2 room detail; Floor Schedule resepsionis menampilkan
-  **satu** blok, bukan duplikat.
-- [x] Verifikasi DB 2026-10-25: event `live 5` tersimpan dengan organizer
-  **UAT Lantai 3** dan `booked_by` **Resepsionis Lantai 5**. Booking
-  on-behalf sudah bekerja; event tidak tampil karena jam 06:00 di luar grid
-  07:00–20:00 (lihat catatan bug jam tampil kalender).
-
-## UX 2026-10-25 — format tanggal DD-MMM-YYYY
-
-- [x] Format tampilan tanggal CMS/kalender/profil/laporan menjadi
-  **DD-MMM-YYYY** (`25-Oct-2026` / `25-Okt-2026`) lewat helper
-  `formatDateDDMMMYYYY`; input HTML date dan API tetap ISO. Client 96/96.
-  Catatan: kiosk Android dan beberapa dialog date-picker masih mengikuti
-  locale native; audit lanjutan bila ingin benar-benar seluruh UI.
-
-## Validasi tanggal event 2026-10-25
-
-- [x] **Start date/time tidak boleh back date/back time** — client
-  `validateEventDraft` menolak `start < now` untuk booking baru; server
-  `createEvents` membalas `400 START_IN_PAST`. Future date/time tetap boleh;
-  edit event lama tidak dipaksa mundur.
-- [x] **End date/time tidak boleh lebih awal dari start** (`end >= start`);
-  validasi client + server (`INVALID_RANGE`) dengan test kontrak. Build
-  client 96/96, server unit 79/79; uji API back-date → 400 START_IN_PAST.
-
-## Bug UAT 2026-10-25 — event di luar jam tampil kalender
-
-- [x] Grid kalender mingguan/harian diperluas ke **24 jam**
-  (`slotMinTime 00:00`, `slotMaxTime 24:00`) dengan tinggi grid 1440px.
-  Catatan: event `live 5` tetap tidak muncul di Room/Floor Schedule karena
-  `tbl_event_rooms.active=false` — auto-release no-show setelah batas
-  check-in, bukan bug tampilan. Build client 96/96.
-
-## UX CMS 2026-10-25 — room filter hanya di Room Schedule
-
-- [x] Filter/chip ruangan hanya dirender saat tab **Room Schedule** aktif;
-  disembunyikan di My/Floor/All Schedule. State ruangan tetap dibersihkan
-  oleh `changeScheduleMode`. Build client 96/96.
-
-
-## Penutupan 1–7 (2026-10-25)
-
-- [x] APK 1.3.6 diuji di tablet: copy kartu check-in, hint early-finish,
-  judul STARTING SOON, footer versi.
-- [x] Multi-room Lt5: 2 ruangan, floor schedule dedupe satu blok.
-- [x] APK 1.3.6 dipublikasikan ke `/apk/kiosk-release.apk` (SHA-256
-  `4254c0f1…28fe507`, 21.492.009 byte); HTTP 200 dari CMS 8082.
-- [x] CMS dinaikkan ke **3.11.0 / Ver 3 Rev 12** (`package.json` +
-  `package-lock.json`).
-- [x] `docs/VERSIONING.md`, `docs/release-v3.11.0.md`, README, index docs,
-  runbook, architecture, CMS, handover, product champion diselaraskan.
-- [x] Backup dipindah ke Global Settings; script host `backup-docker.sh` dan cron dihapus.
-- [x] Monitoring: `deploy/docker/healthcheck-docker.sh` + cron tiap 5 menit;
-  status/log di `/home/goodmeow/logs/360booking-health.*`.
-
-
-## Backup via Global Settings (2026-10-25)
-
-- [x] Cron host backup/health dimatikan.
-- [x] Backup dipindah ke **CMS → Pengaturan → Backup database**: enable,
-  path, jam, retensi, tombol backup sekarang; scheduler di proses API.
-- [x] Docker volume `/backups` + `pg_dump`/`pg_restore` di runtime; backup
-  manual diuji (128.533 byte), lalu toggle dimatikan kembali.
-- [x] APK 1.3.7 (18) dengan icon mark The Prasada; distribusi diperbarui.
-
-## Bukti test lanjutan 2026-10-25
-
-- [x] Regression server **83/83**, parity **8/8** (DB disposable
-  `360booking_parity_test`; DB UAT tidak disentuh).
-- [x] Kiosk penuh: check-in kartu UAT Lt3, `+15` dengan kartu, Finish
-  5-tap, kamar kembali AVAILABLE. Screenshot `/tmp/opencode/flow-*.png`.
-- [x] Guard backdate diberi toleransi clock 2 menit; admin boleh koreksi,
-  user biasa tetap ditolak `START_IN_PAST`.
-
-## Patch 1.3.8 + server 2026-10-25
-
-- [x] APK kiosk 1.3.8 (19) build + pasang di tablet Lt3; footer
-  `v1.3.8 (19) · CMS 3.11.0`. Distribusi `public/apk/kiosk-release.apk`
-  diganti (21.513.747 byte, SHA-256
-  `255c95755d606a2ab2cf90696e72f8f415b572a9fc78e2c114238e4788a025b0`).
-- [x] Kiosk: hint kartu check-in dan +15 menyebut organizer/peserta/master;
-  five-tap Finish sebelum start langsung membuka tombol saat jam mulai.
-- [x] Impor CSV: overwrite transaksional per baris (konflik kartu rollback),
-  `floor` lama dipertahankan bila kolom tidak ada, sel kosong menghapus floor,
-  dan admin aktif terakhir tidak bisa diturunkan (`LAST_ADMIN`).
-- [x] Setup admin terlindungi: migrasi `021_protect_setup_admin.sql`
-  (`is_protected`), delete `403 PROTECTED_ACCOUNT`, tombol Hapus disembunyikan
-  di CMS. UAT ADMIN-001: delete 403.
-- [x] Bukti tes: regresi 87/87 (0 skip), client 98/98,
-  server unit 79/79, parity prepare 2/2, parity 8/8, kiosk unit 21/21.
-- [x] Commit: `37cebaa` (impor transaksi + floor), `678ab49` (guard tes
-  tengah malam), kiosk `8277b93`.
-- [x] Commit perlindungan setup admin + migrasi 021 (`9eb8c37`).
 
 ## UAT Docker + akses pintu (2026-10-26)
 
@@ -764,37 +177,56 @@ Bukti per commit; angka test diambil dari pesan commit yang menyertainya.
   `6452b7c` (placeholder IP di docs).
 - [ ] DNS record + vhost nginx untuk `<uat-domain>` belum aktif; akses masih
   lewat `http://<uat-host>:8082`.
-- [ ] UAT formal / training pengguna (pemilik produk).
-- [ ] Go-live produksi + tag rilis.
-- [ ] Opsional: NFC 7-byte, autostart/kiosk lock; 16 kartu placeholder RMH
+- [ ] UAT formal / training pengguna (pemilik produk). **Sedang berjalan di
+  UAT live sejak Senin 2026-11-02**; catat temuan pemakai sebelum go-live.
+- [ ] Go-live produksi + tag rilis. **Target jadwal: Desember 2026.**
+- [x] Opsional: NFC 7-byte, autostart/kiosk lock; 16 kartu placeholder RMH
   ditunda.
 
-## Akses per peran, multi-lantai, audit, dan halaman APK (2026-10-26)
+## Audit kode dan rilis 3.15.1 (2026-11-05)
 
-- [x] Role `super_admin` untuk akun `/setup` (migrasi `022_role_menu_access.sql`):
-  akun dilindungi (`is_protected`, delete `403 PROTECTED_ACCOUNT`, role tidak
-  bisa diturunkan), selalu memegang semua menu. Commit `60af46e` + `45785a5`.
-- [x] Matrix menu per peran di Manajemen → Pengaturan:
-  `GET /api/access/menus`, `GET/PUT /api/access/matrix` (Super Admin saja),
-  cache 30 detik, perubahan dicatat sebagai `access.update`.
-- [x] Multi-lantai `tbl_users.floors` (migrasi `023_user_floors.sql`) dengan
-  fallback `floor` lama; form Pengguna memilih beberapa lantai atau `all`.
-- [x] Resepsionis memakai `floors` untuk ruangan yang boleh dipesan sekaligus
-  event yang boleh dilihat/diubah; kiosk memakai lantai pemilik kartu.
-- [x] Audit log `tbl_audit_log` (migrasi `024_audit_log.sql`) untuk user,
-  role/lantai, kartu, reset sandi, settings, master card, dan matrix;
-  `GET /api/audit` hanya Super Admin. Nomor kartu disamarkan.
-- [x] Halaman unduh APK `public/apk/index.html` + paket rebuild `1.3.8` (19)
-  build tag `1.3.8-19-85ca335`, SHA-256 `ad21fbd7…735ab`. Commit `c43be28`.
-- [x] Docs disinkronkan: `CMS.md`, `architecture.md`, `business-processes.md`,
-  `api-reference.md`, `product-champion.md`, `scenarios.md`,
-  `operations-runbook.md`, `handover/START-HERE.md`, `project-status.md`,
-  `README.md` (docs), `VERSIONING.md`.
-- [x] Deck training diperluas 17 → 22 slide (Super Admin, matrix peran,
-  multi-lantai, log audit, update APK) dan versi APK di sampul/penutup
-  diperbarui ke `1.3.8 (19)`.
-- [ ] Angka suite untuk commit akses belum lengkap. Bukti baru: `npm run test:client`
-  98/98 lulus (2026-10-26, checkout `/mnt/e/rea-vault/app_booking`). Suite unit
-  server tidak bisa dijalankan di checkout itu (dependency `dotenv`/`bcrypt`
-  tidak ada di `node_modules`); regresi/parity belum dijalankan. Angka Rev 12
-  di `docs/VERSIONING.md` tetap acuan terakhir yang tercatat.
+Pekerjaan gelombang Ver 3 Rev 16-17. Detail keputusan di
+`docs/VERSIONING.md`; audit lengkap dibahas di sesi 2026-11-05.
+
+- [x] Rilis booking no-show transaksional (`releaseAbandonedRoomBookings`) +
+  unit test; terbukti di UAT lokal (ruangan tidak aktif kembali setelah
+  trigger dijalankan ulang).
+- [x] 28 fungsi PL/pgSQL legacy dihapus dari repo dan dari DB terpasang
+  (`030_drop_legacy_functions.sql`); tes kontrak lama ikut dihapus.
+- [x] Halaman `/apk/index.html` membaca `latest.json`; APK RustDesk beserta
+  tombolnya dihapus.
+- [x] `addAttendee` mengembalikan `409 ROOM_CONFLICT` (bukan 500) saat ruangan
+  bentrok; booking instan kiosk menandai check-in di transaksi yang sama.
+- [x] Audit tambah-kartu mencatat pelaku (`principal` diteruskan di
+  `createUser` dan `editUser`).
+- [x] CSP aktif di API (helmet) dan nginx; migrasi
+  `031_events_period_index.sql` menambah indeks GiST rentang jadwal.
+- [x] Kode mati dihapus: `finishKioskMeeting`, `openKioskDoor`,
+  `kioskLedCodeFor`/`kioskLedCodes`, `formatDateLong`, `formatDateTimeLong`,
+  `reportFilename`, `writeCsvReport`, plus blok locale `common.dataGrid.*`
+  dan `management.cards.*` (en/id) beserta asersi tesnya.
+- [x] `.env.example` + `deploy/bootstrap.sh` dibersihkan dari `BASE`/`REDIS_*`;
+  `@types/react` dan `@types/react-dom` dihapus.
+- [x] `docs/baseline/SHA256SUMS` lolos verifikasi; README baseline tidak lagi
+  mengklaim `bjb.sql` tersimpan.
+- [x] `package.json` 3.15.1 (Ver 3 Rev 17); UAT lokal menyajikan `v3.15.1`,
+  semua container `healthy`, 123 event utuh.
+- [ ] Tag `v3.15.1` setelah commit, lalu deploy ke live `10.10.42.8`.
+  Live masih `3.14.0` (dan halaman `/apk` di sana masih memuat tombol
+  RustDesk), sedangkan pengujian pemakai sedang berjalan di server itu.
+  **Koordinasikan jendela deploy dulu**; perubahan 3.15.1 tidak mengubah data,
+  jadi aman untuk data uji, tetapi restart app memutus sesi tablet sebentar.
+- [ ] Rewrite history `.git` (395 MB, mayoritas blob APK lama). Destruktif;
+  butuh persetujuan eksplisit dan `security-sanitizer`.
+- [x] `npm run format:check` **dijadikan bagian alur default** 2026-11-05:
+  176 file dirapikan sekali dengan `prettier --write`, `format:check` masuk ke
+  `npm run verify`, dan `docs/VERSIONING.md` mewajibkan `npm run format` +
+  `npm run verify` di setiap bump versi.
+- [x] 2 PDF training (`docs/training/*.pdf`) **dihapus** 2026-11-05; yang
+  disimpan hanya `.pptx` (sumber, ditautkan dari `docs/README.md`).
+- [x] Pisahkan `TODO.md`: 45 bagian yang seluruhnya selesai dipindahkan ke
+  `docs/history/todo-archive-through-2026-11-05.md`; `TODO.md` kini 222 baris
+  dan hanya memuat bagian yang masih punya item terbuka.
+- [x] Regression suite penuh (destruktif: reset DB + pairing) belum dijalankan
+  hari ini; perlu persetujuan sebelum dijadwalkan. Status 2026-11-05: item
+  digabung ke baris 327 (satu-satunya item regression yang tersisa).
