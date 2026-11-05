@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, Link } from "react-router-dom";
 import { authenticate, signin } from "./auth-helper.js";
 import { useGetBrandingQuery, useGetPublicSettingsQuery } from "../redux/services/settings.js";
-import { brandHasAssets, signinLogoSource } from "../core/brand-assets.js";
+import { brandHasAssets, brandShowsName, signinLogoSource } from "../core/brand-assets.js";
 import { useThemeMode } from "../theme-mode.js";
 
 const HELPDESK_EMAIL = "helpdesk@integrasolution.id";
@@ -102,6 +102,22 @@ const Signin = () => {
               ) : null}
               {branding?.assets?.wordmark ? (
                 <img src={branding.assets.wordmark} alt="" style={{ display: "block", height: 22, margin: "0 auto" }} />
+              ) : null}
+              {/* Same rule as the navbar: an incomplete custom pair keeps the name. */}
+              {brandShowsName(branding) ? (
+                <Typography.Text
+                  style={{
+                    display: "block",
+                    marginTop: 10,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    letterSpacing: "0.35em",
+                    textTransform: "uppercase",
+                    color: token.colorPrimary,
+                  }}
+                >
+                  {branding?.brand_name || t("common:brand.name")}
+                </Typography.Text>
               ) : null}
             </>
           ) : (
