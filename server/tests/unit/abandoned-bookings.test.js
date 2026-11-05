@@ -22,10 +22,14 @@ test("abandoned room release runs both statements on one transaction client", as
   const releasedIds = await releaseAbandonedRoomBookings(async (work) => work(client));
 
   assert.deepEqual(releasedIds, [abandonedEventId]);
-  assert.equal(statements.length, 2);
+  assert.equal(statements.length, 3);
   assert.match(statements[0].text, /UPDATE tbl_event_rooms/);
   assert.match(statements[1].text, /UPDATE tbl_event_details/);
   assert.deepEqual(statements[1].values, [[abandonedEventId]]);
+  assert.match(statements[2].text, /INSERT INTO tbl_audit_log/);
+  assert.equal(statements[2].values[1], "auto-release");
+  assert.equal(statements[2].values[2], "event.room_auto_release");
+  assert.equal(statements[2].values[4], abandonedEventId);
 });
 
 test("no details update is sent when no room booking expired", async () => {

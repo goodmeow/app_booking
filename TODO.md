@@ -211,6 +211,9 @@ Pekerjaan gelombang Ver 3 Rev 16-17. Detail keputusan di
   mengklaim `bjb.sql` tersimpan.
 - [x] `package.json` 3.15.1 (Ver 3 Rev 17); UAT lokal menyajikan `v3.15.1`,
   semua container `healthy`, 123 event utuh.
+- [x] Rilis ruangan otomatis kini menulis baris audit
+  `event.room_auto_release` (actor `auto-release`); terverifikasi di UAT lokal
+  pada meeting no-show (3.15.3 / Ver 3 Rev 19).
 - [ ] Tag `v3.15.1` setelah commit, lalu deploy ke live `10.10.42.8`.
   Live masih `3.14.0` (dan halaman `/apk` di sana masih memuat tombol
   RustDesk), sedangkan pengujian pemakai sedang berjalan di server itu.

@@ -1,5 +1,6 @@
 import { query, withTransaction } from "../../db/pool.js";
 import { isUuid } from "../../lib/uuid.js";
+import { writeAudit } from "../audit/audit.repository.js";
 
 const eventInstantColumns = `
   e._id,
@@ -658,6 +659,21 @@ export const releaseAbandonedRoomBookings = async (runInTransaction = transactio
          AND is_deleted IS NOT TRUE`,
         [eventIds],
       );
+      // The release is automatic, so the audit row carries a system name
+      // instead of a user id; without it nobody can explain a vanished room.
+      const execute = (text, values) => client.query(text, values);
+      for (const eventId of eventIds) {
+        await writeAudit(
+          {
+            principal: { name: "auto-release" },
+            action: "event.room_auto_release",
+            entityType: "event",
+            entityId: eventId,
+            newValues: { reason: "no check-in within the limit" },
+          },
+          execute,
+        );
+      }
     }
     return eventIds;
   });

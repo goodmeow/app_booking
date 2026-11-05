@@ -25,11 +25,11 @@ Alur default setiap bump versi (wajib, bukan opsional):
    tes client, dan tes unit server.
 3. Naikkan versi, lalu tambah baris riwayat di bawah.
 
-## Posisi saat ini (Ver 3 Rev 18)
+## Posisi saat ini (Ver 3 Rev 19)
 
-- CMS + API: **Ver 3 Rev 18**, `package.json` `3.15.2`, ditampilkan di footer
-  semua halaman CMS (dari package.json). Rev 18 hanya mengecualikan folder tes
-  dari Prettier. Gelombang Rev 17 berisi perbaikan
+- CMS + API: **Ver 3 Rev 19**, `package.json` `3.15.3`, ditampilkan di footer
+  semua halaman CMS (dari package.json). Rev 19 menambahkan baris audit untuk
+  rilis ruangan otomatis. Rev 18 hanya mengecualikan folder tes dari Prettier. Gelombang Rev 17 berisi perbaikan
   audit kode (respons bentrok ruangan 409, check-in booking instan dalam satu
   transaksi, pelaku pada audit kartu, CSP, indeks rentang jadwal, hapus kode
   mati). Rev 16 di dalamnya: rilis booking no-show yang transaksional, 28
@@ -37,7 +37,7 @@ Alur default setiap bump versi (wajib, bukan opsional):
   APK RustDesk dihapus. Detail di riwayat 2026-11-05.
 - APK kiosk: **tidak berubah di Rev 16/17** — tetap `versionName 1.5.0 /
   versionCode 27`, tidak perlu rebuild atau tebar ulang. Footer kios menampilkan
-  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.2`). Build membawa pill `TERSEDIA` 44 px, copy
+  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.3`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
@@ -81,7 +81,15 @@ Alur default setiap bump versi (wajib, bukan opsional):
 
 ## Riwayat
 
-### Ver 3 Rev 18 - 2026-11-05 (rilis saat ini)
+### Ver 3 Rev 19 - 2026-11-05 (rilis saat ini)
+- **Rilis ruangan otomatis kini tercatat di Log Audit**: satu baris
+  `event.room_auto_release` per meeting yang dilepas, dengan `actor_name`
+  `auto-release` (actor id null). Tanpa ini tidak ada jejak kenapa ruangan
+  hilang. `package.json` 3.15.3; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau; di UAT lokal satu meeting no-show
+  menghasilkan baris audit tersebut.
+
+### Ver 3 Rev 18 - 2026-11-05 (rilis sebelumnya)
 - **Folder tes dikecualikan dari Prettier**: `client/tests/` dan `server/tests/`
   masuk `.prettierignore`, jadi `npm run format` / `format:check` tidak lagi
   menata ulang tes. `package.json` naik ke `3.15.2`; APK tetap 1.5.0 (27).
