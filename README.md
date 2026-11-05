@@ -180,7 +180,7 @@ $C down -v
 | Booking ditolak `403 FLOOR_RESTRICTED` | lantai user ≠ lantai ruangan | pilih ruangan sesuai lantai, atau minta resepsionis lantai tujuan |
 | Tombol Selesai tidak ada | desain 1.3.7+ | tap pill **IN USE** 5×; sebelum jam mulai muncul “Tombol Selesai aktif pukul HH:MM”, dan di 1.3.8 tombol langsung terbuka saat jam mulai tanpa five-tap kedua |
 
-Tabel insiden yang lebih lengkap: [`docs/operations-runbook.md`](docs/operations-runbook.md) §9.
+Tabel insiden yang lebih lengkap: [`docs/operations-runbook.md`](docs/operations-runbook.md) §10.
 
 ## Peta dokumentasi
 

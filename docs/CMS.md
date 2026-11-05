@@ -255,7 +255,9 @@ modal email + sandi ruangan.
 
 ### 3.7 Kiosk web (`/kiosk`, `/kiosk/setup`) — `client/kiosk/`
 - Versi web dari tampilan kiosk, dipakai sebagai referensi desktop — yang
-  dipakai tablet adalah APK React Native di repo `kioskapp`.
+  dipakai tablet adalah APK React Native di repo `kioskapp`. Rute ini bukan
+  antarmuka yang didistribusikan ke pengguna maupun admin; pengguna memakai
+  APK, admin memakai menu CMS.
 - `KioskApp.js`: layar kiosk (state hijau/kuning/merah/offline, chip
   NFC/LED, check-in); `kiosk-api.js`: panggilan API; `kiosk-session.js`:
   penyimpanan sesi; `kiosk-state.js`: mesin state + pemetaan kode LED.

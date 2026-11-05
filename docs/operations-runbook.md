@@ -568,8 +568,8 @@ Tombol **Unduh APK Tablet** di CMS → Manajemen → Perangkat Tablet menunjuk k
 file yang sama.
 
 1. Pastikan versi file sesuai rilis yang diumumkan: footer tablet harus
-   menampilkan `v1.4.5 (26) · CMS 3.13.0` setelah update. Versi saat ini
-   adalah build tag `1.4.5-26-a6390a2`.
+   menampilkan `v1.5.0 (27) · CMS 3.14.0` setelah update. Versi saat ini
+   adalah build tag `1.5.0-27`.
 2. Unduh APK dari server sendiri (jangan dari chat/email), lalu pasang di
    tablet (buka file, izinkan instalasi sekali).
 3. Buka aplikasi kiosk, cek footer versi dan status **Online** di tab
@@ -581,9 +581,11 @@ Untuk mengganti paket distribusi:
 
 1. Build release di repo `kioskapp`, salin `app-release.apk` menjadi
    `public/apk/kiosk-release.apk`.
-2. Perbarui teks versi di `public/apk/index.html` dan tambahkan satu baris
-   riwayat (tanggal, `versionName`/`versionCode`, build tag, ukuran, SHA-256)
-   di `public/apk/README.md`.
+2. Perbarui `public/apk/latest.json` (versionName, versionCode, sha256, url,
+   notes) dan tambahkan satu baris riwayat (tanggal, `versionName`/`versionCode`,
+   build tag, ukuran, SHA-256) di `public/apk/README.md`. Halaman
+   `/apk/index.html` membaca `latest.json`, jadi tidak ada teks versi yang
+   perlu diedit manual.
 3. `npm run build` agar salinan di `build/client/apk/` ikut, lalu deploy.
 4. Verifikasi: `curl -sI https://<domain>/apk/kiosk-release.apk` → `200` dan
    `Content-Length` sama dengan ukuran file; cocokkan SHA-256 dengan catatan
@@ -617,7 +619,19 @@ dicurigai bocor atau saat pergantian tim.
 Jangan mengganti `JWT_ISSUER`/`JWT_AUDIENCE` bersamaan tanpa mengubah
 konfigurasi kiosk; token lama akan ditolak.
 
-## 9. Insiden umum
+## 9. Skala proses
+
+Server harus berjalan sebagai **satu proses**. Batas percobaan login dan
+rate-limit kiosk disimpan di memori proses (`server/security/rate-limit.middleware.js`),
+jadi dua replika akan menggandakan kuota percobaan per alamat IP. Pekerjaan
+terjadwal (auto-release ruangan, backup, prune audit) juga berjalan di dalam
+proses ini.
+
+Kalau nanti perlu lebih dari satu replika, pindahkan dulu rate-limit ke
+penyimpanan bersama (tabel/Redis), dan pastikan hanya satu replika menjalankan
+penjadwal.
+
+## 10. Insiden umum
 
 | Gejala | Cek | Tindakan |
 |---|---|---|
@@ -635,7 +649,7 @@ konfigurasi kiosk; token lama akan ditolak.
 | “No time left today” | jam server dan `APP_TIMEZONE` | periksa zona waktu dan meeting berikutnya |
 | Laporan kosong | rentang tanggal dan `checked_in` | laporan hanya menghitung booking aktif |
 
-## 10. Kontribusi dan kepemilikan kode
+## 11. Kontribusi dan kepemilikan kode
 
 ### 10.1 Aturan kontribusi
 
@@ -668,7 +682,7 @@ konfigurasi kiosk; token lama akan ditolak.
 Perubahan lintas area dikoordinasikan oleh `team-lead`; jangan mengubah
 kontrak API tanpa memperbarui `docs/api-reference.md` dan test terkait.
 
-## 11. UAT local test bed, UAT live, dan pengembangan
+## 12. UAT local test bed, UAT live, dan pengembangan
 
 ### 11.1 UAT local test bed (`http://127.0.0.1:8082`)
 
@@ -780,7 +794,7 @@ sampai baseline bersih. Pembersihan dilakukan bertahap per folder
 (`npm run lint -- <folder>`, `npx prettier --write <folder>`), bukan sekali
 tulis massal, supaya diff review tetap kecil dan `git blame` tidak hilang.
 
-## 12. Belum dapat diverifikasi
+## 13. Belum dapat diverifikasi
 
 - Seluruh langkah deploy/HTTPS/backup di atas belum dijalankan pada sesi ini;
   dokumen disusun dari skrip dan konfigurasi yang ada.
