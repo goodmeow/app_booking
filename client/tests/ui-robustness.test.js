@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { stateFromError, stateFromProps } from "../components/common/error-boundary-state.js";
 import { hasFloor } from "../management/user-form.js";
-import { brandShowsName, brandHasAssets, brandHasLockup, signinLogoSource } from "../core/brand-assets.js";
+import {
+  brandShowsName,
+  brandHasAssets,
+  brandHasLockup,
+  initialFaviconSource,
+  signinLogoSource,
+} from "../core/brand-assets.js";
 
 test("hasFloor treats empty and whitespace floors as unset", () => {
   assert.equal(hasFloor({ floor: "3" }), true);
@@ -45,4 +51,12 @@ test("any custom brand asset replaces the bundled sign-in lockup", () => {
   assert.equal(brandHasAssets({ assets: { wordmark: "/w.png" } }), true);
   assert.equal(brandHasAssets({ assets: {} }), false);
   assert.equal(brandHasAssets(undefined), false);
+});
+
+test("empty favicon falls back to the brand initial as an SVG tile", () => {
+  const source = initialFaviconSource("RoomBooking");
+  assert.match(source, /^data:image\/svg\+xml,/);
+  assert.match(decodeURIComponent(source), />R<\/text>/);
+  assert.match(decodeURIComponent(initialFaviconSource("  the prasada")), />T<\/text>/);
+  assert.match(decodeURIComponent(initialFaviconSource("")), />R<\/text>/);
 });

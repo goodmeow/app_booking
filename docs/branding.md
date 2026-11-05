@@ -54,7 +54,7 @@ Tiga jenis aset, semuanya diunggah dari CMS:
 | --- | --- | --- | --- |
 | `mark` | ikon/logo kotak (navbar, login, signup, force-password) | `/the-prasada-mark.png` | 64 px |
 | `wordmark` | tulisan "The Prasada" (navbar, login, signup) | `/the-prasada-wordmark.png` | 28 px |
-| `favicon` | ikon tab browser | `/the-prasada-mark.png` | 32 px |
+| `favicon` | ikon tab browser; bila kosong dipakai huruf awal `brand_name` sebagai tile SVG (gunmetal + emas) | `/the-prasada-mark.png` (sebelum JS jalan) | 32 px |
 
 Batas unggah (ditegakkan di client **dan** server):
 
