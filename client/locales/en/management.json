@@ -4,21 +4,6 @@
     "navigation": "Management sections",
     "noAccess": "No management menu is enabled for this account."
   },
-  "cards": {
-    "title": "Access Cards",
-    "add": "Add Access Card",
-    "deleteTitle": "Delete Access Card",
-    "deleteMessage": "Delete card {{number}}?",
-    "required": "Card number is required.",
-    "createError": "Unable to create access card.",
-    "deleteError": "Unable to delete access card.",
-    "loading": "Loading access cards...",
-    "loadError": "Unable to load access cards.",
-    "id": "Card ID",
-    "number": "Card Number",
-    "createdBy": "Created By",
-    "deleteAria": "Delete card {{number}}"
-  },
   "devices": {
     "title": "Tablet Devices",
     "description": "Paired room tablets with online status, indicator light, and optional meeting titles.",

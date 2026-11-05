@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { deriveKioskState, formatKioskDate, formatKioskTime, kioskDayRange, kioskLedCodeFor } from "../kiosk/kiosk-state.js";
+import { deriveKioskState, formatKioskDate, formatKioskTime, kioskDayRange } from "../kiosk/kiosk-state.js";
 
-const meeting = (start, end, values = {}) => ({ id: "event-1", start, end, checkedIn: false, canCheckIn: false, ...values });
+const meeting = (start, end, values = {}) => ({
+  id: "event-1",
+  start,
+  end,
+  checkedIn: false,
+  canCheckIn: false,
+  ...values,
+});
 const now = new Date("2031-05-10T02:00:00.000Z");
 
 test("kiosk day query is bound to one local calendar day", () => {
@@ -17,12 +24,11 @@ test("kiosk date follows the selected language", () => {
 
 test("a room without an active meeting stays available, including shortly before the next one", () => {
   assert.equal(deriveKioskState([], {}, now).mode, "available");
-  assert.equal(deriveKioskState([
-    meeting("2031-05-10T02:05:00.000Z", "2031-05-10T03:00:00.000Z"),
-  ], {}, now).mode, "available");
-  const before = deriveKioskState([
-    meeting("2031-05-10T02:30:00.000Z", "2031-05-10T03:00:00.000Z"),
-  ], {}, now);
+  assert.equal(
+    deriveKioskState([meeting("2031-05-10T02:05:00.000Z", "2031-05-10T03:00:00.000Z")], {}, now).mode,
+    "available",
+  );
+  const before = deriveKioskState([meeting("2031-05-10T02:30:00.000Z", "2031-05-10T03:00:00.000Z")], {}, now);
   assert.equal(before.mode, "available");
   assert.equal(before.next.id, "event-1");
 });
@@ -54,17 +60,7 @@ test("a stale schedule reports offline instead of a false available", () => {
 });
 
 test("malformed rows are ignored", () => {
-  assert.equal(deriveKioskState([
-    meeting("not-a-date", "also-not"),
-  ], {}, now).mode, "available");
-});
-
-test("LED codes match the verified tablet traffic light", () => {
-  assert.equal(kioskLedCodeFor("available"), 5);
-  assert.equal(kioskLedCodeFor("awaitingCheckIn"), 20);
-  assert.equal(kioskLedCodeFor("occupied"), 4);
-  assert.equal(kioskLedCodeFor("offline"), 2);
-  assert.equal(kioskLedCodeFor("unknown"), null);
+  assert.equal(deriveKioskState([meeting("not-a-date", "also-not")], {}, now).mode, "available");
 });
 
 test("the kiosk day and time follow the server time zone, not the tablet zone", () => {

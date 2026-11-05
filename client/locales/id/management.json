@@ -4,21 +4,6 @@
     "navigation": "Bagian manajemen",
     "noAccess": "Tidak ada menu manajemen yang aktif untuk akun ini."
   },
-  "cards": {
-    "title": "Kartu Akses",
-    "add": "Tambah Kartu Akses",
-    "deleteTitle": "Hapus Kartu Akses",
-    "deleteMessage": "Hapus kartu {{number}}?",
-    "required": "Nomor kartu wajib diisi.",
-    "createError": "Tidak dapat membuat kartu akses.",
-    "deleteError": "Tidak dapat menghapus kartu akses.",
-    "loading": "Memuat kartu akses...",
-    "loadError": "Tidak dapat memuat kartu akses.",
-    "id": "ID Kartu",
-    "number": "Nomor Kartu",
-    "createdBy": "Dibuat Oleh",
-    "deleteAria": "Hapus kartu {{number}}"
-  },
   "devices": {
     "title": "Perangkat Tablet",
     "description": "Tablet ruangan yang sudah dipasangkan beserta status online, lampu, dan judul meeting yang bisa disembunyikan.",

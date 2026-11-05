@@ -185,7 +185,8 @@ Sudah dikerjakan di Fase A:
   OFFLINE dan tidak lagi menampilkan “Available” saat fetch gagal.
 - Dialog check-in memakai `checkInKioskMeeting` (nomor kartu manual untuk
   sementara; pemicu NFC menyusul).
-- Kode LED tersedia sebagai `kioskLedCodeFor()` (`5/20/4/2`) untuk bridge.
+- Kode LED (`5/20/4/2`) diimplementasikan di repo `kioskapp`; helper web
+  `kioskLedCodeFor()` dihapus karena tidak pernah dipakai.
 - Migrasi `010_kiosk_led_default.sql`: `led_enabled` default `true` dan
   backfill perangkat aktif.
 
@@ -199,7 +200,8 @@ Fase B (jalur akses):
   `POST /api/door-open` versi web, sesuai keputusan produk.
 - Catatan skema: repo ini **tidak memiliki `tbl_user_cards`** seperti server
   produksi; satu kartu per user disimpan di `tbl_users.card_number`.
-- Helper klien `openKioskDoor()` tersedia untuk bridge.
+- Helper klien `openKioskDoor()` dihapus dari web kiosk; pemanggilan pintu
+  dilakukan aplikasi tablet (`kioskapp`) ke endpoint yang sama.
 - Test regresi: master 200, kartu karyawan 200, kartu tak dikenal 400,
   body kosong 400, token non-kiosk 401.
 
