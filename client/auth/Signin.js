@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, Link } from "react-router-dom";
 import { authenticate, signin } from "./auth-helper.js";
 import { useGetBrandingQuery, useGetPublicSettingsQuery } from "../redux/services/settings.js";
-import { brandAsset } from "../core/brand-assets.js";
+import { brandAsset, brandHasLockup, signinLogoSource } from "../core/brand-assets.js";
 import { useThemeMode } from "../theme-mode.js";
 
 const HELPDESK_EMAIL = "helpdesk@integrasolution.id";
@@ -17,6 +17,7 @@ const Signin = () => {
   const { token } = theme.useToken();
   const { mode, toggle } = useThemeMode();
   const { data: branding } = useGetBrandingQuery();
+  const customBrand = brandHasLockup(branding);
   const { data: publicSettings } = useGetPublicSettingsQuery();
   const [error, setError] = useState("");
   const [notice, setNotice] = useState(location.state?.setupComplete ? t("auth:setup.success") : "");
@@ -90,16 +91,26 @@ const Signin = () => {
 
       <Card style={{ width: "100%", maxWidth: 440 }}>
         <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <img
-            src={brandAsset(branding, "mark")}
-            alt={branding?.brand_name || t("common:brand.name")}
-            style={{ display: "block", height: 64, margin: "0 auto 12px" }}
-          />
-          <img
-            src={brandAsset(branding, "wordmark")}
-            alt=""
-            style={{ display: "block", height: 22, margin: "0 auto" }}
-          />
+          {customBrand ? (
+            <>
+              <img
+                src={brandAsset(branding, "mark")}
+                alt={branding?.brand_name || t("common:brand.name")}
+                style={{ display: "block", height: 64, margin: "0 auto 12px" }}
+              />
+              <img
+                src={brandAsset(branding, "wordmark")}
+                alt=""
+                style={{ display: "block", height: 22, margin: "0 auto" }}
+              />
+            </>
+          ) : (
+            <img
+              src={signinLogoSource(mode)}
+              alt={branding?.brand_name || t("common:brand.name")}
+              style={{ display: "block", height: 76, margin: "0 auto" }}
+            />
+          )}
         </div>
 
         <Typography.Title level={2} style={{ textAlign: "center", marginTop: 0 }}>
