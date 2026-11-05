@@ -27,9 +27,19 @@ implementasi yang ada di repo: `client/management/BrandingSection.js`,
 | Footer versi CMS | `RoomBooking CMS v<Ver.Rev>` | i18n `brand.footer` + `package.json` |
 | Nama teknis (kode, DB, container, service) | `app_booking`, `360booking` | **jangan diubah** |
 
-`brand_name` adalah teks bebas (maks 80 karakter) yang tampil di bawah wordmark
-pada navbar, dan sebagai judul di halaman signup. `document_title` (maks 120
-karakter) menjadi `<title>` tab.
+`brand_name` adalah teks bebas (maks 80 karakter), dan sebagai judul di halaman
+signup. `document_title` (maks 120 karakter) menjadi `<title>` tab.
+
+**Aturan navbar (`client/core/Menu.js`).** Teks `brand_name` di navbar hanya
+tampil bila `mark` dan `wordmark` belum lengkap diunggah:
+
+| Aset custom | Yang tampil di navbar |
+| --- | --- |
+| `mark` + `wordmark` terunggah | ikon + wordmark saja, **teks disembunyikan** |
+| hanya salah satu terunggah | aset yang ada + teks `brand_name` |
+| tidak ada aset custom | **hanya teks** `brand_name` (gambar fallback tidak dipakai di navbar) |
+
+Halaman login, signup, dan force-password tetap memakai fallback statis.
 
 ## 3. Aset
 

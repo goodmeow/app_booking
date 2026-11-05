@@ -7,8 +7,8 @@ import { useTranslation } from "react-i18next";
 import { isAuthenticated, signout } from "../auth/auth-helper.js";
 import { useDetailUserQuery } from "../redux/services/users.js";
 import { useGetBrandingQuery, useGetPublicSettingsQuery } from "../redux/services/settings.js";
-import { brandAsset } from "./brand-assets.js";
 import { useMenuAccess } from "../auth/use-menu-access.js";
+import { brandShowsName } from "./brand-assets.js";
 
 const { Header } = Layout;
 
@@ -16,6 +16,9 @@ const BrandLockup = () => {
   const { t } = useTranslation("common");
   const { token } = theme.useToken();
   const { data: branding } = useGetBrandingQuery();
+  const mark = branding?.assets?.mark;
+  const wordmark = branding?.assets?.wordmark;
+  const showName = brandShowsName(branding);
   return (
     <Link
       to="/"
@@ -28,27 +31,29 @@ const BrandLockup = () => {
         flexShrink: 0,
       }}
     >
-      <img src={brandAsset(branding, "mark")} alt="" style={{ height: 38, width: "auto", display: "block" }} />
+      {mark ? <img src={mark} alt="" style={{ height: 38, width: "auto", display: "block" }} /> : null}
       <span style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        {/* The official "The Prasada" wordmark as an image, so the typography matches
-            the tablet exactly; Room Booking below it uses the accent colour. */}
-        <img
-          src={brandAsset(branding, "wordmark")}
-          alt="The Prasada"
-          style={{ height: 15, width: "auto", display: "block" }}
-        />
-        <Typography.Text
-          style={{
-            fontSize: 10.5,
-            fontWeight: 700,
-            lineHeight: 1,
-            letterSpacing: "0.4em",
-            textTransform: "uppercase",
-            color: token.colorPrimary,
-          }}
-        >
-          {branding?.brand_name || t("brand.name")}
-        </Typography.Text>
+        {wordmark ? (
+          <img
+            src={wordmark}
+            alt={branding?.brand_name || t("brand.name")}
+            style={{ height: 15, width: "auto", display: "block" }}
+          />
+        ) : null}
+        {showName ? (
+          <Typography.Text
+            style={{
+              fontSize: 10.5,
+              fontWeight: 700,
+              lineHeight: 1,
+              letterSpacing: "0.4em",
+              textTransform: "uppercase",
+              color: token.colorPrimary,
+            }}
+          >
+            {branding?.brand_name || t("brand.name")}
+          </Typography.Text>
+        ) : null}
       </span>
     </Link>
   );
