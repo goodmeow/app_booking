@@ -153,11 +153,11 @@ dihapus dari CMS; untuk investigasi mendalam, tim teknis membaca
 ### 3.9 Update APK tablet
 
 1. Unduh dari `https://<domain>/apk/index.html` (tombol **Download APK**) atau
-   tombol **Unduh APK Tablet** di tab Perangkat Tablet.
+   tombol **Unduh APK Tablet** di tab Perangkat.
 2. Pindahkan file ke tablet, buka, dan izinkan instalasi (izinkan sekali dari
    browser/file manager).
 3. Buka aplikasi kiosk; cek footer `v1.4.5 (26) · CMS 3.13.0`.
-4. Cek status **Online** di tab Perangkat Tablet. Bila perangkat sudah tidak
+4. Cek status **Online** di tab Perangkat. Bila perangkat sudah tidak
    aktif, pairing ulang dari layar setup tablet.
 5. Catat versi yang dipasang di buku serah terima; satu tablet bisa berbeda
    versi dari tablet lain, jadi sebutkan nomor versi saat melapor masalah.

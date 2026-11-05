@@ -5,7 +5,7 @@
     "noAccess": "Tidak ada menu manajemen yang aktif untuk akun ini."
   },
   "devices": {
-    "title": "Perangkat Tablet",
+    "title": "Perangkat",
     "description": "Tablet ruangan yang sudah dipasangkan beserta status online, lampu, dan judul meeting yang bisa disembunyikan.",
     "downloadApk": "Unduh APK Tablet",
     "downloadApkHint": "Pasang di tablet lewat urutan: salin berkas, aktifkan sumber tak dikenal, lalu buka berkasnya.",
@@ -38,7 +38,8 @@
       "online": "Online",
       "offline": "Offline",
       "expired": "Kedaluwarsa"
-    }
+    },
+    "floor": "Lantai"
   },
   "rooms": {
     "title": "Ruangan",

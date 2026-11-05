@@ -159,7 +159,7 @@ Empat tab (`AppManagement.js`):
 |---|---|---|
 | Pengguna (`UserManagementSection.js`, `users/`) | CRUD user **beserta akses kartunya**: pencarian **nama/email/employee ID**, kolom **Role** (chip) + filter role yang bisa digabung dengan filter lantai (termasuk filter Super Admin), kolom nomor kartu, tombol **kartu master**, **kolom lantai** (chip per lantai: **Semua lantai**, satu/lebih lantai, atau chip peringatan "belum diatur"), dan **role Admin/Resepsionis/Pengguna**; ganti sandi, hapus. Tabel setinggi viewport dengan pagination **25/50/100**. | `/api/users` |
 | Ruangan (`RoomManagementSection.js`) | CRUD ruangan: nama, gedung, lantai, **kapasitas**, fitur, email, sandi. **Kolom Tablet: Online/Offline/Belum ada/Dicabut**, auto-refresh 15 s | `/api/rooms`, `/api/kiosk/devices` |
-| Perangkat Tablet (`KioskDeviceManagementSection.js`) | Daftar tablet: nama, ruangan, **Online/Offline/Dicabut/Kedaluwarsa**, switch **LED**, switch **Judul** (tampilkan/sembunyikan judul meeting — admin per perangkat), last seen, waktu pairing, cabut perangkat, tombol **Unduh APK Tablet** (tautan statik `/apk/kiosk-release.apk`, unduh saja; halaman penjelas di `/apk/index.html`). Auto-refresh 15 s | `/api/kiosk/devices`, `PATCH …/capabilities`, `DELETE …/:id` |
+| Perangkat (`KioskDeviceManagementSection.js`) | Daftar tablet: nama, **lantai** (mengikuti lantai akun ruangan), ruangan, **Online/Offline/Dicabut/Kedaluwarsa**, switch **LED**, switch **Judul** (tampilkan/sembunyikan judul meeting — admin per perangkat), last seen, waktu pairing, cabut perangkat, tombol **Unduh APK Tablet** (tautan statik `/apk/kiosk-release.apk`, unduh saja; halaman penjelas di `/apk/index.html`). Auto-refresh 15 s | `/api/kiosk/devices`, `PATCH …/capabilities`, `DELETE …/:id` |
 | Pengaturan (`SettingsSection.js`, `settings-form.js`) | **Global settings**: timer check-in, jendela check-in, timer kunci kiosk, timer LED, input meja, hari pertama minggu, dan toggle pendaftaran mandiri; di bawahnya **Global branding**, lalu **matrix peran** dan **log audit** yang hanya tampil untuk Super Admin. Panel **Floor groups sudah dihapus**. | `/api/settings`, `/api/access/*`, `/api/audit` |
 
 **Tab Pengguna (3.10.3).** Pencarian mencocokkan nama, email, dan employee ID
@@ -248,7 +248,7 @@ Status online dihitung server: `last_seen_at` diperbarui setiap request kiosk
 
 **Batas pairing:** satu ruangan hanya boleh punya **satu tablet aktif**.
 Percobaan pairing kedua ditolak `409 ROOM_ALREADY_PAIRED`; admin harus
-mencabut perangkat lama di tab Perangkat Tablet lebih dulu. Perangkat yang
+mencabut perangkat lama di tab Perangkat lebih dulu. Perangkat yang
 token refresh-nya sudah kedaluwarsa (tidak dipakai >30 hari) tidak menghalangi
 pairing baru. Ini mencegah tablet lain mengambil alih ruangan hanya dengan
 modal email + sandi ruangan.

@@ -139,7 +139,8 @@ export const listKioskDevices = async (roomId = null) => {
      d.nfc_enabled, d.led_enabled, d.show_subject,
      d.instant_enabled, d.schedule_enabled,
      d.created_at, d.updated_at,
-     u.name AS room_name, u.email AS room_email
+     u.name AS room_name, u.email AS room_email,
+     u.floor AS room_floor, u.floors AS room_floors
    FROM tbl_kiosk_devices d
    JOIN tbl_users u ON u._id = d.room_id
    WHERE ($1::uuid IS NULL OR d.room_id = $1)

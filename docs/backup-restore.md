@@ -165,7 +165,7 @@ curl -fsS http://127.0.0.1:9091/api/health
 2. Cek jumlah user/event/kartu terhadap backup.
 3. Cek tablet:
    - jika token/pairing masih valid, tablet kembali online;
-   - jika tidak, lakukan re-pair dari CMS → Tablet Devices.
+   - jika tidak, lakukan re-pair dari CMS → Devices.
 4. Cek `/api/health` dan log API.
 5. Simpan dump yang dipakai restore beserta checksum.
 

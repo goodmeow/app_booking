@@ -83,6 +83,22 @@ const KioskDeviceManagementSection = () => {
       width: 200,
     },
     {
+      title: t("devices.floor"),
+      dataIndex: "room_floors",
+      key: "room_floors",
+      render: (_, record) => {
+        const floors = record.room_floors?.length ? record.room_floors : record.room_floor ? [record.room_floor] : [];
+        if (!floors.length) return "-";
+        return (
+          <Space size={4} wrap>
+            {floors.map((floor) => (
+              <Tag key={floor}>{floor === "all" ? t("common:fields.allFloors") : floor}</Tag>
+            ))}
+          </Space>
+        );
+      },
+    },
+    {
       title: t("devices.room"),
       key: "roomName",
       width: 240,

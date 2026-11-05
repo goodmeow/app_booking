@@ -51,7 +51,8 @@
     "confirmPassword": "Konfirmasi Kata Sandi",
     "role": "Peran",
     "action": "Aksi",
-    "status": "Status"
+    "status": "Status",
+    "allFloors": "Semua lantai"
   },
   "dialogs": {
     "confirmDelete": "Konfirmasi Penghapusan"

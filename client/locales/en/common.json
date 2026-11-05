@@ -51,7 +51,8 @@
     "confirmPassword": "Confirm Password",
     "role": "Role",
     "action": "Action",
-    "status": "Status"
+    "status": "Status",
+    "allFloors": "All floors"
   },
   "dialogs": {
     "confirmDelete": "Confirm Delete"

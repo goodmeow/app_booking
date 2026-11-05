@@ -5,7 +5,7 @@
     "noAccess": "No management menu is enabled for this account."
   },
   "devices": {
-    "title": "Tablet Devices",
+    "title": "Devices",
     "description": "Paired room tablets with online status, indicator light, and optional meeting titles.",
     "downloadApk": "Download Tablet APK",
     "downloadApkHint": "To install on a tablet: copy the file, enable unknown sources, then open it.",
@@ -38,7 +38,8 @@
       "online": "Online",
       "offline": "Offline",
       "expired": "Expired"
-    }
+    },
+    "floor": "Floor"
   },
   "rooms": {
     "title": "Rooms",

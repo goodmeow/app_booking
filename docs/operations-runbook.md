@@ -529,7 +529,7 @@ Dipakai setelah database UAT direset/dipulihkan dari backup, ruangan dihapus,
 sandi ruangan diganti, atau perangkat dicabut. Suite parity/regression tidak
 memicu langkah ini karena memakai database `360booking_parity_test`.
 
-1. **Cabut perangkat lama** — CMS → Manajemen → Perangkat Tablet → pilih
+1. **Cabut perangkat lama** — CMS → Manajemen → Perangkat → pilih
    ruangan → Cabut. Alternatif API:
    ```bash
    curl -X DELETE "https://<domain>/api/kiosk/devices/<device-id>" \
@@ -564,7 +564,7 @@ harus dilakukan ulang setelah database UAT dibangun ulang dari backup.
 
 Halaman unduh statis ada di `public/apk/index.html` → URL
 `https://<domain>/apk/index.html` (file APK: `/apk/kiosk-release.apk`).
-Tombol **Unduh APK Tablet** di CMS → Manajemen → Perangkat Tablet menunjuk ke
+Tombol **Unduh APK Tablet** di CMS → Manajemen → Perangkat menunjuk ke
 file yang sama.
 
 1. Pastikan versi file sesuai rilis yang diumumkan: footer tablet harus
@@ -719,7 +719,7 @@ Server UAT yang dipakai pemilik produk dan tablet, commit yang sama
    `$C ps` menunjukkan db/app/web healthy, lalu buka CMS dan cek footer
    `3.13.0`.
 4. Cek tablet: footer menampilkan `v1.4.5 (26) · CMS 3.13.0` dan status
-   **Online** di tab Perangkat Tablet.
+   **Online** di tab Perangkat.
 5. Bila ada migrasi baru, entrypoint container menerapkannya otomatis; backup
    DB dulu bila migrasi mengubah data.
 6. Rollback: kembali ke commit/tag sebelumnya lalu `$C up -d --build`;
