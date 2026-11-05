@@ -12,3 +12,6 @@ docs/reference/
 
 # Lockfile is owned by npm.
 package-lock.json
+
+# Design mockups are captured artifacts, not source to reformat.
+docs/design/
