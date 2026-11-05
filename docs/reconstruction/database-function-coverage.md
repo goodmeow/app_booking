@@ -1,5 +1,9 @@
 # Database function coverage
 
+> Historical report. The 28 legacy functions, `003_function_contracts.sql`, and
+> `002_core_behavior.sql` were removed; `030_drop_legacy_functions.sql` drops the
+> functions from installed databases. See `database/migrations/README.md`.
+
 PostgreSQL 14 migration rebuild exposes exactly 28 legacy public functions. `database/tests/003_function_contracts.sql` asserts complete inventory and runs all active server paths inside a rolled-back transaction.
 
 ## Executed behavior

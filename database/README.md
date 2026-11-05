@@ -61,9 +61,10 @@ database/scripts/rebuild-test-db.sh
 
 ```text
 database/
-├── migrations/  # Ordered schema/function migrations
+├── migrations/  # Ordered schema migrations
 ├── seeds/       # Sanitized, non-production fixtures
 └── tests/       # SQL behavior and regression tests
 ```
 
-`bjb.sql` remains immutable evidence until parity tests pass.
+`bjb.sql` was the immutable reference dump during reconstruction; it has since been
+removed from the repo, and the numbered migrations are now the source of truth.

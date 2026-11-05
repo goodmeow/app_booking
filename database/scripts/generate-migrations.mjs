@@ -10,7 +10,7 @@ const source = fs.readFileSync(sourcePath, "utf8").replace(/\r\n/g, "\n");
 
 const marker = /^--\n-- Name: (.+?); Type: (.+?); Schema: (.*?); Owner: (.*?)\n--\n/gm;
 const markers = [...source.matchAll(marker)];
-const groups = { TABLE: [], CONSTRAINT: [], FUNCTION: [] };
+const groups = { TABLE: [], CONSTRAINT: [] };
 
 for (let index = 0; index < markers.length; index += 1) {
   const current = markers[index];
@@ -33,7 +33,7 @@ for (let index = 0; index < markers.length; index += 1) {
   if (block) groups[type].push(block);
 }
 
-const expected = { TABLE: 7, CONSTRAINT: 9, FUNCTION: 28 };
+const expected = { TABLE: 7, CONSTRAINT: 9 };
 for (const [type, count] of Object.entries(expected)) {
   if (groups[type].length !== count) {
     throw new Error(`Expected ${count} ${type} blocks, found ${groups[type].length}`);
@@ -67,17 +67,10 @@ const files = [
       "",
     ].join("\n"),
   ],
-  [
-    "002_tables.sql",
-    `${header("Seven legacy public tables.")}${groups.TABLE.join("\n\n")}${footer}`,
-  ],
+  ["002_tables.sql", `${header("Seven legacy public tables.")}${groups.TABLE.join("\n\n")}${footer}`],
   [
     "003_constraints.sql",
     `${header("Nine legacy primary/unique constraints; no foreign keys exist.")}${groups.CONSTRAINT.join("\n\n")}${footer}`,
-  ],
-  [
-    "004_functions.sql",
-    `${header("Twenty-eight legacy PL/pgSQL functions.")}${groups.FUNCTION.join("\n\n")}${footer}`,
   ],
 ];
 
@@ -86,6 +79,5 @@ for (const [name, content] of files) {
 }
 
 console.log(
-  `Generated ${files.length} migrations: ${groups.TABLE.length} tables, ` +
-    `${groups.CONSTRAINT.length} constraints, ${groups.FUNCTION.length} functions.`
+  `Generated ${files.length} migrations: ${groups.TABLE.length} tables, ` + `${groups.CONSTRAINT.length} constraints.`,
 );

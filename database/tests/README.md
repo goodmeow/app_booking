@@ -15,5 +15,8 @@ Planned coverage:
 Current automated checks:
 
 - `001_schema_smoke.sql`: object counts.
-- `002_core_behavior.sql`: settings, employee/room listing, card validation, check-in, early finish, and organizer cancellation.
-- `003_function_contracts.sql`: all 28 signatures, active-path reads/mutations, and known-defect assertions.
+
+The former `002_core_behavior.sql` and `003_function_contracts.sql` exercised the
+legacy `bjb.sql` PL/pgSQL functions. Those functions are removed by
+`030_drop_legacy_functions.sql`, so both test files are gone; behavior is covered
+by the server unit tests instead.
