@@ -68,11 +68,18 @@ Batas unggah (ditegakkan di client **dan** server):
 - Pengiriman: data URL base64 pada body `{ "data_url": "data:image/png;base64,..." }`.
 - Lokasi simpan: tabel `tbl_brand_assets` (kolom `kind`, `mime`, `bytes`),
   satu baris per kind; unggah ulang menimpa baris yang sama (`ON CONFLICT`).
-- Reset: tombol "Reset to default" menghapus baris aset, sehingga fallback
+- Reset: tombol **Hapus gambar** menghapus baris aset, sehingga fallback
   statis di `public/` dipakai lagi.
-- Aset statis bawaan di `public/`: `the-prasada-mark.png` (523×487, ±23 KB),
-  `the-prasada-wordmark.png` (1733×189, ±20 KB), `the-prasada-logo.png`
-  (1754×855, ±54 KB, dipakai kiosk native, bukan CMS).
+- Aset statis bawaan di `public/`:
+  - putih (untuk latar gelap): `the-prasada-mark.png` (523×487, ±23 KB),
+    `the-prasada-wordmark.png` (1733×189, ±20 KB), `the-prasada-logo.png`
+    (1754×855, ±54 KB).
+  - berwarna (gunmetal `#435053` + emas `#E6A820`): `the-prasada-mark-colour.png`
+    (523×487, ±26 KB), `the-prasada-wordmark-colour.png` (1733×189, ±23 KB),
+    `the-prasada-logo-colour.png` (1754×855, ±57 KB; dipakai halaman login
+    pada tema terang).
+  - Ketiga varian berwarna dipotong dari file sumber brand 2024 dengan kotak
+    potong yang identik dengan varian putih, jadi ukuran dan posisinya sama.
 
 Catatan: gambar raster disarankan berlatar transparan dan beresolusi cukup
 untuk tinggi tampil di atas (mark ±150 px di halaman login). Rasio asli
