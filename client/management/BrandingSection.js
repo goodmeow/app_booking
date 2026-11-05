@@ -90,7 +90,20 @@ const BrandingSection = () => {
 
   return (
     <div>
-      <Typography.Paragraph type="secondary">{t("branding.description")}</Typography.Paragraph>
+      <Space
+        align="start"
+        style={{ width: "100%", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap" }}
+      >
+        <div>
+          <Typography.Title level={5} style={{ margin: 0 }}>
+            {t("branding.title")}
+          </Typography.Title>
+          <Typography.Text type="secondary">{t("branding.description")}</Typography.Text>
+        </div>
+        <Button type="primary" onClick={saveText} disabled={saving} loading={saving}>
+          {t("branding.save")}
+        </Button>
+      </Space>
 
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
         <div>
@@ -111,11 +124,6 @@ const BrandingSection = () => {
             disabled={saving}
           />
         </div>
-        <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-          <Button type="primary" onClick={saveText} disabled={saving}>
-            {t("branding.save")}
-          </Button>
-        </Space>
       </Space>
 
       <Divider style={{ margin: "24px 0" }} />

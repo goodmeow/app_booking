@@ -231,7 +231,7 @@ const SettingsSection = () => {
               </Form.Item>
             </Card>
 
-            <Card size="small" title={t("branding.title")}>
+            <Card size="small">
               <BrandingSection />
             </Card>
 
