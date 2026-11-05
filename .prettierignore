@@ -15,3 +15,7 @@ package-lock.json
 
 # Design mockups are captured artifacts, not source to reformat.
 docs/design/
+
+# Test files keep manual formatting: assertions and fixtures read better as prose.
+client/tests/
+server/tests/

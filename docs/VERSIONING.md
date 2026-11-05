@@ -18,15 +18,18 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 Alur default setiap bump versi (wajib, bukan opsional):
 
-1. `npm run format` — rapikan seluruh file JS/JSON/CSS/HTML dengan Prettier.
+1. `npm run format` — rapikan file JS/JSON/CSS/HTML dengan Prettier.
+   `client/tests/`, `server/tests/`, dan `docs/design/` dikecualikan
+   (`.prettierignore`), karena tes dan mockup dibaca sebagai prosa.
 2. `npm run verify` — sudah mencakup `format:check`, build client, build server,
    tes client, dan tes unit server.
 3. Naikkan versi, lalu tambah baris riwayat di bawah.
 
-## Posisi saat ini (Ver 3 Rev 17)
+## Posisi saat ini (Ver 3 Rev 18)
 
-- CMS + API: **Ver 3 Rev 17**, `package.json` `3.15.1`, ditampilkan di footer
-  semua halaman CMS (dari package.json). Gelombang Rev 17 berisi perbaikan
+- CMS + API: **Ver 3 Rev 18**, `package.json` `3.15.2`, ditampilkan di footer
+  semua halaman CMS (dari package.json). Rev 18 hanya mengecualikan folder tes
+  dari Prettier. Gelombang Rev 17 berisi perbaikan
   audit kode (respons bentrok ruangan 409, check-in booking instan dalam satu
   transaksi, pelaku pada audit kartu, CSP, indeks rentang jadwal, hapus kode
   mati). Rev 16 di dalamnya: rilis booking no-show yang transaksional, 28
@@ -34,7 +37,7 @@ Alur default setiap bump versi (wajib, bukan opsional):
   APK RustDesk dihapus. Detail di riwayat 2026-11-05.
 - APK kiosk: **tidak berubah di Rev 16/17** — tetap `versionName 1.5.0 /
   versionCode 27`, tidak perlu rebuild atau tebar ulang. Footer kios menampilkan
-  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.1`). Build membawa pill `TERSEDIA` 44 px, copy
+  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.2`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
@@ -78,7 +81,14 @@ Alur default setiap bump versi (wajib, bukan opsional):
 
 ## Riwayat
 
-### Ver 3 Rev 17 - 2026-11-05 (rilis saat ini)
+### Ver 3 Rev 18 - 2026-11-05 (rilis saat ini)
+- **Folder tes dikecualikan dari Prettier**: `client/tests/` dan `server/tests/`
+  masuk `.prettierignore`, jadi `npm run format` / `format:check` tidak lagi
+  menata ulang tes. `package.json` naik ke `3.15.2`; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau sebelum perubahan ini; setelahnya
+  `format:check` tetap "All matched files use Prettier code style!".
+
+### Ver 3 Rev 17 - 2026-11-05 (rilis sebelumnya)
 - **Perbaikan audit kode**: `addAttendee` memetakan pelanggaran jadwal ruangan
   ke `409 ROOM_CONFLICT` (sebelumnya 500); booking instan kiosk menandai
   check-in di transaksi yang sama dengan pembuatan booking; audit
