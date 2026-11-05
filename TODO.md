@@ -214,6 +214,13 @@ Pekerjaan gelombang Ver 3 Rev 16-17. Detail keputusan di
 - [x] Rilis ruangan otomatis kini menulis baris audit
   `event.room_auto_release` (actor `auto-release`); terverifikasi di UAT lokal
   pada meeting no-show (3.15.3 / Ver 3 Rev 19).
+- [ ] **Pantau kepadatan Log Audit** (sengaja belum dikerjakan). Satu stream
+  audit sudah benar; baris `event.room_auto_release` bercampur dengan perubahan
+  manual, dan tampilan CMS hanya memuat 100 baris terbaru tanpa pagination.
+  Perbaiki hanya bila: (a) baris ke-100 berumur < 30 hari, atau (b) baris
+  `auto-release` lebih banyak daripada perubahan manual di layar.
+  Urutan upgrade: cursor pagination (`created_at, _id`; index sudah ada) dulu,
+  baru filter aksi di UI. Jangan memisahkan tabel/halaman audit.
 - [ ] Tag `v3.15.1` setelah commit, lalu deploy ke live `10.10.42.8`.
   Live masih `3.14.0` (dan halaman `/apk` di sana masih memuat tombol
   RustDesk), sedangkan pengujian pemakai sedang berjalan di server itu.
