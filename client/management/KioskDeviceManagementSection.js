@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Button, Space, Switch, Table, Tag, Typography } from "antd";
+import { Alert, Button, Select, Space, Switch, Table, Tag, Typography } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
@@ -19,6 +19,12 @@ const formatDateTime = (value, language, neverLabel) =>
       )
     : neverLabel;
 
+// The room account carries either the multi-floor list or the legacy single value.
+const deviceFloors = (device) => {
+  if (device.room_floors?.length) return device.room_floors;
+  return device.room_floor ? [device.room_floor] : [];
+};
+
 const KioskDeviceManagementSection = () => {
   const { t, i18n } = useTranslation(["management", "common"]);
   const {
@@ -31,6 +37,7 @@ const KioskDeviceManagementSection = () => {
   const [revokeDevice, { isLoading: isRevoking }] = useRevokeKioskDeviceMutation();
   const [updateCapabilities, { isLoading: isUpdatingCapabilities }] = useUpdateKioskDeviceCapabilitiesMutation();
   const [revokeTarget, setRevokeTarget] = useState(null);
+  const [floorFilter, setFloorFilter] = useState("all");
   const [revokeError, setRevokeError] = useState("");
   const [capabilityError, setCapabilityError] = useState("");
 
@@ -87,7 +94,7 @@ const KioskDeviceManagementSection = () => {
       dataIndex: "room_floors",
       key: "room_floors",
       render: (_, record) => {
-        const floors = record.room_floors?.length ? record.room_floors : record.room_floor ? [record.room_floor] : [];
+        const floors = deviceFloors(record);
         if (!floors.length) return "-";
         return (
           <Space size={4} wrap>
@@ -198,6 +205,12 @@ const KioskDeviceManagementSection = () => {
     },
   ];
 
+  const floorOptions = [...new Set(devices.flatMap(deviceFloors))].sort((left, right) =>
+    String(left).localeCompare(String(right), undefined, { numeric: true }),
+  );
+  const visibleDevices =
+    floorFilter === "all" ? devices : devices.filter((device) => deviceFloors(device).includes(floorFilter));
+
   return (
     <section>
       <Space
@@ -210,16 +223,28 @@ const KioskDeviceManagementSection = () => {
           </Typography.Title>
           <Typography.Text type="secondary">{t("devices.description")}</Typography.Text>
         </div>
-        {/* Plain download: the static file /apk/kiosk-release.apk shipped by Vite. */}
-        <Button
-          href="/apk/kiosk-release.apk"
-          download="kiosk-release.apk"
-          icon={<DownloadOutlined />}
-          aria-label={t("devices.downloadApkAria")}
-          title={t("devices.downloadApkHint")}
-        >
-          {t("devices.downloadApk")}
-        </Button>
+        <Space wrap>
+          <Select
+            value={floorFilter}
+            onChange={setFloorFilter}
+            style={{ minWidth: 160 }}
+            aria-label={t("devices.filterFloor")}
+            options={[
+              { value: "all", label: t("common:fields.allFloors") },
+              ...floorOptions.map((floor) => ({ value: floor, label: floor })),
+            ]}
+          />
+          {/* Plain download: the static file /apk/kiosk-release.apk shipped by Vite. */}
+          <Button
+            href="/apk/kiosk-release.apk"
+            download="kiosk-release.apk"
+            icon={<DownloadOutlined />}
+            aria-label={t("devices.downloadApkAria")}
+            title={t("devices.downloadApkHint")}
+          >
+            {t("devices.downloadApk")}
+          </Button>
+        </Space>
       </Space>
 
       {isFetching && !isLoading ? (
@@ -235,7 +260,7 @@ const KioskDeviceManagementSection = () => {
           size="small"
           rowKey="id"
           columns={columns}
-          dataSource={devices}
+          dataSource={visibleDevices}
           loading={isFetching}
           pagination={{ pageSize: 5, showSizeChanger: false }}
           scroll={{ x: 1200 }}

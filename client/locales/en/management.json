@@ -39,7 +39,8 @@
       "offline": "Offline",
       "expired": "Expired"
     },
-    "floor": "Floor"
+    "floor": "Floor",
+    "filterFloor": "Filter by floor"
   },
   "rooms": {
     "title": "Rooms",

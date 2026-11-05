@@ -25,11 +25,11 @@ Alur default setiap bump versi (wajib, bukan opsional):
    tes client, dan tes unit server.
 3. Naikkan versi, lalu tambah baris riwayat di bawah.
 
-## Posisi saat ini (Ver 3 Rev 27)
+## Posisi saat ini (Ver 3 Rev 28)
 
-- CMS + API: **Ver 3 Rev 27**, `package.json` `3.15.11`, ditampilkan di footer
-  semua halaman CMS (dari package.json). Rev 27 mengganti nama tab perangkat dan
-  menambah kolom lantai. Rev 26 menata tombol aksi Pengaturan Global
+- CMS + API: **Ver 3 Rev 28**, `package.json` `3.15.12`, ditampilkan di footer
+  semua halaman CMS (dari package.json). Rev 28 menstabilkan urutan perangkat dan
+  menambah filter lantai. Rev 26 menata tombol aksi Pengaturan Global
   dan menampilkan nomor kartu penuh di log audit. Rev 24 menghapus mock logo bawaan di halaman Branding. Rev 23 menambah favicon huruf awal saat aset favicon kosong. Rev 22 melengkapi aturan aset di halaman login (tampilkan
   yang ada, lockup resmi hanya bila kosong). Rev 21 memakai lockup
   Prasada berwarna di halaman login. Rev 20 mengatur teks brand di navbar berdasarkan aset custom. Rev 19 menambahkan baris audit untuk rilis ruangan otomatis. Rev 18 hanya mengecualikan folder tes dari Prettier. Gelombang Rev 17 berisi perbaikan
@@ -40,7 +40,7 @@ Alur default setiap bump versi (wajib, bukan opsional):
   APK RustDesk dihapus. Detail di riwayat 2026-11-05.
 - APK kiosk: **tidak berubah di Rev 16/17** — tetap `versionName 1.5.0 /
   versionCode 27`, tidak perlu rebuild atau tebar ulang. Footer kios menampilkan
-  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.11`). Build membawa pill `TERSEDIA` 44 px, copy
+  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.12`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
@@ -84,7 +84,16 @@ Alur default setiap bump versi (wajib, bukan opsional):
 
 ## Riwayat
 
-### Ver 3 Rev 27 - 2026-11-05 (rilis saat ini)
+### Ver 3 Rev 28 - 2026-11-05 (rilis saat ini)
+- **Daftar perangkat tidak lagi berubah posisi tiap refresh**: urutan SQL
+  diganti dari `last_seen_at` (berubah setiap polling 15 detik) menjadi
+  `floor, room name, created_at`.
+- **Filter lantai** di tab Perangkat: pilihan lantai diambil dari data yang
+  dimuat, disaring di klien, dengan opsi "Semua lantai". `package.json`
+  3.15.12; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau dan UAT lokal menyajikan 3.15.12.
+
+### Ver 3 Rev 27 - 2026-11-05 (rilis sebelumnya)
 - **Tab perangkat berganti nama dan menampilkan lantai**: "Tablet Devices" /
   "Perangkat Tablet" menjadi **Devices** / **Perangkat**; tabelnya menambah
   kolom **Lantai** yang mengikuti `floors` akun ruangan (`listKioskDevices`

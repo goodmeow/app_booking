@@ -39,7 +39,8 @@
       "offline": "Offline",
       "expired": "Kedaluwarsa"
     },
-    "floor": "Lantai"
+    "floor": "Lantai",
+    "filterFloor": "Filter lantai"
   },
   "rooms": {
     "title": "Ruangan",

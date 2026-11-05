@@ -144,7 +144,7 @@ export const listKioskDevices = async (roomId = null) => {
    FROM tbl_kiosk_devices d
    JOIN tbl_users u ON u._id = d.room_id
    WHERE ($1::uuid IS NULL OR d.room_id = $1)
-   ORDER BY d.revoked_at NULLS FIRST, d.last_seen_at DESC NULLS LAST, d.created_at DESC`,
+   ORDER BY u.floor NULLS LAST, u.name, d.created_at, d._id`,
       [roomId || null],
     )
   ).rows;
