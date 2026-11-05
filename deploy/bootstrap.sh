@@ -205,7 +205,6 @@ JWT_SECRET="$(openssl rand -base64 48 | tr -d '\n')"
 install -d -m 0750 /etc/360booking
 cat > "$ENV_FILE" <<EOF
 NODE_ENV=production
-BASE=/
 
 HOST=${BIND_HOST}
 PORT=8081
