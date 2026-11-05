@@ -91,9 +91,7 @@ export const identityConflictCode = (error) => {
 const mapIdentityError = (error) => {
   const code = identityConflictCode(error);
   if (!code) throw error;
-  const message = code === "EMPLOYEE_ID_EXISTS"
-    ? "Employee ID already exists"
-    : "Email or username already exists";
+  const message = code === "EMPLOYEE_ID_EXISTS" ? "Employee ID already exists" : "Email or username already exists";
   throw new HttpError(409, code, message);
 };
 
@@ -145,10 +143,12 @@ export const addUserCard = async (userId, cardNumber, { execute, principal } = {
   if (!UUID_PATTERN.test(String(userId))) throw notFound("User not found");
   const normalized = normalizedCardNumber(cardNumber);
   if (!execute) {
-    return withTransaction((client) => addUserCard(userId, normalized, {
-      principal,
-      execute: (text, values) => client.query(text, values),
-    }));
+    return withTransaction((client) =>
+      addUserCard(userId, normalized, {
+        principal,
+        execute: (text, values) => client.query(text, values),
+      }),
+    );
   }
   const user = await findAccountById(userId, "employee", execute);
   if (!user) throw notFound("User not found");
@@ -161,13 +161,16 @@ export const addUserCard = async (userId, cardNumber, { execute, principal } = {
   }
   try {
     const card = await insertUserCard({ userId, cardNumber: normalized }, execute);
-    await writeAudit({
-      principal,
-      action: "user.card.add",
-      entityType: "user",
-      entityId: userId,
-      newValues: { card_id: card.id, card: maskedCard(normalized) },
-    }, execute);
+    await writeAudit(
+      {
+        principal,
+        action: "user.card.add",
+        entityType: "user",
+        entityId: userId,
+        newValues: { card_id: card.id, card: maskedCard(normalized) },
+      },
+      execute,
+    );
     return card;
   } catch (error) {
     mapCardError(error);
@@ -181,9 +184,11 @@ export const markUserCardLost = async (userId, cardId, principal, { execute } = 
     throw notFound("Card not found");
   }
   if (!execute) {
-    return withTransaction((client) => markUserCardLost(userId, cardId, principal, {
-      execute: (text, values) => client.query(text, values),
-    }));
+    return withTransaction((client) =>
+      markUserCardLost(userId, cardId, principal, {
+        execute: (text, values) => client.query(text, values),
+      }),
+    );
   }
   const existing = await findUserCard(userId, cardId, execute);
   if (!existing) throw notFound("Card not found");
@@ -191,14 +196,17 @@ export const markUserCardLost = async (userId, cardId, principal, { execute } = 
   const lost = await setUserCardLost(cardId, execute);
   if (!lost) throw conflict("CARD_ALREADY_LOST", "The card is already marked as lost");
   await setMasterCard(lost.card_number, false, principal?._id, execute);
-  await writeAudit({
-    principal,
-    action: "user.card.status",
-    entityType: "user",
-    entityId: userId,
-    oldValues: { card_id: cardId, status: "active", card: maskedCard(lost.card_number) },
-    newValues: { card_id: cardId, status: "lost", card: maskedCard(lost.card_number) },
-  }, execute);
+  await writeAudit(
+    {
+      principal,
+      action: "user.card.status",
+      entityType: "user",
+      entityId: userId,
+      oldValues: { card_id: cardId, status: "active", card: maskedCard(lost.card_number) },
+      newValues: { card_id: cardId, status: "lost", card: maskedCard(lost.card_number) },
+    },
+    execute,
+  );
   return lost;
 };
 
@@ -210,9 +218,11 @@ export const reactivateUserCard = async (userId, cardId, principal, { execute } 
     throw notFound("Card not found");
   }
   if (!execute) {
-    return withTransaction((client) => reactivateUserCard(userId, cardId, principal, {
-      execute: (text, values) => client.query(text, values),
-    }));
+    return withTransaction((client) =>
+      reactivateUserCard(userId, cardId, principal, {
+        execute: (text, values) => client.query(text, values),
+      }),
+    );
   }
   await execute("SELECT pg_advisory_xact_lock(hashtext($1))", [`user-cards:${userId}`]);
   const existing = await findUserCard(userId, cardId, execute);
@@ -227,14 +237,17 @@ export const reactivateUserCard = async (userId, cardId, principal, { execute } 
   const active = await setUserCardActive(cardId, execute);
   if (!active) throw conflict("CARD_ALREADY_ACTIVE", "The card is already active");
   await setMasterCard(active.card_number, true, principal?._id, execute);
-  await writeAudit({
-    principal,
-    action: "user.card.status",
-    entityType: "user",
-    entityId: userId,
-    oldValues: { card_id: cardId, status: "lost", card: maskedCard(active.card_number) },
-    newValues: { card_id: cardId, status: "active", card: maskedCard(active.card_number) },
-  }, execute);
+  await writeAudit(
+    {
+      principal,
+      action: "user.card.status",
+      entityType: "user",
+      entityId: userId,
+      oldValues: { card_id: cardId, status: "lost", card: maskedCard(active.card_number) },
+      newValues: { card_id: cardId, status: "active", card: maskedCard(active.card_number) },
+    },
+    execute,
+  );
   return active;
 };
 
@@ -242,7 +255,7 @@ export const reactivateUserCard = async (userId, cardId, principal, { execute } 
 // own cards, because those are their door and kiosk credentials.
 export const visibleAccount = (user, _principal, { manageUsers = false } = {}) => {
   if (manageUsers) return user;
-  const { employee_id, ...rest } = user;
+  const { employee_id: _employeeId, ...rest } = user;
   return rest;
 };
 
@@ -304,9 +317,8 @@ export const getUser = async (id, principal, { manageUsers = false } = {}) => {
 // create an account without door access.
 const legacyCardNumber = (body) => String(body.card_number ?? "").trim();
 
-const hasCardNumber = (cards, cardNumber) => cards.some(
-  (card) => card.card_number.trim().toLowerCase() === cardNumber.toLowerCase()
-);
+const hasCardNumber = (cards, cardNumber) =>
+  cards.some((card) => card.card_number.trim().toLowerCase() === cardNumber.toLowerCase());
 
 const assertAssignableRole = async (roleId, principal, execute = undefined) => {
   if (!UUID_PATTERN.test(String(roleId))) throw badRequest("INVALID_USER", "Role must be a valid role identifier");
@@ -323,7 +335,8 @@ const assertAssignableRole = async (roleId, principal, execute = undefined) => {
 
 export const createUser = async (body, principal) => {
   const values = cleanIdentity(body);
-  if (!values.name || !values.email || !body.password || !body.roleId) throw badRequest("INVALID_USER", "Name, email, password, and role are required");
+  if (!values.name || !values.email || !body.password || !body.roleId)
+    throw badRequest("INVALID_USER", "Name, email, password, and role are required");
   await assertAssignableRole(body.roleId, principal);
   if (Object.hasOwn(body, "must_change_password") && typeof body.must_change_password !== "boolean") {
     throw badRequest("INVALID_USER", "must_change_password must be a boolean");
@@ -336,28 +349,34 @@ export const createUser = async (body, principal) => {
   try {
     const created = await withTransaction(async (client) => {
       const execute = (text, params) => client.query(text, params);
-      const user = await insertAccount({
-        ...values,
-        employeeId,
-        roleId: body.roleId,
-        floor,
-        floors,
-        type: "employee",
-        password: passwordHash,
-        mustChangePassword: body.must_change_password === true,
-      }, execute);
+      const user = await insertAccount(
+        {
+          ...values,
+          employeeId,
+          roleId: body.roleId,
+          floor,
+          floors,
+          type: "employee",
+          password: passwordHash,
+          mustChangePassword: body.must_change_password === true,
+        },
+        execute,
+      );
       if (cardNumber) {
-        await addUserCard(user._id, cardNumber, { execute });
+        await addUserCard(user._id, cardNumber, { execute, principal });
         if (body.master_card === true) await setMasterCard(cardNumber, true, principal?._id, execute);
       }
       const fullUser = await findAccountById(user._id, "employee", execute);
-      await writeAudit({
-        principal,
-        action: "user.create",
-        entityType: "user",
-        entityId: user._id,
-        newValues: { ...auditUserValues(fullUser), ...(cardNumber ? { card: maskedCard(cardNumber) } : {}) },
-      }, execute);
+      await writeAudit(
+        {
+          principal,
+          action: "user.create",
+          entityType: "user",
+          entityId: user._id,
+          newValues: { ...auditUserValues(fullUser), ...(cardNumber ? { card: maskedCard(cardNumber) } : {}) },
+        },
+        execute,
+      );
       return fullUser;
     });
     return created;
@@ -369,17 +388,17 @@ export const createUser = async (body, principal) => {
 export const editUser = async (id, body, principal, { execute } = {}) => {
   if (!UUID_PATTERN.test(String(id))) throw notFound("User not found");
   if (!execute) {
-    return withTransaction((client) => editUser(id, body, principal, {
-      execute: (text, values) => client.query(text, values),
-    }));
+    return withTransaction((client) =>
+      editUser(id, body, principal, {
+        execute: (text, values) => client.query(text, values),
+      }),
+    );
   }
   const values = cleanIdentity(body || {});
   const isAdmin = isAdminRole(principal.role);
   const target = await findAccountById(id, "employee", execute);
   if (!target) throw notFound("User not found");
-  const targetRole = target.role_id
-    ? await findRoleNameById(target.role_id, execute)
-    : null;
+  const targetRole = target.role_id ? await findRoleNameById(target.role_id, execute) : null;
   if (targetRole === "super_admin" && !isSuperAdminRole(principal?.role)) {
     throw forbidden("Only a super administrator may modify a super administrator");
   }
@@ -434,15 +453,14 @@ export const editUser = async (id, body, principal, { execute } = {}) => {
     if (cardNumber) {
       const cards = await listUserCards(id, execute);
       if (!hasCardNumber(cards, cardNumber)) {
-        await addUserCard(id, cardNumber, { execute });
+        await addUserCard(id, cardNumber, { execute, principal });
         cardAdded = true;
       }
       if (body.master_card === true) {
         // A lost card must not be put back on the door master list by editing
         // the profile. Only an active card of this user may be a master card.
         const activeCard = (await listUserCards(id, execute)).find(
-          (card) => card.status === "active"
-            && card.card_number.trim().toLowerCase() === cardNumber.toLowerCase()
+          (card) => card.status === "active" && card.card_number.trim().toLowerCase() === cardNumber.toLowerCase(),
         );
         if (!activeCard) {
           throw badRequest("INVALID_CARD", "Only an active card can be marked as a master card");
@@ -455,32 +473,41 @@ export const editUser = async (id, body, principal, { execute } = {}) => {
     const after = await findAccountById(id, "employee", execute);
     const changed = changedAuditValues(before, after);
     if (changed) {
-      await writeAudit({
-        principal,
-        action: "user.update",
-        entityType: "user",
-        entityId: id,
-        oldValues: changed.oldValues,
-        newValues: changed.newValues,
-      }, execute);
+      await writeAudit(
+        {
+          principal,
+          action: "user.update",
+          entityType: "user",
+          entityId: id,
+          oldValues: changed.oldValues,
+          newValues: changed.newValues,
+        },
+        execute,
+      );
     }
     if (cardAdded) {
-      await writeAudit({
-        principal,
-        action: "user.card.add",
-        entityType: "user",
-        entityId: id,
-        newValues: { card: maskedCard(cardNumber) },
-      }, execute);
+      await writeAudit(
+        {
+          principal,
+          action: "user.card.add",
+          entityType: "user",
+          entityId: id,
+          newValues: { card: maskedCard(cardNumber) },
+        },
+        execute,
+      );
     }
     if (body.master_card !== undefined) {
-      await writeAudit({
-        principal,
-        action: "user.card.master",
-        entityType: "user",
-        entityId: id,
-        newValues: { card: maskedCard(cardNumber), enabled: body.master_card === true },
-      }, execute);
+      await writeAudit(
+        {
+          principal,
+          action: "user.card.master",
+          entityType: "user",
+          entityId: id,
+          newValues: { card: maskedCard(cardNumber), enabled: body.master_card === true },
+        },
+        execute,
+      );
     }
     return visibleAccount(after, principal);
   } catch (error) {
@@ -492,7 +519,8 @@ export const changeUserPassword = async (body, principal) => {
   const targetId = body.userId || principal._id;
   const changingOwnPassword = String(targetId) === String(principal._id);
   if (!isAdminRole(principal.role) && !changingOwnPassword) throw forbidden();
-  if (body.newPassword !== body.newPasswordConfirmation) throw badRequest("INVALID_PASSWORD", "New password confirmation must match");
+  if (body.newPassword !== body.newPasswordConfirmation)
+    throw badRequest("INVALID_PASSWORD", "New password confirmation must match");
   const newPassword = validatedPassword(body.newPassword);
   const account = await findAccountWithPassword(targetId);
   if (!account || account.is_deleted) throw notFound("Account not found");
@@ -507,7 +535,8 @@ export const changeUserPassword = async (body, principal) => {
   }
 
   if (changingOwnPassword) {
-    const valid = body.oldPassword && account.password && await bcrypt.compare(String(body.oldPassword), account.password);
+    const valid =
+      body.oldPassword && account.password && (await bcrypt.compare(String(body.oldPassword), account.password));
     if (!valid) throw badRequest("INVALID_PASSWORD", "Current password is incorrect");
   }
   const passwordHash = await bcrypt.hash(newPassword, 12);
@@ -517,13 +546,16 @@ export const changeUserPassword = async (body, principal) => {
     // Changing your own password clears the flag.
     await updatePassword(targetId, passwordHash, execute, !changingOwnPassword);
     if (!changingOwnPassword) {
-      await writeAudit({
-        principal,
-        action: "user.password.reset",
-        entityType: "user",
-        entityId: targetId,
-        newValues: { target: account.name, must_change_password: true },
-      }, execute);
+      await writeAudit(
+        {
+          principal,
+          action: "user.password.reset",
+          entityType: "user",
+          entityId: targetId,
+          newValues: { target: account.name, must_change_password: true },
+        },
+        execute,
+      );
     }
     return account.type === "room" ? revokeRoomKioskDevices(targetId, principal._id, execute) : [];
   });
@@ -541,9 +573,11 @@ export const changeUserPassword = async (body, principal) => {
 export const deleteUser = async (id, principal, { execute } = {}) => {
   if (!UUID_PATTERN.test(String(id))) throw notFound("User not found");
   if (!execute) {
-    return withTransaction((client) => deleteUser(id, principal, {
-      execute: (text, values) => client.query(text, values),
-    }));
+    return withTransaction((client) =>
+      deleteUser(id, principal, {
+        execute: (text, values) => client.query(text, values),
+      }),
+    );
   }
   if (await isProtectedAccount(id, execute)) {
     throw new HttpError(403, "PROTECTED_ACCOUNT", "The setup admin cannot be deleted");
@@ -552,9 +586,7 @@ export const deleteUser = async (id, principal, { execute } = {}) => {
   if (String(id) === String(principal?._id)) throw forbidden("You cannot delete your own account");
   const before = await findAccountById(id, "employee", execute);
   if (!before) throw notFound("User not found");
-  const targetRole = before.role_id
-    ? await findRoleNameById(before.role_id, execute)
-    : null;
+  const targetRole = before.role_id ? await findRoleNameById(before.role_id, execute) : null;
   if (targetRole === "super_admin" && !isSuperAdminRole(principal?.role)) {
     throw forbidden("Only a super administrator may delete a super administrator");
   }
@@ -565,12 +597,15 @@ export const deleteUser = async (id, principal, { execute } = {}) => {
   for (const card of cards) {
     await setMasterCard(card.card_number, false, principal?._id, execute);
   }
-  await writeAudit({
-    principal,
-    action: "user.delete",
-    entityType: "user",
-    entityId: id,
-    oldValues: auditUserValues(before),
-  }, execute);
+  await writeAudit(
+    {
+      principal,
+      action: "user.delete",
+      entityType: "user",
+      entityId: id,
+      oldValues: auditUserValues(before),
+    },
+    execute,
+  );
   return user;
 };
