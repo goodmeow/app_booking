@@ -25,11 +25,11 @@ Alur default setiap bump versi (wajib, bukan opsional):
    tes client, dan tes unit server.
 3. Naikkan versi, lalu tambah baris riwayat di bawah.
 
-## Posisi saat ini (Ver 3 Rev 29)
+## Posisi saat ini (Ver 3 Rev 30)
 
-- CMS + API: **Ver 3 Rev 29**, `package.json` `3.15.13`, ditampilkan di footer
-  semua halaman CMS (dari package.json). Rev 29 memperbaiki tata letak judul/bagian
-  di Pengaturan Global. Rev 26 menata tombol aksi Pengaturan Global
+- CMS + API: **Ver 3 Rev 30**, `package.json` `3.15.14`, ditampilkan di footer
+  semua halaman CMS (dari package.json). Rev 30 membaca versi APK dari
+  `public/apk/latest.json` di halaman Tentang. Rev 26 menata tombol aksi Pengaturan Global
   dan menampilkan nomor kartu penuh di log audit. Rev 24 menghapus mock logo bawaan di halaman Branding. Rev 23 menambah favicon huruf awal saat aset favicon kosong. Rev 22 melengkapi aturan aset di halaman login (tampilkan
   yang ada, lockup resmi hanya bila kosong). Rev 21 memakai lockup
   Prasada berwarna di halaman login. Rev 20 mengatur teks brand di navbar berdasarkan aset custom. Rev 19 menambahkan baris audit untuk rilis ruangan otomatis. Rev 18 hanya mengecualikan folder tes dari Prettier. Gelombang Rev 17 berisi perbaikan
@@ -40,7 +40,7 @@ Alur default setiap bump versi (wajib, bukan opsional):
   APK RustDesk dihapus. Detail di riwayat 2026-11-05.
 - APK kiosk: **tidak berubah di Rev 16/17** — tetap `versionName 1.5.0 /
   versionCode 27`, tidak perlu rebuild atau tebar ulang. Footer kios menampilkan
-  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.13`). Build membawa pill `TERSEDIA` 44 px, copy
+  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.14`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
@@ -84,7 +84,15 @@ Alur default setiap bump versi (wajib, bukan opsional):
 
 ## Riwayat
 
-### Ver 3 Rev 29 - 2026-11-05 (rilis saat ini)
+### Ver 3 Rev 30 - 2026-11-05 (rilis saat ini)
+- **Versi APK di halaman Tentang tidak lagi hardcode**: `KIOSK_APP_VERSION`
+  sekarang membaca `public/apk/latest.json` saat build, jadi label mengikuti
+  APK yang benar-benar diterbitkan (sebelumnya tertulis 1.4.5 (26) padahal
+  distribusi 1.5.0 (27)). `package.json` 3.15.14; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau; halaman Tentang di UAT lokal menampilkan
+  Kiosk APK 1.5.0 (27).
+
+### Ver 3 Rev 29 - 2026-11-05 (rilis sebelumnya)
 - **Tata letak Pengaturan Global diperbaiki setelah cek visual**: header
   Branding dan Akses peran memakai flex sehingga tombol simpan tidak lagi
   turun ke bawah deskripsi, dan label aset tidak lagi menempel dengan teks
