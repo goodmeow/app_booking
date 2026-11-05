@@ -96,9 +96,11 @@ export const publicKioskDevice = (device) => ({
   roomName: device.room_name,
   roomEmail: device.room_email,
   status: deviceStatus(device),
-  online: Boolean(!device.revoked_at
-    && device.last_seen_at
-    && Date.now() - new Date(device.last_seen_at).getTime() <= KIOSK_ONLINE_WINDOW_MS),
+  online: Boolean(
+    !device.revoked_at &&
+    device.last_seen_at &&
+    Date.now() - new Date(device.last_seen_at).getTime() <= KIOSK_ONLINE_WINDOW_MS,
+  ),
   lastSeenAt: device.last_seen_at,
   refreshExpiresAt: device.refresh_expires_at,
   createdAt: device.created_at,
@@ -113,31 +115,32 @@ export const publicKioskDevice = (device) => ({
 export const authenticateKioskCredentials = async (login, password) => {
   if (!login || !password) throw new HttpError(401, "INVALID_KIOSK_CREDENTIALS", "Invalid room login or password");
   const room = await findKioskRoomByLogin(login);
-  const valid = room?.password && await bcrypt.compare(String(password), room.password);
+  const valid = room?.password && (await bcrypt.compare(String(password), room.password));
   if (!valid) throw new HttpError(401, "INVALID_KIOSK_CREDENTIALS", "Invalid room login or password");
   return room;
 };
 
-export const signKioskToken = (device) => jwt.sign(
-  { kind: "kiosk", room_id: String(device.room_id), ver: Number(device.token_version) },
-  config.jwtSecret,
-  {
+export const signKioskToken = (device) =>
+  jwt.sign({ kind: "kiosk", room_id: String(device.room_id), ver: Number(device.token_version) }, config.jwtSecret, {
     algorithm: "HS256",
     subject: String(device.device_id),
     expiresIn: config.kioskJwtExpiry,
     issuer: config.jwtIssuer,
     audience: config.kioskJwtAudience,
-  }
-);
+  });
 
 const newRefreshToken = () => randomBytes(32).toString("base64url");
-const hashRefreshToken = (token) => createHash("sha256").update(String(token || "")).digest("hex");
-const successorRefreshToken = (token) => createHmac("sha256", config.jwtSecret)
-  .update("360booking:kiosk-refresh:")
-  .update(String(token))
-  .digest("base64url");
+const hashRefreshToken = (token) =>
+  createHash("sha256")
+    .update(String(token || ""))
+    .digest("hex");
+const successorRefreshToken = (token) =>
+  createHmac("sha256", config.jwtSecret).update("360booking:kiosk-refresh:").update(String(token)).digest("base64url");
 const refreshExpiry = () => new Date(Date.now() + config.kioskRefreshDays * 86_400_000);
-const cleanDeviceName = (value, room) => String(value || `${room.name} Tablet`).trim().slice(0, 80) || `${room.name} Tablet`;
+const cleanDeviceName = (value, room) =>
+  String(value || `${room.name} Tablet`)
+    .trim()
+    .slice(0, 80) || `${room.name} Tablet`;
 
 const kioskSession = (device, refreshToken) => ({
   token: signKioskToken(device),
@@ -160,15 +163,18 @@ export const provisionKioskDevice = async ({ login, password, deviceName }) => {
     if (existing) {
       throw conflict(
         "ROOM_ALREADY_PAIRED",
-        "This room already has an active tablet. Revoke the old device in the CMS (Tablet Devices) before pairing again."
+        "This room already has an active tablet. Revoke the old device in the CMS (Tablet Devices) before pairing again.",
       );
     }
-    return createKioskDevice({
-      roomId: room._id,
-      name: cleanDeviceName(deviceName, room),
-      refreshTokenHash: hashRefreshToken(refreshToken),
-      refreshExpiresAt: refreshExpiry(),
-    }, execute);
+    return createKioskDevice(
+      {
+        roomId: room._id,
+        name: cleanDeviceName(deviceName, room),
+        refreshTokenHash: hashRefreshToken(refreshToken),
+        refreshExpiresAt: refreshExpiry(),
+      },
+      execute,
+    );
   });
   return kioskSession(device, refreshToken);
 };
@@ -198,9 +204,11 @@ export const verifyKioskToken = async (token) => {
   }
   if (claims.kind !== "kiosk") throw new HttpError(401, "INVALID_KIOSK_TOKEN", "Kiosk authentication required");
   const device = await findActiveKioskDeviceById(claims.sub);
-  if (!device
-    || String(claims.room_id) !== String(device.room_id)
-    || Number(claims.ver) !== Number(device.token_version)) {
+  if (
+    !device ||
+    String(claims.room_id) !== String(device.room_id) ||
+    Number(claims.ver) !== Number(device.token_version)
+  ) {
     throw new HttpError(401, "INACTIVE_KIOSK_DEVICE", "Kiosk authentication required");
   }
   try {
@@ -234,12 +242,13 @@ export const getKioskContext = async (room) => {
 // The door belongs to the meeting that covers "now": from its check-in window
 // until its end. Before that window (or after the meeting) the room counts as
 // free, so the card check falls back to the plain employee-card rule.
-export const activeDoorMeeting = (meetings, now = Date.now()) => meetings.find((meeting) => {
-  const start = new Date(meeting.start_at).getTime();
-  const end = new Date(meeting.end_at).getTime();
-  const opens = start - Number(meeting.early_minutes || 0) * MILLISECONDS_PER_MINUTE;
-  return now >= opens && now < end;
-}) || null;
+export const activeDoorMeeting = (meetings, now = Date.now()) =>
+  meetings.find((meeting) => {
+    const start = new Date(meeting.start_at).getTime();
+    const end = new Date(meeting.end_at).getTime();
+    const opens = start - Number(meeting.early_minutes || 0) * MILLISECONDS_PER_MINUTE;
+    return now >= opens && now < end;
+  }) || null;
 
 export const authorizeKioskDoor = async (cardNumber, room) => {
   const value = String(cardNumber ?? "").trim();
@@ -283,11 +292,12 @@ export const kioskCapabilityFlags = (input = {}) => {
   if (!changedKeys.length) {
     throw badRequest(
       "INVALID_KIOSK_CAPABILITIES",
-      "NFC, LED, subject visibility, instant booking, or schedule booking setting is required"
+      "NFC, LED, subject visibility, instant booking, or schedule booking setting is required",
     );
   }
   for (const key of changedKeys) {
-    if (typeof flags[key] !== "boolean") throw badRequest("INVALID_KIOSK_CAPABILITIES", `${key} setting must be boolean`);
+    if (typeof flags[key] !== "boolean")
+      throw badRequest("INVALID_KIOSK_CAPABILITIES", `${key} setting must be boolean`);
   }
   return flags;
 };
@@ -332,9 +342,7 @@ export const getKioskSchedule = async (query, room) => {
     id: row._id,
     title: `[${row.organizer_first_name || "Booked"}, ${formatLocalTime(row.start_at, row.timezone)} - ${formatLocalTime(row.end_at, row.timezone)}]`,
     subject: revealTitle ? cleanSubject(row.subject) : null,
-    organizerName: revealTitle
-      ? (cleanSubject(row.organizer_name) || row.organizer_first_name || "Booked")
-      : null,
+    organizerName: revealTitle ? cleanSubject(row.organizer_name) || row.organizer_first_name || "Booked" : null,
     organizerFirstName: row.organizer_first_name || "Booked",
     start: row.start_at,
     end: row.end_at,
@@ -372,7 +380,11 @@ export const finishKioskEvent = async ({ event_id: eventId, card_number: cardNum
     const execute = (text, values) => client.query(text, values);
     const context = await kioskActionContext({ eventId, cardNumber, room }, execute);
     const now = Date.now();
-    if (!context.checked_in || now < new Date(context.start_at).getTime() || now >= new Date(context.end_at).getTime()) {
+    if (
+      !context.checked_in ||
+      now < new Date(context.start_at).getTime() ||
+      now >= new Date(context.end_at).getTime()
+    ) {
       throw conflict("EARLY_FINISH_WINDOW", "Only an active checked-in meeting can be finished early");
     }
     return finishEventNow(eventId, execute);
@@ -387,7 +399,9 @@ const maybeReleaseAbandonedBookings = async () => {
   if (!abandonedReleasePromise) {
     abandonedReleasePromise = releaseAbandonedRoomBookings()
       .catch(() => [])
-      .finally(() => { abandonedReleasePromise = null; });
+      .finally(() => {
+        abandonedReleasePromise = null;
+      });
   }
   await abandonedReleasePromise;
 };
@@ -408,10 +422,18 @@ const resolveKioskEmployeeByCard = async (cardNumber, room) => {
   const employeeFloors = effectiveFloors(employee);
   const roomFloor = String(room.floor || "").trim();
   if (!employeeFloors.length) {
-    throw new HttpError(403, "FLOOR_REQUIRED", "This card is not linked to a work floor. Ask an admin to set it in Management > Users.");
+    throw new HttpError(
+      403,
+      "FLOOR_REQUIRED",
+      "This card is not linked to a work floor. Ask an admin to set it in Management > Users.",
+    );
   }
   if (!coversAllFloors(employee) && !coversFloor(employee, roomFloor)) {
-    throw new HttpError(403, "FLOOR_RESTRICTED", `This card is registered on floor ${employeeFloors.join(", ")}, but this room is on floor ${roomFloor}.`);
+    throw new HttpError(
+      403,
+      "FLOOR_RESTRICTED",
+      `This card is registered on floor ${employeeFloors.join(", ")}, but this room is on floor ${roomFloor}.`,
+    );
   }
   return employee;
 };
@@ -460,7 +482,13 @@ export const extendKioskEvent = async ({ event_id: eventId, minutes, card_number
     const endAt = new Date(new Date(context.end_at).getTime() + extra * MILLISECONDS_PER_MINUTE).toISOString();
     try {
       const updated = await extendKioskRoomEvent({ eventId, endAt }, execute);
-      return { id: updated._id, title: updated.subject, start: updated.start_at, end: updated.end_at, extendedMinutes: extra };
+      return {
+        id: updated._id,
+        title: updated.subject,
+        start: updated.start_at,
+        end: updated.end_at,
+        extendedMinutes: extra,
+      };
     } catch (error) {
       if (error.code === "23P01") throw conflict("ROOM_CONFLICT", "Room is already booked right after this meeting");
       throw error;
@@ -475,7 +503,11 @@ export const completeKioskEvent = async ({ event_id: eventId }, room) => {
     const context = await findKioskRoomEvent({ eventId, roomId: room._id }, execute);
     if (!context) throw notFound("Event not found for this room");
     const now = Date.now();
-    if (!context.checked_in || now < new Date(context.start_at).getTime() || now >= new Date(context.end_at).getTime()) {
+    if (
+      !context.checked_in ||
+      now < new Date(context.start_at).getTime() ||
+      now >= new Date(context.end_at).getTime()
+    ) {
       throw conflict("EARLY_FINISH_WINDOW", "Only an active checked-in meeting can be finished early");
     }
     const finished = await finishEventNow(eventId, execute);
@@ -483,24 +515,21 @@ export const completeKioskEvent = async ({ event_id: eventId }, room) => {
   });
 };
 
-
 // Instant booking window: always ends on the same day (server time zone),
 // at most 4 hours, or until the next meeting if that is still today.
 export const instantBookingWindow = ({ now, nextStart, minutes, untilNext = false, timezone }) => {
   const nowParts = zonedParts(now, timezone);
-  const endOfDay = zonedPartsToDate(
-    { ...nowParts, hour: 23, minute: 59, second: 59, millisecond: 0 },
-    timezone
-  );
+  const endOfDay = zonedPartsToDate({ ...nowParts, hour: 23, minute: 59, second: 59, millisecond: 0 }, timezone);
   const maxEnd = Math.min(now.getTime() + MAX_BOOKING_MINUTES * MILLISECONDS_PER_MINUTE, endOfDay.getTime());
-  const nextToday = nextStart && new Date(nextStart).getTime() <= endOfDay.getTime()
-    ? new Date(nextStart).getTime()
-    : null;
+  const nextToday =
+    nextStart && new Date(nextStart).getTime() <= endOfDay.getTime() ? new Date(nextStart).getTime() : null;
   // The requested duration is always respected. The next meeting is only an upper
   // bound, or the end point when the caller asks for "until next".
   const requestedEnd = untilNext
     ? maxEnd
-    : now.getTime() + clampMinutes(minutes, DEFAULT_INSTANT_MINUTES, MIN_BOOKING_MINUTES, MAX_BOOKING_MINUTES) * MILLISECONDS_PER_MINUTE;
+    : now.getTime() +
+      clampMinutes(minutes, DEFAULT_INSTANT_MINUTES, MIN_BOOKING_MINUTES, MAX_BOOKING_MINUTES) *
+        MILLISECONDS_PER_MINUTE;
   const endMs = Math.min(requestedEnd, maxEnd, nextToday ?? Infinity);
   return {
     start: now,
@@ -510,7 +539,10 @@ export const instantBookingWindow = ({ now, nextStart, minutes, untilNext = fals
   };
 };
 
-export const instantKioskBooking = async ({ card_number: cardNumber, minutes, until_next: untilNextRequested }, room) => {
+export const instantKioskBooking = async (
+  { card_number: cardNumber, minutes, until_next: untilNextRequested },
+  room,
+) => {
   await maybeReleaseAbandonedBookings();
   const employee = await resolveKioskEmployeeByCard(cardNumber, room);
   const now = new Date();
@@ -528,20 +560,27 @@ export const instantKioskBooking = async ({ card_number: cardNumber, minutes, un
     throw conflict("NO_FREE_WINDOW", "No time is left today for an instant booking");
   }
   const created = await createEvents(
-    [{
-      organizer: employee.email,
-      subject: `Room usage - ${employee.name}`,
-      description: "Instant booking from the kiosk",
-      start_date: now.toISOString(),
-      end_date: window.end.toISOString(),
-      attendee_email: room.email,
-    }],
-    { _id: employee._id, email: employee.email, name: employee.name, role: "USER", floor: employee.floor, floors: employee.floors }
+    [
+      {
+        organizer: employee.email,
+        subject: `Room usage - ${employee.name}`,
+        description: "Instant booking from the kiosk",
+        start_date: now.toISOString(),
+        end_date: window.end.toISOString(),
+        attendee_email: room.email,
+      },
+    ],
+    {
+      _id: employee._id,
+      email: employee.email,
+      name: employee.name,
+      role: "USER",
+      floor: employee.floor,
+      floors: employee.floors,
+    },
+    { checkedIn: true },
   );
   const first = Array.isArray(created) ? created[0] : null;
-  // An instant booking at the kiosk means the person is already in the room, so
-  // the booking is also marked as checked in.
-  if (first?.id) await markCheckedIn(first.id);
   return {
     id: first?.id || null,
     title: first?.title || `Room usage - ${employee.name}`,
@@ -562,15 +601,24 @@ export const bookKioskSlot = async ({ card_number: cardNumber, start, end }, roo
   const now = new Date();
   const slot = validateKioskBookedSlot({ now, start, end, timezone: config.appTimezone });
   const created = await createEvents(
-    [{
-      organizer: employee.email,
-      subject: `Room usage - ${employee.name}`,
-      description: "Scheduled booking from the kiosk",
-      start_date: slot.startDate.toISOString(),
-      end_date: slot.endDate.toISOString(),
-      attendee_email: room.email,
-    }],
-    { _id: employee._id, email: employee.email, name: employee.name, role: "USER", floor: employee.floor, floors: employee.floors }
+    [
+      {
+        organizer: employee.email,
+        subject: `Room usage - ${employee.name}`,
+        description: "Scheduled booking from the kiosk",
+        start_date: slot.startDate.toISOString(),
+        end_date: slot.endDate.toISOString(),
+        attendee_email: room.email,
+      },
+    ],
+    {
+      _id: employee._id,
+      email: employee.email,
+      name: employee.name,
+      role: "USER",
+      floor: employee.floor,
+      floors: employee.floors,
+    },
   );
   const first = Array.isArray(created) ? created[0] : null;
   if (first?.id && slot.startsNow) await markCheckedIn(first.id);
