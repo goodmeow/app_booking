@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, Link } from "react-router-dom";
 import { authenticate, signin } from "./auth-helper.js";
 import { useGetBrandingQuery, useGetPublicSettingsQuery } from "../redux/services/settings.js";
-import { brandAsset, brandHasLockup, signinLogoSource } from "../core/brand-assets.js";
+import { brandHasAssets, signinLogoSource } from "../core/brand-assets.js";
 import { useThemeMode } from "../theme-mode.js";
 
 const HELPDESK_EMAIL = "helpdesk@integrasolution.id";
@@ -17,7 +17,7 @@ const Signin = () => {
   const { token } = theme.useToken();
   const { mode, toggle } = useThemeMode();
   const { data: branding } = useGetBrandingQuery();
-  const customBrand = brandHasLockup(branding);
+  const customBrand = brandHasAssets(branding);
   const { data: publicSettings } = useGetPublicSettingsQuery();
   const [error, setError] = useState("");
   const [notice, setNotice] = useState(location.state?.setupComplete ? t("auth:setup.success") : "");
@@ -93,16 +93,16 @@ const Signin = () => {
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           {customBrand ? (
             <>
-              <img
-                src={brandAsset(branding, "mark")}
-                alt={branding?.brand_name || t("common:brand.name")}
-                style={{ display: "block", height: 64, margin: "0 auto 12px" }}
-              />
-              <img
-                src={brandAsset(branding, "wordmark")}
-                alt=""
-                style={{ display: "block", height: 22, margin: "0 auto" }}
-              />
+              {branding?.assets?.mark ? (
+                <img
+                  src={branding.assets.mark}
+                  alt={branding?.brand_name || t("common:brand.name")}
+                  style={{ display: "block", height: 64, margin: "0 auto 12px" }}
+                />
+              ) : null}
+              {branding?.assets?.wordmark ? (
+                <img src={branding.assets.wordmark} alt="" style={{ display: "block", height: 22, margin: "0 auto" }} />
+              ) : null}
             </>
           ) : (
             <img

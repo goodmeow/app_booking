@@ -25,11 +25,12 @@ Alur default setiap bump versi (wajib, bukan opsional):
    tes client, dan tes unit server.
 3. Naikkan versi, lalu tambah baris riwayat di bawah.
 
-## Posisi saat ini (Ver 3 Rev 21)
+## Posisi saat ini (Ver 3 Rev 22)
 
-- CMS + API: **Ver 3 Rev 21**, `package.json` `3.15.5`, ditampilkan di footer
-  semua halaman CMS (dari package.json). Rev 21 memakai lockup Prasada berwarna
-  di halaman login. Rev 20 mengatur teks brand di navbar berdasarkan aset custom. Rev 19 menambahkan baris audit untuk rilis ruangan otomatis. Rev 18 hanya mengecualikan folder tes dari Prettier. Gelombang Rev 17 berisi perbaikan
+- CMS + API: **Ver 3 Rev 22**, `package.json` `3.15.6`, ditampilkan di footer
+  semua halaman CMS (dari package.json). Rev 22 melengkapi aturan aset di halaman
+  login (tampilkan yang ada, lockup resmi hanya bila kosong). Rev 21 memakai lockup
+  Prasada berwarna di halaman login. Rev 20 mengatur teks brand di navbar berdasarkan aset custom. Rev 19 menambahkan baris audit untuk rilis ruangan otomatis. Rev 18 hanya mengecualikan folder tes dari Prettier. Gelombang Rev 17 berisi perbaikan
   audit kode (respons bentrok ruangan 409, check-in booking instan dalam satu
   transaksi, pelaku pada audit kartu, CSP, indeks rentang jadwal, hapus kode
   mati). Rev 16 di dalamnya: rilis booking no-show yang transaksional, 28
@@ -37,7 +38,7 @@ Alur default setiap bump versi (wajib, bukan opsional):
   APK RustDesk dihapus. Detail di riwayat 2026-11-05.
 - APK kiosk: **tidak berubah di Rev 16/17** — tetap `versionName 1.5.0 /
   versionCode 27`, tidak perlu rebuild atau tebar ulang. Footer kios menampilkan
-  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.5`). Build membawa pill `TERSEDIA` 44 px, copy
+  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.6`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
@@ -81,7 +82,14 @@ Alur default setiap bump versi (wajib, bukan opsional):
 
 ## Riwayat
 
-### Ver 3 Rev 21 - 2026-11-05 (rilis saat ini)
+### Ver 3 Rev 22 - 2026-11-05 (rilis saat ini)
+- **Aturan aset di halaman login disamakan dengan navbar**: tampilkan aset custom
+  yang ada (mark dan/atau wordmark), dan pakai lockup resmi Prasada hanya bila
+  tidak ada aset custom sama sekali. `package.json` 3.15.6; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau (100 client, 95 unit) dan UAT lokal
+  menyajikan 3.15.6.
+
+### Ver 3 Rev 21 - 2026-11-05 (rilis sebelumnya)
 - **Halaman login memakai lockup "The Prasada" berwarna** saat `mark`+`wordmark`
   belum lengkap: `the-prasada-logo-colour.png` di tema terang, versi putih di
   tema gelap (sebelumnya logo putih tampil di atas kartu putih sehingga tidak

@@ -39,8 +39,10 @@ tampil bila `mark` dan `wordmark` belum lengkap diunggah:
 | hanya salah satu terunggah | aset yang ada + teks `brand_name` |
 | tidak ada aset custom | **hanya teks** `brand_name` (gambar fallback tidak dipakai di navbar) |
 
-Halaman login memakai **lockup resmi "The Prasada"** selama `mark` + `wordmark`
-belum lengkap: versi berwarna (`/the-prasada-logo-colour.png`) di tema terang
+Halaman login menampilkan aset custom yang ada: `mark` + `wordmark` bila
+keduanya diunggah, atau salah satu saja bila pasangannya kosong (mis. hanya
+wordmark). Bila **tidak ada** aset custom, login memakai lockup resmi
+"The Prasada": versi berwarna (`/the-prasada-logo-colour.png`) di tema terang
 dan versi putih (`/the-prasada-logo.png`) di tema gelap. Halaman signup dan
 force-password tetap memakai `mark`/`wordmark` fallback statis.
 

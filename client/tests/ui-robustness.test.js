@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { stateFromError, stateFromProps } from "../components/common/error-boundary-state.js";
 import { hasFloor } from "../management/user-form.js";
-import { brandShowsName, brandHasLockup, signinLogoSource } from "../core/brand-assets.js";
+import { brandShowsName, brandHasAssets, brandHasLockup, signinLogoSource } from "../core/brand-assets.js";
 
 test("hasFloor treats empty and whitespace floors as unset", () => {
   assert.equal(hasFloor({ floor: "3" }), true);
@@ -38,4 +38,11 @@ test("custom brand lockup needs both assets", () => {
 test("sign-in logo follows the surface: colour on light, white on dark", () => {
   assert.equal(signinLogoSource("dark"), "/the-prasada-logo.png");
   assert.equal(signinLogoSource("light"), "/the-prasada-logo-colour.png");
+});
+
+test("any custom brand asset replaces the bundled sign-in lockup", () => {
+  assert.equal(brandHasAssets({ assets: { mark: "/m.png" } }), true);
+  assert.equal(brandHasAssets({ assets: { wordmark: "/w.png" } }), true);
+  assert.equal(brandHasAssets({ assets: {} }), false);
+  assert.equal(brandHasAssets(undefined), false);
 });

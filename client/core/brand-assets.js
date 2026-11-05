@@ -6,6 +6,8 @@ export const BRAND_FALLBACKS = {
 
 export const brandAsset = (branding, kind) => branding?.assets?.[kind] || BRAND_FALLBACKS[kind] || "";
 
+export const brandHasAssets = (branding) => Boolean(branding?.assets?.mark || branding?.assets?.wordmark);
+
 export const brandHasLockup = (branding) => Boolean(branding?.assets?.mark && branding?.assets?.wordmark);
 
 // A custom icon plus logo already spell the brand out, so the navbar text is
