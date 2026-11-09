@@ -404,17 +404,6 @@ export const findKioskEventActionContextByUser = async ({ eventId, roomId, userI
   );
 };
 
-// The face verify log gets one row per scan, so it needs the same retention as
-// the audit log or it grows forever.
-export const deleteExpiredFaceVerifyLog = async (days) =>
-  (
-    await query(
-      `DELETE FROM tbl_face_verify_log
-   WHERE created_at < now() - make_interval(days => $1)`,
-      [Math.max(1, Number(days) || 365)],
-    )
-  ).rowCount;
-
 export const findKioskRoomEvent = async ({ eventId, roomId }, execute = query) =>
   (
     await execute(

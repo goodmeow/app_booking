@@ -8,7 +8,6 @@ import { closePool } from "./db/pool.js";
 import { releaseAbandonedBookings } from "./features/events/event.service.js";
 import { startBackupScheduler } from "./features/settings/backup.service.js";
 import { deleteExpiredAudit } from "./features/audit/audit.repository.js";
-import { deleteExpiredFaceVerifyLog } from "./features/kiosk/kiosk.repository.js";
 import { findEventAudience } from "./features/events/event.repository.js";
 import { emitEventInvalidation } from "./socket/event-invalidation.js";
 import { log } from "./observability/logger.js";
@@ -70,12 +69,12 @@ if (runSchedulers) {
   startBackupScheduler();
 }
 
-// Keep the audit and face-verify tables bounded. A daily job is enough for the
-// write volume of this CMS; the retention is configurable.
+// Keep the audit table bounded. A daily job is enough for the write volume of
+// this CMS; the retention is configurable. The face verify log has its own
+// retention inside the face service, which owns that table.
 const pruneAudit = async () => {
   try {
     await deleteExpiredAudit(config.auditRetentionDays);
-    await deleteExpiredFaceVerifyLog(config.auditRetentionDays);
   } catch (error) {
     log("error", "audit_retention_failed", { error_code: error.code || "AUDIT_RETENTION_FAILED" });
   }

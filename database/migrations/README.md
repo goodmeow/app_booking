@@ -33,6 +33,7 @@ Order:
 029_kiosk_action_toggles.sql
 030_drop_legacy_functions.sql
 031_events_period_index.sql
+032_face_menu_access.sql
 ```
 
 The first three files (001-003) were generated once from the immutable `bjb.sql`

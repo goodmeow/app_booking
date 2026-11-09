@@ -1,3 +1,8 @@
+-- Face tables are owned by the separate face service (repository
+-- app_faceunlock-service, migrations/001_face_tables.sql). This copy stays only
+-- so a database rebuilt without that service still has the schema; runtime
+-- writes and retention belong to the service.
+--
 -- Face-unlock templates: one row per employee account that may be verified by face.
 --
 -- The embedding is stored encrypted (AES-GCM) and is only readable by the face
