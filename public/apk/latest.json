@@ -1,8 +1,8 @@
 {
-  "versionCode": 29,
-  "versionName": "1.6.1",
+  "versionCode": 30,
+  "versionName": "1.6.2",
   "url": "/apk/kiosk-release.apk",
-  "sha256": "acb7fecb84b10817faee04bce00b7dfe2017b3da16a659742c061ba86ea7386f",
+  "sha256": "6b6153b1b9632d4fca02cc5003f5fa0f93715f07c740eca98e4bd12a7ab1a24c",
   "mandatory": false,
-  "notes": "Face unlock di tablet (scan wajah, kartu tetap cadangan) dan perbaikan tombol update yang sebelumnya selalu gagal."
+  "notes": "Face unlock di tablet dan perbaikan update: manifest dibaca ulang sebelum unduh, cek SHA-256 tetap aktif, pesan gagal lebih jelas."
 }

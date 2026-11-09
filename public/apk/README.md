@@ -159,6 +159,13 @@ sebelum membuka installer.
   saat meeting aktif hanya untuk attendee/organizer meeting itu atau kartu
   master. SHA-256 `be42fd3599658724db41ddb16f82c12bde90f29d914f6c023c6dcaa49ac98c96`, 21.531.173 byte.
 
+- 2026-11-09: naik 1.6.2 (versionCode 30)—build tag `1.6.2-30-76f1d02`.
+  Manifest dibaca ulang tepat sebelum unduh (sha tidak basi bila paket
+  dibangun ulang), permintaan manifest punya timeout 15 detik, tap ganda tidak
+  memulai dua unduhan, dan alasan gagal dari native ikut ditampilkan. Paket
+  distribusi 21544370 byte, SHA-256
+  `6b6153b1b9632d4fca02cc5003f5fa0f93715f07c740eca98e4bd12a7ab1a24c`.
+
 - 2026-11-09: naik 1.6.1 (versionCode 29)—build tag `1.6.1-29-7cb7177`.
   Face unlock di tablet: scan wajah untuk check-in, extend, dan booking,
   dengan kartu tetap cadangan. Tombol update memanggil modul native `KioskUpdate` (sebelumnya salah modul sehingga selalu "Update failed."). Base commit sudah rebase di atas 1.5.0
