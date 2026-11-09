@@ -135,6 +135,8 @@ Alur default setiap bump versi (wajib, bukan opsional):
   gagal), lalu **1.6.0 (29)** build `6fab162` di atasnya berisi murni fitur
   face unlock. UAT masih di 1.5.0 (27); build internal 1.6.0 (28) dan 1.6.1/2
   (29/30) tidak pernah ditebar. `public/apk/` memuat paket 1.6.0 (29).
+  Tablet 1.5.0 harus dipasang **1.5.1 manual sekali** karena updater di
+  1.5.0 rusak; setelah itu pembaruan lewat menu tablet berjalan.
 - Verifikasi: `npm run verify` (format, build, client, unit) dan
   `docker-compose config --services` tanpa/dengan `--profile face`.
 

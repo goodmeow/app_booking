@@ -18,6 +18,13 @@ Cara pembaruan:
 Halaman `/apk/index.html` membaca `latest.json`, jadi teks versi dan tautan
 unduh tidak perlu diubah manual lagi.
 
+**Catatan penting — lompatan pertama dari 1.5.0 (27):** tablet yang masih di
+1.5.0 tidak bisa memperbarui diri sendiri karena build itu memanggil modul
+native yang salah ("Update failed." tanpa unduhan). Pasang **1.5.1 (28)**
+secara manual sekali (adb atau buka APK-nya di tablet). Setelah 1.5.1
+terpasang, pembaruan berikutnya (termasuk 1.6.0) berjalan normal lewat menu
+tablet karena jalur unduh sudah diperbaiki.
+
 Riwayat isi paket:
 
 - 2026-10-23: pertama masuk paket, termasuk jam sinkron server (`serverTime`),
