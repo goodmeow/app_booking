@@ -5,7 +5,11 @@ yang ada sekarang hanya kartu; wajah menjadi metode utama dan kartu menjadi
 cadangan.
 
 - Status: **slice 1 selesai** (engine + tabel + enrollment), kiosk belum.
-- Kode: repo `app_faceunlock-service` (terpisah), migrasi: `database/migrations/027_face_templates.sql`.
+- **Fase read-only CMS selesai**: menu **Face** muncul untuk admin + super_admin
+  hanya selama face service dapat dijangkau, berisi template dan log verifikasi
+  hasil ekstraksi ZKBio. Enroll/hapus dari CMS menyusul di fase berikutnya.
+- Kode: repo `app_faceunlock-service` (terpisah, pemilik skema + retensi),
+  salinan migrasi untuk rebuild di `app_booking/database/migrations/027_face_templates.sql`.
 
 ## 1. Bentuk sistem
 
@@ -36,6 +40,20 @@ kiosk memakai kameranya sendiri.
 Pemisahan ini membuat aturan bisnis ("boleh masuk ruangan ini atau tidak")
 tetap di app_booking, dan model bisa diganti tanpa men-deploy ulang aplikasi.
 Service ML yang mati tidak menjatuhkan kiosk: kiosk jatuh ke kartu.
+
+### Kepemilikan data
+
+| Data | Pemilik |
+|---|---|
+| `tbl_face_templates`, `tbl_face_verify_log` (DDL) | face service (`migrations/001_face_tables.sql`, dijalankan saat start) |
+| Retensi `tbl_face_verify_log` (default 365 hari) | face service (`FACE_VERIFY_LOG_RETENTION_DAYS`) |
+| Kunci `FACE_EMBEDDING_KEY` | face service |
+| `tbl_users`, booking, aturan akses ruangan | app_booking |
+| Audit booking + log audit umum | app_booking |
+
+`app_booking` tidak lagi menghapus baris tabel face dan tidak men-truncate-nya
+di seed. DDL face dibuat service setelah `tbl_users` ada (FK), dengan retry
+maksimal 120 detik.
 
 ## 3. Alur
 
@@ -72,7 +90,13 @@ GET  /health
 POST /reload
 POST /identify   { device_id?, frames: [base64 jpeg, ...] }
 POST /verify     { employee_id, frames: [...] }
+POST /enroll     { employee_id, frames: [...] }
+GET  /templates?limit&offset          -- read-only untuk CMS
+GET  /verify-log?result&limit&offset  -- read-only untuk CMS
 ```
+
+Semua endpoint selain `/health` butuh header `X-Face-Token`. `/templates` dan
+`/verify-log` tidak pernah mengembalikan kolom `embedding`.
 
 Contoh respons nyata dari pengujian:
 
@@ -247,16 +271,35 @@ konsistensi identitas antar frame.
 
 ## 9. Deployment
 
-Service baru di compose, tanpa port publik:
+Service berjalan sebagai **profile opsional** di compose. Tanpa profile, stack
+inti (`db`, `web`, `app`) hidup normal dan kiosk memakai kartu:
+
+```sh
+# stack inti saja
+docker-compose --env-file .env -f deploy/docker/compose.alpine.yaml up -d
+
+# dengan face unlock
+docker-compose --env-file .env -f deploy/docker/compose.alpine.yaml \
+  --profile face build face
+docker-compose --env-file .env -f deploy/docker/compose.alpine.yaml \
+  --profile face up -d face
+```
+
+`ALPINE_FACE_EMBEDDING_KEY` hanya relevan saat profile dipakai; tanpa itu
+compose tetap valid. `app` tidak lagi `depends_on` face.
+
+Blok service:
 
 ```yaml
 face:
-  build: ../app_faceunlock-service
+  profiles: ["face"]
+  build:
+    context: ../../../app_faceunlock-service
   environment:
     FACE_DB_DSN: postgresql://booking@db/360booking
-    FACE_EMBEDDING_KEY: ${FACE_EMBEDDING_KEY}
+    FACE_EMBEDDING_KEY: ${ALPINE_FACE_EMBEDDING_KEY:-}
   volumes:
-    - ../app_faceunlock-service/models:/app/models:ro
+    - ../../../app_faceunlock-service/models:/app/models:ro
   depends_on: [db]
   restart: unless-stopped
 ```
@@ -264,6 +307,26 @@ face:
 Model diunduh di server dengan `./fetch-models.sh` (checksum diverifikasi),
 tidak dibawa di image. Kunci dibuat di server UAT dengan `openssl rand -base64
 32` — **tidak** boleh sama dengan kunci AES BioTime.
+
+## 9b. CMS dan menu kondisional
+
+`GET /api/face/status` memeriksa `/health` service (timeout 1,5 detik, cache
+30 detik). `GET /api/access/menus` membuang menu `face` bila probe gagal —
+termasuk untuk `super_admin`. Migrasi `032_face_menu_access.sql` menambahkan
+kunci `face` ke `tbl_role_menu_access` dan memberikannya ke role `admin`.
+
+Proxy baca di app_booking (butuh `menuAccess("face")`):
+
+| Endpoint | Isi |
+|---|---|
+| `GET /api/face/templates` | template + `name` dari `tbl_users` |
+| `GET /api/face/verify-log` | log + `name`, filter `result` |
+
+Nama karyawan di-resolve di app_booking, jadi service tetap tidak membaca tabel
+aplikasi. Bila service mati, proxy menjawab `503 FACE_UNAVAILABLE`.
+
+Tab **Face** di Management menampilkan status service, tabel template, dan tabel
+log verifikasi (hanya baca). Enroll/hapus wajah dari CMS belum ada.
 
 ## 10. Status dan urutan pekerjaan
 
@@ -274,6 +337,8 @@ tidak dibawa di image. Kunci dibuat di server UAT dengan `openssl rand -base64
 | 3 | liveness pasif + uji serangan foto | belum |
 | 4 | endpoint kiosk di app_booking + integrasi APK | belum (sengaja ditunda) |
 | 5 | kalibrasi ambang dengan 20–30 karyawan | belum |
+| 6 | menu Face read-only di CMS (status + proxy template/log) | **selesai (lokal)** |
+| 7 | enroll/hapus wajah dari CMS | belum |
 
 ## 11. Bukti pengujian slice 1
 
@@ -318,5 +383,7 @@ REA tidak dipakai sebagai komponen, tetapi memberi tiga hal:
 - Ambang 0,60 berasal dari 1 orang + 233 foto lama.
 - Embedding terikat satu model; penggantian model = enrollment ulang.
 - 3 karyawan tanpa foto dan tanpa kartu tidak bisa autentikasi.
-- Retensi dan persetujuan data biometrik belum ditetapkan.
+- Retensi dan persetujuan data biometrik: retensi log kini milik face service
+  (default 365 hari, `FACE_VERIFY_LOG_RETENTION_DAYS`); persetujuan biometrik
+  masih belum ditetapkan.
 - Lisensi model: YuNet MIT, SFace Apache-2.0 — sertakan notice saat distribusi.

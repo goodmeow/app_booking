@@ -25,10 +25,13 @@ Alur default setiap bump versi (wajib, bukan opsional):
    tes client, dan tes unit server.
 3. Naikkan versi, lalu tambah baris riwayat di bawah.
 
-## Posisi saat ini (Ver 3 Rev 32)
+## Posisi saat ini (Ver 3 Rev 33)
 
-- CMS + API: **Ver 3 Rev 32**, `package.json` `3.15.16`, ditampilkan di footer
-  semua halaman CMS (dari package.json). Rev 32 membatasi tumpukan event di
+- CMS + API: **Ver 3 Rev 33**, `package.json` `3.15.17`, ditampilkan di footer
+  semua halaman CMS (dari package.json). Rev 33 memisahkan layanan face unlock
+  ke repo sendiri (skema + retensi jadi miliknya), membuatnya profil compose
+  opsional, dan menambahkan menu **Face** read-only untuk admin + super_admin
+  yang hanya muncul selama service dapat dijangkau. Rev 32 membatasi tumpukan event di
   kalender mingguan. Rev 26 menata tombol aksi Pengaturan Global
   dan menampilkan nomor kartu penuh di log audit. Rev 24 menghapus mock logo bawaan di halaman Branding. Rev 23 menambah favicon huruf awal saat aset favicon kosong. Rev 22 melengkapi aturan aset di halaman login (tampilkan
   yang ada, lockup resmi hanya bila kosong). Rev 21 memakai lockup
@@ -109,7 +112,28 @@ Alur default setiap bump versi (wajib, bukan opsional):
 
 ## Riwayat
 
-### Ver 3 Rev 32 - 2026-11-05 (rilis saat ini)
+### Ver 3 Rev 33 - 2026-11-09 (rilis saat ini)
+- **Layanan face unlock dipisah penuh dari app_booking**: ML service, DDL
+  (`tbl_face_templates`, `tbl_face_verify_log`), retensi log, dan kunci
+  embedding kini dimiliki repo `app_faceunlock-service`. app_booking berhenti
+  menghapus baris tabel face (`deleteExpiredFaceVerifyLog` dihapus) dan seed
+  tidak lagi men-truncate tabel itu.
+- **Compose opsional**: service `face` memakai `profiles: ["face"]`, app tidak
+  lagi `depends_on` face, dan `ALPINE_FACE_EMBEDDING_KEY` tidak wajib. Tanpa
+  profile, `docker-compose up -d` hanya menjalankan db/web/app dan kiosk tetap
+  memakai kartu.
+- **Menu Face read-only di CMS**: `GET /api/face/status` memeriksa `/health`
+  service (timeout 1,5 s, cache 30 s); `/api/access/menus` membuang menu `face`
+  bila service mati, termasuk untuk `super_admin`. Migrasi
+  `032_face_menu_access.sql` menambahkan kunci `face` ke matriks role dan
+  memberikannya ke `admin`. Dua tab baru: template terdaftar dan log
+  verifikasi, dengan nama karyawan di-resolve dari `tbl_users` di app_booking.
+- Enroll/hapus wajah dari CMS ditunda ke fase berikutnya.
+- `package.json` 3.15.17; APK tetap 1.5.0 (27) — tidak ada perubahan kiosk.
+- Verifikasi: `npm run verify` (format, build, client, unit) dan
+  `docker-compose config --services` tanpa/dengan `--profile face`.
+
+### Ver 3 Rev 32 - 2026-11-05 (rilis sebelumnya)
 - **Kalender mingguan tidak lagi pecah jadi strip tipis**: `eventMaxStack={3}`
   membatasi tiga event per tumpukan, sisanya masuk tautan `+N` bawaan
   FullCalendar. Sebelumnya enam meeting pada jam yang sama menjadi enam kolom
