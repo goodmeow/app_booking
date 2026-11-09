@@ -5,7 +5,7 @@ yang ada sekarang hanya kartu; wajah menjadi metode utama dan kartu menjadi
 cadangan.
 
 - Status: **slice 1 selesai** (engine + tabel + enrollment), kiosk belum.
-- Kode: `face-service/`, migrasi: `database/migrations/026_face_templates.sql`.
+- Kode: repo `app_faceunlock-service` (terpisah), migrasi: `database/migrations/027_face_templates.sql`.
 
 ## 1. Bentuk sistem
 
@@ -251,12 +251,12 @@ Service baru di compose, tanpa port publik:
 
 ```yaml
 face:
-  build: ./face-service
+  build: ../app_faceunlock-service
   environment:
     FACE_DB_DSN: postgresql://booking@db/360booking
     FACE_EMBEDDING_KEY: ${FACE_EMBEDDING_KEY}
   volumes:
-    - ./face-service/models:/app/models:ro
+    - ../app_faceunlock-service/models:/app/models:ro
   depends_on: [db]
   restart: unless-stopped
 ```

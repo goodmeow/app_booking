@@ -5,7 +5,7 @@
 #   docker-compose --env-file .env -f deploy/docker/compose.alpine.yaml \
 #     -p roombooking-alpine up -d --build
 #
-# Face unlock needs the ONNX models (face-service/fetch-models.sh) and an
+# Face unlock needs the ONNX models (app_faceunlock-service/fetch-models.sh) and an
 # ALPINE_FACE_EMBEDDING_KEY in the env file. Recreating the app container
 # changes its IP, so restart the web container so nginx re-resolves "app".
 
@@ -34,12 +34,13 @@ services:
     restart: unless-stopped
 
   face:
-    # Face unlock ML service (YuNet + SFace). It owns biometric matching and
+    # Face unlock ML service (YuNet + SFace), kept in its own repository next to
+    # this checkout (../app_faceunlock-service). It owns biometric matching and
     # the tbl_face_verify_log audit; booking rules stay in app. Models are
-    # downloaded by face-service/fetch-models.sh and mounted read-only, never
-    # baked into the image. The embedding key comes from the stack .env.
+    # downloaded by its fetch-models.sh and mounted read-only, never baked into
+    # the image. The embedding key comes from the stack .env.
     build:
-      context: ../../face-service
+      context: ../../../app_faceunlock-service
       dockerfile: Dockerfile
     image: roombooking-face:latest
     environment:
@@ -51,7 +52,7 @@ services:
       # 503 on every endpoint except /health, so the kiosk falls back to a card.
       FACE_INTERNAL_TOKEN: ${ALPINE_FACE_INTERNAL_TOKEN:-}
     volumes:
-      - ../../face-service/models:/app/models:ro
+      - ../../../app_faceunlock-service/models:/app/models:ro
     depends_on:
       db:
         condition: service_healthy

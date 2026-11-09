@@ -67,7 +67,7 @@ Alur default setiap bump versi (wajib, bukan opsional):
   `tbl_face_verify_log`.
 - Deploy: service `face` ditambahkan ke `deploy/docker/compose.alpine.yaml`
   (internal, `FACE_SERVICE_URL=http://face:8090`). Model ONNX diunduh lewat
-  `face-service/fetch-models.sh` dan di-mount read-only; kunci embedding
+  `app_faceunlock-service/fetch-models.sh` dan di-mount read-only; kunci embedding
   (`ALPINE_FACE_EMBEDDING_KEY`) hanya ada di `.env` lokal.
 - APK kiosk: **1.5.0 / 27** (`versionCode` 27). Pemindaian wajah memakai kamera
   depan, 3 frame 640×480 JPEG; jatuh ke kartu bila `no_match`/`no_face`/

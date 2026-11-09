@@ -1,4 +1,0 @@
-# Model weights are downloaded by fetch-models.sh, not committed.
-models/
-__pycache__/
-*.pyc
