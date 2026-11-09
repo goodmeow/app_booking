@@ -158,3 +158,10 @@ sebelum membuka installer.
   toast hasil aksi di panel kanan (hijau sukses, merah ditolak); buka pintu
   saat meeting aktif hanya untuk attendee/organizer meeting itu atau kartu
   master. SHA-256 `be42fd3599658724db41ddb16f82c12bde90f29d914f6c023c6dcaa49ac98c96`, 21.531.173 byte.
+
+- 2026-11-09: naik 1.6.1 (versionCode 29)—build tag `1.6.1-29-7cb7177`.
+  Face unlock di tablet: scan wajah untuk check-in, extend, dan booking,
+  dengan kartu tetap cadangan. Tombol update memanggil modul native `KioskUpdate` (sebelumnya salah modul sehingga selalu "Update failed."). Base commit sudah rebase di atas 1.5.0
+  (main `982a4df`), jadi posisi toast dan layout tidak berubah. Paket
+  distribusi 21544060 byte, SHA-256
+  `acb7fecb84b10817faee04bce00b7dfe2017b3da16a659742c061ba86ea7386f`.

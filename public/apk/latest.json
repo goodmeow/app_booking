@@ -1,8 +1,8 @@
 {
-  "versionCode": 27,
-  "versionName": "1.5.0",
+  "versionCode": 29,
+  "versionName": "1.6.1",
   "url": "/apk/kiosk-release.apk",
-  "sha256": "be42fd3599658724db41ddb16f82c12bde90f29d914f6c023c6dcaa49ac98c96",
+  "sha256": "acb7fecb84b10817faee04bce00b7dfe2017b3da16a659742c061ba86ea7386f",
   "mandatory": false,
-  "notes": "Toggle 30 menit/Pilih waktu per tablet, toast status hijau/merah, dan pintu hanya untuk attendee meeting atau kartu master."
+  "notes": "Face unlock di tablet (scan wajah, kartu tetap cadangan) dan perbaikan tombol update yang sebelumnya selalu gagal."
 }
