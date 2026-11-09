@@ -170,3 +170,11 @@ sebelum membuka installer.
   dibaca ulang tepat sebelum unduh, timeout 15 detik, tap ganda tidak memulai
   dua unduhan, dan alasan gagal dari native ikut ditampilkan. Paket distribusi
   21531488 byte, SHA-256 `249fc9c03bbb9900ae69ca3f4d5c1311febbdaa1674330a20857c7bc1571b811`.
+
+## Berkas lain
+
+- `webview-138.0.7204.179-armeabi-v7a.apk` — Android System WebView untuk
+  tablet Android 8–9 (minAPI26–28, armeabi-v7a), dipakai bila WebView bawaan
+  terlalu tua untuk halaman kiosk.
+  URL: `/apk/webview-138.0.7204.179-armeabi-v7a.apk`, 91.400.472 byte,
+  SHA-256 `15f741c07055676c189f220e39d8c6708573f2f8c4453f87caf783bca7a63945`.
