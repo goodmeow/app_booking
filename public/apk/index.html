@@ -26,6 +26,14 @@
         font-weight: bold;
         text-decoration: none;
       }
+      a.secondary {
+        display: block;
+        margin-top: 18px;
+        background: transparent;
+        border: 2px solid #3d4a58;
+        color: #cfd8e3;
+        font-size: 17px;
+      }
       p { margin: 14px 0 0; color: #8894a1; font-size: 16px; }
     </style>
   </head>
@@ -34,6 +42,8 @@
       <h1>RoomBooking Kiosk</h1>
       <a id="apk-download" href="kiosk-release.apk" download>Download APK</a>
       <p id="apk-version">Versi terbaru</p>
+      <a class="secondary" href="webview-138.0.7204.179-armeabi-v7a.apk" download>Download WebView 138 (Android 8–9)</a>
+      <p>Hanya jika halaman kiosk kosong/putih karena WebView bawaan terlalu tua.</p>
     </main>
     <script>
       // latest.json is the same manifest the kiosk polls, so a release only
