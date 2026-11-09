@@ -39,13 +39,18 @@ services:
     # the tbl_face_verify_log audit; booking rules stay in app. Models are
     # downloaded by its fetch-models.sh and mounted read-only, never baked into
     # the image. The embedding key comes from the stack .env.
+    # Optional profile: a plain "docker-compose up -d" never starts this service,
+    # so a deployment without face unlock needs no embedding key and no sibling
+    # checkout. Run it with "--profile face"; when absent, the app falls back to
+    # the card path.
+    profiles: ["face"]
     build:
       context: ../../../app_faceunlock-service
       dockerfile: Dockerfile
     image: roombooking-face:latest
     environment:
       FACE_DB_DSN: postgresql://${ALPINE_PGUSER:-booking}:${ALPINE_PGPASSWORD:?ALPINE_PGPASSWORD is required}@db:5432/${ALPINE_PGDATABASE:-360booking}
-      FACE_EMBEDDING_KEY: ${ALPINE_FACE_EMBEDDING_KEY:?ALPINE_FACE_EMBEDDING_KEY is required}
+      FACE_EMBEDDING_KEY: ${ALPINE_FACE_EMBEDDING_KEY:-}
       FACE_MATCH_THRESHOLD: ${ALPINE_FACE_MATCH_THRESHOLD:-0.60}
       FACE_MATCH_MARGIN: ${ALPINE_FACE_MATCH_MARGIN:-0.05}
       # Shared secret with app. Required: when empty the face service answers
@@ -115,8 +120,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      face:
-        condition: service_started
     healthcheck:
       test:
         - CMD-SHELL
