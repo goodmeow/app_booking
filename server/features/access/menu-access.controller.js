@@ -1,5 +1,6 @@
 import { badRequest } from "../../lib/http-error.js";
 import { isSuperAdminRole } from "../../lib/roles.js";
+import { probeFaceService } from "../face/face.client.js";
 import {
   allowedMenusForRole,
   listMenuAccess,
@@ -25,9 +26,20 @@ const run = (handler) => async (req, res, next) => {
   }
 };
 
+// The Face menu is owned by a separate service. When that service is absent the
+// menu must disappear for every role, super_admin included: an empty page that
+// cannot work is worse than no page.
+export const filterUnavailableMenus = (menus, faceAvailable) =>
+  menus.filter((menuKey) => menuKey !== "face" || faceAvailable);
+
 export const myMenus = run(async (req, res) => {
+  const { available } = await probeFaceService();
   const menus = isSuperAdminRole(req.auth.role) ? MENU_KEYS : await allowedMenusForRole(req.auth.role);
-  res.json({ menus, role: req.auth.role, super_admin: isSuperAdminRole(req.auth.role) });
+  res.json({
+    menus: filterUnavailableMenus(menus, available),
+    role: req.auth.role,
+    super_admin: isSuperAdminRole(req.auth.role),
+  });
 });
 
 export const readMatrix = run(async (_req, res) => {

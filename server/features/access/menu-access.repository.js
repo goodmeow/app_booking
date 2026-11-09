@@ -3,7 +3,7 @@ import { writeAudit } from "../audit/audit.repository.js";
 
 // These keys are the CMS menus a role may open. The order is the order the
 // matrix shows in Settings.
-export const MENU_KEYS = ["calendar", "report", "users", "rooms", "devices", "settings"];
+export const MENU_KEYS = ["calendar", "report", "users", "rooms", "devices", "face", "settings"];
 
 // super_admin is fixed at full access and is not editable from the matrix.
 export const MATRIX_ROLES = ["super_admin", "admin", "receptionist", "user"];
