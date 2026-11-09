@@ -19,15 +19,10 @@ const cleanText = (value, field, max) => {
   return text;
 };
 
-const assetUrl = (kind, version) => (version == null
-  ? null
-  : `/api/branding/${kind}?v=${version}`);
+const assetUrl = (kind, version) => (version == null ? null : `/api/branding/${kind}?v=${version}`);
 
 export const publicBranding = async () => {
-  const [settings, versions] = await Promise.all([
-    getBrandingSettings(),
-    listBrandAssetVersions(),
-  ]);
+  const [settings, versions] = await Promise.all([getBrandingSettings(), listBrandAssetVersions()]);
   const versionByKind = new Map(versions.map((row) => [row.kind, row.version]));
   const assets = {};
   for (const kind of BRAND_KINDS) {

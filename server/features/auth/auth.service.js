@@ -3,7 +3,12 @@ import jwt from "jsonwebtoken";
 import config from "../../../config/config.js";
 import { badRequest, HttpError } from "../../lib/http-error.js";
 import { normalizedEmail, normalizedUsername, validatedPassword } from "../accounts/identity.validation.js";
-import { createEmployeeAccount, findActivePrincipalById, findPrincipalByLogin, hasDoorCard } from "./auth.repository.js";
+import {
+  createEmployeeAccount,
+  findActivePrincipalById,
+  findPrincipalByLogin,
+  hasDoorCard,
+} from "./auth.repository.js";
 import { getSelfSignupEnabled } from "../settings/setting.repository.js";
 
 export const publicPrincipal = (principal) => ({
@@ -13,9 +18,12 @@ export const publicPrincipal = (principal) => ({
   username: principal.username || null,
   type: principal.type,
   floor: principal.floor || null,
-  floors: Array.isArray(principal.floors) && principal.floors.length
-    ? principal.floors
-    : (principal.floor ? [principal.floor] : []),
+  floors:
+    Array.isArray(principal.floors) && principal.floors.length
+      ? principal.floors
+      : principal.floor
+        ? [principal.floor]
+        : [],
   role: String(principal.role || "user").toUpperCase(),
   mustChangePassword: principal.must_change_password === true,
 });
@@ -23,32 +31,34 @@ export const publicPrincipal = (principal) => ({
 export const authenticateCredentials = async (login, password) => {
   if (!login || !password) throw new HttpError(401, "INVALID_CREDENTIALS", "Invalid login or password");
   const principal = await findPrincipalByLogin(String(login).trim());
-  const valid = principal
-    && principal.is_deleted !== true
-    && principal.type === "employee"
-    && principal.role
-    && principal.password
-    && await bcrypt.compare(String(password), principal.password);
+  const valid =
+    principal &&
+    principal.is_deleted !== true &&
+    principal.type === "employee" &&
+    principal.role &&
+    principal.password &&
+    (await bcrypt.compare(String(password), principal.password));
   if (!valid) throw new HttpError(401, "INVALID_CREDENTIALS", "Invalid login or password");
   return principal;
 };
 
-export const signPrincipalToken = (principal) => jwt.sign(
-  {
-    email: principal.email,
-    name: principal.name,
-    role: String(principal.role).toUpperCase(),
-    ver: Number(principal.token_version || 1),
-  },
-  config.jwtSecret,
-  {
-    algorithm: "HS256",
-    subject: String(principal._id),
-    expiresIn: config.jwtExpiry,
-    issuer: config.jwtIssuer,
-    audience: config.jwtAudience,
-  }
-);
+export const signPrincipalToken = (principal) =>
+  jwt.sign(
+    {
+      email: principal.email,
+      name: principal.name,
+      role: String(principal.role).toUpperCase(),
+      ver: Number(principal.token_version || 1),
+    },
+    config.jwtSecret,
+    {
+      algorithm: "HS256",
+      subject: String(principal._id),
+      expiresIn: config.jwtExpiry,
+      issuer: config.jwtIssuer,
+      audience: config.jwtAudience,
+    },
+  );
 
 export const verifyPrincipalToken = async (token) => {
   let claims;

@@ -23,25 +23,27 @@ test("the all floor group lists the whole directory, still limited to minimal fi
 });
 
 test("a search term looks across floors and is capped at twenty rows", () => {
-  assert.deepEqual(
-    directoryScope({ ...employee, floor: "1" }, { q: "  Harun " }),
-    { scope: "search", term: "Harun", limit: 20 }
-  );
+  assert.deepEqual(directoryScope({ ...employee, floor: "1" }, { q: "  Harun " }), {
+    scope: "search",
+    term: "Harun",
+    limit: 20,
+  });
   // The search ignores the caller's floor on purpose.
-  assert.deepEqual(
-    directoryScope({ ...employee, floor: null }, { q: "harun" }),
-    { scope: "search", term: "harun", limit: 20 }
-  );
+  assert.deepEqual(directoryScope({ ...employee, floor: null }, { q: "harun" }), {
+    scope: "search",
+    term: "harun",
+    limit: 20,
+  });
 });
 
 test("a one-character search term is rejected instead of matching everyone", () => {
   assert.throws(
     () => directoryScope({ ...employee, floor: "1" }, { q: "h" }),
-    (error) => error.status === 400 && error.code === "INVALID_QUERY"
+    (error) => error.status === 400 && error.code === "INVALID_QUERY",
   );
   assert.throws(
     () => directoryScope({ ...employee, floor: "1" }, { q: " h " }),
-    (error) => error.code === "INVALID_QUERY"
+    (error) => error.code === "INVALID_QUERY",
   );
 });
 
@@ -63,8 +65,5 @@ test("directory rows keep identity fields only, whatever the query returned", ()
 });
 
 test("a multi-floor user reads every listed floor", () => {
-  assert.deepEqual(
-    directoryScope({ ...employee, floors: ["1", "2"] }),
-    { scope: "floor", floors: ["1", "2"] }
-  );
+  assert.deepEqual(directoryScope({ ...employee, floors: ["1", "2"] }), { scope: "floor", floors: ["1", "2"] });
 });

@@ -27,9 +27,24 @@ implementasi yang ada di repo: `client/management/BrandingSection.js`,
 | Footer versi CMS | `RoomBooking CMS v<Ver.Rev>` | i18n `brand.footer` + `package.json` |
 | Nama teknis (kode, DB, container, service) | `app_booking`, `360booking` | **jangan diubah** |
 
-`brand_name` adalah teks bebas (maks 80 karakter) yang tampil di bawah wordmark
-pada navbar, dan sebagai judul di halaman signup. `document_title` (maks 120
-karakter) menjadi `<title>` tab.
+`brand_name` adalah teks bebas (maks 80 karakter), dan sebagai judul di halaman
+signup. `document_title` (maks 120 karakter) menjadi `<title>` tab.
+
+**Aturan navbar (`client/core/Menu.js`).** Teks `brand_name` di navbar hanya
+tampil bila `mark` dan `wordmark` belum lengkap diunggah:
+
+| Aset custom | Yang tampil di navbar |
+| --- | --- |
+| `mark` + `wordmark` terunggah | ikon + wordmark saja, **teks disembunyikan** |
+| hanya salah satu terunggah | aset yang ada + teks `brand_name` |
+| tidak ada aset custom | **hanya teks** `brand_name` (gambar fallback tidak dipakai di navbar) |
+
+Halaman login menampilkan aset custom yang ada: `mark` + `wordmark` bila
+keduanya diunggah, atau salah satu saja bila pasangannya kosong (mis. hanya
+wordmark). Bila **tidak ada** aset custom, login memakai lockup resmi
+"The Prasada": versi berwarna (`/the-prasada-logo-colour.png`) di tema terang
+dan versi putih (`/the-prasada-logo.png`) di tema gelap. Halaman signup dan
+force-password tetap memakai `mark`/`wordmark` fallback statis.
 
 ## 3. Aset
 
@@ -39,7 +54,11 @@ Tiga jenis aset, semuanya diunggah dari CMS:
 | --- | --- | --- | --- |
 | `mark` | ikon/logo kotak (navbar, login, signup, force-password) | `/the-prasada-mark.png` | 64 px |
 | `wordmark` | tulisan "The Prasada" (navbar, login, signup) | `/the-prasada-wordmark.png` | 28 px |
-| `favicon` | ikon tab browser | `/the-prasada-mark.png` | 32 px |
+| `favicon` | ikon tab browser; bila kosong dipakai huruf awal `brand_name` sebagai tile SVG (gunmetal + emas) | `/the-prasada-mark.png` (sebelum JS jalan) | 32 px |
+
+Preview di CMS (**Pengaturan → Branding**) tidak menampilkan mock logo bawaan:
+slot yang kosong tertulis "Belum ada", dan tombol reset bernama **Hapus gambar**
+karena tindakannya memang menghapus aset, bukan memulihkan gambar bawaan.
 
 Batas unggah (ditegakkan di client **dan** server):
 
@@ -49,11 +68,18 @@ Batas unggah (ditegakkan di client **dan** server):
 - Pengiriman: data URL base64 pada body `{ "data_url": "data:image/png;base64,..." }`.
 - Lokasi simpan: tabel `tbl_brand_assets` (kolom `kind`, `mime`, `bytes`),
   satu baris per kind; unggah ulang menimpa baris yang sama (`ON CONFLICT`).
-- Reset: tombol "Reset to default" menghapus baris aset, sehingga fallback
+- Reset: tombol **Hapus gambar** menghapus baris aset, sehingga fallback
   statis di `public/` dipakai lagi.
-- Aset statis bawaan di `public/`: `the-prasada-mark.png` (523×487, ±23 KB),
-  `the-prasada-wordmark.png` (1733×189, ±20 KB), `the-prasada-logo.png`
-  (1754×855, ±54 KB, dipakai kiosk native, bukan CMS).
+- Aset statis bawaan di `public/`:
+  - putih (untuk latar gelap): `the-prasada-mark.png` (523×487, ±23 KB),
+    `the-prasada-wordmark.png` (1733×189, ±20 KB), `the-prasada-logo.png`
+    (1754×855, ±54 KB).
+  - berwarna (gunmetal `#435053` + emas `#E6A820`): `the-prasada-mark-colour.png`
+    (523×487, ±26 KB), `the-prasada-wordmark-colour.png` (1733×189, ±23 KB),
+    `the-prasada-logo-colour.png` (1754×855, ±57 KB; dipakai halaman login
+    pada tema terang).
+  - Ketiga varian berwarna dipotong dari file sumber brand 2024 dengan kotak
+    potong yang identik dengan varian putih, jadi ukuran dan posisinya sama.
 
 Catatan: gambar raster disarankan berlatar transparan dan beresolusi cukup
 untuk tinggi tampil di atas (mark ±150 px di halaman login). Rasio asli

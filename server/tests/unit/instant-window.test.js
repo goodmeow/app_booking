@@ -33,14 +33,8 @@ test("a next meeting on the same day is still used as the limit", () => {
 
 test("duration is clamped to a minimum of 5 and a maximum of 240 minutes", () => {
   const now = new Date("2031-05-09T03:00:00.000Z"); // 10:00 Jakarta
-  assert.equal(
-    instantBookingWindow({ now, minutes: 1, timezone }).end.toISOString(),
-    "2031-05-09T03:05:00.000Z"
-  );
-  assert.equal(
-    instantBookingWindow({ now, minutes: 999, timezone }).end.toISOString(),
-    "2031-05-09T07:00:00.000Z"
-  );
+  assert.equal(instantBookingWindow({ now, minutes: 1, timezone }).end.toISOString(), "2031-05-09T03:05:00.000Z");
+  assert.equal(instantBookingWindow({ now, minutes: 999, timezone }).end.toISOString(), "2031-05-09T07:00:00.000Z");
 });
 
 test("a remaining time under one minute is detectable by the caller", () => {

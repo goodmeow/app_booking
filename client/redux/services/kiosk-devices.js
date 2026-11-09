@@ -25,8 +25,5 @@ export const kioskDevicesApi = api.injectEndpoints({
   }),
 });
 
-export const {
-  useGetKioskDevicesQuery,
-  useRevokeKioskDeviceMutation,
-  useUpdateKioskDeviceCapabilitiesMutation,
-} = kioskDevicesApi;
+export const { useGetKioskDevicesQuery, useRevokeKioskDeviceMutation, useUpdateKioskDeviceCapabilitiesMutation } =
+  kioskDevicesApi;

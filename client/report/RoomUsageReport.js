@@ -5,12 +5,7 @@ import dayjs from "dayjs";
 import ExcelJS from "exceljs/dist/exceljs.min.js";
 import { useTranslation } from "react-i18next";
 import { EmptyState, ErrorState, LoadingState } from "../components/common/AsyncState.js";
-import {
-  currentMonthRange,
-  formatDateDDMMMYYYY,
-  formatDateYYYYMMDD,
-  isValidDateRange,
-} from "../domain/dates.js";
+import { currentMonthRange, formatDateDDMMMYYYY, formatDateYYYYMMDD, isValidDateRange } from "../domain/dates.js";
 import {
   buildRoomUsageWorkbook,
   formatReportMeetingDate,
@@ -40,9 +35,11 @@ const RoomUsageReport = () => {
     try {
       const { workbook, filename } = buildRoomUsageWorkbook(ExcelJS, rooms, start, end, language);
       const buffer = await workbook.xlsx.writeBuffer();
-      const url = URL.createObjectURL(new Blob([buffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      }));
+      const url = URL.createObjectURL(
+        new Blob([buffer], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        }),
+      );
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = filename;
@@ -90,7 +87,9 @@ const RoomUsageReport = () => {
         style={{ width: "100%", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap" }}
       >
         <div>
-          <Typography.Title level={4} style={{ margin: 0 }}>{t("title")}</Typography.Title>
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            {t("title")}
+          </Typography.Title>
           <Typography.Text type="secondary">
             {t("period", {
               start: formatDateDDMMMYYYY(new Date(`${start}T00:00:00`), language),
@@ -111,7 +110,9 @@ const RoomUsageReport = () => {
       <Card size="small">
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>
           <Space wrap>
-            <Typography.Text strong>{t("startDate")} – {t("endDate")}</Typography.Text>
+            <Typography.Text strong>
+              {t("startDate")} – {t("endDate")}
+            </Typography.Text>
             <DatePicker.RangePicker
               allowClear={false}
               format="YYYY-MM-DD"
@@ -126,9 +127,7 @@ const RoomUsageReport = () => {
 
           {!validRange ? <Alert type="error" showIcon message={t("invalidRange")} /> : null}
           {exportError ? <Alert type="error" showIcon message={exportError} /> : null}
-          {validRange && refreshing ? (
-            <Alert type="info" showIcon message={t("common:states.refreshing")} />
-          ) : null}
+          {validRange && refreshing ? <Alert type="info" showIcon message={t("common:states.refreshing")} /> : null}
           {validRange && initialLoading ? <LoadingState label={t("loading")} /> : null}
           {validRange && query.isError ? (
             <ErrorState message={t("loadError")} busy={query.isFetching} onAction={() => query.refetch()} />

@@ -12,11 +12,7 @@ import idCommon from "../locales/id/common.json" with { type: "json" };
 import idKiosk from "../locales/id/kiosk.json" with { type: "json" };
 import idManagement from "../locales/id/management.json" with { type: "json" };
 import idReport from "../locales/id/report.json" with { type: "json" };
-import {
-  DEFAULT_LANGUAGE,
-  readStoredLanguage,
-  SUPPORTED_LANGUAGES,
-} from "./languages.js";
+import { DEFAULT_LANGUAGE, readStoredLanguage, SUPPORTED_LANGUAGES } from "./languages.js";
 
 const resources = {
   en: {

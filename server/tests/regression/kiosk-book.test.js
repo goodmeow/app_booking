@@ -24,13 +24,17 @@ const minutesLeftToday = () => {
 // "within two minutes" scenario, so the two do not overlap.
 const SLOT_START_MINUTES = 70;
 const MIN_SLOT_DURATION_MINUTES = 5;
-const SLOT_DURATION_MINUTES = Math.max(MIN_SLOT_DURATION_MINUTES, Math.min(30, minutesLeftToday() - MIDNIGHT_SAFETY_MINUTES - SLOT_START_MINUTES));
+const SLOT_DURATION_MINUTES = Math.max(
+  MIN_SLOT_DURATION_MINUTES,
+  Math.min(30, minutesLeftToday() - MIDNIGHT_SAFETY_MINUTES - SLOT_START_MINUTES),
+);
 
 // The slot must start and still fit its minimum duration before the safety
 // margin, otherwise it would land after midnight and be rejected.
-const slotSkipReason = minutesLeftToday() < SLOT_START_MINUTES + MIN_SLOT_DURATION_MINUTES + MIDNIGHT_SAFETY_MINUTES
-  ? "not enough time left today for a valid slot (test near midnight)"
-  : false;
+const slotSkipReason =
+  minutesLeftToday() < SLOT_START_MINUTES + MIN_SLOT_DURATION_MINUTES + MIDNIGHT_SAFETY_MINUTES
+    ? "not enough time left today for a valid slot (test near midnight)"
+    : false;
 
 const slotFrom = (minutes) => fromNow(minutes);
 const slotStart = slotFrom(SLOT_START_MINUTES);
@@ -46,20 +50,27 @@ let kioskToken;
 before(async () => {
   await resetParityDatabase();
   server = await startServer(targets.reconstructed);
-  kioskToken = (await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: identities.room.email, password: "RoomTablet123!", deviceName: "Booking Test Tablet" }),
-  })).body.token;
+  kioskToken = (
+    await apiRequest(targets.reconstructed, "/api/kiosk/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: identities.room.email,
+        password: "RoomTablet123!",
+        deviceName: "Booking Test Tablet",
+      }),
+    })
+  ).body.token;
 });
 
 after(async () => stopServer(server));
 
-const book = (body) => apiRequest(targets.reconstructed, "/api/kiosk/events/book", {
-  method: "POST",
-  headers: { Authorization: `Bearer ${kioskToken}`, "Content-Type": "application/json" },
-  body: JSON.stringify(body),
-});
+const book = (body) =>
+  apiRequest(targets.reconstructed, "/api/kiosk/events/book", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${kioskToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
 test("kiosk slot booking requires a registered employee card", async () => {
   const unknown = await book({ card_number: "UNKNOWN-CARD", start: slotStart, end: slotEnd });
@@ -110,26 +121,37 @@ test("a slot that crosses midnight into tomorrow is rejected", { skip: minutesLe
   assert.equal(response.body.code, "INVALID_TIME");
 });
 
-test("a booking that starts within two minutes is checked in immediately", { skip: minutesLeftToday() < 40 }, async () => {
-  // Reserve the short window right now: it ends before SLOT_START_MINUTES,
-  // so it cannot overlap the shared free slot used by the other cases.
-  const start = new Date(Math.ceil((Date.now() + 20_000) / 60_000) * 60_000);
-  const end = new Date(start.getTime() + 10 * 60_000);
-  assert.ok(
-    end.getTime() <= Date.now() + SLOT_START_MINUTES * 60_000,
-    "the immediate window would overlap the shared slot",
-  );
-  const response = await book({ card_number: "TEST-USER-CARD", start: start.toISOString(), end: end.toISOString() });
-  assert.equal(response.status, 200);
-  assert.equal(response.body.checkedIn, true);
-  assert.equal(response.body.scheduled, false);
-});
+test(
+  "a booking that starts within two minutes is checked in immediately",
+  { skip: minutesLeftToday() < 40 },
+  async () => {
+    // Reserve the short window right now: it ends before SLOT_START_MINUTES,
+    // so it cannot overlap the shared free slot used by the other cases.
+    const start = new Date(Math.ceil((Date.now() + 20_000) / 60_000) * 60_000);
+    const end = new Date(start.getTime() + 10 * 60_000);
+    assert.ok(
+      end.getTime() <= Date.now() + SLOT_START_MINUTES * 60_000,
+      "the immediate window would overlap the shared slot",
+    );
+    const response = await book({ card_number: "TEST-USER-CARD", start: start.toISOString(), end: end.toISOString() });
+    assert.equal(response.status, 200);
+    assert.equal(response.body.checkedIn, true);
+    assert.equal(response.body.scheduled, false);
+  },
+);
 
 test("cards from other floors are restricted", async () => {
   const created = await apiRequest(targets.reconstructed, "/api/users", {
     method: "POST",
     headers: bearer("admin"),
-    body: JSON.stringify({ name: "Floor Two Employee", employee_id: "EMP-FLOOR-TWO", email: "floor.two@example.test", password: "Password123!", floor: "2", roleId: "67e9500b-908a-497d-9d3b-54bc020700cb" }),
+    body: JSON.stringify({
+      name: "Floor Two Employee",
+      employee_id: "EMP-FLOOR-TWO",
+      email: "floor.two@example.test",
+      password: "Password123!",
+      floor: "2",
+      roleId: "67e9500b-908a-497d-9d3b-54bc020700cb",
+    }),
   });
   assert.equal(created.status, 201);
 

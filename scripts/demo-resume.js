@@ -20,9 +20,12 @@ const env = { ...process.env, ...readEnv(".env.demo"), ...readEnv(".env.local") 
 // Docker 29 moved `compose` to a plugin; some machines only have the old
 // docker-compose binary, so both are tried.
 const composeArgs = [
-  "--project-name", env.COMPOSE_PROJECT_NAME || "360booking",
-  "--file", "compose.yaml",
-  "--env-file", ".env.demo",
+  "--project-name",
+  env.COMPOSE_PROJECT_NAME || "360booking",
+  "--file",
+  "compose.yaml",
+  "--env-file",
+  ".env.demo",
 ];
 const composeModern = spawnSync("docker", ["compose", "version"], { env, stdio: "ignore" }).status === 0;
 const composeBin = composeModern ? "docker" : "docker-compose";

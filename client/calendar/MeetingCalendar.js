@@ -49,16 +49,22 @@ const MeetingCalendar = () => {
   // FullCalendar grid and the query range. A global setting can replace the
   // default without touching either caller.
   const configuredWeekStart = Number(publicSettings?.week_start_day);
-  const weekStartsOn = Number.isInteger(configuredWeekStart) && configuredWeekStart >= 0 && configuredWeekStart <= 6
-    ? configuredWeekStart
-    : DEFAULT_WEEK_START_DAY;
+  const weekStartsOn =
+    Number.isInteger(configuredWeekStart) && configuredWeekStart >= 0 && configuredWeekStart <= 6
+      ? configuredWeekStart
+      : DEFAULT_WEEK_START_DAY;
   const range = useMemo(
     () => calendarRangeForView(selectedDate, calendarView, weekStartsOn),
-    [selectedDate, calendarView, weekStartsOn]
+    [selectedDate, calendarView, weekStartsOn],
   );
   const singleQuery = useGetEventsQuery(
-    calendarEventFilters({ email: session.user.email, roomEmail: activeRoom?.email, range, all: scheduleMode === "all" }),
-    { skip: scheduleMode === "room" && !activeRoom }
+    calendarEventFilters({
+      email: session.user.email,
+      roomEmail: activeRoom?.email,
+      range,
+      all: scheduleMode === "all",
+    }),
+    { skip: scheduleMode === "room" && !activeRoom },
   );
   const roomQuery = useGetRoomsQuery();
   const roomStatusQuery = useGetRoomStatusQuery(undefined, { pollingInterval: 30_000 });
@@ -77,7 +83,7 @@ const MeetingCalendar = () => {
   // cross-floor bookings even if the UI is bypassed).
   const bookableRooms = useMemo(
     () => roomsForRole(allRooms, { role: session?.user?.role, floor: userFloor, floors: userFloors, isAdmin }),
-    [allRooms, session?.user?.role, userFloor, userFloors, isAdmin]
+    [allRooms, session?.user?.role, userFloor, userFloors, isAdmin],
   );
   const roomStatus = useMemo(() => {
     const allowed = new Set(bookableRooms.map((room) => room._id));
@@ -93,10 +99,13 @@ const MeetingCalendar = () => {
   const canLoadEvents = !(scheduleMode === "room" && !activeRoom);
 
   const visibleRoomIds = useMemo(
-    () => scheduleMode === "all"
-      ? bookableRooms.map((room) => room._id).filter(Boolean)
-      : (activeRoom?._id ? [activeRoom._id] : []),
-    [scheduleMode, bookableRooms, activeRoom?._id]
+    () =>
+      scheduleMode === "all"
+        ? bookableRooms.map((room) => room._id).filter(Boolean)
+        : activeRoom?._id
+          ? [activeRoom._id]
+          : [],
+    [scheduleMode, bookableRooms, activeRoom?._id],
   );
 
   useEffect(() => {
@@ -181,10 +190,18 @@ const MeetingCalendar = () => {
             <Progress percent={100} status="active" showInfo={false} size="small" style={{ marginBottom: 8 }} />
           ) : null}
           {roomQuery.isError ? (
-            <ErrorState message={getApiError(roomQuery.error, t("calendar.roomsLoadError"))} busy={roomQuery.isFetching} onAction={() => roomQuery.refetch()} />
+            <ErrorState
+              message={getApiError(roomQuery.error, t("calendar.roomsLoadError"))}
+              busy={roomQuery.isFetching}
+              onAction={() => roomQuery.refetch()}
+            />
           ) : null}
           {userQuery.isError ? (
-            <ErrorState message={getApiError(userQuery.error, t("calendar.usersLoadError"))} busy={userQuery.isFetching} onAction={() => userQuery.refetch()} />
+            <ErrorState
+              message={getApiError(userQuery.error, t("calendar.usersLoadError"))}
+              busy={userQuery.isFetching}
+              onAction={() => userQuery.refetch()}
+            />
           ) : null}
           {eventInitialLoading ? <LoadingState label={t("calendar.loading")} /> : null}
           {eventError ? (
@@ -194,7 +211,9 @@ const MeetingCalendar = () => {
               onAction={refreshEvents}
             />
           ) : null}
-          {scheduleMode === "room" && !activeRoom ? <Alert type="info" showIcon message={t("calendar.selectRoomPrompt")} /> : null}
+          {scheduleMode === "room" && !activeRoom ? (
+            <Alert type="info" showIcon message={t("calendar.selectRoomPrompt")} />
+          ) : null}
           {!eventInitialLoading && (!eventError || hasEvents) && canLoadEvents ? (
             <MeetingWeek
               events={events}
@@ -220,12 +239,15 @@ const MeetingCalendar = () => {
         open={Boolean(details)}
         event={details}
         rooms={allRooms}
-        canMutate={Boolean(details) && canManageBooking({
-          event: details,
-          sessionEmail: session.user.email,
-          sessionUserId: session.user._id,
-          isAdmin,
-        })}
+        canMutate={
+          Boolean(details) &&
+          canManageBooking({
+            event: details,
+            sessionEmail: session.user.email,
+            sessionUserId: session.user._id,
+            isAdmin,
+          })
+        }
         onClose={() => setDetails(null)}
         onEdit={() => {
           setEditor({ open: true, event: details, start: details.start, end: details.end });

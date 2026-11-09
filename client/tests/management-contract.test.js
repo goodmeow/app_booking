@@ -2,7 +2,15 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 import { getApiError } from "../domain/api-error.js";
-import { ROLE_IDS, ROLE_OPTIONS, canBookForEmployees, canUseAllFloors, defaultScheduleModeForRole, isReceptionistRole, roomsForRole } from "../domain/roles.js";
+import {
+  ROLE_IDS,
+  ROLE_OPTIONS,
+  canBookForEmployees,
+  canUseAllFloors,
+  defaultScheduleModeForRole,
+  isReceptionistRole,
+  roomsForRole,
+} from "../domain/roles.js";
 import { createEmptyUserForm, EMPLOYEE_ID_MAX_LENGTH, employeeIdErrorKey } from "../management/user-form.js";
 import {
   CARD_ACTIVE_LIMIT,
@@ -18,7 +26,7 @@ test("uses recovered role UUIDs", () => {
   assert.equal(ROLE_IDS.USER, "67e9500b-908a-497d-9d3b-54bc020700cb");
   assert.deepEqual(
     ROLE_OPTIONS.map(({ labelKey }) => labelKey),
-    ["roles.admin", "roles.receptionist", "roles.user"]
+    ["roles.admin", "roles.receptionist", "roles.user"],
   );
 });
 
@@ -37,10 +45,16 @@ test("receptionist role can book for employees but only on its own floor", () =>
     { _id: "r2", name: "Rajawali", floor: " 10 " },
     { _id: "r3", name: "Merpati", floor: "" },
   ];
-  assert.deepEqual(roomsForRole(rooms, { role: "RECEPTIONIST", floor: "2" }).map(({ _id }) => _id), ["r1"]);
+  assert.deepEqual(
+    roomsForRole(rooms, { role: "RECEPTIONIST", floor: "2" }).map(({ _id }) => _id),
+    ["r1"],
+  );
   assert.deepEqual(roomsForRole(rooms, { role: "RECEPTIONIST", floor: "9" }), []);
   // Employees are floor-scoped too: the server rejects other floors anyway.
-  assert.deepEqual(roomsForRole(rooms, { role: "USER", floor: "2" }).map(({ _id }) => _id), ["r1"]);
+  assert.deepEqual(
+    roomsForRole(rooms, { role: "USER", floor: "2" }).map(({ _id }) => _id),
+    ["r1"],
+  );
   assert.deepEqual(roomsForRole(rooms, { role: "USER", floor: "" }), []);
   // Admins and the "all" floor group keep every room.
   assert.equal(roomsForRole(rooms, { role: "ADMIN", floor: "2", isAdmin: true }).length, 3);
@@ -99,24 +113,27 @@ test("employee ID and card failures map to their management messages", () => {
   const translate = (key) => `t:${key}`;
   assert.equal(
     userMutationError({ data: { code: "EMPLOYEE_ID_EXISTS" } }, translate, "fallback"),
-    "t:users.employeeIdExists"
+    "t:users.employeeIdExists",
   );
   assert.equal(
     userMutationError({ data: { code: "INVALID_EMPLOYEE_ID" } }, translate, "fallback"),
-    "t:users.employeeIdInvalid"
+    "t:users.employeeIdInvalid",
   );
   assert.equal(userMutationError({ data: { code: "CARD_LIMIT" } }, translate, "fallback"), "t:users.cardLimit");
   assert.equal(userMutationError({ data: { code: "CARD_EXISTS" } }, translate, "fallback"), "t:users.cardExists");
   assert.equal(
     userMutationError({ data: { code: "CARD_ALREADY_ACTIVE" } }, translate, "fallback"),
-    "t:users.cardAlreadyActive"
+    "t:users.cardAlreadyActive",
   );
   // Everything else keeps the shared API error translation or the fallback.
   assert.equal(
     userMutationError({ data: { code: "NOT_FOUND" } }, translate, "fallback"),
-    "t:common:apiErrors.notFound"
+    "t:common:apiErrors.notFound",
   );
-  assert.equal(userMutationError({ data: { error: "Database rejected request" } }, translate, "fallback"), "Database rejected request");
+  assert.equal(
+    userMutationError({ data: { error: "Database rejected request" } }, translate, "fallback"),
+    "Database rejected request",
+  );
   assert.equal(userMutationError(null, translate, "fallback"), "fallback");
 });
 
@@ -162,17 +179,19 @@ test("first login is forced through a password change screen", () => {
 });
 
 test("normalizes RTK Query and Error messages", () => {
-  const translate = (key) => ({
-    "common:apiErrors.forbidden": "Not allowed",
-    "common:states.error": "Kesalahan",
-  }[key]);
+  const translate = (key) =>
+    ({
+      "common:apiErrors.forbidden": "Not allowed",
+      "common:states.error": "Kesalahan",
+    })[key];
+  assert.equal(getApiError({ data: { code: "FORBIDDEN", error: "Forbidden" } }, undefined, translate), "Not allowed");
   assert.equal(
-    getApiError({ data: { code: "FORBIDDEN", error: "Forbidden" } }, undefined, translate),
-    "Not allowed"
-  );
-  assert.equal(
-    getApiError({ data: { code: "RECURRENCE_LIMIT", error: "Recurrence cannot exceed 200 occurrences" } }, undefined, translate),
-    "Recurrence cannot exceed 200 occurrences"
+    getApiError(
+      { data: { code: "RECURRENCE_LIMIT", error: "Recurrence cannot exceed 200 occurrences" } },
+      undefined,
+      translate,
+    ),
+    "Recurrence cannot exceed 200 occurrences",
   );
   assert.equal(getApiError({ data: { error: "Database rejected request" } }), "Database rejected request");
   assert.equal(getApiError(new Error("Network failed")), "Network failed");

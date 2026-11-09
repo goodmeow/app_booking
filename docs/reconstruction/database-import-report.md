@@ -68,6 +68,10 @@ Initial core coverage was partial; expanded function contracts now verify all 28
 
 ## Migration reconstruction result
 
+> Historical report. `004_functions.sql` and the two function test suites were
+> removed later; `030_drop_legacy_functions.sql` drops the legacy functions from
+> installed databases. Current file list: `database/migrations/README.md`.
+
 Legacy dump is now represented by four ordered migrations:
 
 - `001_prerequisites.sql`

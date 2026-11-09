@@ -2,7 +2,15 @@ import config from "../../../config/config.js";
 import { badRequest, conflict, forbidden, HttpError, notFound } from "../../lib/http-error.js";
 import { isAdminRole, isReceptionistRole } from "../../lib/roles.js";
 import { coversAllFloors, coversAnyFloor, effectiveFloors } from "../../lib/floors.js";
-import { addLocalDays, daysBetweenLocalDates, formatLocalTime, isValidLocalDate, parseInstant, zonedParts, zonedPartsToDate } from "./event-time.js";
+import {
+  addLocalDays,
+  daysBetweenLocalDates,
+  formatLocalTime,
+  isValidLocalDate,
+  parseInstant,
+  zonedParts,
+  zonedPartsToDate,
+} from "./event-time.js";
 import { buildOccurrences } from "./recurrence.service.js";
 import {
   cancelEvents,
@@ -41,7 +49,8 @@ export const MAX_BOOKING_PARTICIPANTS = 100;
 export const MAX_BOOKING_ROOMS = 10;
 const validScope = (scope) => {
   if (scope == null || scope === "") return "occurrence";
-  if (!['occurrence', 'following', 'series'].includes(scope)) throw badRequest("INVALID_SCOPE", "Scope must be occurrence, following, or series");
+  if (!["occurrence", "following", "series"].includes(scope))
+    throw badRequest("INVALID_SCOPE", "Scope must be occurrence, following, or series");
   return scope;
 };
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -99,9 +108,11 @@ const normalizedCreate = (body) => {
 };
 
 const participantsFromAccounts = (accounts, visitorEmails = []) => [
-  ...accounts.map((account) => account.type === "room"
-    ? { email: account.email, roomId: account._id }
-    : { email: account.email, userId: account._id }),
+  ...accounts.map((account) =>
+    account.type === "room"
+      ? { email: account.email, roomId: account._id }
+      : { email: account.email, userId: account._id },
+  ),
   ...visitorEmails.map((email) => ({
     email: String(email).trim().toLowerCase(),
     visitorEmail: String(email).trim().toLowerCase(),
@@ -115,16 +126,22 @@ const resolveParticipants = async (request, { requireRoom = true } = {}) => {
     const knownEmails = new Set(accounts.map((account) => account.email.toLowerCase()));
     const visitors = normalizedEmails.filter((email) => !knownEmails.has(email));
     const participants = participantsFromAccounts(accounts, visitors);
-    if (requireRoom && !participants.some((item) => item.roomId)) throw badRequest("ROOM_REQUIRED", "An active room account is required");
+    if (requireRoom && !participants.some((item) => item.roomId))
+      throw badRequest("ROOM_REQUIRED", "An active room account is required");
     return participants;
   }
   const accounts = await findAccountsByIds([...request.roomIds, ...request.attendeeIds]);
   const byId = new Map(accounts.map((account) => [String(account._id), account]));
   const rooms = request.roomIds.map((id) => byId.get(id));
-  if (!rooms.length || rooms.some((room) => !room || room.type !== "room")) throw badRequest("ROOM_REQUIRED", "Every room must reference an active room account");
+  if (!rooms.length || rooms.some((room) => !room || room.type !== "room"))
+    throw badRequest("ROOM_REQUIRED", "Every room must reference an active room account");
   const attendees = request.attendeeIds.map((id) => byId.get(id));
-  if (attendees.some((attendee) => !attendee || attendee.type !== "employee")) throw badRequest("INVALID_ATTENDEE", "Every attendee must reference an active employee account");
-  return participantsFromAccounts([...rooms, ...attendees], request.visitorEmails.map((email) => String(email).trim().toLowerCase()));
+  if (attendees.some((attendee) => !attendee || attendee.type !== "employee"))
+    throw badRequest("INVALID_ATTENDEE", "Every attendee must reference an active employee account");
+  return participantsFromAccounts(
+    [...rooms, ...attendees],
+    request.visitorEmails.map((email) => String(email).trim().toLowerCase()),
+  );
 };
 
 const createPlan = async (body) => {
@@ -135,7 +152,7 @@ const createPlan = async (body) => {
   if (participantCount > MAX_BOOKING_PARTICIPANTS) {
     throw badRequest("TOO_MANY_PARTICIPANTS", `A booking can have at most ${MAX_BOOKING_PARTICIPANTS} participants`);
   }
-  if (!['single', 'recurring'].includes(request.bookingKind)) {
+  if (!["single", "recurring"].includes(request.bookingKind)) {
     throw badRequest("INVALID_BOOKING_KIND", "Booking kind must be single or recurring");
   }
   if (!request.legacy && request.visitorEmails.some((email) => !EMAIL_PATTERN.test(String(email).trim()))) {
@@ -146,9 +163,10 @@ const createPlan = async (body) => {
   if (roomIdsFor(participants).length > MAX_BOOKING_ROOMS) {
     throw badRequest("TOO_MANY_ROOMS", `A booking can use at most ${MAX_BOOKING_ROOMS} rooms`);
   }
-  const occurrencePlan = request.bookingKind === "recurring"
-    ? buildOccurrences({ ...request, ...header })
-    : { rule: null, occurrences: [{ index: 0, start: header.start, end: header.end }] };
+  const occurrencePlan =
+    request.bookingKind === "recurring"
+      ? buildOccurrences({ ...request, ...header })
+      : { rule: null, occurrences: [{ index: 0, start: header.start, end: header.end }] };
   return { request: { ...request, ...header }, participants, ...occurrencePlan };
 };
 
@@ -163,7 +181,9 @@ const ORGANIZER_DELEGATE_ROLES = new Set(["ADMIN", "SUPER_ADMIN", "RECEPTIONIST"
 // value means the principal books for themselves; that is the only path a plain
 // employee may use, so a crafted body cannot move a booking onto a colleague.
 export const requestedOrganizer = (organizerEmail, principal) => {
-  const email = String(organizerEmail ?? "").trim().toLowerCase();
+  const email = String(organizerEmail ?? "")
+    .trim()
+    .toLowerCase();
   if (!email) return { email: null, onBehalf: false };
   if (!EMAIL_PATTERN.test(email)) {
     throw badRequest("INVALID_ORGANIZER", "Organizer email must be a valid employee email address");
@@ -197,10 +217,15 @@ const FLOOR_EXEMPT_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
 
 // Non-admins may only book rooms on their assigned floor list.
 const assertRoomFloorAccess = async (roomIds, principal) => {
-  if (!config.floorRestriction || !roomIds.length || FLOOR_EXEMPT_ROLES.has(String(principal.role || "").toUpperCase())) return;
+  if (!config.floorRestriction || !roomIds.length || FLOOR_EXEMPT_ROLES.has(String(principal.role || "").toUpperCase()))
+    return;
   const floors = effectiveFloors(principal);
   if (!floors.length) {
-    throw new HttpError(403, "FLOOR_REQUIRED", "Your account has no work floor yet. Ask an admin to set it in Management > Users.");
+    throw new HttpError(
+      403,
+      "FLOOR_REQUIRED",
+      "Your account has no work floor yet. Ask an admin to set it in Management > Users.",
+    );
   }
   // The floor group "all" may book rooms on any floor.
   if (coversAllFloors(principal)) return;
@@ -209,7 +234,11 @@ const assertRoomFloorAccess = async (roomIds, principal) => {
   if (outside.length) {
     const names = outside.map((room) => room.name).join(", ");
     const allowed = floors.join(", ");
-    throw new HttpError(403, "FLOOR_RESTRICTED", `You can only book rooms on floor ${allowed}. Rooms outside your floor: ${names}.`);
+    throw new HttpError(
+      403,
+      "FLOOR_RESTRICTED",
+      `You can only book rooms on floor ${allowed}. Rooms outside your floor: ${names}.`,
+    );
   }
 };
 
@@ -230,7 +259,7 @@ export const previewEvents = async (body, principal) => {
   };
 };
 
-export const createEvents = async (body, principal) => {
+export const createEvents = async (body, principal, { checkedIn = false } = {}) => {
   const plan = await createPlan(body);
   // Allow a two-minute clock-skew window (kiosk instant bookings start "now"),
   // and keep admin corrections/test fixtures possible. Regular users still
@@ -243,16 +272,18 @@ export const createEvents = async (body, principal) => {
   await assertRoomFloorAccess(roomIdsFor(plan.participants), principal);
   try {
     const result = await transaction(async (client) => {
-      const series = plan.rule ? await insertSeries(client, {
-        organizerId: organizer.organizerId,
-        subject: plan.request.subject,
-        description: plan.request.description,
-        timezone: plan.request.timezone,
-        cadence: plan.rule.cadence,
-        interval: plan.rule.interval,
-        weekdays: plan.rule.weekdays,
-        endDate: plan.rule.endDate,
-      }) : null;
+      const series = plan.rule
+        ? await insertSeries(client, {
+            organizerId: organizer.organizerId,
+            subject: plan.request.subject,
+            description: plan.request.description,
+            timezone: plan.request.timezone,
+            cadence: plan.rule.cadence,
+            interval: plan.rule.interval,
+            weekdays: plan.rule.weekdays,
+            endDate: plan.rule.endDate,
+          })
+        : null;
       const rows = [];
       for (const occurrence of plan.occurrences) {
         const event = await insertEvent(client, {
@@ -268,6 +299,10 @@ export const createEvents = async (body, principal) => {
           occurrenceIndex: series ? occurrence.index : null,
         });
         const participants = await insertEventParticipants(client, event._id, plan.participants);
+        // The kiosk instant booking is checked in inside the same transaction:
+        // a separate update could leave the booking unchecked and let the
+        // no-show release free the room under the person using it.
+        if (checkedIn) await markCheckedIn(event._id, (text, values) => client.query(text, values));
         rows.push({ event, participants });
       }
       return { series, rows };
@@ -283,29 +318,41 @@ export const createEvents = async (body, principal) => {
         })),
       };
     }
-    return result.rows.flatMap(({ event, participants }) => participants.map((participant) => ({
-      id: event._id,
-      title: event.subject,
-      start: event.start_at,
-      end: event.end_at,
-      organizer: event.organizer,
-      event_detail_id: participant._id,
-      attendee_email: participant.attendee_email,
-      description: event.description,
-      is_visitor: participant.is_visitor,
-    })));
+    return result.rows.flatMap(({ event, participants }) =>
+      participants.map((participant) => ({
+        id: event._id,
+        title: event.subject,
+        start: event.start_at,
+        end: event.end_at,
+        organizer: event.organizer,
+        event_detail_id: participant._id,
+        attendee_email: participant.attendee_email,
+        description: event.description,
+        is_visitor: participant.is_visitor,
+      })),
+    );
   } catch (error) {
-    if (error.code === "23P01") throw conflict("ROOM_CONFLICT", "A room is already booked during one or more requested occurrences");
+    if (error.code === "23P01")
+      throw conflict("ROOM_CONFLICT", "A room is already booked during one or more requested occurrences");
     throw error;
   }
 };
 
 export const calendarRange = (start, end, timezone) => {
-  if (!/^\d{8}$/.test(start || "") || !/^\d{8}$/.test(end || "")) throw badRequest("INVALID_RANGE", "Calendar start and end must use YYYYMMDD");
-  const parts = (value) => ({ year: Number(value.slice(0, 4)), month: Number(value.slice(4, 6)), day: Number(value.slice(6, 8)), hour: 0, minute: 0, second: 0 });
+  if (!/^\d{8}$/.test(start || "") || !/^\d{8}$/.test(end || ""))
+    throw badRequest("INVALID_RANGE", "Calendar start and end must use YYYYMMDD");
+  const parts = (value) => ({
+    year: Number(value.slice(0, 4)),
+    month: Number(value.slice(4, 6)),
+    day: Number(value.slice(6, 8)),
+    hour: 0,
+    minute: 0,
+    second: 0,
+  });
   const startParts = parts(start);
   const rawEndParts = parts(end);
-  if (!isValidLocalDate(startParts) || !isValidLocalDate(rawEndParts)) throw badRequest("INVALID_RANGE", "Calendar dates are invalid");
+  if (!isValidLocalDate(startParts) || !isValidLocalDate(rawEndParts))
+    throw badRequest("INVALID_RANGE", "Calendar dates are invalid");
   // Limit the range so a single request cannot pull decades of schedule.
   if (daysBetweenLocalDates(startParts, rawEndParts) + 1 > config.maxCalendarRangeDays) {
     throw badRequest("RANGE_TOO_LARGE", `Calendar range cannot exceed ${config.maxCalendarRangeDays} days`);
@@ -389,17 +436,17 @@ const receptionistCoversEventFloor = (event, principal) =>
   isReceptionistRole(principal.role) && coversAnyFloor(principal, event.room_floors || []);
 
 export const canView = (event, principal) =>
-  isAdminRole(principal.role)
-  || String(event.organizer_id) === String(principal._id)
-  || event.is_attendee
-  || bookedByPrincipal(event, principal)
-  || receptionistCoversEventFloor(event, principal);
+  isAdminRole(principal.role) ||
+  String(event.organizer_id) === String(principal._id) ||
+  event.is_attendee ||
+  bookedByPrincipal(event, principal) ||
+  receptionistCoversEventFloor(event, principal);
 
 export const canMutate = (event, principal) =>
-  isAdminRole(principal.role)
-  || String(event.organizer_id) === String(principal._id)
-  || bookedByPrincipal(event, principal)
-  || receptionistCoversEventFloor(event, principal);
+  isAdminRole(principal.role) ||
+  String(event.organizer_id) === String(principal._id) ||
+  bookedByPrincipal(event, principal) ||
+  receptionistCoversEventFloor(event, principal);
 
 export const getEventDetails = async (eventId, principal) => {
   const event = await findEventAccess(eventId, principal._id);
@@ -415,21 +462,24 @@ const participantShape = (row) => ({
   visitorEmail: row.visitor_email,
 });
 
-const localTimeMilliseconds = (parts) => (((parts.hour * 60 + parts.minute) * 60 + parts.second) * 1000) + (parts.millisecond || 0);
+const localTimeMilliseconds = (parts) =>
+  ((parts.hour * 60 + parts.minute) * 60 + parts.second) * 1000 + (parts.millisecond || 0);
 
 const shiftLocalParts = (target, pivot, desired) => {
   const dateDelta = daysBetweenLocalDates(pivot, desired);
   const timeDelta = localTimeMilliseconds(desired) - localTimeMilliseconds(pivot);
   const shiftedDate = addLocalDays(target, dateDelta);
-  const shifted = new Date(Date.UTC(
-    shiftedDate.year,
-    shiftedDate.month - 1,
-    shiftedDate.day,
-    shiftedDate.hour,
-    shiftedDate.minute,
-    shiftedDate.second,
-    shiftedDate.millisecond || 0
-  ) + timeDelta);
+  const shifted = new Date(
+    Date.UTC(
+      shiftedDate.year,
+      shiftedDate.month - 1,
+      shiftedDate.day,
+      shiftedDate.hour,
+      shiftedDate.minute,
+      shiftedDate.second,
+      shiftedDate.millisecond || 0,
+    ) + timeDelta,
+  );
   return {
     year: shifted.getUTCFullYear(),
     month: shifted.getUTCMonth() + 1,
@@ -459,7 +509,8 @@ export const updateEvents = async (body, principal) => {
   if (!access) throw notFound("Event not found");
   if (!canMutate(access, principal)) throw forbidden();
   const scope = validScope(body.scope);
-  if (scope !== "occurrence" && !access.series_id) throw badRequest("INVALID_SCOPE", "Series scope requires a recurring event");
+  if (scope !== "occurrence" && !access.series_id)
+    throw badRequest("INVALID_SCOPE", "Series scope requires a recurring event");
   const timezone = body.timezone || access.timezone || config.appTimezone;
   const header = validateHeader({
     subject: body.subject || access.subject,
@@ -468,7 +519,10 @@ export const updateEvents = async (body, principal) => {
     timezone,
   });
   const participants = await participantsForUpdate(body, eventId);
-  await assertRoomFloorAccess(participants.filter((participant) => participant.roomId).map((participant) => participant.roomId), principal);
+  await assertRoomFloorAccess(
+    participants.filter((participant) => participant.roomId).map((participant) => participant.roomId),
+    principal,
+  );
   const pivotLocal = zonedParts(access.start_at, access.timezone);
   const desiredStartLocal = zonedParts(header.start, timezone);
   const desiredEndLocal = zonedParts(header.end, timezone);
@@ -476,7 +530,10 @@ export const updateEvents = async (body, principal) => {
   try {
     return await transaction(async (client) => {
       const targets = await eventsForMutationScope(client, eventId, scope);
-      await deactivateEventRooms(client, targets.map((target) => target._id));
+      await deactivateEventRooms(
+        client,
+        targets.map((target) => target._id),
+      );
       if (scope === "series") {
         await updateSeriesHeader(client, access.series_id, {
           subject: header.subject,
@@ -488,13 +545,16 @@ export const updateEvents = async (body, principal) => {
       for (const target of targets) {
         const localStart = shiftLocalParts(zonedParts(target.start_at, target.timezone), pivotLocal, desiredStartLocal);
         const start = zonedPartsToDate(localStart, timezone);
-        const end = zonedPartsToDate({
-          ...addLocalDays(localStart, endDayOffset),
-          hour: desiredEndLocal.hour,
-          minute: desiredEndLocal.minute,
-          second: desiredEndLocal.second,
-          millisecond: desiredEndLocal.millisecond,
-        }, timezone);
+        const end = zonedPartsToDate(
+          {
+            ...addLocalDays(localStart, endDayOffset),
+            hour: desiredEndLocal.hour,
+            minute: desiredEndLocal.minute,
+            second: desiredEndLocal.second,
+            millisecond: desiredEndLocal.millisecond,
+          },
+          timezone,
+        );
         await clearEventParticipants(client, target._id);
         const event = await updateEventHeader(client, target._id, {
           subject: header.subject,
@@ -530,9 +590,20 @@ export const addAttendee = async (body, principal) => {
   const access = await findEventAccess(eventId, principal._id);
   if (!access) throw notFound("Event not found");
   if (!canMutate(access, principal)) throw forbidden();
-  const participants = await resolveParticipants({ legacy: true, attendeeEmails: [item.attendee_email] }, { requireRoom: false });
-  await assertRoomFloorAccess(participants.filter((participant) => participant.roomId).map((participant) => participant.roomId), principal);
-  return transaction((client) => insertEventParticipant(client, eventId, participants[0]));
+  const participants = await resolveParticipants(
+    { legacy: true, attendeeEmails: [item.attendee_email] },
+    { requireRoom: false },
+  );
+  await assertRoomFloorAccess(
+    participants.filter((participant) => participant.roomId).map((participant) => participant.roomId),
+    principal,
+  );
+  try {
+    return await transaction((client) => insertEventParticipant(client, eventId, participants[0]));
+  } catch (error) {
+    if (error.code === "23P01") throw conflict("ROOM_CONFLICT", "The room is already booked at this time");
+    throw error;
+  }
 };
 
 export const deleteAttendee = async (detailId, principal) => {
@@ -551,11 +622,15 @@ export const cancelEvent = async (eventId, scope, principal) => {
   if (!access) throw notFound("Event not found");
   if (!canMutate(access, principal)) throw forbidden();
   const mutationScope = validScope(scope);
-  if (mutationScope !== "occurrence" && !access.series_id) throw badRequest("INVALID_SCOPE", "Series scope requires a recurring event");
+  if (mutationScope !== "occurrence" && !access.series_id)
+    throw badRequest("INVALID_SCOPE", "Series scope requires a recurring event");
   return transaction(async (client) => {
     const targets = await eventsForMutationScope(client, eventId, mutationScope);
     if (mutationScope === "series") await cancelSeries(client, access.series_id);
-    return cancelEvents(client, targets.map((event) => event._id));
+    return cancelEvents(
+      client,
+      targets.map((event) => event._id),
+    );
   });
 };
 
@@ -565,12 +640,14 @@ export const checkInEvent = async ({ event_id, card_number }, principal) => {
     const execute = (text, values) => client.query(text, values);
     const context = await eventCheckInContext(event_id, principal._id, card_number, execute);
     if (!context) throw notFound("Event not found");
-    if (!isAdminRole(principal.role) && !context.is_related && !receptionistCoversEventFloor(context, principal)) throw forbidden();
+    if (!isAdminRole(principal.role) && !context.is_related && !receptionistCoversEventFloor(context, principal))
+      throw forbidden();
     if (!context.card_allowed) throw forbidden("Card is not authorized");
     const now = Date.now();
     const opens = new Date(context.start_at).getTime() - Number(context.early_minutes || 0) * 60_000;
     const closes = new Date(context.start_at).getTime() + Number(context.late_minutes || 0) * 60_000;
-    if (now < opens || now >= closes) throw new HttpError(409, "CHECK_IN_WINDOW", "Event is outside its check-in window");
+    if (now < opens || now >= closes)
+      throw new HttpError(409, "CHECK_IN_WINDOW", "Event is outside its check-in window");
     if (context.checked_in) throw conflict("ALREADY_CHECKED_IN", "Event is already checked in");
     return markCheckedIn(event_id, execute);
   });

@@ -16,8 +16,10 @@ const roleOrder = `CASE lower(r.role_name)
   ELSE 4
 END`;
 
-export const listMenuAccess = async (execute = query) => (await execute(
-  `SELECT
+export const listMenuAccess = async (execute = query) =>
+  (
+    await execute(
+      `SELECT
      r._id AS role_id,
      lower(r.role_name) AS role_name,
      m.menu_key,
@@ -30,11 +32,14 @@ export const listMenuAccess = async (execute = query) => (await execute(
    WHERE r.is_deleted IS NOT TRUE
      AND lower(r.role_name) = ANY($2::text[])
    ORDER BY ${roleOrder}, array_position($1::text[], m.menu_key)`,
-  [MENU_KEYS, MATRIX_ROLES]
-)).rows;
+      [MENU_KEYS, MATRIX_ROLES],
+    )
+  ).rows;
 
-export const allowedMenusForRole = async (roleName, execute = query) => (await execute(
-  `SELECT m.menu_key
+export const allowedMenusForRole = async (roleName, execute = query) =>
+  (
+    await execute(
+      `SELECT m.menu_key
    FROM tbl_role r
    CROSS JOIN unnest($1::text[]) AS m(menu_key)
    JOIN tbl_role_menu_access a
@@ -44,8 +49,9 @@ export const allowedMenusForRole = async (roleName, execute = query) => (await e
    WHERE r.is_deleted IS NOT TRUE
      AND lower(r.role_name) = lower($2)
    ORDER BY array_position($1::text[], m.menu_key)`,
-  [MENU_KEYS, roleName]
-)).rows.map((row) => row.menu_key);
+      [MENU_KEYS, roleName],
+    )
+  ).rows.map((row) => row.menu_key);
 
 // Menu access is read on every guarded request. A short-lived per-role cache
 // avoids one SQL query per request; the matrix save clears it, and the TTL
@@ -74,7 +80,7 @@ export const saveMenuAccess = async (entries, principal) => {
        FROM tbl_role
        WHERE is_deleted IS NOT TRUE
          AND lower(role_name) = ANY($1::text[])`,
-      [MATRIX_ROLES]
+      [MATRIX_ROLES],
     );
     const roleIds = new Map(roles.rows.map((role) => [role.role_name, role._id]));
 
@@ -87,7 +93,7 @@ export const saveMenuAccess = async (entries, principal) => {
          ON CONFLICT (role_id, menu_key) DO UPDATE
          SET allowed = EXCLUDED.allowed,
              updated_at = now()`,
-        [roleId, entry.menu_key, entry.allowed]
+        [roleId, entry.menu_key, entry.allowed],
       );
     }
 
@@ -102,7 +108,7 @@ export const saveMenuAccess = async (entries, principal) => {
            ON CONFLICT (role_id, menu_key) DO UPDATE
            SET allowed = true,
                updated_at = now()`,
-          [superAdminId, menuKey]
+          [superAdminId, menuKey],
         );
       }
     }
@@ -111,21 +117,24 @@ export const saveMenuAccess = async (entries, principal) => {
     const oldByKey = new Map(before.map((row) => [`${row.role_name}:${row.menu_key}`, row.allowed]));
     const changed = after.filter((row) => oldByKey.get(`${row.role_name}:${row.menu_key}`) !== row.allowed);
     if (changed.length) {
-      await writeAudit({
-        principal,
-        action: "access.update",
-        entityType: "access",
-        oldValues: changed.map((row) => ({
-          role_name: row.role_name,
-          menu_key: row.menu_key,
-          allowed: oldByKey.get(`${row.role_name}:${row.menu_key}`) === true,
-        })),
-        newValues: changed.map((row) => ({
-          role_name: row.role_name,
-          menu_key: row.menu_key,
-          allowed: row.allowed,
-        })),
-      }, execute);
+      await writeAudit(
+        {
+          principal,
+          action: "access.update",
+          entityType: "access",
+          oldValues: changed.map((row) => ({
+            role_name: row.role_name,
+            menu_key: row.menu_key,
+            allowed: oldByKey.get(`${row.role_name}:${row.menu_key}`) === true,
+          })),
+          newValues: changed.map((row) => ({
+            role_name: row.role_name,
+            menu_key: row.menu_key,
+            allowed: row.allowed,
+          })),
+        },
+        execute,
+      );
     }
     return after;
   });

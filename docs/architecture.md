@@ -219,7 +219,7 @@ Otorisasi berlapis, dari yang paling tetap ke yang paling mudah diubah:
   (`receptionistCoversEventFloor` memakai `event.room_floors`).
 - `writeAudit` menulis `tbl_audit_log` di dalam transaksi yang sama dengan
   perubahan (role, lantai, kartu, reset sandi, settings, master card, matrix).
-  Nomor kartu disamarkan; nama pelaku disalin agar riwayat tetap terbaca bila
+  Nomor kartu ditampilkan penuh (hanya admin yang bisa membuka log); nama pelaku disalin agar riwayat tetap terbaca bila
   akunnya dihapus. Tidak ada endpoint ubah/hapus audit.
 - Cache menu per peran berumur 30 detik di proses API; `saveMenuAccess`
   membersihkannya, jadi proses lain (bila kelak scale-out) bisa tertinggal

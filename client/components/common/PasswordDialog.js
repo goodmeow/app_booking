@@ -34,17 +34,9 @@ const PasswordDialog = ({ open, requireOldPassword = true, loading = false, erro
       <Space direction="vertical" size="middle" style={{ width: "100%", marginTop: 8 }}>
         {error && <Alert type="error" showIcon message={error} />}
         {requireOldPassword && (
-          <Input.Password
-            required
-            placeholder={t("common:fields.oldPassword")}
-            {...field("oldPassword")}
-          />
+          <Input.Password required placeholder={t("common:fields.oldPassword")} {...field("oldPassword")} />
         )}
-        <Input.Password
-          required
-          placeholder={t("common:fields.newPassword")}
-          {...field("newPassword")}
-        />
+        <Input.Password required placeholder={t("common:fields.newPassword")} {...field("newPassword")} />
         <Input.Password
           required
           placeholder={t("common:fields.confirmPassword")}

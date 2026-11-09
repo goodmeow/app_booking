@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { apiRequest, queryParityDatabase, resetParityDatabase, startServer, stopServer, targets } from "../parity/harness.js";
+import {
+  apiRequest,
+  queryParityDatabase,
+  resetParityDatabase,
+  startServer,
+  stopServer,
+  targets,
+} from "../parity/harness.js";
 
 // The setup routes are the only public write path that creates an admin. The
 // parity seed already ships an admin, so this suite uses it twice: once as an
@@ -22,11 +29,12 @@ after(() => stopServer(server));
 
 const readStatus = () => apiRequest(targets.reconstructed, "/api/setup/status");
 
-const postSetup = (body) => apiRequest(targets.reconstructed, "/api/setup", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(body),
-});
+const postSetup = (body) =>
+  apiRequest(targets.reconstructed, "/api/setup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
 test("a database that already has an admin never shows the setup form", async () => {
   const response = await readStatus();
@@ -40,10 +48,7 @@ test("a database that already has an admin never shows the setup form", async ()
   });
   assert.equal(blocked.status, 409);
   assert.equal(blocked.body.code, "SETUP_COMPLETED");
-  assert.equal(
-    await queryParityDatabase(`SELECT count(*) FROM tbl_users WHERE email = '${BOOTSTRAP_EMAIL}';`),
-    "0"
-  );
+  assert.equal(await queryParityDatabase(`SELECT count(*) FROM tbl_users WHERE email = '${BOOTSTRAP_EMAIL}';`), "0");
 });
 
 test("a fresh database creates the first admin once and then locks setup", async () => {
@@ -97,7 +102,7 @@ test("a fresh database creates the first admin once and then locks setup", async
     assert.equal(deletion.body.code, "PROTECTED_ACCOUNT");
     assert.equal(
       await queryParityDatabase(`SELECT is_deleted FROM tbl_users WHERE email = '${BOOTSTRAP_EMAIL}';`),
-      "f"
+      "f",
     );
 
     // No password or hash leaves the API, and the database stores a bcrypt hash.
@@ -106,7 +111,7 @@ test("a fresh database creates the first admin once and then locks setup", async
       await queryParityDatabase(`
         SELECT password LIKE '$2%' FROM tbl_users WHERE email = '${BOOTSTRAP_EMAIL}';
       `),
-      "t"
+      "t",
     );
 
     const settings = await queryParityDatabase(`

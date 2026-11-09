@@ -7,8 +7,8 @@ import { useTranslation } from "react-i18next";
 import { isAuthenticated, signout } from "../auth/auth-helper.js";
 import { useDetailUserQuery } from "../redux/services/users.js";
 import { useGetBrandingQuery, useGetPublicSettingsQuery } from "../redux/services/settings.js";
-import { brandAsset } from "./brand-assets.js";
 import { useMenuAccess } from "../auth/use-menu-access.js";
+import { brandShowsName } from "./brand-assets.js";
 
 const { Header } = Layout;
 
@@ -16,36 +16,44 @@ const BrandLockup = () => {
   const { t } = useTranslation("common");
   const { token } = theme.useToken();
   const { data: branding } = useGetBrandingQuery();
+  const mark = branding?.assets?.mark;
+  const wordmark = branding?.assets?.wordmark;
+  const showName = brandShowsName(branding);
   return (
     <Link
       to="/"
-      style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", color: "inherit", flexShrink: 0 }}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        textDecoration: "none",
+        color: "inherit",
+        flexShrink: 0,
+      }}
     >
-      <img
-        src={brandAsset(branding, "mark")}
-        alt=""
-        style={{ height: 38, width: "auto", display: "block" }}
-      />
+      {mark ? <img src={mark} alt="" style={{ height: 38, width: "auto", display: "block" }} /> : null}
       <span style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        {/* The official "The Prasada" wordmark as an image, so the typography matches
-            the tablet exactly; Room Booking below it uses the accent colour. */}
-        <img
-          src={brandAsset(branding, "wordmark")}
-          alt="The Prasada"
-          style={{ height: 15, width: "auto", display: "block" }}
-        />
-        <Typography.Text
-          style={{
-            fontSize: 10.5,
-            fontWeight: 700,
-            lineHeight: 1,
-            letterSpacing: "0.4em",
-            textTransform: "uppercase",
-            color: token.colorPrimary,
-          }}
-        >
-          {branding?.brand_name || t("brand.name")}
-        </Typography.Text>
+        {wordmark ? (
+          <img
+            src={wordmark}
+            alt={branding?.brand_name || t("brand.name")}
+            style={{ height: 15, width: "auto", display: "block" }}
+          />
+        ) : null}
+        {showName ? (
+          <Typography.Text
+            style={{
+              fontSize: 10.5,
+              fontWeight: 700,
+              lineHeight: 1,
+              letterSpacing: "0.4em",
+              textTransform: "uppercase",
+              color: token.colorPrimary,
+            }}
+          >
+            {branding?.brand_name || t("brand.name")}
+          </Typography.Text>
+        ) : null}
       </span>
     </Link>
   );
@@ -56,10 +64,7 @@ const MenuLink = ({ to, children }) => {
   const active = location.pathname === to;
   return (
     <Link to={to}>
-      <Button
-        type={active ? "primary" : "text"}
-        style={active ? { color: "#0A1F14" } : { color: "#EDF2F6" }}
-      >
+      <Button type={active ? "primary" : "text"} style={active ? { color: "#0A1F14" } : { color: "#EDF2F6" }}>
         {children}
       </Button>
     </Link>
@@ -87,9 +92,7 @@ const Menu = () => {
     handleSignout();
   };
   const handleSignout = () => signout(() => history.push("/"));
-  const profileItem = session
-    ? { to: `/user/${session.user._id}`, label: t("nav.myProfile") }
-    : null;
+  const profileItem = session ? { to: `/user/${session.user._id}`, label: t("nav.myProfile") } : null;
   const navItems = [
     ...(canManage ? [{ to: "/app-management", label: t("nav.management") }] : []),
     ...(can("report") ? [{ to: "/report", label: t("nav.report") }] : []),
@@ -130,12 +133,16 @@ const Menu = () => {
           <>
             <Space size={4} style={{ flex: 1, minWidth: 0, marginLeft: 8, overflow: "hidden" }}>
               {primaryItems.map(({ to, label }) => (
-                <MenuLink key={to} to={to}>{label}</MenuLink>
+                <MenuLink key={to} to={to}>
+                  {label}
+                </MenuLink>
               ))}
             </Space>
             <Space size={4} style={{ marginLeft: 16, flexShrink: 0 }}>
               {secondaryItems.map(({ to, label }) => (
-                <MenuLink key={to} to={to}>{label}</MenuLink>
+                <MenuLink key={to} to={to}>
+                  {label}
+                </MenuLink>
               ))}
               <Button
                 type="text"
@@ -160,11 +167,7 @@ const Menu = () => {
                     }}
                   >
                     <Space size={8}>
-                      <Avatar
-                        size={28}
-                        icon={<UserOutlined />}
-                        style={{ background: "#2FB46A", color: "#0A1F14" }}
-                      />
+                      <Avatar size={28} icon={<UserOutlined />} style={{ background: "#2FB46A", color: "#0A1F14" }} />
                       {screens.xl ? (
                         <span
                           style={{
@@ -214,9 +217,7 @@ const Menu = () => {
       >
         <Space direction="vertical" size="small" style={{ width: "100%" }}>
           {session ? (
-            <Typography.Text type="secondary">
-              {t("nav.welcome", { name: displayName })}
-            </Typography.Text>
+            <Typography.Text type="secondary">{t("nav.welcome", { name: displayName })}</Typography.Text>
           ) : null}
           {can("calendar") ? (
             <Link to="/" onClick={closeDrawer}>

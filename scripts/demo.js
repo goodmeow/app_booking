@@ -59,17 +59,23 @@ const networkUrls = () => {
 };
 
 const addDemoOrigins = () => {
-  const origins = new Set(String(env.CORS_ORIGINS || "").split(",").map((value) => value.trim()).filter(Boolean));
+  const origins = new Set(
+    String(env.CORS_ORIGINS || "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean),
+  );
   for (const url of networkUrls()) origins.add(url);
   env.CORS_ORIGINS = [...origins].join(",");
 };
 
-const assertPortFree = (port) => new Promise((resolve, reject) => {
-  const probe = net.createServer();
-  probe.unref();
-  probe.once("error", () => reject(new Error(`Demo port ${port} is already in use`)));
-  probe.listen({ host: "127.0.0.1", port: Number(port) }, () => probe.close(resolve));
-});
+const assertPortFree = (port) =>
+  new Promise((resolve, reject) => {
+    const probe = net.createServer();
+    probe.unref();
+    probe.once("error", () => reject(new Error(`Demo port ${port} is already in use`)));
+    probe.listen({ host: "127.0.0.1", port: Number(port) }, () => probe.close(resolve));
+  });
 
 const run = (command, args, label) => {
   const result = spawnSync(command, args, { cwd: root, env, stdio: "inherit" });
@@ -128,19 +134,20 @@ const waitForServer = async () => {
   if (response.status !== 200) throw new Error(`Demo login preflight failed with HTTP ${response.status}`);
 };
 
-const waitForClient = () => waitFor("Client", async () => {
-  const [rootResponse, proxyResponse] = await Promise.all([
-    fetch(`http://127.0.0.1:${env.PORT}/`, { signal: AbortSignal.timeout(1_500) }),
-    fetch(`http://127.0.0.1:${env.PORT}/api/auth/signout`, { signal: AbortSignal.timeout(1_500) }),
-  ]);
-  return rootResponse.status === 200 && proxyResponse.status === 200;
-});
+const waitForClient = () =>
+  waitFor("Client", async () => {
+    const [rootResponse, proxyResponse] = await Promise.all([
+      fetch(`http://127.0.0.1:${env.PORT}/`, { signal: AbortSignal.timeout(1_500) }),
+      fetch(`http://127.0.0.1:${env.PORT}/api/auth/signout`, { signal: AbortSignal.timeout(1_500) }),
+    ]);
+    return rootResponse.status === 200 && proxyResponse.status === 200;
+  });
 
 async function stopChild(child, signal) {
   if (!child || child.exitCode !== null || child.signalCode !== null) return;
   const exited = new Promise((resolve) => child.once("exit", resolve));
   signalChild(child, signal);
-  if (await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 2_000, "timeout"))]) === "timeout") {
+  if ((await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 2_000, "timeout"))])) === "timeout") {
     signalChild(child, "SIGKILL");
     await exited;
   }
@@ -171,7 +178,9 @@ function signalProcessTree(rootPid, signal) {
   const result = spawnSync("ps", ["-eo", "pid=,ppid="], { encoding: "utf8" });
   const descendants = new Map();
   if (result.status === 0) {
-    for (const line of String(result.stdout || "").trim().split("\n")) {
+    for (const line of String(result.stdout || "")
+      .trim()
+      .split("\n")) {
       const [pid, parentPid] = line.trim().split(/\s+/).map(Number);
       if (!Number.isInteger(pid) || !Number.isInteger(parentPid)) continue;
       if (!descendants.has(parentPid)) descendants.set(parentPid, []);
@@ -207,7 +216,11 @@ async function main() {
   } catch {
     composeCommand = ["docker-compose"];
   }
-  run(composeCommand[0], [...composeCommand.slice(1), "--env-file", ".env.demo", "up", "-d", "--wait", "postgres-test"], "Demo database startup");
+  run(
+    composeCommand[0],
+    [...composeCommand.slice(1), "--env-file", ".env.demo", "up", "-d", "--wait", "postgres-test"],
+    "Demo database startup",
+  );
   run(path.join(root, "database/scripts/rebuild-test-db.sh"), [], "Demo database rebuild");
 
   start("scripts/dev-server.js");
@@ -227,7 +240,9 @@ async function main() {
 }
 
 for (const signal of ["SIGHUP", "SIGINT", "SIGTERM"]) {
-  process.once(signal, () => { void shutdown(signal, signal === "SIGINT" ? 130 : 143); });
+  process.once(signal, () => {
+    void shutdown(signal, signal === "SIGINT" ? 130 : 143);
+  });
 }
 
 process.once("exit", () => signalAllChildren("SIGKILL"));

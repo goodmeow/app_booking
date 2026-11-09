@@ -3,12 +3,7 @@ import { Alert, Button, Card, Form, Input, InputNumber, Select, Space, Switch, T
 import { useTranslation } from "react-i18next";
 import { getApiError } from "../domain/api-error.js";
 import { useGetSettingsQuery, useRunBackupMutation, useUpdateSettingsMutation } from "../redux/services/settings.js";
-import {
-  settingsFormErrorKey,
-  settingsFormFrom,
-  settingsPayload,
-  SETTINGS_NUMBER_FIELDS,
-} from "./settings-form.js";
+import { settingsFormErrorKey, settingsFormFrom, settingsPayload, SETTINGS_NUMBER_FIELDS } from "./settings-form.js";
 import BrandingSection from "./BrandingSection.js";
 import RoleAccessMatrix from "./RoleAccessMatrix.js";
 import AuditLogSection from "./AuditLogSection.js";
@@ -26,10 +21,10 @@ const NUMBER_FIELD_LABELS = {
 const SettingsSection = () => {
   const { i18n, t } = useTranslation("management");
   const { isSuperAdmin } = useMenuAccess();
-  const weekdayLabel = (day) => new Intl.DateTimeFormat(
-    i18n.resolvedLanguage || i18n.language || "en",
-    { weekday: "long" }
-  ).format(new Date(2024, 0, 7 + day));
+  const weekdayLabel = (day) =>
+    new Intl.DateTimeFormat(i18n.resolvedLanguage || i18n.language || "en", { weekday: "long" }).format(
+      new Date(2024, 0, 7 + day),
+    );
   const { data: settings, isLoading } = useGetSettingsQuery();
   const [updateSettings, { isLoading: saving }] = useUpdateSettingsMutation();
   const [runBackup, { isLoading: backingUp }] = useRunBackupMutation();
@@ -79,18 +74,11 @@ const SettingsSection = () => {
         style={{ width: "100%", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap" }}
       >
         <div>
-          <Typography.Title level={4} style={{ margin: 0 }}>{t("settings.title")}</Typography.Title>
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            {t("settings.title")}
+          </Typography.Title>
           <Typography.Text type="secondary">{t("settings.description")}</Typography.Text>
         </div>
-        <Button
-          type="primary"
-          htmlType="submit"
-          form="settings-form"
-          disabled={saving || !settings}
-          loading={saving}
-        >
-          {t("settings.save")}
-        </Button>
       </Space>
 
       {feedback ? (
@@ -106,7 +94,21 @@ const SettingsSection = () => {
       >
         <Form component={false} layout="vertical">
           <Space direction="vertical" size="large" style={{ width: "100%" }}>
-            <Card size="small" title={t("settings.generalTitle")}>
+            <Card
+              size="small"
+              title={t("settings.generalTitle")}
+              extra={
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  form="settings-form"
+                  disabled={saving || !settings}
+                  loading={saving}
+                >
+                  {t("settings.save")}
+                </Button>
+              }
+            >
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
                 {SETTINGS_NUMBER_FIELDS.map((field) => (
                   <Form.Item
@@ -148,8 +150,9 @@ const SettingsSection = () => {
             <Card
               size="small"
               title={t("settings.backupTitle")}
-              extra={(
+              extra={
                 <Button
+                  type="primary"
                   htmlType="button"
                   onClick={backupNow}
                   disabled={saving || backingUp || !settings}
@@ -157,7 +160,7 @@ const SettingsSection = () => {
                 >
                   {backingUp ? t("settings.backupRunning") : t("settings.backupNow")}
                 </Button>
-              )}
+              }
             >
               <Typography.Paragraph type="secondary">{t("settings.backupHelp")}</Typography.Paragraph>
 
@@ -207,7 +210,10 @@ const SettingsSection = () => {
 
               <Typography.Text type="secondary" style={{ display: "block", marginTop: 12 }}>
                 {settings?.backup_last_at
-                  ? t("settings.backupLast", { status: settings.backup_last_status || "-", date: new Date(settings.backup_last_at).toLocaleString() })
+                  ? t("settings.backupLast", {
+                      status: settings.backup_last_status || "-",
+                      date: new Date(settings.backup_last_at).toLocaleString(),
+                    })
                   : t("settings.backupNever")}
               </Typography.Text>
             </Card>
@@ -237,13 +243,13 @@ const SettingsSection = () => {
               </Form.Item>
             </Card>
 
-            <Card size="small" title={t("branding.title")}>
+            <Card size="small">
               <BrandingSection />
             </Card>
 
             {isSuperAdmin ? (
               <>
-                <Card size="small" title={t("settings.roleAccess.title")}>
+                <Card size="small">
                   <RoleAccessMatrix />
                 </Card>
                 <Card size="small" title={t("settings.audit.title")}>

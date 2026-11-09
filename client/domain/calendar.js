@@ -1,6 +1,6 @@
 const pad = (value) => String(value).padStart(2, "0");
 
-const asDate = (value) => value instanceof Date ? new Date(value) : new Date(value);
+const asDate = (value) => (value instanceof Date ? new Date(value) : new Date(value));
 
 const startOfDay = (value) => {
   const date = asDate(value);
@@ -73,7 +73,15 @@ export const defaultEventRange = (value, now = new Date()) => {
   const current = asDate(now);
   const sameDay = selected.toDateString() === current.toDateString();
   const start = sameDay
-    ? new Date(current.getFullYear(), current.getMonth(), current.getDate(), current.getHours(), current.getMinutes() < 30 ? 30 : 60, 0, 0)
+    ? new Date(
+        current.getFullYear(),
+        current.getMonth(),
+        current.getDate(),
+        current.getHours(),
+        current.getMinutes() < 30 ? 30 : 60,
+        0,
+        0,
+      )
     : new Date(selected.getFullYear(), selected.getMonth(), selected.getDate(), 9, 0, 0, 0);
   const end = new Date(start.getTime() + 30 * 60 * 1000);
   return { start, end };
@@ -92,9 +100,7 @@ export const formatMeetingDateCue = (startValue, endValue, locale = "en-GB") => 
   const end = asDate(endValue);
   if ([start, end].some((date) => Number.isNaN(date.getTime()))) return "";
   const day = (date) => String(date.getDate()).padStart(2, "0");
-  const month = (date) => new Intl.DateTimeFormat(locale, { month: "short" })
-    .format(date)
-    .replace(/\.$/, "");
+  const month = (date) => new Intl.DateTimeFormat(locale, { month: "short" }).format(date).replace(/\.$/, "");
   const dateLabel = (date) => `${day(date)}-${month(date)}-${date.getFullYear()}`;
   if (start.toDateString() === end.toDateString()) return dateLabel(start);
   return `${dateLabel(start)} - ${dateLabel(end)}`;
@@ -120,12 +126,13 @@ export const calendarEventCueFlags = (event) => {
   const seriesId = eventValue(event, "series_id");
   const occurrenceIndex = eventValue(event, "occurrence_index");
   const parsedOccurrenceIndex = Number(occurrenceIndex);
-  const occurrenceNumber = occurrenceIndex === undefined
-    || occurrenceIndex === null
-    || occurrenceIndex === ""
-    || !Number.isInteger(parsedOccurrenceIndex)
-    ? null
-    : parsedOccurrenceIndex + 1;
+  const occurrenceNumber =
+    occurrenceIndex === undefined ||
+    occurrenceIndex === null ||
+    occurrenceIndex === "" ||
+    !Number.isInteger(parsedOccurrenceIndex)
+      ? null
+      : parsedOccurrenceIndex + 1;
   return {
     multiDay: spansMultipleCalendarDays(event?.start, event?.end),
     recurring: seriesId !== undefined && seriesId !== null && seriesId !== "",
@@ -147,12 +154,18 @@ export const calendarEventFromApi = (event) => ({
   checked_in: eventValue(event, "checked_in"),
   late_threshold: eventValue(event, "late_threshold"),
   ...(eventValue(event, "visibility") === undefined ? {} : { visibility: eventValue(event, "visibility") }),
-  ...(eventValue(event, "can_view_details") === undefined ? {} : { can_view_details: eventValue(event, "can_view_details") }),
+  ...(eventValue(event, "can_view_details") === undefined
+    ? {}
+    : { can_view_details: eventValue(event, "can_view_details") }),
   ...(eventValue(event, "can_mutate") === undefined ? {} : { can_mutate: eventValue(event, "can_mutate") }),
-  ...(eventValue(event, "organizer_first_name") === undefined ? {} : { organizer_first_name: eventValue(event, "organizer_first_name") }),
+  ...(eventValue(event, "organizer_first_name") === undefined
+    ? {}
+    : { organizer_first_name: eventValue(event, "organizer_first_name") }),
   ...(eventValue(event, "timezone") === undefined ? {} : { timezone: eventValue(event, "timezone") }),
   ...(eventValue(event, "series_id") === undefined ? {} : { series_id: eventValue(event, "series_id") }),
-  ...(eventValue(event, "occurrence_index") === undefined ? {} : { occurrence_index: eventValue(event, "occurrence_index") }),
+  ...(eventValue(event, "occurrence_index") === undefined
+    ? {}
+    : { occurrence_index: eventValue(event, "occurrence_index") }),
   ...(eventValue(event, "booked_by") === undefined ? {} : { booked_by: eventValue(event, "booked_by") }),
   ...(eventValue(event, "booked_by_name") === undefined ? {} : { booked_by_name: eventValue(event, "booked_by_name") }),
   ...(eventValue(event, "room_floors") === undefined ? {} : { room_floors: eventValue(event, "room_floors") }),
@@ -166,8 +179,12 @@ export const canManageBooking = ({ event, sessionEmail, sessionUserId, isAdmin =
   // re-derive it from event data that does not include room floors.
   const serverCanMutate = eventValue(event, "can_mutate");
   if (serverCanMutate !== undefined) return Boolean(serverCanMutate);
-  const organizer = String(eventValue(event, "organizer") ?? "").trim().toLowerCase();
-  const ownEmail = String(sessionEmail ?? "").trim().toLowerCase();
+  const organizer = String(eventValue(event, "organizer") ?? "")
+    .trim()
+    .toLowerCase();
+  const ownEmail = String(sessionEmail ?? "")
+    .trim()
+    .toLowerCase();
   if (organizer && ownEmail && organizer === ownEmail) return true;
   const bookedBy = String(eventValue(event, "booked_by") ?? "").trim();
   const ownId = String(sessionUserId ?? "").trim();

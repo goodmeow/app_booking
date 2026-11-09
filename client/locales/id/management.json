@@ -4,23 +4,8 @@
     "navigation": "Bagian manajemen",
     "noAccess": "Tidak ada menu manajemen yang aktif untuk akun ini."
   },
-  "cards": {
-    "title": "Kartu Akses",
-    "add": "Tambah Kartu Akses",
-    "deleteTitle": "Hapus Kartu Akses",
-    "deleteMessage": "Hapus kartu {{number}}?",
-    "required": "Nomor kartu wajib diisi.",
-    "createError": "Tidak dapat membuat kartu akses.",
-    "deleteError": "Tidak dapat menghapus kartu akses.",
-    "loading": "Memuat kartu akses...",
-    "loadError": "Tidak dapat memuat kartu akses.",
-    "id": "ID Kartu",
-    "number": "Nomor Kartu",
-    "createdBy": "Dibuat Oleh",
-    "deleteAria": "Hapus kartu {{number}}"
-  },
   "devices": {
-    "title": "Perangkat Tablet",
+    "title": "Perangkat",
     "description": "Tablet ruangan yang sudah dipasangkan beserta status online, lampu, dan judul meeting yang bisa disembunyikan.",
     "downloadApk": "Unduh APK Tablet",
     "downloadApkHint": "Pasang di tablet lewat urutan: salin berkas, aktifkan sumber tak dikenal, lalu buka berkasnya.",
@@ -53,7 +38,9 @@
       "online": "Online",
       "offline": "Offline",
       "expired": "Kedaluwarsa"
-    }
+    },
+    "floor": "Lantai",
+    "filterFloor": "Filter lantai"
   },
   "rooms": {
     "title": "Ruangan",
@@ -283,6 +270,9 @@
         },
         "access": {
           "update": "Akses peran diubah"
+        },
+        "event": {
+          "room_auto_release": "Ruangan dilepas (tidak check-in)"
         }
       }
     },
@@ -299,7 +289,7 @@
     "wordmark": "Logo",
     "favicon": "Favicon",
     "upload": "Unggah gambar",
-    "reset": "Kembalikan default",
+    "reset": "Hapus gambar",
     "help": "PNG, JPEG, WebP, atau ICO, maksimal 512 KB. Perubahan langsung berlaku setelah unggah.",
     "save": "Simpan branding",
     "saved": "Branding tersimpan.",
@@ -308,8 +298,9 @@
     "uploadError": "Tidak dapat mengunggah gambar.",
     "invalidType": "Gunakan PNG, JPEG, WebP, atau ICO.",
     "tooLarge": "Ukuran gambar maksimal 512 KB.",
-    "resetDone": "Gambar dikembalikan ke default.",
-    "loading": "Memuat branding..."
+    "resetDone": "Gambar dihapus.",
+    "loading": "Memuat branding...",
+    "empty": "Belum ada"
   },
   "about": {
     "tab": "Tentang",

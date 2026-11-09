@@ -11,7 +11,9 @@ import ConfirmDialog from "../components/common/ConfirmDialog.js";
 const EventDetailsDrawer = ({ open, event, rooms = [], canMutate = false, onClose, onEdit }) => {
   const { t, i18n } = useTranslation(["calendar", "common"]);
   const locale = calendarLocaleForLanguage(i18n.resolvedLanguage || i18n.language) === "id" ? "id-ID" : "en-GB";
-  const { data: participants = [], isError: detailsError } = useGetEventDetailsQuery(event?.id, { skip: !open || !event });
+  const { data: participants = [], isError: detailsError } = useGetEventDetailsQuery(event?.id, {
+    skip: !open || !event,
+  });
   const [removeEvent, removeState] = useDeleteEventByIdMutation();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [error, setError] = useState("");
@@ -27,10 +29,11 @@ const EventDetailsDrawer = ({ open, event, rooms = [], canMutate = false, onClos
   }, [participants, rooms]);
 
   const attendees = useMemo(
-    () => (Array.isArray(participants)
-      ? participants.filter((participant) => !participantRoomId(participant)).map(participantEmail)
-      : []),
-    [participants]
+    () =>
+      Array.isArray(participants)
+        ? participants.filter((participant) => !participantRoomId(participant)).map(participantEmail)
+        : [],
+    [participants],
   );
 
   const confirmCancel = async () => {
@@ -45,19 +48,11 @@ const EventDetailsDrawer = ({ open, event, rooms = [], canMutate = false, onClos
   };
 
   return (
-    <Drawer
-      title={event?.title || t("calendar.untitled")}
-      placement="right"
-      width={420}
-      open={open}
-      onClose={onClose}
-    >
+    <Drawer title={event?.title || t("calendar.untitled")} placement="right" width={420} open={open} onClose={onClose}>
       <Typography.Paragraph type="secondary" style={{ marginBottom: 4 }}>
         {formatMeetingDateCue(event?.start, event?.end, locale)}
       </Typography.Paragraph>
-      <Typography.Paragraph>
-        {formatMeetingTimeRange(event?.start, event?.end, locale)}
-      </Typography.Paragraph>
+      <Typography.Paragraph>{formatMeetingTimeRange(event?.start, event?.end, locale)}</Typography.Paragraph>
 
       <Space size={4} wrap style={{ marginBottom: 16 }}>
         <Tag color={event?.checked_in ? "green" : undefined}>
@@ -80,26 +75,18 @@ const EventDetailsDrawer = ({ open, event, rooms = [], canMutate = false, onClos
       ) : null}
 
       <Typography.Text strong>{t("calendar.detailAttendees")}</Typography.Text>
-      <Typography.Paragraph type="secondary">
-        {attendees.length ? attendees.join(", ") : "-"}
-      </Typography.Paragraph>
+      <Typography.Paragraph type="secondary">{attendees.length ? attendees.join(", ") : "-"}</Typography.Paragraph>
 
       {detailsError ? (
         <Alert type="warning" showIcon message={t("calendar.detailsLoadError")} style={{ marginBottom: 16 }} />
       ) : null}
-      {error ? (
-        <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />
-      ) : null}
+      {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
 
       <Space>
         <Button type="primary" disabled={!canMutate} onClick={onEdit}>
           {t("common:actions.edit")}
         </Button>
-        <Button
-          danger
-          disabled={!canMutate || removeState.isLoading}
-          onClick={() => setConfirmOpen(true)}
-        >
+        <Button danger disabled={!canMutate || removeState.isLoading} onClick={() => setConfirmOpen(true)}>
           {t("calendar.cancelMeeting")}
         </Button>
       </Space>

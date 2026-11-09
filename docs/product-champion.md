@@ -146,18 +146,18 @@ atas, berisi waktu, pelaku, aksi, dan ringkasan nilai lama/baru.
 |---|---|
 | Buat/ubah/hapus pengguna (termasuk role & lantai), kartu (tambah, hilang/aktif, master), reset sandi oleh admin, pengaturan & backup, master card, matrix akses | Login/logout, pembuatan meeting, check-in kiosk, buka pintu |
 
-Nomor kartu disamarkan (hanya 4 digit terakhir). Audit tidak bisa diubah atau
+Nomor kartu ditampilkan penuh (audit hanya bisa dibuka admin). Audit tidak bisa diubah atau
 dihapus dari CMS; untuk investigasi mendalam, tim teknis membaca
 `tbl_audit_log` langsung dari database.
 
 ### 3.9 Update APK tablet
 
 1. Unduh dari `https://<domain>/apk/index.html` (tombol **Download APK**) atau
-   tombol **Unduh APK Tablet** di tab Perangkat Tablet.
+   tombol **Unduh APK Tablet** di tab Perangkat.
 2. Pindahkan file ke tablet, buka, dan izinkan instalasi (izinkan sekali dari
    browser/file manager).
 3. Buka aplikasi kiosk; cek footer `v1.4.5 (26) · CMS 3.13.0`.
-4. Cek status **Online** di tab Perangkat Tablet. Bila perangkat sudah tidak
+4. Cek status **Online** di tab Perangkat. Bila perangkat sudah tidak
    aktif, pairing ulang dari layar setup tablet.
 5. Catat versi yang dipasang di buku serah terima; satu tablet bisa berbeda
    versi dari tablet lain, jadi sebutkan nomor versi saat melapor masalah.

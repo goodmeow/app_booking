@@ -18,7 +18,7 @@ test("room-filtered calendar returns room bookings", async () => {
   const response = await apiRequest(
     targets.reconstructed,
     "/api/events?rooms=room-one%40room.com&start=20300101&end=20300131",
-    { headers: bearer("admin") }
+    { headers: bearer("admin") },
   );
   assert.equal(response.status, 200);
   assert.ok(Array.isArray(response.body));

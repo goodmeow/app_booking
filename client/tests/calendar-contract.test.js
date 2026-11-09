@@ -68,14 +68,14 @@ test("builds calendar cue flags for multi-day and recurring events", () => {
       series_id: "series-1",
       occurrence_index: 2,
     }),
-    { multiDay: true, recurring: true, occurrenceNumber: 3 }
+    { multiDay: true, recurring: true, occurrenceNumber: 3 },
   );
   assert.deepEqual(
     calendarEventCueFlags({
       start: "2030-01-15T09:00:00.000Z",
       end: "2030-01-15T10:00:00.000Z",
     }),
-    { multiDay: false, recurring: false, occurrenceNumber: null }
+    { multiDay: false, recurring: false, occurrenceNumber: null },
   );
   assert.deepEqual(
     calendarEventCueFlags({
@@ -84,7 +84,7 @@ test("builds calendar cue flags for multi-day and recurring events", () => {
       series_id: "series-1",
       occurrence_index: null,
     }),
-    { multiDay: false, recurring: true, occurrenceNumber: null }
+    { multiDay: false, recurring: true, occurrenceNumber: null },
   );
 });
 
@@ -98,16 +98,14 @@ test("repairs the legacy room filter by avoiding the conflicting user predicate"
   const range = { start: "20300113", end: "20300119" };
   // Node compares properties with undefined values differently across
   // versions; compare only the properties that are actually set.
-  const defined = (filters) => Object.fromEntries(
-    Object.entries(filters).filter(([, value]) => value !== undefined)
-  );
-  assert.deepEqual(
-    defined(calendarEventFilters({ email: "user@example.test", roomEmail: null, range })),
-    { users: "user@example.test", ...range }
-  );
+  const defined = (filters) => Object.fromEntries(Object.entries(filters).filter(([, value]) => value !== undefined));
+  assert.deepEqual(defined(calendarEventFilters({ email: "user@example.test", roomEmail: null, range })), {
+    users: "user@example.test",
+    ...range,
+  });
   assert.deepEqual(
     defined(calendarEventFilters({ email: "user@example.test", roomEmail: "meeting@room.com", range })),
-    { rooms: "meeting@room.com", ...range }
+    { rooms: "meeting@room.com", ...range },
   );
 });
 
@@ -133,7 +131,7 @@ test("maps FullCalendar event API to recovered editor header", () => {
       created_at: undefined,
       checked_in: undefined,
       late_threshold: undefined,
-    }
+    },
   );
 });
 
@@ -148,7 +146,7 @@ test("maps plain API event objects from Agenda clicks", () => {
       can_view_details: true,
       series_id: "series-1",
     }).series_id,
-    "series-1"
+    "series-1",
   );
 });
 
@@ -173,38 +171,20 @@ test("carries the on-behalf booker only when the server sends it", () => {
 
 test("lets the organizer and the receptionist who booked manage a meeting", () => {
   const session = { sessionEmail: "Rina@Contoh.id", sessionUserId: "u-receptionist" };
-  assert.equal(
-    canManageBooking({ event: { organizer: "budi@contoh.id" }, ...session }),
-    false
-  );
+  assert.equal(canManageBooking({ event: { organizer: "budi@contoh.id" }, ...session }), false);
   assert.equal(
     canManageBooking({ event: { organizer: "budi@contoh.id", booked_by: "u-receptionist" }, ...session }),
-    true
+    true,
   );
-  assert.equal(
-    canManageBooking({ event: { organizer: "rina@contoh.id" }, ...session }),
-    true
-  );
-  assert.equal(
-    canManageBooking({ event: { organizer: "budi@contoh.id", booked_by: "u-other" }, ...session }),
-    false
-  );
-  assert.equal(
-    canManageBooking({ event: { organizer: "budi@contoh.id" }, ...session, isAdmin: true }),
-    true
-  );
+  assert.equal(canManageBooking({ event: { organizer: "rina@contoh.id" }, ...session }), true);
+  assert.equal(canManageBooking({ event: { organizer: "budi@contoh.id", booked_by: "u-other" }, ...session }), false);
+  assert.equal(canManageBooking({ event: { organizer: "budi@contoh.id" }, ...session, isAdmin: true }), true);
   assert.equal(canManageBooking(), false);
 });
 
 test("uses the server can_mutate flag for floor-wide receptionist access", () => {
   const session = { sessionEmail: "rina@contoh.id", sessionUserId: "u-receptionist" };
-  assert.equal(
-    canManageBooking({ event: { organizer: "budi@contoh.id", can_mutate: true }, ...session }),
-    true
-  );
-  assert.equal(
-    canManageBooking({ event: { organizer: "rina@contoh.id", can_mutate: false }, ...session }),
-    false
-  );
+  assert.equal(canManageBooking({ event: { organizer: "budi@contoh.id", can_mutate: true }, ...session }), true);
+  assert.equal(canManageBooking({ event: { organizer: "rina@contoh.id", can_mutate: false }, ...session }), false);
   assert.equal(calendarEventFromApi({ id: "event-3", can_mutate: true }).can_mutate, true);
 });

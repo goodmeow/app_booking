@@ -611,11 +611,3 @@ export const csvEscape = (value) => {
   if (/[",\r\n]/.test(text)) return `"${text.replaceAll('"', '""')}"`;
   return text;
 };
-
-export const writeCsvReport = (rows, columns) => {
-  const lines = [columns.join(",")];
-  for (const row of rows) {
-    lines.push(columns.map((column) => csvEscape(row[column])).join(","));
-  }
-  return `${lines.join("\n")}\n`;
-};

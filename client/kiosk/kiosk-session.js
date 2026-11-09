@@ -22,18 +22,32 @@ export const readKioskSession = (storage = browserStorage(), now = Date.now()) =
   try {
     const session = JSON.parse(storage.getItem(kioskSessionKey));
     const refreshExpiresAt = new Date(session?.device?.refreshExpiresAt || 0).getTime();
-    if (!session?.token || !session?.refreshToken || !session?.room?._id || !session?.device?.id || refreshExpiresAt <= now) {
+    if (
+      !session?.token ||
+      !session?.refreshToken ||
+      !session?.room?._id ||
+      !session?.device?.id ||
+      refreshExpiresAt <= now
+    ) {
       storage.removeItem(kioskSessionKey);
       return null;
     }
     return session;
   } catch {
-    try { storage.removeItem(kioskSessionKey); } catch { /* storage unavailable */ }
+    try {
+      storage.removeItem(kioskSessionKey);
+    } catch {
+      /* storage unavailable */
+    }
     return null;
   }
 };
 
 export const clearKioskSession = (storage = browserStorage()) => {
-  try { storage?.removeItem(kioskSessionKey); } catch { /* storage unavailable */ }
+  try {
+    storage?.removeItem(kioskSessionKey);
+  } catch {
+    /* storage unavailable */
+  }
 };
 export { kioskSessionKey };

@@ -1,7 +1,11 @@
 import { completeSetup, readSetupStatus } from "./setup.service.js";
 
 const run = (handler) => async (req, res, next) => {
-  try { await handler(req, res); } catch (error) { next(error); }
+  try {
+    await handler(req, res);
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const status = run(async (req, res) => res.json(await readSetupStatus()));

@@ -345,28 +345,18 @@ Kode yang **belum** punya kunci UI (akan tampil sebagai pesan generik):
 `payload.error` dari server, sedangkan CMS memakai fallback
 `apiErrors.requestFailed`.
 
-## 10. Kontrak fungsi database (legacy)
+## 10. Fungsi database legacy (sudah dihapus)
 
-`database/migrations/004_functions.sql` memuat 28 fungsi legacy. Server
-rekonstruksi **tidak memanggil satu pun** dari fungsi tersebut — verifikasi
-`grep` pada `server/` tidak menemukan nama fungsi itu; semua akses data memakai
-SQL langsung di `server/features/*/*.repository.js`. Fungsi dipertahankan untuk
-paritas skema dan diuji oleh `database/tests/003_function_contracts.sql`.
+Dump `bjb.sql` membawa 28 fungsi PL/pgSQL legacy. Server rekonstruksi **tidak
+pernah memanggil satu pun** dari fungsi itu: semua akses data memakai SQL
+langsung di `server/features/*/*.repository.js`. Fungsi tersebut kini dihapus
+dari repo (`database/migrations/004_functions.sql` tidak ada lagi) dan dari
+database yang sudah terpasang lewat `database/migrations/030_drop_legacy_functions.sql`.
 
-| Kelompok | Fungsi |
-|---|---|
-| Kartu master | `card_master_delete_data`, `card_master_get_data`, `card_master_insert_data`, `card_master_update_data`, `card_master_validation` |
-| Event | `events_insert_data`, `events_update_data`, `events_update_data_old`, `events_delete_events`, `events_checkin`, `event_early_finished`, `events_list_data_by_attendee`, `events_list_data_by_organizer` |
-| Peserta event | `event_details_list_data`, `event_details_new_attendee`, `event_details_delete_data`, `events_delete_attendee` |
-| Ruangan | `room_list`, `room_detail`, `room_available_list`, `report_rooms_usage` |
-| Settings | `settings_get_data`, `settings_update` |
-| User | `users_insert_data`, `users_list`, `users_list_data`, `users_detail`, `users_update_data` |
-
-Cacat legacy yang sudah tercatat (bukan diperbaiki diam-diam):
-`room_available_list` punya bug overlap, `users_list` dengan filter memakai
-alias `i` yang tidak ada, dan tiga fungsi (`event_details_delete_data`,
-`events_delete_attendee`, `events_update_data_old`) hanya dipertahankan untuk
-inventaris. Detail: `docs/reconstruction/database-function-coverage.md`.
+Tes kontraknya (`database/tests/003_function_contracts.sql`,
+`database/tests/002_core_behavior.sql`) ikut dihapus karena hanya menguji fungsi
+tersebut. Riwayat klaim dan cacat legacy ada di
+`docs/reconstruction/database-function-coverage.md`.
 
 ## 11. Selisih dengan dokumentasi lama
 

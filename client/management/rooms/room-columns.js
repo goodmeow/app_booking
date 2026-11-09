@@ -5,9 +5,7 @@ import { DeleteOutlined, EditOutlined, KeyOutlined } from "@ant-design/icons";
 const tabletTag = (device, t) => {
   if (!device) return <Tag>{t("rooms.tabletNone")}</Tag>;
   if (device.status === "revoked") return <Tag color="red">{t("rooms.tabletRevoked")}</Tag>;
-  return device.online
-    ? <Tag color="green">{t("rooms.tabletOnline")}</Tag>
-    : <Tag>{t("rooms.tabletOffline")}</Tag>;
+  return device.online ? <Tag color="green">{t("rooms.tabletOnline")}</Tag> : <Tag>{t("rooms.tabletOffline")}</Tag>;
 };
 
 // A room can have old revoked devices plus one active tablet. The list is
@@ -27,13 +25,7 @@ export const devicesByRoom = (devices = []) => {
 
 // Column definitions for the Rooms table. `deviceByRoom` maps a room id to its
 // paired tablet, so the tablet column stays a pure lookup.
-export const buildRoomColumns = ({
-  t,
-  deviceByRoom,
-  openEdit,
-  openPasswordDialog,
-  openDeleteDialog,
-}) => [
+export const buildRoomColumns = ({ t, deviceByRoom, openEdit, openPasswordDialog, openDeleteDialog }) => [
   { title: t("common:fields.name"), dataIndex: "name", key: "name", width: 160 },
   { title: t("rooms.building"), dataIndex: "building", key: "building", width: 140 },
   { title: t("rooms.capacity"), dataIndex: "capacity", key: "capacity", width: 100 },

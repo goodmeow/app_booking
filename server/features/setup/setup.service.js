@@ -55,15 +55,21 @@ export const completeSetup = async (body) => {
       }
       const roleId = await findSuperAdminRoleId(execute);
       if (!roleId) {
-        throw badRequest("SUPER_ADMIN_ROLE_MISSING", "The super admin role is not configured; run the migrations before setup");
+        throw badRequest(
+          "SUPER_ADMIN_ROLE_MISSING",
+          "The super admin role is not configured; run the migrations before setup",
+        );
       }
-      const created = await insertFirstAdmin({
-        name: values.name,
-        email: values.email,
-        passwordHash,
-        employeeId: values.employeeId,
-        roleId,
-      }, execute);
+      const created = await insertFirstAdmin(
+        {
+          name: values.name,
+          email: values.email,
+          passwordHash,
+          employeeId: values.employeeId,
+          roleId,
+        },
+        execute,
+      );
       await insertDefaultSettings(execute);
       await markSetupCompleted(execute);
       return created;

@@ -31,9 +31,7 @@ const KioskSignin = ({ onAuthenticated }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setDeviceName((current) => (
-      current === defaultDeviceNameRef.current ? translatedDeviceName : current
-    ));
+    setDeviceName((current) => (current === defaultDeviceNameRef.current ? translatedDeviceName : current));
     defaultDeviceNameRef.current = translatedDeviceName;
   }, [translatedDeviceName]);
 
@@ -54,7 +52,16 @@ const KioskSignin = ({ onAuthenticated }) => {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#07111f", display: "grid", placeItems: "center", padding: 24, fontFamily: kioskSans }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#07111f",
+        display: "grid",
+        placeItems: "center",
+        padding: 24,
+        fontFamily: kioskSans,
+      }}
+    >
       <Card style={{ width: "100%", maxWidth: 520 }} styles={{ body: { padding: 40 } }}>
         <Space align="start" style={{ width: "100%", justifyContent: "space-between" }}>
           <div>
@@ -74,12 +81,7 @@ const KioskSignin = ({ onAuthenticated }) => {
             {error ? <Alert type="error" showIcon message={error} /> : null}
             <div>
               <Typography.Text strong>{t("setup.roomLogin")}</Typography.Text>
-              <Input
-                autoFocus
-                required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
+              <Input autoFocus required value={email} onChange={(event) => setEmail(event.target.value)} />
             </div>
             <div>
               <Typography.Text strong>{t("setup.deviceName")}</Typography.Text>
@@ -92,11 +94,7 @@ const KioskSignin = ({ onAuthenticated }) => {
             </div>
             <div>
               <Typography.Text strong>{t("setup.roomPassword")}</Typography.Text>
-              <Input.Password
-                required
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
+              <Input.Password required value={password} onChange={(event) => setPassword(event.target.value)} />
             </div>
             <Button type="primary" htmlType="submit" size="large" block loading={loading}>
               {loading ? t("setup.connecting") : t("setup.connect")}
@@ -135,11 +133,7 @@ const ScheduleItem = ({ event, now, timeZone }) => {
           minWidth: 0,
         }}
       >
-        <Typography.Title
-          level={5}
-          ellipsis
-          style={{ margin: 0, fontFamily: kioskSerif, fontWeight: 600 }}
-        >
+        <Typography.Title level={5} ellipsis style={{ margin: 0, fontFamily: kioskSerif, fontWeight: 600 }}>
           {event.title}
         </Typography.Title>
         <Typography.Text type="secondary">
@@ -171,79 +165,109 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
   const mounted = useRef(true);
   const loadSequence = useRef(0);
 
-  useEffect(() => { latestSession.current = session; }, [session]);
-  useEffect(() => () => { mounted.current = false; }, []);
+  useEffect(() => {
+    latestSession.current = session;
+  }, [session]);
+  useEffect(
+    () => () => {
+      mounted.current = false;
+    },
+    [],
+  );
 
-  const refreshAccess = useCallback(async (staleToken) => {
-    if (latestSession.current.token !== staleToken) return latestSession.current;
-    if (!refreshPromise.current) {
-      refreshPromise.current = refreshKioskSession(latestSession.current.refreshToken)
-        .then(async (nextSession) => {
-          latestSession.current = nextSession;
-          saveKioskSession(nextSession);
-          // A refresh can finish while the page is reloading. Keep the new
-          // session; deprovisioning here would revoke the tablet we just
-          // refreshed and force an unnecessary re-pair.
-          if (mounted.current) onSessionUpdate(nextSession);
-          return nextSession;
-        })
-        .finally(() => { refreshPromise.current = null; });
-    }
-    return refreshPromise.current;
-  }, [onSessionUpdate, t]);
+  const refreshAccess = useCallback(
+    async (staleToken) => {
+      if (latestSession.current.token !== staleToken) return latestSession.current;
+      if (!refreshPromise.current) {
+        refreshPromise.current = refreshKioskSession(latestSession.current.refreshToken)
+          .then(async (nextSession) => {
+            latestSession.current = nextSession;
+            saveKioskSession(nextSession);
+            // A refresh can finish while the page is reloading. Keep the new
+            // session; deprovisioning here would revoke the tablet we just
+            // refreshed and force an unnecessary re-pair.
+            if (mounted.current) onSessionUpdate(nextSession);
+            return nextSession;
+          })
+          .finally(() => {
+            refreshPromise.current = null;
+          });
+      }
+      return refreshPromise.current;
+    },
+    [onSessionUpdate, t],
+  );
 
-  const withRefresh = useCallback(async (operation) => {
-    const accessToken = latestSession.current.token;
-    try {
-      return await operation(accessToken);
-    } catch (reason) {
-      if (reason?.status !== 401) throw reason;
-      const nextSession = await refreshAccess(accessToken);
-      return operation(nextSession.token);
-    }
-  }, [refreshAccess, session.token]);
+  const withRefresh = useCallback(
+    async (operation) => {
+      const accessToken = latestSession.current.token;
+      try {
+        return await operation(accessToken);
+      } catch (reason) {
+        if (reason?.status !== 401) throw reason;
+        const nextSession = await refreshAccess(accessToken);
+        return operation(nextSession.token);
+      }
+    },
+    [refreshAccess, session.token],
+  );
 
-  const handleUnauthorized = useCallback((reason) => {
-    if (reason?.status === 401) {
-      clearKioskSession();
-      onDeprovision();
-      return true;
-    }
-    return false;
-  }, [onDeprovision]);
+  const handleUnauthorized = useCallback(
+    (reason) => {
+      if (reason?.status === 401) {
+        clearKioskSession();
+        onDeprovision();
+        return true;
+      }
+      return false;
+    },
+    [onDeprovision],
+  );
 
-  const load = useCallback(async ({ quiet = false } = {}) => {
-    const requestSequence = ++loadSequence.current;
-    const canApply = () => mounted.current && requestSequence === loadSequence.current;
-    if (!quiet && mounted.current) setLoading(true);
-    try {
-      // The schedule day is decided by the server time zone, so read the context first.
-      const nextContext = await withRefresh((token) => fetchKioskContext(token));
-      const nextEvents = await withRefresh((token) => fetchKioskSchedule(token, kioskDayRange(new Date(), nextContext.timezone)));
-      if (!canApply()) return;
-      setContext(nextContext);
-      setEvents(Array.isArray(nextEvents) ? nextEvents : []);
-      setScheduleFresh(true);
-      setError("");
-      setLoading(false);
-    } catch (reason) {
-      if (!canApply()) return;
-      setScheduleFresh(false);
-      if (handleUnauthorized(reason)) return;
-      setError(reason.message);
-      setLoading(false);
-    }
-  }, [handleUnauthorized, withRefresh]);
+  const load = useCallback(
+    async ({ quiet = false } = {}) => {
+      const requestSequence = ++loadSequence.current;
+      const canApply = () => mounted.current && requestSequence === loadSequence.current;
+      if (!quiet && mounted.current) setLoading(true);
+      try {
+        // The schedule day is decided by the server time zone, so read the context first.
+        const nextContext = await withRefresh((token) => fetchKioskContext(token));
+        const nextEvents = await withRefresh((token) =>
+          fetchKioskSchedule(token, kioskDayRange(new Date(), nextContext.timezone)),
+        );
+        if (!canApply()) return;
+        setContext(nextContext);
+        setEvents(Array.isArray(nextEvents) ? nextEvents : []);
+        setScheduleFresh(true);
+        setError("");
+        setLoading(false);
+      } catch (reason) {
+        if (!canApply()) return;
+        setScheduleFresh(false);
+        if (handleUnauthorized(reason)) return;
+        setError(reason.message);
+        setLoading(false);
+      }
+    },
+    [handleUnauthorized, withRefresh],
+  );
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
   useEffect(() => {
     const clock = setInterval(() => setNow(new Date()), 1000);
     const refresh = setInterval(() => load({ quiet: true }), 60_000);
-    return () => { clearInterval(clock); clearInterval(refresh); };
+    return () => {
+      clearInterval(clock);
+      clearInterval(refresh);
+    };
   }, [load]);
   useEffect(() => {
     const socket = io("/", { transports: ["websocket"], auth: { token: session.token } });
-    const setConnection = (value) => { if (mounted.current) setConnected(value); };
+    const setConnection = (value) => {
+      if (mounted.current) setConnected(value);
+    };
     socket.on("connect", () => setConnection(true));
     socket.on("disconnect", () => setConnection(false));
     socket.on("connect_error", () => setConnection(false));
@@ -255,17 +279,18 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
 
   const state = useMemo(
     () => deriveKioskState(events, context.settings, now, { fresh: scheduleFresh }),
-    [context.settings, events, now, scheduleFresh]
+    [context.settings, events, now, scheduleFresh],
   );
   const palette = kioskPalette[state.mode];
   const paletteLabel = t(palette.labelKey);
-  const ledTagColor = {
-    occupied: "red",
-    awaitingCheckIn: "gold",
-    available: "green",
-    offline: "default",
-    unknown: "default",
-  }[state.mode] || "default";
+  const ledTagColor =
+    {
+      occupied: "red",
+      awaitingCheckIn: "gold",
+      available: "green",
+      offline: "default",
+      unknown: "default",
+    }[state.mode] || "default";
   const featured = state.current || state.next;
 
   const openCheckIn = (event) => {
@@ -351,7 +376,9 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
           </div>
           <Space wrap>
             {context.device?.nfcEnabled ? (
-              <Tag color="blue" style={{ color: "#EDF2F6" }}>NFC</Tag>
+              <Tag color="blue" style={{ color: "#EDF2F6" }}>
+                NFC
+              </Tag>
             ) : null}
             {context.device?.ledEnabled ? (
               <Tag color={ledTagColor} style={{ color: "#EDF2F6" }}>
@@ -450,14 +477,12 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
                   <Typography.Text style={{ letterSpacing: 2, opacity: 0.8, textTransform: "uppercase" }}>
                     {state.current ? t("schedule.currentMeeting") : t("schedule.nextMeeting")}
                   </Typography.Text>
-                  <Typography.Title
-                    level={2}
-                    style={{ marginTop: 8, fontFamily: kioskSerif, color: "#FFFFFF" }}
-                  >
+                  <Typography.Title level={2} style={{ marginTop: 8, fontFamily: kioskSerif, color: "#FFFFFF" }}>
                     {featured.title}
                   </Typography.Title>
                   <Typography.Title level={4} style={{ marginTop: 16, opacity: 0.9, color: "#FFFFFF" }}>
-                    {formatKioskTime(featured.start, context.timezone)} – {formatKioskTime(featured.end, context.timezone)}
+                    {formatKioskTime(featured.start, context.timezone)} –{" "}
+                    {formatKioskTime(featured.end, context.timezone)}
                   </Typography.Title>
                   {state.current?.canCheckIn ? (
                     <div style={{ marginTop: 24 }}>
@@ -492,13 +517,15 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
             }}
             styles={{ body: { padding: 24, overflow: "auto", maxHeight: "calc(100vh - 150px)" } }}
           >
-            <Typography.Title level={3} style={{ marginTop: 0 }}>{t("schedule.today")}</Typography.Title>
+            <Typography.Title level={3} style={{ marginTop: 0 }}>
+              {t("schedule.today")}
+            </Typography.Title>
             <Typography.Paragraph type="secondary">
               {t("schedule.count", { count: events.length })}
             </Typography.Paragraph>
-            {events.length ? events.map((event) => (
-              <ScheduleItem key={event.id} event={event} now={now} timeZone={context.timezone} />
-            )) : (
+            {events.length ? (
+              events.map((event) => <ScheduleItem key={event.id} event={event} now={now} timeZone={context.timezone} />)
+            ) : (
               <div style={{ padding: "64px 0", textAlign: "center" }}>
                 <Typography.Text type="secondary">{t("schedule.empty")}</Typography.Text>
               </div>
@@ -518,13 +545,7 @@ const KioskDisplay = ({ session, onDeprovision, onSessionUpdate }) => {
           <Button key="cancel" onClick={closeCheckIn} disabled={checkInBusy}>
             {t("checkin.cancel")}
           </Button>,
-          <Button
-            key="submit"
-            type="primary"
-            htmlType="submit"
-            form="kiosk-checkin-form"
-            loading={checkInBusy}
-          >
+          <Button key="submit" type="primary" htmlType="submit" form="kiosk-checkin-form" loading={checkInBusy}>
             {checkInBusy ? t("checkin.submitting") : t("checkin.submit")}
           </Button>,
         ]}
@@ -579,7 +600,9 @@ const KioskApp = ({ forceProvision = false }) => {
       await clearProvisioning();
       if (active) setResetting(false);
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   const completeProvision = (nextSession) => {

@@ -68,13 +68,7 @@ const UserImportDialog = ({ open, onClose, onImported }) => {
         <Button key="close" onClick={close} disabled={isLoading}>
           {t("common:actions.close")}
         </Button>,
-        <Button
-          key="submit"
-          type="primary"
-          loading={isLoading}
-          disabled={!rows.length}
-          onClick={submit}
-        >
+        <Button key="submit" type="primary" loading={isLoading} disabled={!rows.length} onClick={submit}>
           {isLoading ? t("users.importing") : t("users.importSubmit")}
         </Button>,
       ]}
@@ -91,9 +85,7 @@ const UserImportDialog = ({ open, onClose, onImported }) => {
             return false;
           }}
         >
-          <Button disabled={isLoading}>
-            {fileName || t("users.importChoose")}
-          </Button>
+          <Button disabled={isLoading}>{fileName || t("users.importChoose")}</Button>
         </Upload>
         {rows.length ? <Alert type="info" showIcon message={t("users.importRows", { count: rows.length })} /> : null}
         <div>
@@ -122,19 +114,21 @@ const UserImportDialog = ({ open, onClose, onImported }) => {
               skipped: result.skipped,
               failed: result.failed,
             })}
-            description={result.errors?.length ? (
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {result.errors.slice(0, 5).map((item) => (
-                  <li key={`${item.row}-${item.employee_id}`}>
-                    {t("users.importErrorRow", {
-                      row: item.row,
-                      employee: item.employee_id,
-                      message: item.message,
-                    })}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            description={
+              result.errors?.length ? (
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {result.errors.slice(0, 5).map((item) => (
+                    <li key={`${item.row}-${item.employee_id}`}>
+                      {t("users.importErrorRow", {
+                        row: item.row,
+                        employee: item.employee_id,
+                        message: item.message,
+                      })}
+                    </li>
+                  ))}
+                </ul>
+              ) : null
+            }
           />
         ) : null}
       </Space>

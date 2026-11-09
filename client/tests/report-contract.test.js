@@ -8,27 +8,40 @@ import {
 } from "../domain/report.js";
 
 class Workbook {
-  constructor() { this.sheets = []; }
+  constructor() {
+    this.sheets = [];
+  }
   addWorksheet(name) {
-    const worksheet = { name, rows: [], columns: [], addRows(rows) { this.rows.push(...rows); } };
+    const worksheet = {
+      name,
+      rows: [],
+      columns: [],
+      addRows(rows) {
+        this.rows.push(...rows);
+      },
+    };
     this.sheets.push(worksheet);
     return worksheet;
   }
 }
 const XLSX = { Workbook };
 
-const rooms = [{
-  room_name: "Meeting Room One",
-  room_mail: "meeting-one@room.com",
-  total_pemakaian: 1,
-  list_meeting: [{
-    subject: "Quarterly planning",
-    organizer: "owner@example.test",
-    description: "Budget%20%2B%20schedule",
-    start_date: "2030-01-15T09:00:00.000Z",
-    end_date: "2030-01-15T10:00:00.000Z",
-  }],
-}];
+const rooms = [
+  {
+    room_name: "Meeting Room One",
+    room_mail: "meeting-one@room.com",
+    total_pemakaian: 1,
+    list_meeting: [
+      {
+        subject: "Quarterly planning",
+        organizer: "owner@example.test",
+        description: "Budget%20%2B%20schedule",
+        start_date: "2030-01-15T09:00:00.000Z",
+        end_date: "2030-01-15T10:00:00.000Z",
+      },
+    ],
+  },
+];
 
 test("builds localized report rows and decodes descriptions", () => {
   const rows = roomUsageExportRows(rooms, "en");

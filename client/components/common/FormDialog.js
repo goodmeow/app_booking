@@ -37,15 +37,8 @@ const FormDialog = ({
         <Button key="cancel" onClick={onClose} disabled={loading}>
           {t("actions.cancel")}
         </Button>,
-        <Button
-          key="submit"
-          type="primary"
-          htmlType="submit"
-          form={formId}
-          loading={loading}
-          disabled={submitDisabled}
-        >
-          {loading ? t("states.loading") : submitLabel ?? t("actions.save")}
+        <Button key="submit" type="primary" htmlType="submit" form={formId} loading={loading} disabled={submitDisabled}>
+          {loading ? t("states.loading") : (submitLabel ?? t("actions.save"))}
         </Button>,
       ]}
     >

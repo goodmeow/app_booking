@@ -111,16 +111,23 @@ const WebRouter = () => (
 
 const MainRouter = () => (
   <Switch>
-    <Route exact path="/kiosk/setup" render={() => (
-      <React.Suspense fallback={<LoadingState />}>
-        <KioskApp forceProvision />
-      </React.Suspense>
-    )} />
-    <Route path="/kiosk" render={() => (
-      <React.Suspense fallback={<LoadingState />}>
-        <KioskApp />
-      </React.Suspense>
-    )} />
+    <Route
+      exact
+      path="/kiosk/setup"
+      render={() => (
+        <React.Suspense fallback={<LoadingState />}>
+          <KioskApp forceProvision />
+        </React.Suspense>
+      )}
+    />
+    <Route
+      path="/kiosk"
+      render={() => (
+        <React.Suspense fallback={<LoadingState />}>
+          <KioskApp />
+        </React.Suspense>
+      )}
+    />
     <Route component={WebRouter} />
   </Switch>
 );

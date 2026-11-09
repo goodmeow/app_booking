@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Button, Space, Switch, Table, Tag, Typography } from "antd";
+import { Alert, Button, Select, Space, Switch, Table, Tag, Typography } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import ConfirmDialog from "../components/common/ConfirmDialog.js";
@@ -12,16 +12,32 @@ import {
   useUpdateKioskDeviceCapabilitiesMutation,
 } from "../redux/services/kiosk-devices.js";
 
-const formatDateTime = (value, language, neverLabel) => value
-  ? new Intl.DateTimeFormat(localeForLanguage(language), { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
-  : neverLabel;
+const formatDateTime = (value, language, neverLabel) =>
+  value
+    ? new Intl.DateTimeFormat(localeForLanguage(language), { dateStyle: "medium", timeStyle: "short" }).format(
+        new Date(value),
+      )
+    : neverLabel;
+
+// The room account carries either the multi-floor list or the legacy single value.
+const deviceFloors = (device) => {
+  if (device.roomFloors?.length) return device.roomFloors;
+  return device.roomFloor ? [device.roomFloor] : [];
+};
 
 const KioskDeviceManagementSection = () => {
   const { t, i18n } = useTranslation(["management", "common"]);
-  const { data: devices = [], error: queryError, isLoading, isFetching, refetch } = useGetKioskDevicesQuery(undefined, { pollingInterval: 15000 });
+  const {
+    data: devices = [],
+    error: queryError,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetKioskDevicesQuery(undefined, { pollingInterval: 15000 });
   const [revokeDevice, { isLoading: isRevoking }] = useRevokeKioskDeviceMutation();
   const [updateCapabilities, { isLoading: isUpdatingCapabilities }] = useUpdateKioskDeviceCapabilitiesMutation();
   const [revokeTarget, setRevokeTarget] = useState(null);
+  const [floorFilter, setFloorFilter] = useState("all");
   const [revokeError, setRevokeError] = useState("");
   const [capabilityError, setCapabilityError] = useState("");
 
@@ -59,9 +75,11 @@ const KioskDeviceManagementSection = () => {
   const statusTag = (row) => {
     if (row.status === "revoked") return <Tag color="red">{t("devices.status.revoked")}</Tag>;
     if (row.status === "expired") return <Tag color="gold">{t("devices.status.expired")}</Tag>;
-    return row.online
-      ? <Tag color="green">{t("devices.status.online")}</Tag>
-      : <Tag>{t("devices.status.offline")}</Tag>;
+    return row.online ? (
+      <Tag color="green">{t("devices.status.online")}</Tag>
+    ) : (
+      <Tag>{t("devices.status.offline")}</Tag>
+    );
   };
 
   const columns = [
@@ -70,6 +88,22 @@ const KioskDeviceManagementSection = () => {
       dataIndex: "name",
       key: "name",
       width: 200,
+    },
+    {
+      title: t("devices.floor"),
+      dataIndex: "roomFloors",
+      key: "roomFloors",
+      render: (_, record) => {
+        const floors = deviceFloors(record);
+        if (!floors.length) return "-";
+        return (
+          <Space size={4} wrap>
+            {floors.map((floor) => (
+              <Tag key={floor}>{floor === "all" ? t("common:fields.allFloors") : floor}</Tag>
+            ))}
+          </Space>
+        );
+      },
     },
     {
       title: t("devices.room"),
@@ -157,18 +191,25 @@ const KioskDeviceManagementSection = () => {
       title: t("common:fields.action"),
       key: "actions",
       width: 120,
-      render: (_, row) => row.status === "active" ? (
-        <Button
-          danger
-          size="small"
-          onClick={() => openRevokeDialog(row)}
-          aria-label={t("devices.revokeAria", { name: row.name })}
-        >
-          {t("devices.revoke")}
-        </Button>
-      ) : null,
+      render: (_, row) =>
+        row.status === "active" ? (
+          <Button
+            danger
+            size="small"
+            onClick={() => openRevokeDialog(row)}
+            aria-label={t("devices.revokeAria", { name: row.name })}
+          >
+            {t("devices.revoke")}
+          </Button>
+        ) : null,
     },
   ];
+
+  const floorOptions = [...new Set(devices.flatMap(deviceFloors))].sort((left, right) =>
+    String(left).localeCompare(String(right), undefined, { numeric: true }),
+  );
+  const visibleDevices =
+    floorFilter === "all" ? devices : devices.filter((device) => deviceFloors(device).includes(floorFilter));
 
   return (
     <section>
@@ -177,19 +218,33 @@ const KioskDeviceManagementSection = () => {
         style={{ width: "100%", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap" }}
       >
         <div>
-          <Typography.Title level={4} style={{ margin: 0 }}>{t("devices.title")}</Typography.Title>
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            {t("devices.title")}
+          </Typography.Title>
           <Typography.Text type="secondary">{t("devices.description")}</Typography.Text>
         </div>
-        {/* Plain download: the static file /apk/kiosk-release.apk shipped by Vite. */}
-        <Button
-          href="/apk/kiosk-release.apk"
-          download="kiosk-release.apk"
-          icon={<DownloadOutlined />}
-          aria-label={t("devices.downloadApkAria")}
-          title={t("devices.downloadApkHint")}
-        >
-          {t("devices.downloadApk")}
-        </Button>
+        <Space wrap>
+          <Select
+            value={floorFilter}
+            onChange={setFloorFilter}
+            style={{ minWidth: 160 }}
+            aria-label={t("devices.filterFloor")}
+            options={[
+              { value: "all", label: t("common:fields.allFloors") },
+              ...floorOptions.map((floor) => ({ value: floor, label: floor })),
+            ]}
+          />
+          {/* Plain download: the static file /apk/kiosk-release.apk shipped by Vite. */}
+          <Button
+            href="/apk/kiosk-release.apk"
+            download="kiosk-release.apk"
+            icon={<DownloadOutlined />}
+            aria-label={t("devices.downloadApkAria")}
+            title={t("devices.downloadApkHint")}
+          >
+            {t("devices.downloadApk")}
+          </Button>
+        </Space>
       </Space>
 
       {isFetching && !isLoading ? (
@@ -199,15 +254,13 @@ const KioskDeviceManagementSection = () => {
       {queryError && !isLoading ? (
         <ErrorState message={getApiError(queryError, t("devices.loadError"))} busy={isFetching} onAction={refetch} />
       ) : null}
-      {capabilityError ? (
-        <Alert type="error" showIcon message={capabilityError} style={{ marginBottom: 16 }} />
-      ) : null}
+      {capabilityError ? <Alert type="error" showIcon message={capabilityError} style={{ marginBottom: 16 }} /> : null}
       {!isLoading && (!queryError || devices.length > 0) ? (
         <Table
           size="small"
           rowKey="id"
           columns={columns}
-          dataSource={devices}
+          dataSource={visibleDevices}
           loading={isFetching}
           pagination={{ pageSize: 5, showSizeChanger: false }}
           scroll={{ x: 1200 }}

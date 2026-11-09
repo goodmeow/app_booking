@@ -42,10 +42,7 @@ const resolveThroughExistingParent = (candidate) => {
 const resolvedServerPath = fs.realpathSync(serverPath);
 const resolvedOutputPath = resolveThroughExistingParent(outputPath);
 
-if (
-  isWithin(serverPath, outputPath) ||
-  isWithin(resolvedServerPath, resolvedOutputPath)
-) {
+if (isWithin(serverPath, outputPath) || isWithin(resolvedServerPath, resolvedOutputPath)) {
   console.error("Refusing recovery output inside the live server/ tree.");
   process.exit(1);
 }
@@ -80,7 +77,8 @@ source = source
   .map((line) => line.trimEnd().replace(/^ +\t/, "\t"))
   .join("\n");
 
-const header = `// NON-RUNNABLE ARCHIVE: mechanically recovered from immutable dist/server/server.bundle.js.\n` +
+const header =
+  `// NON-RUNNABLE ARCHIVE: mechanically recovered from immutable dist/server/server.bundle.js.\n` +
   `// Historical dependency/import paths are intentionally preserved as evidence only.\n` +
   `import express from "express";\n` +
   `import pg from "pg";\n` +

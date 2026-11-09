@@ -1,32 +1,21 @@
 import React from "react";
 import { Button, Dropdown, Space, Tag, Tooltip, Typography } from "antd";
-import {
-  CreditCardOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  KeyOutlined,
-  MoreOutlined,
-} from "@ant-design/icons";
+import { CreditCardOutlined, DeleteOutlined, EditOutlined, KeyOutlined, MoreOutlined } from "@ant-design/icons";
 import { primaryCardNumber } from "./user-cards.js";
 import { roleLabel } from "./user-filters.js";
 
 const textSorter = (left, right) => String(left ?? "").localeCompare(String(right ?? ""));
 
-export const UserActions = ({
-  row,
-  t,
-  openEdit,
-  openCards,
-  openPasswordDialog,
-  openDeleteDialog,
-}) => {
+export const UserActions = ({ row, t, openEdit, openCards, openPasswordDialog, openDeleteDialog }) => {
   const items = [
     { key: "cards", icon: <CreditCardOutlined />, label: t("users.cardsTooltip") },
     { key: "password", icon: <KeyOutlined />, label: t("users.passwordTooltip") },
-    ...(row.is_protected ? [] : [
-      { type: "divider" },
-      { key: "delete", danger: true, icon: <DeleteOutlined />, label: t("users.deleteTooltip") },
-    ]),
+    ...(row.is_protected
+      ? []
+      : [
+          { type: "divider" },
+          { key: "delete", danger: true, icon: <DeleteOutlined />, label: t("users.deleteTooltip") },
+        ]),
   ];
 
   return (
@@ -65,14 +54,7 @@ export const UserActions = ({
 
 // Column definitions for the Users table, kept out of the section component so
 // the page itself stays readable. All behaviour arrives through `handlers`.
-export const buildUserColumns = ({
-  t,
-  floorLabel,
-  openEdit,
-  openCards,
-  openPasswordDialog,
-  openDeleteDialog,
-}) => [
+export const buildUserColumns = ({ t, floorLabel, openEdit, openCards, openPasswordDialog, openDeleteDialog }) => [
   {
     title: t("common:fields.name"),
     dataIndex: "name",
@@ -83,9 +65,7 @@ export const buildUserColumns = ({
       <div>
         <Typography.Text strong>{row.name}</Typography.Text>
         <div>
-          <Typography.Text type="secondary">
-            {[row.email, row.employee_id].filter(Boolean).join(" · ")}
-          </Typography.Text>
+          <Typography.Text type="secondary">{[row.email, row.employee_id].filter(Boolean).join(" · ")}</Typography.Text>
         </div>
       </div>
     ),
@@ -106,7 +86,7 @@ export const buildUserColumns = ({
     key: "floors",
     width: 220,
     render: (_, row) => {
-      const floors = row.floors?.length ? row.floors : (row.floor ? [row.floor] : []);
+      const floors = row.floors?.length ? row.floors : row.floor ? [row.floor] : [];
       if (!floors.length) return <Tag color="warning">{t("users.floorUnset")}</Tag>;
       return (
         <Space size={4} wrap>

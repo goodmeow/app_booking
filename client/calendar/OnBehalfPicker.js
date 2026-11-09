@@ -2,10 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Select, Spin, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import { getApiError } from "../domain/api-error.js";
-import {
-  MIN_DIRECTORY_QUERY_LENGTH,
-  directoryQuery,
-} from "../domain/users/attendee-directory.js";
+import { MIN_DIRECTORY_QUERY_LENGTH, directoryQuery } from "../domain/users/attendee-directory.js";
 import { useListUserQuery } from "../redux/services/users.js";
 
 // Long enough to skip most keystrokes, short enough to feel responsive.
@@ -34,9 +31,7 @@ const OnBehalfPicker = ({ value = null, disabled = false, onChange }) => {
   // as soon as the input text changes, and the value must stay resolvable.
   const options = useMemo(() => {
     const found = Array.isArray(searchQuery.data) ? searchQuery.data : [];
-    const people = !value || found.some((option) => option?._id === value?._id)
-      ? found
-      : [value, ...found];
+    const people = !value || found.some((option) => option?._id === value?._id) ? found : [value, ...found];
     return people.map((person) => ({
       value: person._id,
       label: person.name || person.email,
@@ -47,9 +42,7 @@ const OnBehalfPicker = ({ value = null, disabled = false, onChange }) => {
   const typedTerm = directoryQuery(inputValue);
   const needsMoreCharacters = typedTerm.length < MIN_DIRECTORY_QUERY_LENGTH;
   const searching = !needsMoreCharacters && (searchQuery.isFetching || !searchTerm);
-  const noOptionsText = needsMoreCharacters
-    ? t("editor.onBehalfSearchHint")
-    : t("editor.onBehalfNoOptions");
+  const noOptionsText = needsMoreCharacters ? t("editor.onBehalfSearchHint") : t("editor.onBehalfNoOptions");
   const helperText = searchQuery.isError
     ? getApiError(searchQuery.error, t("calendar.usersLoadError"))
     : t("editor.onBehalfHelp");
@@ -82,9 +75,7 @@ const OnBehalfPicker = ({ value = null, disabled = false, onChange }) => {
         )}
         style={{ width: "100%" }}
       />
-      <Typography.Text type={searchQuery.isError ? "danger" : "secondary"}>
-        {helperText}
-      </Typography.Text>
+      <Typography.Text type={searchQuery.isError ? "danger" : "secondary"}>{helperText}</Typography.Text>
     </div>
   );
 };

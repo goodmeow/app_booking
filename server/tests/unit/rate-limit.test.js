@@ -4,11 +4,14 @@ import { test } from "node:test";
 import { failedLoginRateLimits, fixedWindowRateLimit, ipAndLoginKey } from "../../security/rate-limit.middleware.js";
 
 const request = (ip, body = {}) => ({ ip, body, socket: { remoteAddress: ip } });
-const response = () => Object.assign(new EventEmitter(), {
-  statusCode: 200,
-  headers: {},
-  set(name, value) { this.headers[name] = value; },
-});
+const response = () =>
+  Object.assign(new EventEmitter(), {
+    statusCode: 200,
+    headers: {},
+    set(name, value) {
+      this.headers[name] = value;
+    },
+  });
 
 // Runs all limiters like Express middleware, then ends the response with a
 // given status so the effect of skipSuccessfulRequests is tested too.
@@ -17,7 +20,10 @@ const attempt = (limiters, req, statusCode) => {
   let blocked = null;
   for (const limiter of limiters) {
     let passed = false;
-    limiter(req, res, (error) => { if (error) blocked = error; else passed = true; });
+    limiter(req, res, (error) => {
+      if (error) blocked = error;
+      else passed = true;
+    });
     if (!passed) break;
   }
   res.statusCode = statusCode;

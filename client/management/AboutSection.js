@@ -42,7 +42,9 @@ const AboutSection = () => {
   const { t } = useTranslation("management");
   return (
     <div>
-      <Typography.Title level={4} style={{ marginTop: 0 }}>{t("about.title")}</Typography.Title>
+      <Typography.Title level={4} style={{ marginTop: 0 }}>
+        {t("about.title")}
+      </Typography.Title>
 
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
         <Card size="small" title={t("about.versionTitle")}>

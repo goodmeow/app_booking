@@ -50,7 +50,7 @@ export async function prepareLegacyBundle() {
   const source = await fs.readFile(legacySource, "utf8");
   await fs.writeFile(
     legacyRuntime,
-    source.replace('require("express-jwt")', `require(${JSON.stringify(legacyExpressJwtShim)})`)
+    source.replace('require("express-jwt")', `require(${JSON.stringify(legacyExpressJwtShim)})`),
   );
   return legacyRuntime;
 }
@@ -183,9 +183,7 @@ export async function stopServer(child) {
   const timeout = new Promise((resolve) => setTimeout(resolve, 2_000, "timeout"));
   if ((await Promise.race([exited, timeout])) === "timeout") {
     child.kill("SIGKILL");
-    const killTimeout = new Promise((resolve) =>
-      setTimeout(resolve, 2_000, "kill-timeout")
-    );
+    const killTimeout = new Promise((resolve) => setTimeout(resolve, 2_000, "kill-timeout"));
     if ((await Promise.race([exited, killTimeout])) === "kill-timeout") {
       throw new Error(`Server process ${child.pid} did not exit after SIGKILL`);
     }
@@ -219,6 +217,6 @@ export function normalizeDynamic(value) {
         return [key, "<timestamp>"];
       }
       return [key, normalizeDynamic(item)];
-    })
+    }),
   );
 }

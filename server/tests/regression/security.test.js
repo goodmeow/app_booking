@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { apiRequest, queryParityDatabase, resetParityDatabase, startServer, stopServer, targets } from "../parity/harness.js";
+import {
+  apiRequest,
+  queryParityDatabase,
+  resetParityDatabase,
+  startServer,
+  stopServer,
+  targets,
+} from "../parity/harness.js";
 import { bearer, ids, identities } from "../parity/fixtures.js";
 
 let server;
@@ -16,7 +23,7 @@ test("room schedule exposes only a safe busy projection to unrelated users", asy
   const response = await apiRequest(
     targets.reconstructed,
     "/api/events?rooms=room-one%40room.com&start=20300101&end=20300131",
-    { headers: bearer("viewer") }
+    { headers: bearer("viewer") },
   );
   assert.equal(response.status, 200);
   const event = response.body.find((item) => item.id === ids.event);
@@ -25,7 +32,15 @@ test("room schedule exposes only a safe busy projection to unrelated users", asy
   assert.equal(event.can_view_details, false);
   assert.equal(event.organizer_first_name, "Test");
   assert.match(event.title, /^\[Test, \d{2}:\d{2} - \d{2}:\d{2}\]$/);
-  for (const field of ["subject", "description", "organizer", "attendees", "checked_in", "late_threshold", "created_at"]) {
+  for (const field of [
+    "subject",
+    "description",
+    "organizer",
+    "attendees",
+    "checked_in",
+    "late_threshold",
+    "created_at",
+  ]) {
     assert.equal(Object.hasOwn(event, field), false, field);
   }
 });
@@ -38,11 +53,9 @@ test("the floor query does not expose full details to an ordinary employee", asy
     UPDATE tbl_users SET floor = '1' WHERE _id = '${roomId}';
   `);
   try {
-    const response = await apiRequest(
-      targets.reconstructed,
-      "/api/events?floor=true&start=20300101&end=20300131",
-      { headers: bearer("viewer") }
-    );
+    const response = await apiRequest(targets.reconstructed, "/api/events?floor=true&start=20300101&end=20300131", {
+      headers: bearer("viewer"),
+    });
     assert.equal(response.status, 200);
     const event = response.body.find((item) => item.id === ids.event);
     // The event may disappear entirely for an unrelated employee; if it is
@@ -51,7 +64,10 @@ test("the floor query does not expose full details to an ordinary employee", asy
       assert.equal(event.visibility, "busy");
       assert.equal(event.can_view_details, false);
     }
-    assert.equal(response.body.some((item) => Object.hasOwn(item, "subject")), false);
+    assert.equal(
+      response.body.some((item) => Object.hasOwn(item, "subject")),
+      false,
+    );
   } finally {
     await queryParityDatabase(`
       UPDATE tbl_users SET floor = NULL, floors = ARRAY[]::text[] WHERE _id = '${viewerId}';
@@ -103,7 +119,7 @@ test("personal schedule identity cannot be selected through query parameters", a
   const response = await apiRequest(
     targets.reconstructed,
     "/api/events?users=admin%40example.test&start=20300101&end=20300131",
-    { headers: bearer("viewer") }
+    { headers: bearer("viewer") },
   );
   assert.equal(response.status, 200);
   assert.deepEqual(response.body, []);
@@ -113,7 +129,7 @@ test("room filter rejects an employee identity", async () => {
   const response = await apiRequest(
     targets.reconstructed,
     "/api/events?rooms=user%40example.test&start=20300101&end=20300131",
-    { headers: bearer("viewer") }
+    { headers: bearer("viewer") },
   );
   assert.equal(response.status, 404);
 });
@@ -121,7 +137,17 @@ test("room filter rejects an employee identity", async () => {
 test("guessed event IDs cannot reveal or mutate another organizer's event", async () => {
   const attempts = [
     ["GET", `/api/events/details?event_id=${ids.event}`],
-    ["PUT", "/api/events", { id: ids.event, organizer: identities.viewer.email, subject: "Taken over", start_date: "2030-01-15T03:00:00.000Z", end_date: "2030-01-15T04:00:00.000Z" }],
+    [
+      "PUT",
+      "/api/events",
+      {
+        id: ids.event,
+        organizer: identities.viewer.email,
+        subject: "Taken over",
+        start_date: "2030-01-15T03:00:00.000Z",
+        end_date: "2030-01-15T04:00:00.000Z",
+      },
+    ],
     ["POST", "/api/events/attendee", [{ event_id: ids.event, attendee_email: identities.viewer.email }]],
     ["DELETE", `/api/events/details?event_detail_id=${ids.eventDetail}`],
     ["PUT", "/api/events/early-finish", { event_id: ids.event }],
@@ -145,11 +171,9 @@ test("non-admin settings mutation and cross-user profile reads are forbidden", a
   });
   assert.equal(settings.status, 403);
 
-  const profile = await apiRequest(
-    targets.reconstructed,
-    `/api/users/${identities.admin._id}`,
-    { headers: bearer("user") }
-  );
+  const profile = await apiRequest(targets.reconstructed, `/api/users/${identities.admin._id}`, {
+    headers: bearer("user"),
+  });
   assert.equal(profile.status, 403);
 });
 
@@ -177,8 +201,10 @@ test("room accounts require no employee role and ignore role assignment", async 
   assert.equal(created.status, 201);
   assert.equal(created.body.type, "room");
   assert.equal(
-    await queryParityDatabase("SELECT COALESCE(role_id::text, 'none') FROM tbl_users WHERE email='roleless-room@room.test';"),
-    "none"
+    await queryParityDatabase(
+      "SELECT COALESCE(role_id::text, 'none') FROM tbl_users WHERE email='roleless-room@room.test';",
+    ),
+    "none",
   );
 
   const updated = await apiRequest(targets.reconstructed, `/api/rooms/${created.body._id}`, {
@@ -192,8 +218,10 @@ test("room accounts require no employee role and ignore role assignment", async 
   });
   assert.equal(updated.status, 200);
   assert.equal(
-    await queryParityDatabase("SELECT COALESCE(role_id::text, 'none') FROM tbl_users WHERE email='roleless-room@room.test';"),
-    "none"
+    await queryParityDatabase(
+      "SELECT COALESCE(role_id::text, 'none') FROM tbl_users WHERE email='roleless-room@room.test';",
+    ),
+    "none",
   );
 });
 
@@ -222,7 +250,10 @@ test("profile and room updates preserve an omitted username", async () => {
     body: JSON.stringify({ name: identities.user.name, email: identities.user.email }),
   });
   assert.equal(profile.status, 200);
-  assert.equal(await queryParityDatabase(`SELECT username FROM tbl_users WHERE _id='${identities.user._id}';`), "kept.user");
+  assert.equal(
+    await queryParityDatabase(`SELECT username FROM tbl_users WHERE _id='${identities.user._id}';`),
+    "kept.user",
+  );
 
   await queryParityDatabase(`UPDATE tbl_users SET username='kept.room' WHERE _id='${identities.room._id}';`);
   const room = await apiRequest(targets.reconstructed, `/api/rooms/${identities.room._id}`, {
@@ -231,7 +262,10 @@ test("profile and room updates preserve an omitted username", async () => {
     body: JSON.stringify({ name: identities.room.name, email: identities.room.email }),
   });
   assert.equal(room.status, 200);
-  assert.equal(await queryParityDatabase(`SELECT username FROM tbl_users WHERE _id='${identities.room._id}';`), "kept.room");
+  assert.equal(
+    await queryParityDatabase(`SELECT username FROM tbl_users WHERE _id='${identities.room._id}';`),
+    "kept.room",
+  );
 });
 
 test("CORS rejects untrusted origins with a typed policy response", async () => {
@@ -253,19 +287,20 @@ test("retiring a role revokes existing JWT privileges", async () => {
 });
 
 test("public signup follows the admin switch and ignores requested privilege", async () => {
-  const signup = () => apiRequest(targets.reconstructed, "/api/auth/signup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: "Domain Neutral",
-      email: "domain-neutral@room.com",
-      username: "domain.neutral",
-      password: "SecurePass123!",
-      role: "ADMIN",
-      roleId: "471ba030-c950-41f9-90da-4e0fe10426a6",
-      type: "room",
-    }),
-  });
+  const signup = () =>
+    apiRequest(targets.reconstructed, "/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Domain Neutral",
+        email: "domain-neutral@room.com",
+        username: "domain.neutral",
+        password: "SecurePass123!",
+        role: "ADMIN",
+        roleId: "471ba030-c950-41f9-90da-4e0fe10426a6",
+        type: "room",
+      }),
+    });
 
   const publicFlag = await apiRequest(targets.reconstructed, "/api/settings/public");
   assert.equal(publicFlag.status, 200);
@@ -283,8 +318,10 @@ test("public signup follows the admin switch and ignores requested privilege", a
     const enabled = await signup();
     assert.equal(enabled.status, 201);
     assert.equal(
-      await queryParityDatabase("SELECT type || '|' || lower(r.role_name) FROM tbl_users u JOIN tbl_role r ON r._id=u.role_id WHERE u.email='domain-neutral@room.com';"),
-      "employee|user"
+      await queryParityDatabase(
+        "SELECT type || '|' || lower(r.role_name) FROM tbl_users u JOIN tbl_role r ON r._id=u.role_id WHERE u.email='domain-neutral@room.com';",
+      ),
+      "employee|user",
     );
   } finally {
     await queryParityDatabase("UPDATE tbl_app_settings SET self_signup_enabled = false;");
@@ -299,7 +336,7 @@ test("inactive accounts are rejected even when their JWT is still valid", async 
 
 test("room status respects the caller's floor scope", async () => {
   await queryParityDatabase(
-    `UPDATE tbl_users SET floor = '9', floors = ARRAY['9'] WHERE _id = '${identities.user._id}';`
+    `UPDATE tbl_users SET floor = '9', floors = ARRAY['9'] WHERE _id = '${identities.user._id}';`,
   );
   const userStatus = await apiRequest(targets.reconstructed, "/api/rooms/status", {
     headers: bearer("user"),
@@ -324,23 +361,17 @@ test("a malformed card-master identifier is a 404, not a database 500", async ()
 });
 
 test("a malformed kiosk device identifier is a 404, not a database 500", async () => {
-  const response = await apiRequest(
-    targets.reconstructed,
-    "/api/kiosk/devices/not-a-uuid/capabilities",
-    {
-      method: "PATCH",
-      headers: bearer("admin"),
-      body: JSON.stringify({ ledEnabled: true }),
-    }
-  );
+  const response = await apiRequest(targets.reconstructed, "/api/kiosk/devices/not-a-uuid/capabilities", {
+    method: "PATCH",
+    headers: bearer("admin"),
+    body: JSON.stringify({ ledEnabled: true }),
+  });
   assert.equal(response.status, 404);
 });
 
 test("an admin cannot demote or delete another super administrator", async () => {
   const superId = "20000000-0000-4000-8000-000000000099";
-  const userRoleId = await queryParityDatabase(
-    "SELECT _id FROM tbl_role WHERE lower(role_name) = 'user';"
-  );
+  const userRoleId = await queryParityDatabase("SELECT _id FROM tbl_role WHERE lower(role_name) = 'user';");
   await queryParityDatabase(`
     INSERT INTO tbl_users
       (_id, name, email, password, role_id, employee_id, type, floors, is_deleted, is_protected)
@@ -373,28 +404,25 @@ test("an admin cannot demote or delete another super administrator", async () =>
 });
 
 test("only an admin may delete another account and an admin cannot delete itself", async () => {
-  const ownAsUser = await apiRequest(
-    targets.reconstructed,
-    `/api/users/${identities.user._id}`,
-    { method: "DELETE", headers: bearer("user") }
-  );
+  const ownAsUser = await apiRequest(targets.reconstructed, `/api/users/${identities.user._id}`, {
+    method: "DELETE",
+    headers: bearer("user"),
+  });
   assert.equal(ownAsUser.status, 403);
 
-  const otherAsUser = await apiRequest(
-    targets.reconstructed,
-    `/api/users/${identities.viewer._id}`,
-    { method: "DELETE", headers: bearer("user") }
-  );
+  const otherAsUser = await apiRequest(targets.reconstructed, `/api/users/${identities.viewer._id}`, {
+    method: "DELETE",
+    headers: bearer("user"),
+  });
   assert.equal(otherAsUser.status, 403);
 
-  const ownAsAdmin = await apiRequest(
-    targets.reconstructed,
-    `/api/users/${identities.admin._id}`,
-    { method: "DELETE", headers: bearer("admin") }
-  );
+  const ownAsAdmin = await apiRequest(targets.reconstructed, `/api/users/${identities.admin._id}`, {
+    method: "DELETE",
+    headers: bearer("admin"),
+  });
   assert.equal(ownAsAdmin.status, 403);
   assert.equal(
     await queryParityDatabase(`SELECT is_deleted FROM tbl_users WHERE _id = '${identities.admin._id}';`),
-    "f"
+    "f",
   );
 });

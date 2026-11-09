@@ -8,11 +8,7 @@ import PasswordDialog from "../components/common/PasswordDialog.js";
 import { ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import { getApiError } from "../domain/api-error.js";
 import { canManageProfile } from "../domain/profile.js";
-import {
-  useChangePasswordMutation,
-  useDetailUserQuery,
-  useUpdateUserMutation,
-} from "../redux/services/users.js";
+import { useChangePasswordMutation, useDetailUserQuery, useUpdateUserMutation } from "../redux/services/users.js";
 import ProfileEditDialog from "./ProfileEditDialog.js";
 import ProfileSummaryCard from "./ProfileSummaryCard.js";
 
@@ -133,7 +129,10 @@ const UserProfile = () => {
   };
 
   if (isLoading) return <LoadingState label={t("auth:profile.loading")} />;
-  if (isError && !user) return <ErrorState message={getApiError(error, t("auth:profile.loadError"))} busy={isFetching} onAction={refetch} />;
+  if (isError && !user)
+    return (
+      <ErrorState message={getApiError(error, t("auth:profile.loadError"))} busy={isFetching} onAction={refetch} />
+    );
 
   return (
     <div style={{ maxWidth: 640, margin: "0 auto", padding: "24px 16px" }}>
@@ -143,12 +142,7 @@ const UserProfile = () => {
         </div>
       ) : null}
       <Card>
-        <ProfileSummaryCard
-          user={user}
-          isOwner={isOwner}
-          onEdit={openEdit}
-          onChangePassword={openPasswordDialog}
-        />
+        <ProfileSummaryCard user={user} isOwner={isOwner} onEdit={openEdit} onChangePassword={openPasswordDialog} />
       </Card>
 
       <ProfileEditDialog

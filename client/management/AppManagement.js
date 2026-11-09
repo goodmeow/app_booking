@@ -48,7 +48,9 @@ const AppManagement = () => {
 
   return (
     <div style={{ padding: 32, maxWidth: "100%" }}>
-      <Typography.Title level={3} style={{ marginTop: 0 }}>{t("page.title")}</Typography.Title>
+      <Typography.Title level={3} style={{ marginTop: 0 }}>
+        {t("page.title")}
+      </Typography.Title>
       <Card size="small" styles={{ body: { padding: 0 } }}>
         <Tabs
           activeKey={active.value}

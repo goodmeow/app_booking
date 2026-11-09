@@ -12,7 +12,17 @@ Cara pembaruan:
 1. Build release di repo `kioskapp`
    (android/gradlew assembleRelease), lalu salin
    `android/app/build/outputs/apk/release/app-release.apk` ke file ini.
-2. Jalankan `npm run build` agar salinan di `build/client/` ikut.
+2. Isi `latest.json` (versi, ukuran, sha256, catatan).
+3. Jalankan `npm run build` agar salinan di `build/client/` ikut.
+
+Halaman `/apk/index.html` membaca `latest.json`, jadi teks versi dan tautan
+unduh tidak perlu diubah manual lagi.
+
+**Catatan penting — lompatan pertama dari 1.5.0 (27):** tablet yang masih di
+1.5.0 tidak bisa memperbarui diri sendiri karena build itu memanggil modul
+native yang salah ("Update failed." tanpa unduhan). Pasang **1.5.1 (28)**
+secara manual sekali (adb atau buka APK-nya di tablet). Setelah 1.5.1
+terpasang, pembaruan berikutnya berjalan normal lewat menu tablet.
 
 Riwayat isi paket:
 
@@ -132,7 +142,8 @@ Riwayat isi paket:
 
 ## Manifest update
 
-`latest.json` dibaca kiosk 1.4.0+ setiap 6 jam. Setiap rilis APK, isi:
+`latest.json` dibaca kiosk 1.4.0+ setiap 6 jam dan dibaca halaman
+`/apk/index.html` saat dibuka. Setiap rilis APK, isi:
 
 ```json
 {
@@ -148,21 +159,14 @@ Riwayat isi paket:
 `versionCode` harus naik. Kiosk memverifikasi SHA-256 dan signature APK
 sebelum membuka installer.
 
-## RustDesk remote support
-
-Halaman APK juga menyediakan RustDesk untuk akses tablet dari jauh:
-
-- Berkas: `public/apk/rustdesk-armv7.apk`
-- Versi: RustDesk 1.5.0, ARMv7 signed
-- Ukuran: 27.213.962 byte
-- SHA-256: `14e0bbccfca1bce9ea03350ad95b763064bda2481a36312420403f6cb1e0f71a`
-- Sumber resmi: <https://github.com/rustdesk/rustdesk/releases/tag/1.5.0>
-
-RK3288 adalah ARM 32-bit, jadi gunakan ARMv7. Ganti berkas ini bila versi
-RustDesk dinaikkan, lalu perbarui teks versi di `index.html` dan hash di atas.
-
 - 2026-11-04: naik 1.5.0 (versionCode 27)—toggle **30 menit/sampai jam X**
   dan **Pilih waktu** dapat dimatikan per tablet dari CMS Tablet Devices;
   toast hasil aksi di panel kanan (hijau sukses, merah ditolak); buka pintu
   saat meeting aktif hanya untuk attendee/organizer meeting itu atau kartu
   master. SHA-256 `be42fd3599658724db41ddb16f82c12bde90f29d914f6c023c6dcaa49ac98c96`, 21.531.173 byte.
+
+- 2026-11-09: naik 1.5.1 (versionCode 28)—build tag `1.5.1-28-a1682e3`.
+  Perbaikan jalur update: tombol memanggil modul native `KioskUpdate`, manifest
+  dibaca ulang tepat sebelum unduh, timeout 15 detik, tap ganda tidak memulai
+  dua unduhan, dan alasan gagal dari native ikut ditampilkan. Paket distribusi
+  21531488 byte, SHA-256 `249fc9c03bbb9900ae69ca3f4d5c1311febbdaa1674330a20857c7bc1571b811`.

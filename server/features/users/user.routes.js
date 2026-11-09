@@ -1,6 +1,16 @@
 import express from "express";
 import { menuAccess, requireSignin, selfOrMenu } from "../../security/auth.middleware.js";
-import { addCard, bulkImport, changePassword, create, list, read, remove, update, updateCardStatus } from "./user.controller.js";
+import {
+  addCard,
+  bulkImport,
+  changePassword,
+  create,
+  list,
+  read,
+  remove,
+  update,
+  updateCardStatus,
+} from "./user.controller.js";
 
 const router = express.Router();
 router.use(requireSignin);

@@ -3,12 +3,8 @@ import { getApiError } from "../domain/api-error.js";
 
 const sessionKey = "jwt";
 
-const isSession = (value) => (
-  Boolean(value?.token)
-  && Boolean(value?.user?._id)
-  && Boolean(value?.user?.email)
-  && Boolean(value?.user?.role)
-);
+const isSession = (value) =>
+  Boolean(value?.token) && Boolean(value?.user?._id) && Boolean(value?.user?.email) && Boolean(value?.user?.role);
 
 export const authenticate = (jwt, callback, persist = false) => {
   if (typeof window !== "undefined") {

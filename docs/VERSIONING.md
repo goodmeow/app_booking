@@ -4,8 +4,9 @@ Format versi: **`Ver.Rev`** (diucapkan "Ver tiga Rev lima").
 
 - **Ver** = gelombang fitur besar yang menyelesaikan kemampuan baru bagi
   pemakai (milestone). Naik ketika gelombang tertutup dengan bukti siap.
-- **Rev** = gelombang perbaikan di dalam Ver yang sama (patch review,
-  perbaikan rilis). Naik per gelombang, bukan per commit.
+- **Rev** = gelombang perbaikan di dalam Ver yang sama. **Naik setiap ada
+  perubahan yang dikirim** (satu gelombang perubahan = satu Rev), bukan
+  menunggu rilis besar.
 
 Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
@@ -15,12 +16,31 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 | APK tablet (`kioskapp`) | `android/app/build.gradle`: `versionName` mengikuti `Ver.Rev`, `versionCode` naik 1 monoton |
 | APK distribusi | `public/apk/kiosk-release.apk` di `app_booking` + riwayat di `public/apk/README.md` |
 
-## Posisi saat ini (Ver 3 Rev 15)
+Alur default setiap bump versi (wajib, bukan opsional):
 
-- CMS + API: **Ver 3 Rev 15**, `package.json` `3.14.0`, ditampilkan di footer
-  semua halaman CMS (dari package.json).
-- APK kiosk: `versionName 1.5.0 / versionCode 27`. Footer kios menampilkan
-  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.14.0`). Build membawa pill `TERSEDIA` 44 px, copy
+1. `npm run format` — rapikan file JS/JSON/CSS/HTML dengan Prettier.
+   `client/tests/`, `server/tests/`, dan `docs/design/` dikecualikan
+   (`.prettierignore`), karena tes dan mockup dibaca sebagai prosa.
+2. `npm run verify` — sudah mencakup `format:check`, build client, build server,
+   tes client, dan tes unit server.
+3. Naikkan versi, lalu tambah baris riwayat di bawah.
+
+## Posisi saat ini (Ver 3 Rev 32)
+
+- CMS + API: **Ver 3 Rev 32**, `package.json` `3.15.16`, ditampilkan di footer
+  semua halaman CMS (dari package.json). Rev 32 membatasi tumpukan event di
+  kalender mingguan. Rev 26 menata tombol aksi Pengaturan Global
+  dan menampilkan nomor kartu penuh di log audit. Rev 24 menghapus mock logo bawaan di halaman Branding. Rev 23 menambah favicon huruf awal saat aset favicon kosong. Rev 22 melengkapi aturan aset di halaman login (tampilkan
+  yang ada, lockup resmi hanya bila kosong). Rev 21 memakai lockup
+  Prasada berwarna di halaman login. Rev 20 mengatur teks brand di navbar berdasarkan aset custom. Rev 19 menambahkan baris audit untuk rilis ruangan otomatis. Rev 18 hanya mengecualikan folder tes dari Prettier. Gelombang Rev 17 berisi perbaikan
+  audit kode (respons bentrok ruangan 409, check-in booking instan dalam satu
+  transaksi, pelaku pada audit kartu, CSP, indeks rentang jadwal, hapus kode
+  mati). Rev 16 di dalamnya: rilis booking no-show yang transaksional, 28
+  fungsi PL/pgSQL legacy dihapus, `/apk/index.html` membaca `latest.json`, dan
+  APK RustDesk dihapus. Detail di riwayat 2026-11-05.
+- APK kiosk: **tidak berubah di Rev 16/17** — tetap `versionName 1.5.0 /
+  versionCode 27`, tidak perlu rebuild atau tebar ulang. Footer kios menampilkan
+  versi APK + **versi CMS** (`v1.5.0 (27) · CMS 3.15.16`). Build membawa pill `TERSEDIA` 44 px, copy
   netral **Siap digunakan / Belum ada jadwal berikutnya**, dan context kiosk
   yang aman. Kiosk memeriksa `/apk/latest.json` tiap 6 jam; bila ada versi
   lebih baru, operator menekan tombol Update, APK diunduh, SHA-256 dan
@@ -33,7 +53,8 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
   **Cek update**; bila manifest lebih baru, tombol berubah menjadi kuning
   **Perbarui**. Di sampingnya ada tombol **Tentang** yang membuka versi
   aplikasi, versi CMS, dan lisensi pustaka APK.
-- Ver 3 Rev 14 mencakup revamp UI Ant Design 5, proteksi super admin, validasi API, dan hardening storage/kiosk. Ver 3 Rev 13 mencakup matrix menu per role, `super_admin` dari akun setup,
+- Ver 3 Rev 15 mencakup toggle aksi per tablet, buka pintu hanya untuk kartu
+  meeting aktif/kartu master, dan toast hasil aksi di panel kanan. Ver 3 Rev 14 mencakup revamp UI Ant Design 5, proteksi super admin, validasi API, dan hardening storage/kiosk. Ver 3 Rev 13 mencakup matrix menu per role, `super_admin` dari akun setup,
   multi-lantai (`tbl_users.floors`), akses resepsionis per lantai, audit log,
   dan pengerasan security: rate-limit proxy, reset sandi, pairing kiosk,
   backup retry, auto-release, serta filter status ruangan per floor.
@@ -63,7 +84,165 @@ Tiga tempat versi yang tetap sinkron saat menutup gelombang:
 
 ## Riwayat
 
-### Ver 3 Rev 15 - 2026-11-04 (rilis saat ini)
+### Ver 3 Rev 32 - 2026-11-05 (rilis saat ini)
+- **Kalender mingguan tidak lagi pecah jadi strip tipis**: `eventMaxStack={3}`
+  membatasi tiga event per tumpukan, sisanya masuk tautan `+N` bawaan
+  FullCalendar. Sebelumnya enam meeting pada jam yang sama menjadi enam kolom
+  sempit dan memanjang. `package.json` 3.15.16; APK tetap 1.5.0 (27).
+- Verifikasi: cek visual UAT lokal dengan enam event tumpang tindih → 3 event +
+  `+3`; data uji dihapus lagi.
+
+### Ver 3 Rev 31 - 2026-11-05 (rilis sebelumnya)
+- **Halaman login mengikuti aturan navbar**: bila aset custom belum lengkap
+  (mis. hanya ikon), nama brand tampil di bawah aset; bila keduanya lengkap,
+  nama disembunyikan; bila tidak ada aset sama sekali, tetap memakai lockup
+  Prasada berwarna/putih. `package.json` 3.15.15; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau dan cek visual UAT lokal.
+
+### Ver 3 Rev 30 - 2026-11-05 (rilis sebelumnya)
+- **Versi APK di halaman Tentang tidak lagi hardcode**: `KIOSK_APP_VERSION`
+  sekarang membaca `public/apk/latest.json` saat build, jadi label mengikuti
+  APK yang benar-benar diterbitkan (sebelumnya tertulis 1.4.5 (26) padahal
+  distribusi 1.5.0 (27)). `package.json` 3.15.14; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau; halaman Tentang di UAT lokal menampilkan
+  Kiosk APK 1.5.0 (27).
+
+### Ver 3 Rev 29 - 2026-11-05 (rilis sebelumnya)
+- **Tata letak Pengaturan Global diperbaiki setelah cek visual**: header
+  Branding dan Akses peran memakai flex sehingga tombol simpan tidak lagi
+  turun ke bawah deskripsi, dan label aset tidak lagi menempel dengan teks
+  status ("IconNot set" menjadi label lalu "Not set" di baris berikutnya).
+  `package.json` 3.15.13; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau; cek visual Playwright di UAT lokal.
+
+### Ver 3 Rev 28 - 2026-11-05 (rilis sebelumnya)
+- **Daftar perangkat tidak lagi berubah posisi tiap refresh**: urutan SQL
+  diganti dari `last_seen_at` (berubah setiap polling 15 detik) menjadi
+  `floor, room name, created_at`.
+- **Filter lantai** di tab Perangkat: pilihan lantai diambil dari data yang
+  dimuat, disaring di klien, dengan opsi "Semua lantai". `package.json`
+  3.15.12; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau dan UAT lokal menyajikan 3.15.12.
+
+### Ver 3 Rev 27 - 2026-11-05 (rilis sebelumnya)
+- **Tab perangkat berganti nama dan menampilkan lantai**: "Tablet Devices" /
+  "Perangkat Tablet" menjadi **Devices** / **Perangkat**; tabelnya menambah
+  kolom **Lantai** yang mengikuti `floors` akun ruangan (`listKioskDevices`
+  kini mengirim `room_floor` dan `room_floors`). `package.json` 3.15.11; APK
+  tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau dan UAT lokal menyajikan 3.15.11.
+
+### Ver 3 Rev 26 - 2026-11-05 (rilis sebelumnya)
+- **Tombol aksi Pengaturan Global**: simpan pengaturan pindah ke header kartu
+  **Umum**, tombol **Backup sekarang** diberi warna primer, dan tombol simpan
+  **Akses peran** pindah ke baris judul bagiannya.
+- **Log audit tanpa penyamaran**: nomor kartu ditampilkan penuh karena tab ini
+  hanya bisa dibuka `super_admin`; `maskedCard` dihapus dari
+  `user.service.js` dan `setting.controller.js`. `package.json` 3.15.10; APK
+  tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau dan UAT lokal menyajikan 3.15.10.
+
+### Ver 3 Rev 25 - 2026-11-05 (rilis sebelumnya)
+- **Tombol simpan Branding pindah ke baris judul**: di Pengaturan Global, judul
+  bagian dan tombol **Simpan** kini satu baris (judul kiri, tombol kanan),
+  sama seperti tombol **Backup sekarang** di kartu Backup. `package.json`
+  3.15.9; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau dan UAT lokal menyajikan 3.15.9.
+
+### Ver 3 Rev 24 - 2026-11-05 (rilis sebelumnya)
+- **Pengaturan → Branding tidak lagi menampilkan mock logo bawaan**: slot aset
+  yang kosong tertulis "Belum ada", dan tombol reset dinamai **Hapus gambar**
+  karena memang menghapus aset. `package.json` 3.15.8; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau dan UAT lokal menyajikan 3.15.8.
+
+### Ver 3 Rev 23 - 2026-11-05 (rilis sebelumnya)
+- **Favicon kosong memakai huruf awal brand**: `initialFaviconSource()` membuat
+  tile SVG (gunmetal + emas) dari huruf pertama `brand_name`, dipakai hanya bila
+  tidak ada aset `favicon` custom. Atribut `type="image/png"` pada `<link rel=icon>`
+  dihapus agar data URI tidak ditolak. `package.json` 3.15.7; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau (101 client, 95 unit) dan UAT lokal
+  menyajikan 3.15.7.
+
+### Ver 3 Rev 22 - 2026-11-05 (rilis sebelumnya)
+- **Aturan aset di halaman login disamakan dengan navbar**: tampilkan aset custom
+  yang ada (mark dan/atau wordmark), dan pakai lockup resmi Prasada hanya bila
+  tidak ada aset custom sama sekali. `package.json` 3.15.6; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau (100 client, 95 unit) dan UAT lokal
+  menyajikan 3.15.6.
+
+### Ver 3 Rev 21 - 2026-11-05 (rilis sebelumnya)
+- **Halaman login memakai lockup "The Prasada" berwarna** saat `mark`+`wordmark`
+  belum lengkap: `the-prasada-logo-colour.png` di tema terang, versi putih di
+  tema gelap (sebelumnya logo putih tampil di atas kartu putih sehingga tidak
+  terlihat). Aset custom tetap menang bila keduanya sudah diunggah.
+  `package.json` 3.15.5; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau (97 client, 95 unit) dan UAT lokal
+  menyajikan 3.15.5.
+
+### Ver 3 Rev 20 - 2026-11-05 (rilis sebelumnya)
+- **Teks brand di navbar mengikuti aset custom**: bila `mark` dan `wordmark`
+  sudah diunggah, teks "RoomBooking" disembunyikan; bila belum lengkap, teks
+  tetap tampil; bila tidak ada aset sama sekali, navbar hanya menampilkan teks
+  (fallback gambar tidak dipakai di navbar). `package.json` 3.15.4; APK tetap
+  1.5.0 (27).
+- Verifikasi: `npm run verify` hijau.
+
+### Ver 3 Rev 19 - 2026-11-05 (rilis sebelumnya)
+- **Rilis ruangan otomatis kini tercatat di Log Audit**: satu baris
+  `event.room_auto_release` per meeting yang dilepas, dengan `actor_name`
+  `auto-release` (actor id null). Tanpa ini tidak ada jejak kenapa ruangan
+  hilang. `package.json` 3.15.3; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau; di UAT lokal satu meeting no-show
+  menghasilkan baris audit tersebut.
+
+### Ver 3 Rev 18 - 2026-11-05 (rilis sebelumnya)
+- **Folder tes dikecualikan dari Prettier**: `client/tests/` dan `server/tests/`
+  masuk `.prettierignore`, jadi `npm run format` / `format:check` tidak lagi
+  menata ulang tes. `package.json` naik ke `3.15.2`; APK tetap 1.5.0 (27).
+- Verifikasi: `npm run verify` hijau sebelum perubahan ini; setelahnya
+  `format:check` tetap "All matched files use Prettier code style!".
+
+### Ver 3 Rev 17 - 2026-11-05 (rilis sebelumnya)
+- **Perbaikan audit kode**: `addAttendee` memetakan pelanggaran jadwal ruangan
+  ke `409 ROOM_CONFLICT` (sebelumnya 500); booking instan kiosk menandai
+  check-in di transaksi yang sama dengan pembuatan booking; audit
+  tambah-kartu kini mencatat pelaku; CSP diaktifkan di API dan nginx; migrasi
+  `031_events_period_index.sql` menambah indeks GiST untuk rentang jadwal;
+  kode mati (5 export + 140 entri locale) dihapus; `.env.example` dan
+  `dist/` baseline diperbaiki (`SHA256SUMS` kini lolos verifikasi).
+- `package.json` naik ke `3.15.1`; APK tidak berubah (tetap 1.5.0 / 27).
+- Verifikasi 2026-11-05: `test:server:unit` 95/95, `test:client` 96/96,
+  `build:client` dan `build:server:check` lolos, lint 0 error (48 warning).
+  UAT lokal: migrasi 030 + 031 terpasang (31 baris `schema_migrations`),
+  123 event utuh, semua container `healthy`, CSP aktif di `/`,
+  `/index.html`, dan `/api/health`, `/apk/kiosk-release.apk` tetap
+  21.531.173 byte. Uji DB terpisah: `addAttendee` yang bentrok ruangan kini
+  `409 ROOM_CONFLICT`, booking instan tersimpan dengan `checked_in` terisi.
+
+### Ver 3 Rev 16 - 2026-11-05 (rilis sebelumnya)
+- **Rilis booking no-show diperbaiki**: `releaseAbandonedRoomBookings` kini
+  melepas ruangan dan menandai detail booking dalam satu transaksi, sehingga
+  ruangan tidak bisa "terkunci kembali" oleh meeting yang tidak check-in bila
+  proses terputus di tengah.
+- **28 fungsi PL/pgSQL legacy dari `bjb.sql` dihapus dari skema**:
+  `database/migrations/004_functions.sql` dan
+  `database/tests/003_function_contracts.sql` dihapus dari repo, dan migrasi
+  `030_drop_legacy_functions.sql` menghapus fungsi itu di database yang sudah
+  terpasang. Alasan: tidak pernah dipanggil aplikasi dan menerima potongan SQL
+  sebagai argumen.
+- **Halaman `/apk/index.html` membaca `public/apk/latest.json`** (versi,
+  versionCode, sha256, url), sehingga teks versi tidak lagi diedit manual di
+  beberapa tempat.
+- **APK RustDesk dihapus** dari halaman distribusi: berkas
+  `public/apk/rustdesk-armv7.apk` dan tombol unduhnya tidak ada lagi.
+- **Catatan cakupan**: antarmuka pengguna hanya APK; admin memakai CMS. Web
+  kiosk `/kiosk` tetap ada sebagai referensi, bukan produk yang didistribusikan.
+- **APK tidak berubah di gelombang ini**: tetap `versionName 1.5.0 /
+  versionCode 27` (paket `public/apk/kiosk-release.apk` yang sama). Tidak ada
+  rebuild APK yang diperlukan untuk Rev 16.
+- Verifikasi Rev 16 dilaporkan di baris Rev 17 (satu rangkaian uji).
+
+### Ver 3 Rev 15 - 2026-11-04 (rilis sebelumnya)
 Toggle aksi per tablet: tombol **30 menit/sampai jam X** dan **Pilih waktu**
 dapat dimatikan dari CMS Tablet Devices (migrasi 029). Buka pintu saat ada
 meeting aktif hanya menerima kartu organizer/attendee meeting itu atau kartu

@@ -32,7 +32,7 @@ akun dinonaktifkan; pengguna harus login ulang.
 | Cache | 30 detik per peran di proses API, dibersihkan saat matrix disimpan | `roleAllowsMenu` |
 | Audit | `tbl_audit_log`: user (buat/ubah/hapus, role, lantai), kartu (tambah/status/master), reset sandi, settings & backup, master card, matrix akses | `writeAudit` |
 | Baca audit | `GET /api/audit` hanya Super Admin; maksimum 500 baris (`limit` default 100) | `audit.routes.js` |
-| Larangan | Tidak ada endpoint ubah/hapus audit; kartu disamarkan, nama pelaku disalin | `audit.repository.js` |
+| Larangan | Tidak ada endpoint ubah/hapus audit; kartu ditampilkan penuh untuk admin, nama pelaku disalin | `audit.repository.js` |
 
 ## 2. Siklus user
 

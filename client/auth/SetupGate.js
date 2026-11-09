@@ -29,11 +29,11 @@ export const SetupGate = ({ children }) => {
             type="warning"
             showIcon
             message={t("auth:setup.statusError")}
-            action={(
+            action={
               <Button size="small" disabled={isFetching} onClick={() => refetch()}>
                 {t("common:actions.retry")}
               </Button>
-            )}
+            }
           />
         </div>
         {children}
@@ -63,11 +63,11 @@ export const SetupRoute = () => {
           type="error"
           showIcon
           message={t("auth:setup.statusError")}
-          action={(
+          action={
             <Button size="small" disabled={isFetching} onClick={() => refetch()}>
               {t("common:actions.retry")}
             </Button>
-          )}
+          }
         />
       </div>
     );

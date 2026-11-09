@@ -1,5 +1,4 @@
-export const isRoomAttendee = (attendee) =>
-  attendee?.type === "room" || Boolean(attendee?.room_id || attendee?.roomId);
+export const isRoomAttendee = (attendee) => attendee?.type === "room" || Boolean(attendee?.room_id || attendee?.roomId);
 
 // Details responses use snake_case; older client objects use camelCase.
 export const participantRoomId = (participant) => participant?.roomId || participant?.room_id || "";
@@ -7,11 +6,11 @@ export const participantEmail = (participant) => participant?.email || participa
 
 export const encodeEventDescription = (value = "") => encodeURIComponent(value);
 
-const asDate = (value) => value instanceof Date ? value : new Date(value);
+const asDate = (value) => (value instanceof Date ? value : new Date(value));
 
 export const validateEventDraft = (
   { subject, startDate, endDate, attendees = [], bookingKind = "single", recurrence = {} },
-  { editing = false, now = new Date() } = {}
+  { editing = false, now = new Date() } = {},
 ) => {
   const start = asDate(startDate);
   const end = asDate(endDate);
@@ -31,9 +30,12 @@ export const validateEventDraft = (
   if (!attendees.some(isRoomAttendee)) return "validation.roomRequired";
   // A guest without an account must use an email format; the server rejects with
   // INVALID_VISITOR when the user types a name without a domain.
-  const guestEmailInvalid = attendees.some((attendee) => !isRoomAttendee(attendee)
-    && !(attendee.attendee_user_id || attendee.userId)
-    && !isValidGuestEmail(attendeeEmail(attendee)));
+  const guestEmailInvalid = attendees.some(
+    (attendee) =>
+      !isRoomAttendee(attendee) &&
+      !(attendee.attendee_user_id || attendee.userId) &&
+      !isValidGuestEmail(attendeeEmail(attendee)),
+  );
   if (guestEmailInvalid) return "validation.guestEmail";
   if (bookingKind === "recurring") {
     if (!["daily", "weekly", "monthly"].includes(recurrence.cadence)) return "validation.recurrenceCadence";
@@ -71,7 +73,10 @@ const VALID_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const isValidGuestEmail = (email) => VALID_EMAIL_PATTERN.test(String(email).trim());
 
 export const buildModernEventPayload = (draft) => {
-  const roomIds = draft.attendees.filter(isRoomAttendee).map((attendee) => attendee.room_id).filter(Boolean);
+  const roomIds = draft.attendees
+    .filter(isRoomAttendee)
+    .map((attendee) => attendee.room_id)
+    .filter(Boolean);
   const attendeeIds = draft.attendees
     .filter((attendee) => !isRoomAttendee(attendee))
     .map((attendee) => attendee.attendee_user_id || attendee.userId)
@@ -130,7 +135,9 @@ export const buildUpdateEventPayload = (draft) => ({
   attendees: draft.attendees.map((attendee) => ({ attendee_email: attendeeEmail(attendee) })),
 });
 
-export const buildAddAttendeePayload = ({ eventId, attendeeEmail }) => [{
-  event_id: eventId,
-  attendee_email: attendeeEmail,
-}];
+export const buildAddAttendeePayload = ({ eventId, attendeeEmail }) => [
+  {
+    event_id: eventId,
+    attendee_email: attendeeEmail,
+  },
+];

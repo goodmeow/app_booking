@@ -35,7 +35,9 @@ const RoomFormDialog = ({
       onClose={onClose}
       onSubmit={onSubmit}
     >
-      {isEditing && isDetailLoading ? <LoadingState label={t("rooms.loadingOne")} /> : (
+      {isEditing && isDetailLoading ? (
+        <LoadingState label={t("rooms.loadingOne")} />
+      ) : (
         <Form component={false} layout="vertical" style={{ marginTop: 8 }}>
           <Space direction="vertical" size="middle" style={{ width: "100%" }}>
             {error ? <Alert type="error" showIcon message={error} /> : null}

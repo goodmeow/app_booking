@@ -12,5 +12,4 @@ export const cardLimitReached = (user) => activeCardCount(user) >= CARD_ACTIVE_L
 
 // The card number used by the "master card" flag. Older payloads still carry the
 // flat card_number field, so it stays as a fallback during the migration.
-export const primaryCardNumber = (user) => activeCards(user)[0]?.card_number
-  || String(user?.card_number ?? "").trim();
+export const primaryCardNumber = (user) => activeCards(user)[0]?.card_number || String(user?.card_number ?? "").trim();

@@ -19,9 +19,10 @@ const formatterFor = (timezone) => {
 
 const partsFrom = (value, timezone) => {
   const parts = Object.fromEntries(
-    formatterFor(timezone).formatToParts(value)
+    formatterFor(timezone)
+      .formatToParts(value)
       .filter((part) => part.type !== "literal")
-      .map((part) => [part.type, Number(part.value)])
+      .map((part) => [part.type, Number(part.value)]),
   );
   return {
     year: parts.year,
@@ -34,15 +35,16 @@ const partsFrom = (value, timezone) => {
   };
 };
 
-const comparableUtc = (parts) => Date.UTC(
-  parts.year,
-  parts.month - 1,
-  parts.day,
-  parts.hour || 0,
-  parts.minute || 0,
-  parts.second || 0,
-  parts.millisecond || 0
-);
+const comparableUtc = (parts) =>
+  Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour || 0,
+    parts.minute || 0,
+    parts.second || 0,
+    parts.millisecond || 0,
+  );
 
 export const zonedPartsToDate = (parts, timezone) => {
   const desired = comparableUtc(parts);
@@ -54,7 +56,8 @@ export const zonedPartsToDate = (parts, timezone) => {
     guess = new Date(guess.getTime() + correction);
   }
   const finalParts = partsFrom(guess, timezone);
-  if (comparableUtc(finalParts) !== desired) throw badRequest("INVALID_LOCAL_TIME", "Local time does not exist in the selected timezone");
+  if (comparableUtc(finalParts) !== desired)
+    throw badRequest("INVALID_LOCAL_TIME", "Local time does not exist in the selected timezone");
   return guess;
 };
 
@@ -66,14 +69,25 @@ export const parseInstant = (value, field) => {
     throw badRequest("INVALID_TIME", `${field} must include a UTC or numeric timezone offset`);
   }
   const date = new Date(value);
-  if (!value || Number.isNaN(date.getTime())) throw badRequest("INVALID_TIME", `${field} must be a valid ISO-8601 timestamp`);
+  if (!value || Number.isNaN(date.getTime()))
+    throw badRequest("INVALID_TIME", `${field} must be a valid ISO-8601 timestamp`);
   return date;
 };
 
 export const zonedParts = (value, timezone) => partsFrom(parseInstant(value, "time"), timezone);
 
 export const addLocalDays = (parts, days) => {
-  const date = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days, parts.hour, parts.minute, parts.second, parts.millisecond || 0));
+  const date = new Date(
+    Date.UTC(
+      parts.year,
+      parts.month - 1,
+      parts.day + days,
+      parts.hour,
+      parts.minute,
+      parts.second,
+      parts.millisecond || 0,
+    ),
+  );
   return {
     year: date.getUTCFullYear(),
     month: date.getUTCMonth() + 1,
@@ -88,19 +102,18 @@ export const addLocalDays = (parts, days) => {
 export const isValidLocalDate = ({ year, month, day }) => {
   if (![year, month, day].every(Number.isInteger)) return false;
   const date = new Date(Date.UTC(year, month - 1, day));
-  return date.getUTCFullYear() === year
-    && date.getUTCMonth() + 1 === month
-    && date.getUTCDate() === day;
+  return date.getUTCFullYear() === year && date.getUTCMonth() + 1 === month && date.getUTCDate() === day;
 };
 
-export const localDateKey = (parts) => `${parts.year}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}`;
+export const localDateKey = (parts) =>
+  `${parts.year}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}`;
 
 export const localWeekday = (parts) => new Date(Date.UTC(parts.year, parts.month - 1, parts.day)).getUTCDay();
 
-export const daysBetweenLocalDates = (left, right) => Math.round((
-  Date.UTC(right.year, right.month - 1, right.day)
-  - Date.UTC(left.year, left.month - 1, left.day)
-) / 86_400_000);
+export const daysBetweenLocalDates = (left, right) =>
+  Math.round(
+    (Date.UTC(right.year, right.month - 1, right.day) - Date.UTC(left.year, left.month - 1, left.day)) / 86_400_000,
+  );
 
 export const formatLocalTime = (value, timezone) => {
   const parts = partsFrom(parseInstant(value, "time"), timezone);

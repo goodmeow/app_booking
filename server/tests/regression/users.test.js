@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { apiRequest, queryParityDatabase, resetParityDatabase, startServer, stopServer, targets } from "../parity/harness.js";
+import {
+  apiRequest,
+  queryParityDatabase,
+  resetParityDatabase,
+  startServer,
+  stopServer,
+  targets,
+} from "../parity/harness.js";
 import { bearer, identities } from "../parity/fixtures.js";
 
 let server;
@@ -43,7 +50,7 @@ test("admin keeps the employee card in the user list and can flag it as master",
   assert.equal(created.body.is_master_card, true);
   assert.equal(
     await queryParityDatabase("SELECT count(*) FROM tbl_card_masters WHERE card_number = '555000111';"),
-    "1"
+    "1",
   );
 
   const listed = await apiRequest(targets.reconstructed, "/api/users/", { headers: bearer("admin") });
@@ -61,7 +68,7 @@ test("admin keeps the employee card in the user list and can flag it as master",
   assert.equal(unflagged.body.is_master_card, false);
   assert.equal(
     await queryParityDatabase("SELECT count(*) FROM tbl_card_masters WHERE card_number = '555000111';"),
-    "0"
+    "0",
   );
 });
 
@@ -98,7 +105,7 @@ test("a lost card cannot be put back on the master list through profile edit", a
   assert.equal(reflag.body.code, "INVALID_CARD");
   assert.equal(
     await queryParityDatabase("SELECT count(*) FROM tbl_card_masters WHERE card_number = '555000112';"),
-    "0"
+    "0",
   );
 });
 
@@ -109,7 +116,9 @@ test("a non-admin cannot flag a card as master", async () => {
     body: JSON.stringify({ card_number: "TEST-USER-CARD", master_card: true }),
   });
   assert.equal(response.status, 200);
-  const flagged = await queryParityDatabase("SELECT count(*) FROM tbl_card_masters WHERE card_number = 'TEST-USER-CARD';");
+  const flagged = await queryParityDatabase(
+    "SELECT count(*) FROM tbl_card_masters WHERE card_number = 'TEST-USER-CARD';",
+  );
   assert.equal(flagged, "0");
 });
 
@@ -128,7 +137,10 @@ test("a non-admin only sees colleagues from their own floor, without card data",
   `);
   assert.equal(response.body.map((row) => row.name).join(","), colleagueNames);
   // The colleague on floor 2 stays out of the floor-1 list.
-  assert.equal(response.body.some((row) => row.email === identities.viewer.email), false);
+  assert.equal(
+    response.body.some((row) => row.email === identities.viewer.email),
+    false,
+  );
 
   for (const row of response.body) {
     assert.deepEqual(Object.keys(row).sort(), directoryKeys);

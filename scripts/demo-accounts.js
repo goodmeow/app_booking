@@ -21,8 +21,22 @@ for (const line of envText.split("\n")) {
 const accounts = [
   // Cards here are dummies; real card UIDs are never stored in the repo and are
   // set directly in the local demo DB with private SQL when needed.
-  { employeeId: "EMP-PRASADA", name: "Karyawan Prasada", email: "karyawan@uji.prasada.test", password: "1234", floor: "1", card: "DEMO-PRASADA-CARD" },
-  { employeeId: "EMP-UJI", name: "Karyawan Uji", email: "emp@uji.local", password: "1234", floor: "1", card: "DEMO-UJI-CARD" },
+  {
+    employeeId: "EMP-PRASADA",
+    name: "Karyawan Prasada",
+    email: "karyawan@uji.prasada.test",
+    password: "1234",
+    floor: "1",
+    card: "DEMO-PRASADA-CARD",
+  },
+  {
+    employeeId: "EMP-UJI",
+    name: "Karyawan Uji",
+    email: "emp@uji.local",
+    password: "1234",
+    floor: "1",
+    card: "DEMO-UJI-CARD",
+  },
   // Third demo account, used when a demo needs a second office employee.
   { employeeId: "EMP-DEMO-3", name: "Karyawan Demo", email: "karyawan3@uji.local", password: "1234", floor: "1" },
 ];
@@ -41,7 +55,7 @@ try {
     `SELECT _id
      FROM tbl_role
      WHERE lower(role_name) = 'user'
-     LIMIT 1`
+     LIMIT 1`,
   );
   const roleId = rows[0]?._id;
   if (!roleId) {
@@ -53,7 +67,9 @@ try {
     const hash = bcrypt.hashSync(account.password, 12);
     // Cards live in tbl_user_cards; the legacy card_number column is cleared so
     // a rebuilt demo never reintroduces a second source of truth.
-    const { rows: [user] } = await client.query(
+    const {
+      rows: [user],
+    } = await client.query(
       `INSERT INTO tbl_users (name, email, password, type, floor, employee_id, role_id, is_deleted)
        VALUES ($1, $2, $3, 'employee', $4, $5, $6, false)
        ON CONFLICT (email) DO UPDATE
@@ -64,7 +80,7 @@ try {
              card_number = NULL,
              is_deleted = false
        RETURNING _id`,
-      [account.name, account.email, hash, account.floor, account.employeeId, roleId]
+      [account.name, account.email, hash, account.floor, account.employeeId, roleId],
     );
     if (account.card) {
       await client.query(
@@ -75,7 +91,7 @@ try {
                lost_at = NULL,
                updated_at = now()
            WHERE tbl_user_cards.user_id = EXCLUDED.user_id`,
-        [user._id, account.card]
+        [user._id, account.card],
       );
     }
     console.log(`account ready: ${account.email}`);

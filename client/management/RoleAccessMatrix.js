@@ -39,10 +39,7 @@ const RoleAccessMatrix = () => {
     setForm(formFromMatrix(data));
   }, [data]);
 
-  const rows = useMemo(
-    () => (data?.roles || []).filter((role) => role.role_id),
-    [data]
-  );
+  const rows = useMemo(() => (data?.roles || []).filter((role) => role.role_id), [data]);
 
   const toggle = (roleName, menuKey) => {
     setForm((current) => ({
@@ -79,7 +76,11 @@ const RoleAccessMatrix = () => {
         type="error"
         showIcon
         message={getApiError(error, t("settings.roleAccess.loadError"))}
-        action={<Button size="small" onClick={refetch}>{t("common:actions.retry")}</Button>}
+        action={
+          <Button size="small" onClick={refetch}>
+            {t("common:actions.retry")}
+          </Button>
+        }
       />
     );
   }
@@ -92,9 +93,7 @@ const RoleAccessMatrix = () => {
       fixed: "left",
       width: 180,
       render: (roleName) => (
-        <Typography.Text strong={roleName === "super_admin"}>
-          {t(roleLabelKey[roleName] || roleName)}
-        </Typography.Text>
+        <Typography.Text strong={roleName === "super_admin"}>{t(roleLabelKey[roleName] || roleName)}</Typography.Text>
       ),
     },
     ...(data?.menus || []).map((menuKey) => ({
@@ -122,7 +121,26 @@ const RoleAccessMatrix = () => {
 
   return (
     <section>
-      <Typography.Paragraph type="secondary">{t("settings.roleAccess.description")}</Typography.Paragraph>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 12,
+          flexWrap: "wrap",
+          marginBottom: 16,
+        }}
+      >
+        <div style={{ flex: "1 1 240px", minWidth: 0 }}>
+          <Typography.Title level={5} style={{ margin: 0 }}>
+            {t("settings.roleAccess.title")}
+          </Typography.Title>
+          <Typography.Text type="secondary">{t("settings.roleAccess.description")}</Typography.Text>
+        </div>
+        <Button type="primary" onClick={save} loading={saving}>
+          {saving ? t("settings.roleAccess.saving") : t("settings.roleAccess.save")}
+        </Button>
+      </div>
 
       <Table
         size="small"
@@ -140,12 +158,6 @@ const RoleAccessMatrix = () => {
       {feedback ? (
         <Alert type={feedback.severity} showIcon message={feedback.message} style={{ marginTop: 16 }} />
       ) : null}
-
-      <Space style={{ width: "100%", justifyContent: "flex-end", marginTop: 16 }}>
-        <Button type="primary" onClick={save} loading={saving}>
-          {saving ? t("settings.roleAccess.saving") : t("settings.roleAccess.save")}
-        </Button>
-      </Space>
     </section>
   );
 };

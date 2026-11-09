@@ -1,5 +1,6 @@
 import { query, withTransaction } from "../../db/pool.js";
 import { isUuid } from "../../lib/uuid.js";
+import { writeAudit } from "../audit/audit.repository.js";
 
 const eventInstantColumns = `
   e._id,
@@ -25,13 +26,15 @@ export const transaction = withTransaction;
 
 export const findAccountsByEmails = async (emails, client = { query }) => {
   if (!emails.length) return [];
-  return (await client.query(
-    `SELECT _id, name, email, type
+  return (
+    await client.query(
+      `SELECT _id, name, email, type
      FROM tbl_users
      WHERE lower(email) = ANY($1::text[])
        AND is_deleted IS NOT TRUE`,
-    [emails.map((email) => String(email).trim().toLowerCase())]
-  )).rows;
+      [emails.map((email) => String(email).trim().toLowerCase())],
+    )
+  ).rows;
 };
 
 export const findAccountsByIds = async (ids, client = { query }) => {
@@ -40,47 +43,69 @@ export const findAccountsByIds = async (ids, client = { query }) => {
   // a PostgreSQL 22P02 that surfaces as a 500.
   const validIds = (Array.isArray(ids) ? ids : []).filter(isUuid);
   if (!validIds.length) return [];
-  return (await client.query(
-    `SELECT _id, name, email, type
+  return (
+    await client.query(
+      `SELECT _id, name, email, type
      FROM tbl_users
      WHERE _id = ANY($1::uuid[])
        AND is_deleted IS NOT TRUE`,
-    [validIds]
-  )).rows;
+      [validIds],
+    )
+  ).rows;
 };
 
 // The organizer of a booking created on behalf of somebody else must be a real
 // employee account. Rooms are excluded because a room cannot own a meeting.
-export const findEmployeeByEmail = async (email, client = { query }) => (await client.query(
-  `SELECT _id, name, email
+export const findEmployeeByEmail = async (email, client = { query }) =>
+  (
+    await client.query(
+      `SELECT _id, name, email
    FROM tbl_users
    WHERE lower(btrim(email)) = $1
      AND type = 'employee'
      AND is_deleted IS NOT TRUE
    LIMIT 1`,
-  [String(email).trim().toLowerCase()]
-)).rows[0] || null;
+      [String(email).trim().toLowerCase()],
+    )
+  ).rows[0] || null;
 
-export const findActiveRoom = async (identifier) => (await query(
-  `SELECT _id, name, email
+export const findActiveRoom = async (identifier) =>
+  (
+    await query(
+      `SELECT _id, name, email
    FROM tbl_users
    WHERE type = 'room'
      AND is_deleted IS NOT TRUE
      AND (_id::text = $1 OR lower(email) = lower($1))
    LIMIT 1`,
-  [String(identifier)]
-)).rows[0] || null;
+      [String(identifier)],
+    )
+  ).rows[0] || null;
 
-export const insertSeries = async (client, values) => (await client.query(
-  `INSERT INTO tbl_event_series
+export const insertSeries = async (client, values) =>
+  (
+    await client.query(
+      `INSERT INTO tbl_event_series
      (organizer_id, subject, description, timezone, cadence, interval_count, weekdays, recurrence_end_date)
    VALUES ($1, $2, $3, $4, $5, $6, $7::smallint[], $8::date)
    RETURNING *`,
-  [values.organizerId, values.subject, values.description, values.timezone, values.cadence, values.interval, values.weekdays, values.endDate]
-)).rows[0];
+      [
+        values.organizerId,
+        values.subject,
+        values.description,
+        values.timezone,
+        values.cadence,
+        values.interval,
+        values.weekdays,
+        values.endDate,
+      ],
+    )
+  ).rows[0];
 
-export const insertEvent = async (client, values) => (await client.query(
-  `INSERT INTO tbl_events
+export const insertEvent = async (client, values) =>
+  (
+    await client.query(
+      `INSERT INTO tbl_events
      (organizer_id, organizer, subject, description, start_date, end_date, timezone,
       series_id, occurrence_index, original_start, is_cancel, is_draft, is_allday, booked_by)
    VALUES
@@ -95,35 +120,47 @@ export const insertEvent = async (client, values) => (await client.query(
      start_date AT TIME ZONE timezone AS start_at,
      end_date AT TIME ZONE timezone AS end_at,
      timezone, series_id, occurrence_index`,
-  [
-    values.organizerId,
-    values.organizerEmail,
-    values.subject,
-    values.description,
-    values.start,
-    values.end,
-    values.timezone,
-    values.seriesId || null,
-    values.occurrenceIndex ?? null,
-    values.bookedBy || null,
-  ]
-)).rows[0];
+      [
+        values.organizerId,
+        values.organizerEmail,
+        values.subject,
+        values.description,
+        values.start,
+        values.end,
+        values.timezone,
+        values.seriesId || null,
+        values.occurrenceIndex ?? null,
+        values.bookedBy || null,
+      ],
+    )
+  ).rows[0];
 
-export const insertEventParticipant = async (client, eventId, participant) => (await client.query(
-  `INSERT INTO tbl_event_details
+export const insertEventParticipant = async (client, eventId, participant) =>
+  (
+    await client.query(
+      `INSERT INTO tbl_event_details
      (event_id, attendee_email, attendee_user_id, room_id, visitor_email, is_visitor, is_deleted)
    VALUES ($1, $2, $3, $4, $5, $6, false)
    RETURNING _id, event_id, attendee_email, attendee_user_id, room_id, visitor_email, is_visitor`,
-  [eventId, participant.email, participant.userId || null, participant.roomId || null, participant.visitorEmail || null, Boolean(participant.visitorEmail)]
-)).rows[0];
+      [
+        eventId,
+        participant.email,
+        participant.userId || null,
+        participant.roomId || null,
+        participant.visitorEmail || null,
+        Boolean(participant.visitorEmail),
+      ],
+    )
+  ).rows[0];
 
 // One event can have up to 100 participants. Inserting them row by row turns a
 // recurring booking into thousands of round trips; unnest keeps it to one
 // statement per occurrence.
 export const insertEventParticipants = async (client, eventId, participants) => {
   if (!participants.length) return [];
-  return (await client.query(
-    `INSERT INTO tbl_event_details
+  return (
+    await client.query(
+      `INSERT INTO tbl_event_details
        (event_id, attendee_email, attendee_user_id, room_id, visitor_email, is_visitor, is_deleted)
      SELECT $1, input.attendee_email, input.attendee_user_id, input.room_id,
             input.visitor_email, input.is_visitor, false
@@ -138,19 +175,30 @@ export const insertEventParticipants = async (client, eventId, participants) => 
      )
      ORDER BY input.ordinal
      RETURNING _id, event_id, attendee_email, attendee_user_id, room_id, visitor_email, is_visitor`,
-    [
-      eventId,
-      participants.map((participant) => participant.email),
-      participants.map((participant) => participant.userId || null),
-      participants.map((participant) => participant.roomId || null),
-      participants.map((participant) => participant.visitorEmail || null),
-      participants.map((participant) => Boolean(participant.visitorEmail)),
-    ]
-  )).rows;
+      [
+        eventId,
+        participants.map((participant) => participant.email),
+        participants.map((participant) => participant.userId || null),
+        participants.map((participant) => participant.roomId || null),
+        participants.map((participant) => participant.visitorEmail || null),
+        participants.map((participant) => Boolean(participant.visitorEmail)),
+      ],
+    )
+  ).rows;
 };
 
-export const listEventsForPrincipal = async ({ principalId, role, floors, roomId, rangeStart, rangeEnd, allEvents = false }) => (await query(
-  `SELECT DISTINCT
+export const listEventsForPrincipal = async ({
+  principalId,
+  role,
+  floors,
+  roomId,
+  rangeStart,
+  rangeEnd,
+  allEvents = false,
+}) =>
+  (
+    await query(
+      `SELECT DISTINCT
      ${eventInstantColumns},
      split_part(btrim(organizer_account.name), ' ', 1) AS organizer_first_name,
      booked_by_account.name AS booked_by_name,
@@ -228,13 +276,16 @@ export const listEventsForPrincipal = async ({ principalId, role, floors, roomId
        ))
      )
    ORDER BY start_at, e._id`,
-  [principalId, role, roomId || null, rangeStart, rangeEnd, allEvents, floors || null]
-)).rows;
+      [principalId, role, roomId || null, rangeStart, rangeEnd, allEvents, floors || null],
+    )
+  ).rows;
 
 export const findEventAccess = async (eventId, principalId) => {
   if (!isUuid(eventId)) return null;
-  return (await query(
-  `SELECT
+  return (
+    (
+      await query(
+        `SELECT
      ${eventInstantColumns},
      EXISTS (
        SELECT 1 FROM tbl_event_details d
@@ -253,12 +304,16 @@ export const findEventAccess = async (eventId, principalId) => {
    FROM tbl_events e
    WHERE e._id = $1
    LIMIT 1`,
-  [eventId, principalId]
-)).rows[0] || null;
+        [eventId, principalId],
+      )
+    ).rows[0] || null
+  );
 };
 
-export const listEventParticipants = async (eventId, client = { query }) => (await client.query(
-  `SELECT
+export const listEventParticipants = async (eventId, client = { query }) =>
+  (
+    await client.query(
+      `SELECT
      d._id,
      d.event_id,
      d.attendee_email,
@@ -269,14 +324,16 @@ export const listEventParticipants = async (eventId, client = { query }) => (awa
    FROM tbl_event_details d
    WHERE d.event_id = $1 AND d.is_deleted IS NOT TRUE
    ORDER BY d.created_at, d._id`,
-  [eventId]
-)).rows;
+      [eventId],
+    )
+  ).rows;
 
 export const findEventAudience = async (eventIds) => {
   const ids = [...new Set((eventIds || []).filter(isUuid).map(String))];
   if (!ids.length) return [];
-  return (await query(
-    `SELECT DISTINCT audience.kind, audience.id
+  return (
+    await query(
+      `SELECT DISTINCT audience.kind, audience.id
      FROM (
        SELECT 'user'::text AS kind, e.organizer_id AS id
        FROM tbl_events e WHERE e._id = ANY($1::uuid[])
@@ -294,14 +351,16 @@ export const findEventAudience = async (eventIds) => {
        WHERE d.event_id = ANY($1::uuid[]) AND d.room_id IS NOT NULL AND d.is_deleted IS NOT TRUE
      ) audience
      WHERE audience.id IS NOT NULL`,
-    [ids]
-  )).rows;
+      [ids],
+    )
+  ).rows;
 };
 
 export const findMutationAudience = async (eventId, scope = "occurrence") => {
   if (!isUuid(eventId)) return [];
-  return (await query(
-  `WITH pivot AS (
+  return (
+    await query(
+      `WITH pivot AS (
      SELECT
        _id,
        series_id,
@@ -335,24 +394,25 @@ export const findMutationAudience = async (eventId, scope = "occurrence") => {
      id
    FROM audience
    WHERE id IS NOT NULL`,
-  [eventId, scope || "occurrence"]
-)).rows;
+      [eventId, scope || "occurrence"],
+    )
+  ).rows;
 };
 
 export const findDetailEventId = async (detailId) => {
   if (!isUuid(detailId)) return null;
-  return (await query(
-    `SELECT event_id FROM tbl_event_details WHERE _id = $1 LIMIT 1`,
-    [detailId]
-  )).rows[0]?.event_id || null;
+  return (
+    (await query(`SELECT event_id FROM tbl_event_details WHERE _id = $1 LIMIT 1`, [detailId])).rows[0]?.event_id || null
+  );
 };
 
 export const findRoomConflicts = async (roomIds, occurrences) => {
   if (!roomIds.length || !occurrences.length) return [];
   const starts = occurrences.map((occurrence) => occurrence.start);
   const ends = occurrences.map((occurrence) => occurrence.end);
-  return (await query(
-    `SELECT
+  return (
+    await query(
+      `SELECT
        er.room_id,
        e._id AS event_id,
        requested.start_at,
@@ -364,12 +424,15 @@ export const findRoomConflicts = async (roomIds, occurrences) => {
       AND er.occupied_at && tstzrange(requested.start_at, requested.end_at, '[)')
      JOIN tbl_events e ON e._id = er.event_id
      ORDER BY requested.start_at, er.room_id`,
-    [roomIds, starts, ends]
-  )).rows;
+      [roomIds, starts, ends],
+    )
+  ).rows;
 };
 
-export const eventsForMutationScope = async (client, eventId, scope) => (await client.query(
-  `WITH pivot AS (
+export const eventsForMutationScope = async (client, eventId, scope) =>
+  (
+    await client.query(
+      `WITH pivot AS (
      SELECT
        _id,
        series_id,
@@ -384,33 +447,31 @@ export const eventsForMutationScope = async (client, eventId, scope) => (await c
      OR ($2 = 'series' AND p.series_id IS NOT NULL AND e.series_id = p.series_id)
      OR ($2 = 'following' AND p.series_id IS NOT NULL AND e.series_id = p.series_id AND e.occurrence_index >= p.occurrence_index)
    ORDER BY e.occurrence_index NULLS FIRST`,
-  [eventId, scope]
-)).rows;
+      [eventId, scope],
+    )
+  ).rows;
 
-export const deactivateEventRooms = (client, eventIds) => client.query(
-  `UPDATE tbl_event_rooms SET active = false WHERE event_id = ANY($1::uuid[])`,
-  [eventIds]
-);
+export const deactivateEventRooms = (client, eventIds) =>
+  client.query(`UPDATE tbl_event_rooms SET active = false WHERE event_id = ANY($1::uuid[])`, [eventIds]);
 
-export const updateSeriesHeader = (client, seriesId, values) => client.query(
-  `UPDATE tbl_event_series
+export const updateSeriesHeader = (client, seriesId, values) =>
+  client.query(
+    `UPDATE tbl_event_series
    SET subject = $2, description = $3, timezone = $4, updated_at = now()
    WHERE _id = $1`,
-  [seriesId, values.subject, values.description, values.timezone]
-);
+    [seriesId, values.subject, values.description, values.timezone],
+  );
 
-export const cancelSeries = (client, seriesId) => client.query(
-  `UPDATE tbl_event_series SET is_cancel = true, updated_at = now() WHERE _id = $1`,
-  [seriesId]
-);
+export const cancelSeries = (client, seriesId) =>
+  client.query(`UPDATE tbl_event_series SET is_cancel = true, updated_at = now() WHERE _id = $1`, [seriesId]);
 
-export const clearEventParticipants = (client, eventId) => client.query(
-  `DELETE FROM tbl_event_details WHERE event_id = $1`,
-  [eventId]
-);
+export const clearEventParticipants = (client, eventId) =>
+  client.query(`DELETE FROM tbl_event_details WHERE event_id = $1`, [eventId]);
 
-export const updateEventHeader = async (client, eventId, values) => (await client.query(
-  `UPDATE tbl_events
+export const updateEventHeader = async (client, eventId, values) =>
+  (
+    await client.query(
+      `UPDATE tbl_events
    SET subject = COALESCE($2, subject),
        description = COALESCE($3, description),
        start_date = $4::timestamptz AT TIME ZONE $6,
@@ -424,37 +485,58 @@ export const updateEventHeader = async (client, eventId, values) => (await clien
      start_date AT TIME ZONE timezone AS start_at,
      end_date AT TIME ZONE timezone AS end_at,
      timezone, series_id, occurrence_index`,
-  [eventId, values.subject || null, values.description ?? null, values.start, values.end, values.timezone, Boolean(values.isException)]
-)).rows[0];
+      [
+        eventId,
+        values.subject || null,
+        values.description ?? null,
+        values.start,
+        values.end,
+        values.timezone,
+        Boolean(values.isException),
+      ],
+    )
+  ).rows[0];
 
-export const cancelEvents = async (client, ids) => (await client.query(
-  `UPDATE tbl_events SET is_cancel = true, updated_at = now()
+export const cancelEvents = async (client, ids) =>
+  (
+    await client.query(
+      `UPDATE tbl_events SET is_cancel = true, updated_at = now()
    WHERE _id = ANY($1::uuid[]) AND is_cancel IS NOT TRUE
    RETURNING _id, series_id, occurrence_index`,
-  [ids]
-)).rows;
+      [ids],
+    )
+  ).rows;
 
-export const deleteParticipantById = async (client, detailId) => (await client.query(
-  `DELETE FROM tbl_event_details WHERE _id = $1
+export const deleteParticipantById = async (client, detailId) =>
+  (
+    await client.query(
+      `DELETE FROM tbl_event_details WHERE _id = $1
    RETURNING _id, event_id, attendee_email`,
-  [detailId]
-)).rows[0] || null;
+      [detailId],
+    )
+  ).rows[0] || null;
 
 export const findParticipantEvent = async (detailId) => {
   if (!isUuid(detailId)) return null;
-  return (await query(
-    `SELECT e._id, e.organizer_id, e.booked_by
+  return (
+    (
+      await query(
+        `SELECT e._id, e.organizer_id, e.booked_by
      FROM tbl_event_details d
      JOIN tbl_events e ON e._id = d.event_id
      WHERE d._id = $1`,
-    [detailId]
-  )).rows[0] || null;
+        [detailId],
+      )
+    ).rows[0] || null
+  );
 };
 
 export const eventCheckInContext = async (eventId, principalId, cardNumber, execute = query) => {
   if (!isUuid(eventId)) return null;
-  return (await execute(
-  `SELECT
+  return (
+    (
+      await execute(
+        `SELECT
      ${eventInstantColumns},
      s.time_of_event_start_soon AS early_minutes,
      s.not_checked_in_time_limit AS late_minutes,
@@ -487,42 +569,59 @@ export const eventCheckInContext = async (eventId, principalId, cardNumber, exec
    CROSS JOIN LATERAL (SELECT * FROM tbl_app_settings ORDER BY created_at LIMIT 1) s
    WHERE e._id = $1 AND e.is_cancel IS NOT TRUE
    FOR UPDATE OF e`,
-  [eventId, principalId, cardNumber]
-)).rows[0] || null;
+        [eventId, principalId, cardNumber],
+      )
+    ).rows[0] || null
+  );
 };
 
-export const markCheckedIn = async (eventId, execute = query) => (await execute(
-  `UPDATE tbl_events SET checked_in = now(), updated_at = now()
+export const markCheckedIn = async (eventId, execute = query) =>
+  (
+    await execute(
+      `UPDATE tbl_events SET checked_in = now(), updated_at = now()
    WHERE _id = $1 AND checked_in IS NULL
    RETURNING _id, checked_in`,
-  [eventId]
-)).rows[0] || null;
+      [eventId],
+    )
+  ).rows[0] || null;
 
-export const finishEventNow = async (eventId, execute = query) => (await execute(
-  `UPDATE tbl_events
+export const finishEventNow = async (eventId, execute = query) =>
+  (
+    await execute(
+      `UPDATE tbl_events
    SET end_date = now() AT TIME ZONE timezone, updated_at = now()
    WHERE _id = $1
    RETURNING _id, end_date AT TIME ZONE timezone AS end_at`,
-  [eventId]
-)).rows[0] || null;
+      [eventId],
+    )
+  ).rows[0] || null;
 
 export const findRoomFloors = async (roomIds, client = { query }) => {
   if (!roomIds.length) return [];
-  return (await client.query(
-    `SELECT _id, name, floor
+  return (
+    await client.query(
+      `SELECT _id, name, floor
      FROM tbl_users
      WHERE _id = ANY($1::uuid[])
        AND type = 'room'
        AND is_deleted IS NOT TRUE`,
-    [roomIds]
-  )).rows;
+      [roomIds],
+    )
+  ).rows;
 };
 
 // Release the room booking of meetings that were not checked in by the late limit.
 // The meeting stays in the attendees' calendars; only the room is freed.
-export const releaseAbandonedRoomBookings = async (execute = query) => {
-  const released = (await execute(
-    `WITH settings AS (
+// Both statements share one transaction: the row locks taken by the scan stay
+// held until the meeting details are marked, otherwise a concurrent scan could
+// release the same room twice or leave the details unmarked (the
+// phase9_sync_event_room trigger would then reactivate the room on the next
+// update).
+export const releaseAbandonedRoomBookings = async (runInTransaction = transaction) =>
+  runInTransaction(async (client) => {
+    const released = (
+      await client.query(
+        `WITH settings AS (
        SELECT not_checked_in_time_limit AS limit_minutes
        FROM tbl_app_settings
        ORDER BY created_at
@@ -547,18 +646,34 @@ export const releaseAbandonedRoomBookings = async (execute = query) => {
        RETURNING room_booking.event_id
      )
      SELECT DISTINCT event_id FROM abandoned`,
-    []
-  )).rows;
-  const eventIds = released.map((row) => row.event_id);
-  if (eventIds.length) {
-    await execute(
-      `UPDATE tbl_event_details
+        [],
+      )
+    ).rows;
+    const eventIds = released.map((row) => row.event_id);
+    if (eventIds.length) {
+      await client.query(
+        `UPDATE tbl_event_details
        SET is_deleted = true
        WHERE event_id = ANY($1::uuid[])
          AND room_id IS NOT NULL
          AND is_deleted IS NOT TRUE`,
-      [eventIds]
-    );
-  }
-  return eventIds;
-};
+        [eventIds],
+      );
+      // The release is automatic, so the audit row carries a system name
+      // instead of a user id; without it nobody can explain a vanished room.
+      const execute = (text, values) => client.query(text, values);
+      for (const eventId of eventIds) {
+        await writeAudit(
+          {
+            principal: { name: "auto-release" },
+            action: "event.room_auto_release",
+            entityType: "event",
+            entityId: eventId,
+            newValues: { reason: "no check-in within the limit" },
+          },
+          execute,
+        );
+      }
+    }
+    return eventIds;
+  });

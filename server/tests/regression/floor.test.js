@@ -12,14 +12,17 @@ before(async () => {
 
 after(() => stopServer(server));
 
-const meetingBody = (roomEmail, start = "2031-06-02T09:00:00.000Z", end = "2031-06-02T10:00:00.000Z") => JSON.stringify([{
-  organizer: identities.user.email,
-  subject: "Floor limit test",
-  description: "uji",
-  start_date: start,
-  end_date: end,
-  attendee_email: roomEmail,
-}]);
+const meetingBody = (roomEmail, start = "2031-06-02T09:00:00.000Z", end = "2031-06-02T10:00:00.000Z") =>
+  JSON.stringify([
+    {
+      organizer: identities.user.email,
+      subject: "Floor limit test",
+      description: "uji",
+      start_date: start,
+      end_date: end,
+      attendee_email: roomEmail,
+    },
+  ]);
 
 test("an employee may only book rooms on their own work floor", async () => {
   // room-one is on floor 1, room-two on floor 2; the test employee is on floor 1.

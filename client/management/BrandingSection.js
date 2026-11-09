@@ -10,20 +10,21 @@ import {
 } from "../redux/services/settings.js";
 
 const ASSETS = [
-  { kind: "mark", label: "branding.mark", fallback: "/the-prasada-mark.png", previewHeight: 64 },
-  { kind: "wordmark", label: "branding.wordmark", fallback: "/the-prasada-wordmark.png", previewHeight: 28 },
-  { kind: "favicon", label: "branding.favicon", fallback: "/the-prasada-mark.png", previewHeight: 32 },
+  { kind: "mark", label: "branding.mark", previewHeight: 64 },
+  { kind: "wordmark", label: "branding.wordmark", previewHeight: 28 },
+  { kind: "favicon", label: "branding.favicon", previewHeight: 32 },
 ];
 
 const MAX_BYTES = 512 * 1024;
 const ALLOWED = new Set(["image/png", "image/jpeg", "image/webp", "image/x-icon", "image/vnd.microsoft.icon"]);
 
-const fileToDataUrl = (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = () => resolve(String(reader.result || ""));
-  reader.onerror = () => reject(new Error("read failed"));
-  reader.readAsDataURL(file);
-});
+const fileToDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("read failed"));
+    reader.readAsDataURL(file);
+  });
 
 const BrandingSection = () => {
   const { t } = useTranslation("management");
@@ -89,7 +90,26 @@ const BrandingSection = () => {
 
   return (
     <div>
-      <Typography.Paragraph type="secondary">{t("branding.description")}</Typography.Paragraph>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 12,
+          flexWrap: "wrap",
+          marginBottom: 16,
+        }}
+      >
+        <div style={{ flex: "1 1 240px", minWidth: 0 }}>
+          <Typography.Title level={5} style={{ margin: 0 }}>
+            {t("branding.title")}
+          </Typography.Title>
+          <Typography.Text type="secondary">{t("branding.description")}</Typography.Text>
+        </div>
+        <Button type="primary" onClick={saveText} disabled={saving} loading={saving}>
+          {t("branding.save")}
+        </Button>
+      </div>
 
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
         <div>
@@ -110,32 +130,34 @@ const BrandingSection = () => {
             disabled={saving}
           />
         </div>
-        <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-          <Button type="primary" onClick={saveText} disabled={saving}>
-            {t("branding.save")}
-          </Button>
-        </Space>
       </Space>
 
       <Divider style={{ margin: "24px 0" }} />
 
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
-        {ASSETS.map(({ kind, label, fallback, previewHeight }) => (
+        {ASSETS.map(({ kind, label, previewHeight }) => (
           <div key={kind}>
-            <Typography.Text strong>{t(label)}</Typography.Text>
+            <Typography.Text strong style={{ display: "block" }}>
+              {t(label)}
+            </Typography.Text>
             <Space wrap size="middle" align="center" style={{ marginTop: 8 }}>
-              <img
-                src={branding?.assets?.[kind] || fallback}
-                alt=""
-                style={{
-                  height: previewHeight,
-                  width: "auto",
-                  maxWidth: 240,
-                  objectFit: "contain",
-                  background: token.colorBgContainer,
-                  padding: 4,
-                }}
-              />
+              {/* No bundled mock: an empty slot must look empty, not like a default logo. */}
+              {branding?.assets?.[kind] ? (
+                <img
+                  src={branding.assets[kind]}
+                  alt=""
+                  style={{
+                    height: previewHeight,
+                    width: "auto",
+                    maxWidth: 240,
+                    objectFit: "contain",
+                    background: token.colorBgContainer,
+                    padding: 4,
+                  }}
+                />
+              ) : (
+                <Typography.Text type="secondary">{t("branding.empty")}</Typography.Text>
+              )}
               <Upload
                 accept="image/png,image/jpeg,image/webp,image/x-icon"
                 showUploadList={false}
@@ -148,7 +170,9 @@ const BrandingSection = () => {
                 <Button disabled={uploading}>{t("branding.upload")}</Button>
               </Upload>
               {branding?.assets?.[kind] ? (
-                <Button onClick={() => reset(kind)} disabled={uploading}>{t("branding.reset")}</Button>
+                <Button onClick={() => reset(kind)} disabled={uploading}>
+                  {t("branding.reset")}
+                </Button>
               ) : null}
             </Space>
           </div>

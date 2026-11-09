@@ -38,7 +38,7 @@ export const tokens = Object.fromEntries(
       audience: "360-scheduler-web",
       expiresIn: "1h",
     }),
-  ])
+  ]),
 );
 
 export const bearer = (name) => ({

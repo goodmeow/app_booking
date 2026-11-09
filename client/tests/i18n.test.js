@@ -13,10 +13,8 @@ import {
 
 const namespaces = ["common", "auth", "calendar", "management", "report", "kiosk"];
 
-const readJson = (language, namespace) => JSON.parse(fs.readFileSync(
-  new URL(`../locales/${language}/${namespace}.json`, import.meta.url),
-  "utf8"
-));
+const readJson = (language, namespace) =>
+  JSON.parse(fs.readFileSync(new URL(`../locales/${language}/${namespace}.json`, import.meta.url), "utf8"));
 
 const flatten = (value, prefix = "", result = new Map()) => {
   for (const [key, child] of Object.entries(value)) {
@@ -27,13 +25,15 @@ const flatten = (value, prefix = "", result = new Map()) => {
   return result;
 };
 
-const interpolationTokens = (value) => [...String(value).matchAll(/{{\s*([^},\s]+)[^}]*}}/g)]
-  .map((match) => match[1])
-  .sort();
+const interpolationTokens = (value) =>
+  [...String(value).matchAll(/{{\s*([^},\s]+)[^}]*}}/g)].map((match) => match[1]).sort();
 
 test("English is the default and Indonesian is the second supported language", () => {
   assert.equal(DEFAULT_LANGUAGE, "en");
-  assert.deepEqual(SUPPORTED_LANGUAGES.map(({ code }) => code), ["en", "id"]);
+  assert.deepEqual(
+    SUPPORTED_LANGUAGES.map(({ code }) => code),
+    ["en", "id"],
+  );
   assert.equal(normalizeLanguage("en-US"), "en");
   assert.equal(normalizeLanguage("id_ID"), "id");
   assert.equal(normalizeLanguage("fr"), "en");
@@ -68,8 +68,6 @@ test("registered dynamic translation keys exist in every supported language", ()
     "common:roles.admin",
     "common:roles.receptionist",
     "common:roles.user",
-    "common:dataGrid.displayedRows",
-    "common:dataGrid.displayedRowsMore",
     "kiosk:states.unknown",
     "kiosk:states.available",
     "kiosk:states.upcoming",
@@ -108,7 +106,7 @@ test("target catalogs match every English source key and interpolation", () => {
         assert.deepEqual(
           interpolationTokens(translation),
           interpolationTokens(source),
-          `${code}:${namespace}:${key} interpolation`
+          `${code}:${namespace}:${key} interpolation`,
         );
       }
     }
@@ -117,7 +115,8 @@ test("target catalogs match every English source key and interpolation", () => {
 
 test("static translation keys used by client components exist in the English source", () => {
   const clientRoot = new URL("../", import.meta.url);
-  const files = fs.readdirSync(clientRoot, { recursive: true })
+  const files = fs
+    .readdirSync(clientRoot, { recursive: true })
     .filter((entry) => typeof entry === "string" && entry.endsWith(".js") && !entry.startsWith("tests/"));
 
   for (const entry of files) {
@@ -127,16 +126,11 @@ test("static translation keys used by client components exist in the English sou
     for (const match of source.matchAll(/\bt\(\s*["']([^"'`]+)["']/g)) {
       const key = match[1];
       const [explicitNamespace, explicitKey] = key.includes(":") ? key.split(":", 2) : [namespace, key];
-      const exists = i18n.exists(explicitKey, { lng: "en", ns: explicitNamespace })
-        || (
-          i18n.exists(`${explicitKey}_one`, { lng: "en", ns: explicitNamespace })
-          && i18n.exists(`${explicitKey}_other`, { lng: "en", ns: explicitNamespace })
-        );
-      assert.equal(
-        exists,
-        true,
-        `${entry}: missing ${explicitNamespace}:${explicitKey}`
-      );
+      const exists =
+        i18n.exists(explicitKey, { lng: "en", ns: explicitNamespace }) ||
+        (i18n.exists(`${explicitKey}_one`, { lng: "en", ns: explicitNamespace }) &&
+          i18n.exists(`${explicitKey}_other`, { lng: "en", ns: explicitNamespace }));
+      assert.equal(exists, true, `${entry}: missing ${explicitNamespace}:${explicitKey}`);
     }
   }
 });

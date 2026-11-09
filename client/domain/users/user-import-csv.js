@@ -43,10 +43,11 @@ const parseRecords = (input) => {
   return records;
 };
 
-const normalizeHeader = (value) => String(value ?? "")
-  .trim()
-  .toLowerCase()
-  .replace(/\s+/g, "_");
+const normalizeHeader = (value) =>
+  String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
 
 const HEADER_ALIASES = {
   employee_id: "employee_id",

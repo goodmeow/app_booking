@@ -19,15 +19,21 @@ import { findEventAudience } from "../events/event.repository.js";
 import { emitEventInvalidation } from "../../socket/event-invalidation.js";
 
 const run = (handler) => async (req, res, next) => {
-  try { await handler(req, res); } catch (error) { next(error); }
+  try {
+    await handler(req, res);
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const signin = run(async (req, res) => {
-  res.json(await provisionKioskDevice({
-    login: req.body.email || req.body.username,
-    password: req.body.password,
-    deviceName: req.body.deviceName,
-  }));
+  res.json(
+    await provisionKioskDevice({
+      login: req.body.email || req.body.username,
+      password: req.body.password,
+      deviceName: req.body.deviceName,
+    }),
+  );
 });
 
 const disconnectDevice = (req, deviceId) => req.io?.of("/").in(`device:${deviceId}`).disconnectSockets(true);

@@ -1,23 +1,33 @@
 import config from "../../../config/config.js";
 import { badRequest } from "../../lib/http-error.js";
-import { addLocalDays, daysBetweenLocalDates, isValidLocalDate, localDateKey, localWeekday, parseInstant, zonedParts, zonedPartsToDate } from "./event-time.js";
+import {
+  addLocalDays,
+  daysBetweenLocalDates,
+  isValidLocalDate,
+  localDateKey,
+  localWeekday,
+  parseInstant,
+  zonedParts,
+  zonedPartsToDate,
+} from "./event-time.js";
 
 const normalizeRecurrence = (recurrence = {}) => {
   // The API accepts recurrence as JSON. A string, array, or null must fail the
   // normal 400 validation instead of throwing on a property access.
-  const source = recurrence && typeof recurrence === "object" && !Array.isArray(recurrence)
-    ? recurrence
-    : {};
+  const source = recurrence && typeof recurrence === "object" && !Array.isArray(recurrence) ? recurrence : {};
   const cadence = String(source.cadence || "").toLowerCase();
   const interval = Number(source.interval || 1);
   const endDate = String(source.endDate || "");
-  const weekdays = [...new Set((Array.isArray(source.weekdays) ? source.weekdays : []).map(Number))]
-    .sort((a, b) => a - b);
+  const weekdays = [...new Set((Array.isArray(source.weekdays) ? source.weekdays : []).map(Number))].sort(
+    (a, b) => a - b,
+  );
   const monthlyPattern = String(source.monthlyPattern || "date").toLowerCase();
   const monthWeekIndex = Number(source.monthWeekIndex || 1);
   const monthWeekday = Number(source.monthWeekday || 0);
-  if (!['daily', 'weekly', 'monthly'].includes(cadence)) throw badRequest("INVALID_RECURRENCE", "Cadence must be daily, weekly, or monthly");
-  if (!Number.isInteger(interval) || interval < 1 || interval > 52) throw badRequest("INVALID_RECURRENCE", "Recurrence interval must be between 1 and 52");
+  if (!["daily", "weekly", "monthly"].includes(cadence))
+    throw badRequest("INVALID_RECURRENCE", "Cadence must be daily, weekly, or monthly");
+  if (!Number.isInteger(interval) || interval < 1 || interval > 52)
+    throw badRequest("INVALID_RECURRENCE", "Recurrence interval must be between 1 and 52");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) throw badRequest("INVALID_RECURRENCE", "Recurrence end date is required");
   if (cadence === "weekly" && (!weekdays.length || weekdays.some((day) => day < 0 || day > 6))) {
     throw badRequest("INVALID_RECURRENCE", "Weekly recurrence requires weekdays from 0 through 6");
@@ -76,20 +86,25 @@ export const buildOccurrences = ({ start, end, timezone, recurrence }) => {
   const occurrences = [];
   for (let offset = 0; offset <= horizonDays; offset += 1) {
     const localStart = addLocalDays(base, offset);
-    const due = rule.cadence === "daily"
-      ? offset % rule.interval === 0
-      : rule.cadence === "weekly"
-        ? Math.floor(offset / 7) % rule.interval === 0 && rule.weekdays.includes(localWeekday(localStart))
-        : monthlyDue(base, localStart, rule);
+    const due =
+      rule.cadence === "daily"
+        ? offset % rule.interval === 0
+        : rule.cadence === "weekly"
+          ? Math.floor(offset / 7) % rule.interval === 0 && rule.weekdays.includes(localWeekday(localStart))
+          : monthlyDue(base, localStart, rule);
     if (!due) continue;
     const occurrenceStart = zonedPartsToDate(localStart, timezone);
-    const occurrenceEnd = zonedPartsToDate({
-      ...addLocalDays(localStart, endDayOffset),
-      hour: baseEnd.hour,
-      minute: baseEnd.minute,
-      second: baseEnd.second,
-    }, timezone);
-    if (occurrenceEnd <= occurrenceStart) throw badRequest("INVALID_RECURRENCE", "Recurring occurrence end must follow its start");
+    const occurrenceEnd = zonedPartsToDate(
+      {
+        ...addLocalDays(localStart, endDayOffset),
+        hour: baseEnd.hour,
+        minute: baseEnd.minute,
+        second: baseEnd.second,
+      },
+      timezone,
+    );
+    if (occurrenceEnd <= occurrenceStart)
+      throw badRequest("INVALID_RECURRENCE", "Recurring occurrence end must follow its start");
     occurrences.push({
       index: occurrences.length,
       start: occurrenceStart.toISOString(),

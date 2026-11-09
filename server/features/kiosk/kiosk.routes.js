@@ -2,7 +2,23 @@ import express from "express";
 import { menuAccess, requireSignin } from "../../security/auth.middleware.js";
 import { failedLoginRateLimits, fixedWindowRateLimit, SHORT_WINDOW_MS } from "../../security/rate-limit.middleware.js";
 import { requireKiosk } from "../../security/kiosk-auth.middleware.js";
-import { bookSlot, checkIn, completeEvent, context, deprovision, devices, doorOpen, earlyFinish, extendEvent, instantBooking, refresh, revokeDevice, schedule, signin, updateDeviceCapabilities } from "./kiosk.controller.js";
+import {
+  bookSlot,
+  checkIn,
+  completeEvent,
+  context,
+  deprovision,
+  devices,
+  doorOpen,
+  earlyFinish,
+  extendEvent,
+  instantBooking,
+  refresh,
+  revokeDevice,
+  schedule,
+  signin,
+  updateDeviceCapabilities,
+} from "./kiosk.controller.js";
 
 const router = express.Router();
 

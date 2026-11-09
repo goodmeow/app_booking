@@ -16,10 +16,7 @@ const store = configureStore({
     websocket: websocketReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({ serializableCheck: false }).concat(
-      api.middleware,
-      websocketMiddleware
-    ),
+    getDefaultMiddleware({ serializableCheck: false }).concat(api.middleware, websocketMiddleware),
 });
 
 export default store;

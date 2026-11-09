@@ -14,7 +14,8 @@ import { findDetailEventId, findEventAudience, findMutationAudience } from "./ev
 import { emitEventInvalidation, mergeEventAudiences } from "../../socket/event-invalidation.js";
 
 const eventIdsFrom = (result) => {
-  if (Array.isArray(result)) return [...new Set(result.map((item) => item?.event_id || item?.id || item?._id).filter(Boolean))];
+  if (Array.isArray(result))
+    return [...new Set(result.map((item) => item?.event_id || item?.id || item?._id).filter(Boolean))];
   if (Array.isArray(result?.occurrences)) return result.occurrences.map((item) => item.id).filter(Boolean);
   return [result?.event_id || result?.id || result?._id].filter(Boolean);
 };
@@ -22,7 +23,11 @@ const eventIdsFrom = (result) => {
 const notify = (req, audiences) => emitEventInvalidation(req.io, audiences);
 
 const run = (handler) => async (req, res, next) => {
-  try { await handler(req, res); } catch (error) { next(error); }
+  try {
+    await handler(req, res);
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const list = run(async (req, res) => res.json(await listEvents(req.query, req.auth)));

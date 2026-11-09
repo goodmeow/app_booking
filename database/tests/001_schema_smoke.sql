@@ -15,15 +15,6 @@ BEGIN
   END IF;
 
   SELECT count(*) INTO actual_count
-  FROM pg_proc p
-  JOIN pg_namespace n ON n.oid = p.pronamespace
-  WHERE n.nspname = 'public';
-
-  IF actual_count < 31 THEN
-    RAISE EXCEPTION 'Expected Phase 9 functions, found %', actual_count;
-  END IF;
-
-  SELECT count(*) INTO actual_count
   FROM pg_constraint c
   JOIN pg_namespace n ON n.oid = c.connamespace
   WHERE n.nspname = 'public';

@@ -14,9 +14,16 @@ Use Node.js 18 or 20 LTS during reconstruction unless compatibility tests requir
 
 ## Preserved evidence
 
-- `dist/client`: deployable frontend artifact.
-- `dist/server/server.bundle.js`: readable Webpack backend bundle.
-- `bjb.sql`: PostgreSQL schema and stored functions.
+These files were copied out of the old deployment by hand, not produced by this
+repository's build. `npm run build` writes to `build/`, so treat this folder as a
+frozen snapshot: never regenerate it, never serve it.
+
+- `dist/client`: the old web bundle, kept as the reading reference for
+  `docs/reconstruction/client-*.md` (they cite byte offsets in it).
+- `dist/server/server.bundle.js`: the old server bundle; the parity suite runs
+  it as the legacy side of its differential tests.
+- `bjb.sql`: the old PostgreSQL dump. It is no longer in the repository; the
+  numbered migrations in `database/migrations/` are now the source of truth.
 - Root build scripts and configuration.
 
 Verify artifacts from repository root:

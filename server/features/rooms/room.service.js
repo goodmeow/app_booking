@@ -2,7 +2,16 @@ import bcrypt from "bcrypt";
 import config from "../../../config/config.js";
 import { badRequest, HttpError, notFound } from "../../lib/http-error.js";
 import { isValidLocalDate, parseInstant } from "../events/event-time.js";
-import { findRoomById, insertAccount, listAvailableRooms, listRoomStatus, listRooms, roomUsageReport, softDeleteAccount, updateAccount } from "../accounts/account.repository.js";
+import {
+  findRoomById,
+  insertAccount,
+  listAvailableRooms,
+  listRoomStatus,
+  listRooms,
+  roomUsageReport,
+  softDeleteAccount,
+  updateAccount,
+} from "../accounts/account.repository.js";
 import { normalizedEmail, normalizedUsername, validatedPassword } from "../accounts/identity.validation.js";
 import { isAdminRole } from "../../lib/roles.js";
 import { coversAllFloors, effectiveFloors } from "../../lib/floors.js";
@@ -88,9 +97,7 @@ export const getRoomUsage = ({ start, end }) => {
   if (!validDateOnly(start) || !validDateOnly(end) || start > end) {
     throw badRequest("INVALID_RANGE", "Valid start and end dates are required");
   }
-  const days = Math.round(
-    (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000
-  ) + 1;
+  const days = Math.round((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000) + 1;
   if (days > config.maxCalendarRangeDays) {
     throw badRequest("RANGE_TOO_LARGE", `Room usage range cannot exceed ${config.maxCalendarRangeDays} days`);
   }
@@ -102,7 +109,15 @@ export const getRoomStatus = async (principal) => {
   const allFloors = isAdminRole(principal?.role) || coversAllFloors(principal);
   const allowed = new Set(effectiveFloors(principal));
   return rows
-    .filter((row) => allFloors || allowed.has(String(row.floor ?? "").trim().toLowerCase()))
+    .filter(
+      (row) =>
+        allFloors ||
+        allowed.has(
+          String(row.floor ?? "")
+            .trim()
+            .toLowerCase(),
+        ),
+    )
     .map((row) => ({
       id: row._id,
       name: row.name,

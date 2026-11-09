@@ -32,17 +32,16 @@ class ErrorBoundary extends React.Component {
         <Alert
           type="error"
           showIcon
-          message={(
+          message={
             <>
-              <strong>{i18n.t("common:states.crashTitle")}</strong>{" "}
-              {i18n.t("common:states.crashMessage")}
+              <strong>{i18n.t("common:states.crashTitle")}</strong> {i18n.t("common:states.crashMessage")}
             </>
-          )}
-          action={(
+          }
+          action={
             <Button size="small" onClick={() => window.location.reload()}>
               {i18n.t("common:actions.reload")}
             </Button>
-          )}
+          }
         />
       </div>
     );

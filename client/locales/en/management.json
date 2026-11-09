@@ -4,23 +4,8 @@
     "navigation": "Management sections",
     "noAccess": "No management menu is enabled for this account."
   },
-  "cards": {
-    "title": "Access Cards",
-    "add": "Add Access Card",
-    "deleteTitle": "Delete Access Card",
-    "deleteMessage": "Delete card {{number}}?",
-    "required": "Card number is required.",
-    "createError": "Unable to create access card.",
-    "deleteError": "Unable to delete access card.",
-    "loading": "Loading access cards...",
-    "loadError": "Unable to load access cards.",
-    "id": "Card ID",
-    "number": "Card Number",
-    "createdBy": "Created By",
-    "deleteAria": "Delete card {{number}}"
-  },
   "devices": {
-    "title": "Tablet Devices",
+    "title": "Devices",
     "description": "Paired room tablets with online status, indicator light, and optional meeting titles.",
     "downloadApk": "Download Tablet APK",
     "downloadApkHint": "To install on a tablet: copy the file, enable unknown sources, then open it.",
@@ -53,7 +38,9 @@
       "online": "Online",
       "offline": "Offline",
       "expired": "Expired"
-    }
+    },
+    "floor": "Floor",
+    "filterFloor": "Filter by floor"
   },
   "rooms": {
     "title": "Rooms",
@@ -283,6 +270,9 @@
         },
         "access": {
           "update": "Role access updated"
+        },
+        "event": {
+          "room_auto_release": "Room released (no check-in)"
         }
       }
     },
@@ -299,7 +289,7 @@
     "wordmark": "Logo",
     "favicon": "Favicon",
     "upload": "Upload image",
-    "reset": "Reset to default",
+    "reset": "Remove image",
     "help": "PNG, JPEG, WebP, or ICO, up to 512 KB. Changes apply immediately after upload.",
     "save": "Save branding",
     "saved": "Branding saved.",
@@ -308,8 +298,9 @@
     "uploadError": "Unable to upload the image.",
     "invalidType": "Use PNG, JPEG, WebP, or ICO.",
     "tooLarge": "Image size must be 512 KB or less.",
-    "resetDone": "Image reset to default.",
-    "loading": "Loading branding..."
+    "resetDone": "Image removed.",
+    "loading": "Loading branding...",
+    "empty": "Not set"
   },
   "about": {
     "tab": "About",

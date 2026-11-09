@@ -17,11 +17,7 @@ import UserImportDialog from "./users/UserImportDialog.js";
 import { buildUserColumns, UserActions } from "./users/user-columns.js";
 import { useUserFormDialog } from "./users/use-user-form-dialog.js";
 import { useUserCardsDialog } from "./users/use-user-cards-dialog.js";
-import {
-  useChangePasswordMutation,
-  useDeleteUserMutation,
-  useListUserQuery,
-} from "../redux/services/users.js";
+import { useChangePasswordMutation, useDeleteUserMutation, useListUserQuery } from "../redux/services/users.js";
 import { useGetRoomsQuery } from "../redux/services/rooms.js";
 
 const FLOOR_FILTER_ALL = "__all_floors__";
@@ -130,7 +126,7 @@ const UserManagementSection = () => {
   };
 
   const floorLabel = (value) => {
-    const floors = Array.isArray(value) ? value : (value ? [value] : []);
+    const floors = Array.isArray(value) ? value : value ? [value] : [];
     if (!floors.length) return t("users.floorUnset");
     return floors.map((floor) => (floor === "all" ? t("users.floorAll") : t("users.floorValue", { floor }))).join(", ");
   };
@@ -144,7 +140,7 @@ const UserManagementSection = () => {
     const base = filterUsers(users, { search, roleId: roleFilter, onlyMissingFloor });
     return base.filter((user) => {
       if (floorFilter !== FLOOR_FILTER_ALL) {
-        const floors = user.floors?.length ? user.floors : (user.floor ? [user.floor] : []);
+        const floors = user.floors?.length ? user.floors : user.floor ? [user.floor] : [];
         if (!floors.includes(floorFilter)) return false;
       }
       if (masterFilter === MASTER_FILTER_YES && !user.is_master_card) return false;
@@ -153,11 +149,12 @@ const UserManagementSection = () => {
     });
   }, [users, search, roleFilter, floorFilter, masterFilter, onlyMissingFloor]);
 
-  const hasFilters = Boolean(search)
-    || roleFilter !== ROLE_FILTER_ALL
-    || floorFilter !== FLOOR_FILTER_ALL
-    || masterFilter !== MASTER_FILTER_ALL
-    || onlyMissingFloor;
+  const hasFilters =
+    Boolean(search) ||
+    roleFilter !== ROLE_FILTER_ALL ||
+    floorFilter !== FLOOR_FILTER_ALL ||
+    masterFilter !== MASTER_FILTER_ALL ||
+    onlyMissingFloor;
 
   const resetFilters = () => {
     setSearch("");
@@ -167,14 +164,18 @@ const UserManagementSection = () => {
     setOnlyMissingFloor(false);
   };
 
-  const columns = useMemo(() => buildUserColumns({
-    t,
-    floorLabel,
-    openEdit: formDialog.openEdit,
-    openCards: cardsDialog.openCards,
-    openPasswordDialog,
-    openDeleteDialog,
-  }), [t, floorLabel]);
+  const columns = useMemo(
+    () =>
+      buildUserColumns({
+        t,
+        floorLabel,
+        openEdit: formDialog.openEdit,
+        openCards: cardsDialog.openCards,
+        openPasswordDialog,
+        openDeleteDialog,
+      }),
+    [t, floorLabel],
+  );
 
   const roleOptions = [
     { value: ROLE_FILTER_ALL, label: t("users.roleAll") },
@@ -206,7 +207,9 @@ const UserManagementSection = () => {
         align="center"
         style={{ width: "100%", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap" }}
       >
-        <Typography.Title level={4} style={{ margin: 0 }}>{t("users.title")}</Typography.Title>
+        <Typography.Title level={4} style={{ margin: 0 }}>
+          {t("users.title")}
+        </Typography.Title>
         <Space>
           <Button onClick={() => setImportOpen(true)}>{t("users.importButton")}</Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={formDialog.openCreate}>
@@ -219,8 +222,12 @@ const UserManagementSection = () => {
         <Alert type="info" showIcon message={t("common:states.refreshing")} style={{ marginBottom: 8 }} />
       ) : null}
       {isLoading ? <LoadingState label={t("users.loading")} /> : null}
-      {isError ? <ErrorState message={getApiError(error, t("users.loadError"))} busy={isFetching} onAction={refetch} /> : null}
-      {!isLoading && (!isError || users.length > 0) && users.length === 0 ? <EmptyState message={t("users.empty")} /> : null}
+      {isError ? (
+        <ErrorState message={getApiError(error, t("users.loadError"))} busy={isFetching} onAction={refetch} />
+      ) : null}
+      {!isLoading && (!isError || users.length > 0) && users.length === 0 ? (
+        <EmptyState message={t("users.empty")} />
+      ) : null}
 
       {hasLoadedUsers && users.length > 0 ? (
         <Typography.Text type="secondary" style={{ display: "block", marginBottom: 12 }}>
@@ -234,11 +241,11 @@ const UserManagementSection = () => {
           showIcon
           style={{ marginBottom: 12 }}
           message={t("users.floorMissingNotice", { count: missingFloorCount })}
-          action={(
+          action={
             <Button size="small" onClick={toggleMissingFloorFilter}>
               {onlyMissingFloor ? t("users.floorShowAll") : t("users.floorShowMissing")}
             </Button>
-          )}
+          }
         />
       ) : null}
 
@@ -274,12 +281,7 @@ const UserManagementSection = () => {
             style={{ minWidth: 160 }}
           />
           {hasFilters ? (
-            <Button
-              size="small"
-              icon={<ClearOutlined />}
-              aria-label={t("users.roleClear")}
-              onClick={resetFilters}
-            />
+            <Button size="small" icon={<ClearOutlined />} aria-label={t("users.roleClear")} onClick={resetFilters} />
           ) : null}
         </Space>
       ) : null}
@@ -287,51 +289,55 @@ const UserManagementSection = () => {
       {hasLoadedUsers && users.length > 0 ? (
         isMobile ? (
           <Space direction="vertical" size="small" style={{ width: "100%" }}>
-            {visibleUsers.length ? visibleUsers.map((row) => {
-              const floors = row.floors?.length ? row.floors : (row.floor ? [row.floor] : []);
-              const role = roleLabel(t, row.role_id);
-              const card = primaryCardNumber(row);
-              return (
-                <Card key={row._id} size="small">
-                  <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                    <div>
-                      <Typography.Text strong>{row.name}</Typography.Text>
+            {visibleUsers.length ? (
+              visibleUsers.map((row) => {
+                const floors = row.floors?.length ? row.floors : row.floor ? [row.floor] : [];
+                const role = roleLabel(t, row.role_id);
+                const card = primaryCardNumber(row);
+                return (
+                  <Card key={row._id} size="small">
+                    <Space direction="vertical" size="small" style={{ width: "100%" }}>
                       <div>
-                        <Typography.Text type="secondary">
-                          {[row.email, row.employee_id].filter(Boolean).join(" · ")}
-                        </Typography.Text>
+                        <Typography.Text strong>{row.name}</Typography.Text>
+                        <div>
+                          <Typography.Text type="secondary">
+                            {[row.email, row.employee_id].filter(Boolean).join(" · ")}
+                          </Typography.Text>
+                        </div>
                       </div>
-                    </div>
-                    <Space size={4} wrap>
-                      {role ? <Tag color="green">{role}</Tag> : null}
-                      {floors.length
-                        ? floors.map((floor) => (
-                          <Tag key={floor} color={floor === "all" ? "green" : undefined}>
-                            {floorLabel(floor)}
-                          </Tag>
-                        ))
-                        : <Tag color="warning">{t("users.floorUnset")}</Tag>}
-                    </Space>
-                    <Space size={8} wrap style={{ width: "100%", justifyContent: "space-between" }}>
                       <Space size={4} wrap>
-                        <Typography.Text type="secondary">
-                          {card || t("users.cardMissing")}
-                        </Typography.Text>
-                        {row.is_master_card ? <Tag color="gold">{t("users.masterCard")}</Tag> : null}
+                        {role ? <Tag color="green">{role}</Tag> : null}
+                        {floors.length ? (
+                          floors.map((floor) => (
+                            <Tag key={floor} color={floor === "all" ? "green" : undefined}>
+                              {floorLabel(floor)}
+                            </Tag>
+                          ))
+                        ) : (
+                          <Tag color="warning">{t("users.floorUnset")}</Tag>
+                        )}
                       </Space>
-                      <UserActions
-                        row={row}
-                        t={t}
-                        openEdit={formDialog.openEdit}
-                        openCards={cardsDialog.openCards}
-                        openPasswordDialog={openPasswordDialog}
-                        openDeleteDialog={openDeleteDialog}
-                      />
+                      <Space size={8} wrap style={{ width: "100%", justifyContent: "space-between" }}>
+                        <Space size={4} wrap>
+                          <Typography.Text type="secondary">{card || t("users.cardMissing")}</Typography.Text>
+                          {row.is_master_card ? <Tag color="gold">{t("users.masterCard")}</Tag> : null}
+                        </Space>
+                        <UserActions
+                          row={row}
+                          t={t}
+                          openEdit={formDialog.openEdit}
+                          openCards={cardsDialog.openCards}
+                          openPasswordDialog={openPasswordDialog}
+                          openDeleteDialog={openDeleteDialog}
+                        />
+                      </Space>
                     </Space>
-                  </Space>
-                </Card>
-              );
-            }) : <EmptyState message={t("users.empty")} />}
+                  </Card>
+                );
+              })
+            ) : (
+              <EmptyState message={t("users.empty")} />
+            )}
           </Space>
         ) : (
           <Table

@@ -27,16 +27,28 @@
         text-decoration: none;
       }
       p { margin: 14px 0 0; color: #8894a1; font-size: 16px; }
-      .secondary { margin-top: 36px; background: #243447; }
     </style>
   </head>
   <body>
     <main>
       <h1>RoomBooking Kiosk</h1>
-      <a href="kiosk-release.apk" download>Download APK</a>
-      <p>Versi 1.5.0 (27)</p>
-      <a class="secondary" href="rustdesk-armv7.apk" download>Download RustDesk</a>
-      <p>RustDesk 1.5.0 · ARMv7</p>
+      <a id="apk-download" href="kiosk-release.apk" download>Download APK</a>
+      <p id="apk-version">Versi terbaru</p>
     </main>
+    <script>
+      // latest.json is the same manifest the kiosk polls, so a release only
+      // updates the APK and that one file. Fallback text stays version-free so
+      // it can never go stale.
+      fetch("latest.json", { cache: "no-store" })
+        .then((response) => (response.ok ? response.json() : Promise.reject(new Error("manifest"))))
+        .then((manifest) => {
+          document.getElementById("apk-download").href = manifest.url;
+          document.getElementById("apk-version").textContent =
+            `Versi ${manifest.versionName} (${manifest.versionCode}) · SHA-256 ${manifest.sha256.slice(0, 12)}`;
+        })
+        .catch(() => {
+          // Leave the fallback text and link in place.
+        });
+    </script>
   </body>
 </html>

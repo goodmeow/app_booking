@@ -17,7 +17,7 @@ const refuseLastAdminDemotion = async (execute, adminRoleId) => {
        AND is_deleted IS NOT TRUE
      ORDER BY _id
      FOR UPDATE`,
-    [adminRoleId]
+    [adminRoleId],
   );
   if (admins.rows.length <= 1) {
     throw conflict("LAST_ADMIN", "Cannot demote the last active admin");
@@ -34,7 +34,7 @@ const roleMap = async () => {
      FROM tbl_role
      WHERE is_deleted IS NOT TRUE
        AND lower(role_name) = ANY($1::text[])`,
-    [IMPORTABLE_ROLES]
+    [IMPORTABLE_ROLES],
   );
   return new Map(rows.rows.map((row) => [row.name, row._id]));
 };
@@ -70,9 +70,7 @@ export const importUsers = async ({ rows, mode = "skip" }, principal) => {
 
       const existing = await findEmployeeByEmployeeId(employeeId);
       const requestedRole = text(row.role).toLowerCase();
-      const roleId = requestedRole
-        ? roles.get(requestedRole)
-        : existing?.role_id || roles.get("user");
+      const roleId = requestedRole ? roles.get(requestedRole) : existing?.role_id || roles.get("user");
       if (!roleId) throw badRequest("INVALID_ROLE", `Unknown role: ${row.role}`);
 
       if (existing) {
@@ -86,27 +84,35 @@ export const importUsers = async ({ rows, mode = "skip" }, principal) => {
           if (existing.role_id === adminRoleId && roleId !== adminRoleId) {
             await refuseLastAdminDemotion(execute, adminRoleId);
           }
-          await editUser(existing._id, {
+          await editUser(
+            existing._id,
+            {
+              name,
+              email,
+              employee_id: employeeId,
+              roleId,
+              ...(floor !== undefined ? { floor } : {}),
+              ...(text(row.card_number) ? { card_number: text(row.card_number) } : {}),
+            },
+            principal,
+            { execute },
+          );
+        });
+        result.updated += 1;
+      } else {
+        await createUser(
+          {
             name,
             email,
             employee_id: employeeId,
             roleId,
             ...(floor !== undefined ? { floor } : {}),
+            password: DEFAULT_PASSWORD,
+            must_change_password: true,
             ...(text(row.card_number) ? { card_number: text(row.card_number) } : {}),
-          }, principal, { execute });
-        });
-        result.updated += 1;
-      } else {
-        await createUser({
-          name,
-          email,
-          employee_id: employeeId,
-          roleId,
-          ...(floor !== undefined ? { floor } : {}),
-          password: DEFAULT_PASSWORD,
-          must_change_password: true,
-          ...(text(row.card_number) ? { card_number: text(row.card_number) } : {}),
-        }, principal);
+          },
+          principal,
+        );
         result.created += 1;
       }
     } catch (error) {

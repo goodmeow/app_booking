@@ -24,7 +24,7 @@ export const findPrincipalByLogin = async (login) => {
      WHERE lower(u.email) = lower($1)
         OR (u.username IS NOT NULL AND lower(u.username) = lower($1))
      LIMIT 1`,
-    [login]
+    [login],
   );
   return result.rows[0] || null;
 };
@@ -36,7 +36,7 @@ export const findActivePrincipalById = async (id) => {
        AND u.is_deleted IS NOT TRUE
        AND u.type = 'employee'
      LIMIT 1`,
-    [id]
+    [id],
   );
   return result.rows[0] || null;
 };
@@ -49,7 +49,7 @@ export const createEmployeeAccount = async ({ name, email, username, password })
      WHERE lower(r.role_name) = 'user'
        AND r.is_deleted IS NOT TRUE
      RETURNING _id, name, email, username, type`,
-    [name, email, username || null, password]
+    [name, email, username || null, password],
   );
   if (!result.rows[0]) throw new Error("Default user role is not configured");
   return result.rows[0];
@@ -72,7 +72,7 @@ export const hasDoorCard = async (cardNumber) => {
          AND owner.is_deleted IS NOT TRUE
      )
      LIMIT 1`,
-    [cardNumber]
+    [cardNumber],
   );
   return result.rowCount > 0;
 };

@@ -17,8 +17,13 @@ const slice = createSlice({
   name: "websocket",
   initialState,
   reducers: {
-    wsConnect: (state) => { state.status = "connecting"; },
-    wsConnected: (state) => { state.connected = true; state.status = "connected"; },
+    wsConnect: (state) => {
+      state.status = "connecting";
+    },
+    wsConnected: (state) => {
+      state.connected = true;
+      state.status = "connected";
+    },
     wsDisconnect: (state) => {
       state.connected = false;
       state.status = "disconnected";
@@ -28,20 +33,28 @@ const slice = createSlice({
       state.connected = false;
       state.status = action.payload || "disconnected";
     },
-    wsJoinRoom: (state, action) => { state.socket_room_list = [...new Set([...state.socket_room_list, action.payload])]; },
-    wsLeaveRoom: (state, action) => { state.socket_room_list = state.socket_room_list.filter((room) => room !== action.payload); },
-    wsEmit: (state, action) => { state.last_socket_emit = action.payload; },
+    wsJoinRoom: (state, action) => {
+      state.socket_room_list = [...new Set([...state.socket_room_list, action.payload])];
+    },
+    wsLeaveRoom: (state, action) => {
+      state.socket_room_list = state.socket_room_list.filter((room) => room !== action.payload);
+    },
+    wsEmit: (state, action) => {
+      state.last_socket_emit = action.payload;
+    },
   },
 });
 
-export const { wsConnect, wsConnected, wsDisconnect, wsConnectionLost, wsJoinRoom, wsLeaveRoom, wsEmit } = slice.actions;
+export const { wsConnect, wsConnected, wsDisconnect, wsConnectionLost, wsJoinRoom, wsLeaveRoom, wsEmit } =
+  slice.actions;
 export const websocketReducer = slice.reducer;
 
-export const createWebsocketMiddleware = (connectSocket = io) => configureWebsocketMiddleware({
-  connectSocket,
-  getToken: () => isAuthenticated()?.token,
-  invalidateEvents: () => api.util.invalidateTags(["events"]),
-  actions: { wsConnect, wsConnected, wsDisconnect, wsConnectionLost, wsJoinRoom, wsLeaveRoom, wsEmit },
-});
+export const createWebsocketMiddleware = (connectSocket = io) =>
+  configureWebsocketMiddleware({
+    connectSocket,
+    getToken: () => isAuthenticated()?.token,
+    invalidateEvents: () => api.util.invalidateTags(["events"]),
+    actions: { wsConnect, wsConnected, wsDisconnect, wsConnectionLost, wsJoinRoom, wsLeaveRoom, wsEmit },
+  });
 
 export const websocketMiddleware = createWebsocketMiddleware();

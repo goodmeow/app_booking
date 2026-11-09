@@ -1,4 +1,10 @@
-import { authenticateCredentials, publicPrincipal, registerEmployee, signPrincipalToken, validateDoorCard } from "./auth.service.js";
+import {
+  authenticateCredentials,
+  publicPrincipal,
+  registerEmployee,
+  signPrincipalToken,
+  validateDoorCard,
+} from "./auth.service.js";
 
 export const signin = async (req, res, next) => {
   try {

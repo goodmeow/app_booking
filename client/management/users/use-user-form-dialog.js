@@ -3,11 +3,7 @@ import { ROLE_IDS } from "../../domain/roles.js";
 import { createEmptyUserForm, employeeIdErrorKey } from "../user-form.js";
 import { primaryCardNumber } from "./user-cards.js";
 import { userMutationError } from "./user-api-errors.js";
-import {
-  useCreateUserMutation,
-  useDetailUserQuery,
-  useUpdateUserMutation,
-} from "../../redux/services/users.js";
+import { useCreateUserMutation, useDetailUserQuery, useUpdateUserMutation } from "../../redux/services/users.js";
 
 // Owns the create/edit user dialog: the draft form, the detail fetch that fills
 // it, validation, and the two mutations. The section only wires the dialog up.
@@ -40,9 +36,12 @@ export const useUserFormDialog = ({ t, onSaved }) => {
       master_card: Boolean(editUser.is_master_card),
       must_change_password: Boolean(editUser.must_change_password),
       floor: editUser.floor || "",
-      floors: Array.isArray(editUser.floors) && editUser.floors.length
-        ? editUser.floors
-        : (editUser.floor ? [editUser.floor] : []),
+      floors:
+        Array.isArray(editUser.floors) && editUser.floors.length
+          ? editUser.floors
+          : editUser.floor
+            ? [editUser.floor]
+            : [],
       roleId: editUser.role_id || ROLE_IDS.USER,
     });
   }, [editUser, editUserId]);
@@ -70,7 +69,12 @@ export const useUserFormDialog = ({ t, onSaved }) => {
     resetCreate();
     resetUpdate();
     setEditUserId(user._id);
-    setForm({ ...createEmptyUserForm(), name: user.name || "", email: user.email || "", username: user.username || "" });
+    setForm({
+      ...createEmptyUserForm(),
+      name: user.name || "",
+      email: user.email || "",
+      username: user.username || "",
+    });
     setFormError("");
     setFormMode("edit");
   };
@@ -134,11 +138,9 @@ export const useUserFormDialog = ({ t, onSaved }) => {
       resetCreate();
       resetUpdate();
     } catch (mutationError) {
-      setFormError(userMutationError(
-        mutationError,
-        t,
-        t(formMode === "create" ? "users.createError" : "users.updateError"),
-      ));
+      setFormError(
+        userMutationError(mutationError, t, t(formMode === "create" ? "users.createError" : "users.updateError")),
+      );
     }
   };
 

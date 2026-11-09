@@ -5,9 +5,8 @@ import { buildSetupPayload, validateSetupForm } from "../domain/setup.js";
 
 const readClientFile = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
-const readLocale = (language, namespace) => JSON.parse(
-  fs.readFileSync(new URL(`../locales/${language}/${namespace}.json`, import.meta.url), "utf8")
-);
+const readLocale = (language, namespace) =>
+  JSON.parse(fs.readFileSync(new URL(`../locales/${language}/${namespace}.json`, import.meta.url), "utf8"));
 
 test("setup form rejects an empty name, empty email, short password, and mismatch", () => {
   const valid = {
@@ -34,11 +33,11 @@ test("setup payload trims text and omits an empty employee ID", () => {
       password: "secret123",
       confirm: "secret123",
     }),
-    { name: "Admin", email: "admin@example.com", password: "secret123" }
+    { name: "Admin", email: "admin@example.com", password: "secret123" },
   );
   assert.equal(
     buildSetupPayload({ name: "Admin", email: "a@b.c", employeeId: " EMP-9 ", password: "secret123" }).employeeId,
-    "EMP-9"
+    "EMP-9",
   );
 });
 
@@ -125,9 +124,5 @@ test("setup translations exist in both languages with matching interpolation", (
   assert.equal(typeof enErrors.setupCompleted, "string");
   assert.equal(typeof idErrors.employeeIdExists, "string");
   assert.equal(typeof idErrors.setupCompleted, "string");
-  assert.deepEqual(
-    Object.keys(idErrors).sort(),
-    Object.keys(enErrors).sort(),
-    "common:apiErrors parity"
-  );
+  assert.deepEqual(Object.keys(idErrors).sort(), Object.keys(enErrors).sort(), "common:apiErrors parity");
 });

@@ -49,9 +49,22 @@ after(async () => Promise.all([stopServer(legacy), stopServer(reconstructed)]));
 test("all recovered routes retain public versus authenticated boundaries", async () => {
   for (const target of Object.values(targets)) {
     assert.equal((await apiRequest(target, "/api/auth/signout")).status, 200);
-    assert.equal((await apiRequest(target, "/api/auth/signin", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })).status, 401);
+    assert.equal(
+      (
+        await apiRequest(target, "/api/auth/signin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        })
+      ).status,
+      401,
+    );
     for (const [method, pathname] of protectedRoutes) {
-      assert.equal((await apiRequest(target, pathname, { method })).status, 401, `${target.name} ${method} ${pathname}`);
+      assert.equal(
+        (await apiRequest(target, pathname, { method })).status,
+        401,
+        `${target.name} ${method} ${pathname}`,
+      );
     }
   }
 });

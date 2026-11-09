@@ -49,7 +49,10 @@ test("merged index keeps earlier users so selected attendees keep their id", () 
 
 test("listUser forwards the search argument and keeps the users tag", () => {
   const service = fs.readFileSync(new URL("../redux/services/users.js", import.meta.url), "utf8");
-  assert.match(service, /listUser: builder\.query\(\{ query: \(argument\) => directoryUrl\(argument\), providesTags: \["users"\] \}\)/);
+  assert.match(
+    service,
+    /listUser: builder\.query\(\{ query: \(argument\) => directoryUrl\(argument\), providesTags: \["users"\] \}\)/,
+  );
 });
 
 test("attendee picker searches on demand with a debounce instead of loading the directory", () => {

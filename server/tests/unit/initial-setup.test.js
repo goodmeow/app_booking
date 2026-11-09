@@ -36,12 +36,22 @@ test("setup body is normalized before it reaches the database", () => {
 
 test("setup accepts a custom employee id and the snake_case alias", () => {
   assert.equal(
-    normalizedSetupBody({ name: "Admin", email: "admin@example.test", password: "Bootstrap123!", employeeId: " EMP-9 " }).employeeId,
-    "EMP-9"
+    normalizedSetupBody({
+      name: "Admin",
+      email: "admin@example.test",
+      password: "Bootstrap123!",
+      employeeId: " EMP-9 ",
+    }).employeeId,
+    "EMP-9",
   );
   assert.equal(
-    normalizedSetupBody({ name: "Admin", email: "admin@example.test", password: "Bootstrap123!", employee_id: "EMP-10" }).employeeId,
-    "EMP-10"
+    normalizedSetupBody({
+      name: "Admin",
+      email: "admin@example.test",
+      password: "Bootstrap123!",
+      employee_id: "EMP-10",
+    }).employeeId,
+    "EMP-10",
   );
 });
 

@@ -94,11 +94,11 @@ const Signup = () => {
         open={Boolean(message)}
         title={t("auth:signup.successTitle")}
         onCancel={() => setMessage("")}
-        footer={(
+        footer={
           <Link to="/signin">
             <Button type="primary">{t("common:nav.signIn")}</Button>
           </Link>
-        )}
+        }
       >
         <p style={{ margin: 0 }}>{message}</p>
       </Modal>

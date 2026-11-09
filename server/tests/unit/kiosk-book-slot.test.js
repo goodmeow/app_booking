@@ -30,12 +30,13 @@ test("a slot that starts later is not checked in right away", () => {
 
 test("rejects a start time that is already in the past", () => {
   assert.throws(
-    () => validateKioskBookedSlot({
-      now,
-      start: "2032-03-10T02:30:00.000Z",
-      end: "2032-03-10T03:30:00.000Z",
-      timezone,
-    }),
+    () =>
+      validateKioskBookedSlot({
+        now,
+        start: "2032-03-10T02:30:00.000Z",
+        end: "2032-03-10T03:30:00.000Z",
+        timezone,
+      }),
     /already in the past/,
   );
 });
@@ -43,33 +44,36 @@ test("rejects a start time that is already in the past", () => {
 test("rejects a slot that crosses the end of the day in the server time zone", () => {
   // 23:30 WIB to 00:30 WIB the next day.
   assert.throws(
-    () => validateKioskBookedSlot({
-      now,
-      start: "2032-03-10T16:30:00.000Z",
-      end: "2032-03-10T17:30:00.000Z",
-      timezone,
-    }),
+    () =>
+      validateKioskBookedSlot({
+        now,
+        start: "2032-03-10T16:30:00.000Z",
+        end: "2032-03-10T17:30:00.000Z",
+        timezone,
+      }),
     /for today only/,
   );
 });
 
 test("rejects a duration under 5 minutes or over 4 hours", () => {
   assert.throws(
-    () => validateKioskBookedSlot({
-      now,
-      start: "2032-03-10T04:00:00.000Z",
-      end: "2032-03-10T04:03:00.000Z",
-      timezone,
-    }),
+    () =>
+      validateKioskBookedSlot({
+        now,
+        start: "2032-03-10T04:00:00.000Z",
+        end: "2032-03-10T04:03:00.000Z",
+        timezone,
+      }),
     /5-240 minutes/,
   );
   assert.throws(
-    () => validateKioskBookedSlot({
-      now,
-      start: "2032-03-10T04:00:00.000Z",
-      end: "2032-03-10T09:00:00.000Z",
-      timezone,
-    }),
+    () =>
+      validateKioskBookedSlot({
+        now,
+        start: "2032-03-10T04:00:00.000Z",
+        end: "2032-03-10T09:00:00.000Z",
+        timezone,
+      }),
     /5-240 minutes/,
   );
 });
