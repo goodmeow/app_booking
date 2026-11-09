@@ -6,6 +6,7 @@ import RoomManagementSection from "./RoomManagementSection.js";
 import UserManagementSection from "./UserManagementSection.js";
 import KioskDeviceManagementSection from "./KioskDeviceManagementSection.js";
 import SettingsSection from "./SettingsSection.js";
+import FaceSection from "../face/FaceSection.js";
 import AboutSection from "./AboutSection.js";
 import { LoadingState } from "../components/common/AsyncState.js";
 import { useMenuAccess } from "../auth/use-menu-access.js";
@@ -20,6 +21,7 @@ const AppManagement = () => {
     { value: "users", menu: "users", label: t("users.title"), content: <UserManagementSection /> },
     { value: "rooms", menu: "rooms", label: t("rooms.title"), content: <RoomManagementSection /> },
     { value: "devices", menu: "devices", label: t("devices.title"), content: <KioskDeviceManagementSection /> },
+    { value: "face", menu: "face", label: t("face.title"), content: <FaceSection /> },
     { value: "settings", menu: "settings", label: t("settings.tab"), content: <SettingsSection /> },
     { value: "about", menu: null, label: t("about.tab"), content: <AboutSection /> },
   ];

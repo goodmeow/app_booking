@@ -316,5 +316,48 @@
     "openSource": "Open source",
     "copyright": "© 2026 The Prasada. RoomBooking is an internal application.",
     "versionTitle": "Versions"
+  },
+  "face": {
+    "title": "Face",
+    "description": "Face templates and verification attempts reported by the separate face service. Read-only.",
+    "templatesTitle": "Registered templates",
+    "verifyLogTitle": "Verification log",
+    "loadError": "Could not load face data.",
+    "actions": {
+      "refresh": "Refresh"
+    },
+    "status": {
+      "connected": "Face service connected",
+      "disconnected": "Face service not connected",
+      "description": "The Face menu appears only while the face service is reachable. The kiosk keeps using cards until then.",
+      "version": "Model {{version}}",
+      "templates": "{{count}} templates"
+    },
+    "columns": {
+      "name": "Name",
+      "employeeId": "Employee ID",
+      "group": "Group",
+      "model": "Model",
+      "quality": "Quality",
+      "registered": "Registered",
+      "time": "Time",
+      "result": "Result",
+      "score": "Score",
+      "margin": "Margin",
+      "device": "Device"
+    },
+    "filters": {
+      "result": "Filter by result",
+      "all": "All results"
+    },
+    "results": {
+      "match": "Match",
+      "no_match": "No match",
+      "no_face": "No face",
+      "error": "Error"
+    },
+    "empty": {
+      "noData": "No data yet."
+    }
   }
 }

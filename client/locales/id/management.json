@@ -316,5 +316,48 @@
     "openSource": "Sumber terbuka",
     "copyright": "© 2026 The Prasada. RoomBooking adalah aplikasi internal.",
     "versionTitle": "Versi"
+  },
+  "face": {
+    "title": "Wajah",
+    "description": "Template wajah dan percobaan verifikasi dari layanan face unlock terpisah. Hanya baca.",
+    "templatesTitle": "Template terdaftar",
+    "verifyLogTitle": "Log verifikasi",
+    "loadError": "Data wajah gagal dimuat.",
+    "actions": {
+      "refresh": "Muat ulang"
+    },
+    "status": {
+      "connected": "Layanan wajah terhubung",
+      "disconnected": "Layanan wajah tidak terhubung",
+      "description": "Menu Wajah hanya muncul selama layanan wajah dapat dijangkau. Kiosk tetap memakai kartu sampai layanan hidup.",
+      "version": "Model {{version}}",
+      "templates": "{{count}} template"
+    },
+    "columns": {
+      "name": "Nama",
+      "employeeId": "ID karyawan",
+      "group": "Grup",
+      "model": "Model",
+      "quality": "Kualitas",
+      "registered": "Terdaftar",
+      "time": "Waktu",
+      "result": "Hasil",
+      "score": "Skor",
+      "margin": "Margin",
+      "device": "Perangkat"
+    },
+    "filters": {
+      "result": "Filter hasil",
+      "all": "Semua hasil"
+    },
+    "results": {
+      "match": "Cocok",
+      "no_match": "Tidak cocok",
+      "no_face": "Tanpa wajah",
+      "error": "Galat"
+    },
+    "empty": {
+      "noData": "Belum ada data."
+    }
   }
 }
