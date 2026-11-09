@@ -4,10 +4,28 @@ Verifikasi identitas karyawan dengan wajah untuk booking ruang meeting. Metode
 yang ada sekarang hanya kartu; wajah menjadi metode utama dan kartu menjadi
 cadangan.
 
-- Status: **slice 1 selesai** (engine + tabel + enrollment), kiosk belum.
+- Status: **final untuk gelombang face unlock dan siap masuk produksi**
+  (keputusan pemilik produk, 2026-11-09).
 - **Fase read-only CMS selesai**: menu **Face** muncul untuk admin + super_admin
   hanya selama face service dapat dijangkau, berisi template dan log verifikasi
   hasil ekstraksi ZKBio. Enroll/hapus dari CMS menyusul di fase berikutnya.
+
+### Catatan rilis produksi
+
+Urutan rilis yang sudah diuji di tablet:
+
+1. `kioskapp` **1.5.1 (28)** di `main` — memperbaiki jalur update. Tablet yang
+   masih 1.5.0 (27) harus dipasang manual sekali; setelah itu OTA berjalan.
+2. `kioskapp` **1.6.0 (29)** di `feature/face-unlock` — murni fitur face
+   unlock, dibangun di atas 1.5.1. Sudah diuji OTA 28 → 29 di tablet.
+3. `app_booking` face branch membawa CMS 3.15.17. Saat merge, isi `public/apk`
+   harus mengikuti `master` (APK 1.5.1/28 + WebView) sampai rilis face benar-
+   benar naik; jangan deploy branch face apa adanya.
+
+Risiko yang **diterima** pada keputusan final ini: liveness belum ada
+(`liveness: null` di setiap respons), jadi foto/layar HP masih bisa lolos.
+Kartu tetap tersedia sebagai cadangan. Pasang liveness pasif (MiniFASNet)
+sebelum membuka face-first tanpa pengawasan operator.
 - Kode: repo `app_faceunlock-service` (terpisah, pemilik skema + retensi),
   salinan migrasi untuk rebuild di `app_booking/database/migrations/027_face_templates.sql`.
 
