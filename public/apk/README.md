@@ -18,6 +18,12 @@ Cara pembaruan:
 Halaman `/apk/index.html` membaca `latest.json`, jadi teks versi dan tautan
 unduh tidak perlu diubah manual lagi.
 
+**Catatan penting — lompatan pertama dari 1.5.0 (27):** tablet yang masih di
+1.5.0 tidak bisa memperbarui diri sendiri karena build itu memanggil modul
+native yang salah ("Update failed." tanpa unduhan). Pasang **1.5.1 (28)**
+secara manual sekali (adb atau buka APK-nya di tablet). Setelah 1.5.1
+terpasang, pembaruan berikutnya berjalan normal lewat menu tablet.
+
 Riwayat isi paket:
 
 - 2026-10-23: pertama masuk paket, termasuk jam sinkron server (`serverTime`),
@@ -158,3 +164,9 @@ sebelum membuka installer.
   toast hasil aksi di panel kanan (hijau sukses, merah ditolak); buka pintu
   saat meeting aktif hanya untuk attendee/organizer meeting itu atau kartu
   master. SHA-256 `be42fd3599658724db41ddb16f82c12bde90f29d914f6c023c6dcaa49ac98c96`, 21.531.173 byte.
+
+- 2026-11-09: naik 1.5.1 (versionCode 28)—build tag `1.5.1-28-a1682e3`.
+  Perbaikan jalur update: tombol memanggil modul native `KioskUpdate`, manifest
+  dibaca ulang tepat sebelum unduh, timeout 15 detik, tap ganda tidak memulai
+  dua unduhan, dan alasan gagal dari native ikut ditampilkan. Paket distribusi
+  21531488 byte, SHA-256 `249fc9c03bbb9900ae69ca3f4d5c1311febbdaa1674330a20857c7bc1571b811`.
