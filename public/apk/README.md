@@ -159,16 +159,44 @@ sebelum membuka installer.
   saat meeting aktif hanya untuk attendee/organizer meeting itu atau kartu
   master. SHA-256 `be42fd3599658724db41ddb16f82c12bde90f29d914f6c023c6dcaa49ac98c96`, 21.531.173 byte.
 
-- 2026-11-09: naik 1.6.2 (versionCode 30)—build tag `1.6.2-30-76f1d02`.
-  Manifest dibaca ulang tepat sebelum unduh (sha tidak basi bila paket
-  dibangun ulang), permintaan manifest punya timeout 15 detik, tap ganda tidak
+- 2026-11-09: naik 1.5.1 (versionCode 28)—build tag `1.5.1-28-a1682e3`.
+  Perbaikan jalur update: tombol memanggil modul native `KioskUpdate` (1.5.0
+  salah modul sehingga selalu "Update failed."), manifest dibaca ulang tepat
+  sebelum unduh, permintaan manifest punya timeout 15 detik, tap ganda tidak
   memulai dua unduhan, dan alasan gagal dari native ikut ditampilkan. Paket
-  distribusi 21544370 byte, SHA-256
-  `6b6153b1b9632d4fca02cc5003f5fa0f93715f07c740eca98e4bd12a7ab1a24c`.
+  distribusi 21531488 byte, SHA-256
+  `249fc9c03bbb9900ae69ca3f4d5c1311febbdaa1674330a20857c7bc1571b811`. Build internal 1.6.0 (28), 1.6.1 (29), dan 1.6.2 (30) dipakai untuk
+  menguji updater dan tidak pernah ditebar; rilis face unlock menyusul sebagai
+  1.6.0 (29).
 
-- 2026-11-09: naik 1.6.1 (versionCode 29)—build tag `1.6.1-29-7cb7177`.
-  Face unlock di tablet: scan wajah untuk check-in, extend, dan booking,
-  dengan kartu tetap cadangan. Tombol update memanggil modul native `KioskUpdate` (sebelumnya salah modul sehingga selalu "Update failed."). Base commit sudah rebase di atas 1.5.0
-  (main `982a4df`), jadi posisi toast dan layout tidak berubah. Paket
-  distribusi 21544060 byte, SHA-256
-  `acb7fecb84b10817faee04bce00b7dfe2017b3da16a659742c061ba86ea7386f`.
+## Manifest update
+
+`latest.json` dibaca kiosk 1.4.0+ setiap 6 jam dan dibaca halaman
+`/apk/index.html` saat dibuka. Setiap rilis APK, isi:
+
+```json
+{
+  "versionCode": 22,
+  "versionName": "1.4.1",
+  "url": "/apk/kiosk-release.apk",
+  "sha256": "<sha256 paket>",
+  "mandatory": false,
+  "notes": "..."
+}
+```
+
+`versionCode` harus naik. Kiosk memverifikasi SHA-256 dan signature APK
+sebelum membuka installer.
+
+- 2026-11-04: naik 1.5.0 (versionCode 27)—toggle **30 menit/sampai jam X**
+  dan **Pilih waktu** dapat dimatikan per tablet dari CMS Tablet Devices;
+  toast hasil aksi di panel kanan (hijau sukses, merah ditolak); buka pintu
+  saat meeting aktif hanya untuk attendee/organizer meeting itu atau kartu
+  master. SHA-256 `be42fd3599658724db41ddb16f82c12bde90f29d914f6c023c6dcaa49ac98c96`, 21.531.173 byte.
+
+- 2026-11-09: naik 1.6.0 (versionCode 29)—build tag `1.6.0-29-6fab162`.
+  Face unlock di tablet: tombol wajah, overlay scan, modul kamera native, dan
+  aksi check-in/extend/booking lewat wajah dengan kartu sebagai cadangan.
+  Dibangun di atas 1.5.1 (28), jadi perbaikan updater sudah terbawa; isi
+  rilis ini murni fitur face unlock. Paket distribusi 21544396 byte, SHA-256
+  `b60e1801741b06d8123e34ca27bd924449907fd07c5f90516e0b5e07e27ed228`.

@@ -129,12 +129,12 @@ Alur default setiap bump versi (wajib, bukan opsional):
   memberikannya ke `admin`. Dua tab baru: template terdaftar dan log
   verifikasi, dengan nama karyawan di-resolve dari `tbl_users` di app_booking.
 - Enroll/hapus wajah dari CMS ditunda ke fase berikutnya.
-- `package.json` 3.15.17; APK kiosk naik ke **1.6.2 (30)** di repo `kioskapp` (build `76f1d02`)
-  karena 1.5.0 (27) sudah ditebar di UAT, sekaligus memperbaiki tombol update
-  (modul native salah), membaca ulang manifest sebelum unduh, dan menambah
-  timeout, penjaga tap ganda, serta alasan gagal yang lebih jelas.
-  `public/apk/` sudah memuat paket ini; distribusi tetap menunggu keputusan
-  memakai face service di UAT.
+- `package.json` 3.15.17; APK kiosk dirilis bertahap di repo `kioskapp`:
+  **1.5.1 (28)** build `a1682e3` di `main` memperbaiki jalur update (modul
+  native yang benar, manifest dibaca ulang, timeout, penjaga tap ganda, alasan
+  gagal), lalu **1.6.0 (29)** build `6fab162` di atasnya berisi murni fitur
+  face unlock. UAT masih di 1.5.0 (27); build internal 1.6.0 (28) dan 1.6.1/2
+  (29/30) tidak pernah ditebar. `public/apk/` memuat paket 1.6.0 (29).
 - Verifikasi: `npm run verify` (format, build, client, unit) dan
   `docker-compose config --services` tanpa/dengan `--profile face`.
 
