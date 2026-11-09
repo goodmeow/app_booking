@@ -36,7 +36,7 @@ INSERT INTO tbl_role_menu_access (role_id, menu_key, allowed)
 SELECT r._id, m.menu_key,
        lower(r.role_name) IN ('super_admin', 'admin') OR m.menu_key = 'calendar'
 FROM tbl_role r
-CROSS JOIN (VALUES ('calendar'), ('report'), ('users'), ('rooms'), ('devices'), ('settings')) AS m(menu_key);
+CROSS JOIN (VALUES ('calendar'), ('report'), ('users'), ('rooms'), ('devices'), ('face'), ('settings')) AS m(menu_key);
 
 INSERT INTO tbl_users
   (_id, name, email, password, role_id, employee_id, is_deleted, type)
