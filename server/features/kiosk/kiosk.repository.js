@@ -335,27 +335,33 @@ export const findEmployeeByCard = async (cardNumber) =>
 // actions do not depend on the person owning a card.
 export const findEmployeeByUserId = async (userId) => {
   if (!isUuid(userId)) return null;
-  return (await query(
-    `SELECT u._id, u.name, u.email, u.employee_id, u.floor, u.floors
+  return (
+    (
+      await query(
+        `SELECT u._id, u.name, u.email, u.employee_id, u.floor, u.floors
      FROM tbl_users u
      WHERE u._id = $1
        AND u.type = 'employee'
        AND u.is_deleted IS NOT TRUE
      LIMIT 1`,
-    [userId]
-  )).rows[0] || null;
+        [userId],
+      )
+    ).rows[0] || null
+  );
 };
 
 export const findEmployeesByEmployeeIds = async (employeeIds) => {
   if (!Array.isArray(employeeIds) || !employeeIds.length) return [];
-  return (await query(
-    `SELECT u._id, u.name, u.email, u.employee_id, u.floor, u.floors
+  return (
+    await query(
+      `SELECT u._id, u.name, u.email, u.employee_id, u.floor, u.floors
      FROM tbl_users u
      WHERE u.employee_id = ANY($1::varchar[])
        AND u.type = 'employee'
        AND u.is_deleted IS NOT TRUE`,
-    [employeeIds.map(String)]
-  )).rows;
+      [employeeIds.map(String)],
+    )
+  ).rows;
 };
 
 // Same as findKioskEventActionContext, but the caller already holds the person
@@ -363,8 +369,10 @@ export const findEmployeesByEmployeeIds = async (employeeIds) => {
 // organizer or attendee of the meeting.
 export const findKioskEventActionContextByUser = async ({ eventId, roomId, userId, lock = true }, execute = query) => {
   if (!isUuid(eventId) || !isUuid(userId)) return null;
-  return (await execute(
-    `SELECT
+  return (
+    (
+      await execute(
+        `SELECT
        e._id,
        e.start_date AT TIME ZONE e.timezone AS start_at,
        e.end_date AT TIME ZONE e.timezone AS end_at,
@@ -390,17 +398,22 @@ export const findKioskEventActionContextByUser = async ({ eventId, roomId, userI
      WHERE e._id = $1 AND e.is_cancel IS NOT TRUE
      LIMIT 1
      ${lock ? "FOR UPDATE OF e" : ""}`,
-    [eventId, roomId, userId]
-  )).rows[0] || null;
+        [eventId, roomId, userId],
+      )
+    ).rows[0] || null
+  );
 };
 
 // The face verify log gets one row per scan, so it needs the same retention as
 // the audit log or it grows forever.
-export const deleteExpiredFaceVerifyLog = async (days) => (await query(
-  `DELETE FROM tbl_face_verify_log
+export const deleteExpiredFaceVerifyLog = async (days) =>
+  (
+    await query(
+      `DELETE FROM tbl_face_verify_log
    WHERE created_at < now() - make_interval(days => $1)`,
-  [Math.max(1, Number(days) || 365)]
-)).rowCount;
+      [Math.max(1, Number(days) || 365)],
+    )
+  ).rowCount;
 
 export const findKioskRoomEvent = async ({ eventId, roomId }, execute = query) =>
   (
@@ -431,8 +444,9 @@ export const findKioskRoomEvent = async ({ eventId, roomId }, execute = query) =
 // doc): whichever account actually has a booking here is the one that counts.
 export const findFaceRoomBookings = async ({ roomId, employeeIds }, execute = query) => {
   if (!isUuid(roomId) || !Array.isArray(employeeIds) || !employeeIds.length) return [];
-  return (await execute(
-    `SELECT
+  return (
+    await execute(
+      `SELECT
        e._id AS event_id,
        e.start_date AT TIME ZONE e.timezone AS start_at,
        e.end_date AT TIME ZONE e.timezone AS end_at,
@@ -462,8 +476,9 @@ export const findFaceRoomBookings = async ({ roomId, employeeIds }, execute = qu
              AND attendee.is_deleted IS NOT TRUE
          )
        )`,
-    [roomId, employeeIds.map(String)]
-  )).rows;
+      [roomId, employeeIds.map(String)],
+    )
+  ).rows;
 };
 
 export const extendKioskRoomEvent = async ({ eventId, endAt }, execute = query) =>

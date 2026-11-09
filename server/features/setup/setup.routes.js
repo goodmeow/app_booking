@@ -7,15 +7,7 @@ const router = express.Router();
 // Public bootstrap routes: the first admin has no account yet, so neither route
 // can require a token. The limits are light for the status probe and strict for
 // the one-time account creation.
-router.get(
-  "/status",
-  fixedWindowRateLimit({ scope: "setup:status", windowMs: 15 * 60_000, max: 60 }),
-  status
-);
-router.post(
-  "/",
-  fixedWindowRateLimit({ scope: "setup:claim", windowMs: 60 * 60_000, max: 5 }),
-  create
-);
+router.get("/status", fixedWindowRateLimit({ scope: "setup:status", windowMs: 15 * 60_000, max: 60 }), status);
+router.post("/", fixedWindowRateLimit({ scope: "setup:claim", windowMs: 60 * 60_000, max: 5 }), create);
 
 export default router;

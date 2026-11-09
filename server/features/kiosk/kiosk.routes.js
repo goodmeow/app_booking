@@ -27,7 +27,12 @@ const router = express.Router();
 // Per-action limits: routine kiosk actions are generous, creating a booking is tighter.
 // Every action gets its own scope so two actions never share one shared bucket.
 const kioskLimit = (action, max) => fixedWindowRateLimit({ scope: `kiosk:${action}`, windowMs: SHORT_WINDOW_MS, max });
-const refreshLimit = fixedWindowRateLimit({ scope: "kiosk:refresh", windowMs: SHORT_WINDOW_MS, max: 60, skipSuccessfulRequests: true });
+const refreshLimit = fixedWindowRateLimit({
+  scope: "kiosk:refresh",
+  windowMs: SHORT_WINDOW_MS,
+  max: 60,
+  skipSuccessfulRequests: true,
+});
 router.post("/auth", ...failedLoginRateLimits({ scope: "kiosk:auth" }), signin);
 router.post("/refresh", refreshLimit, refresh);
 router.get("/devices", requireSignin, menuAccess("devices"), devices);

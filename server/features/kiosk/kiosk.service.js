@@ -343,9 +343,7 @@ export const faceUnlockKiosk = async ({ frames }, room) => {
     .map((candidate) => candidate?.employee_id)
     .filter((value) => typeof value === "string" && value.trim());
 
-  const bookings = employeeIds.length
-    ? await findFaceRoomBookings({ roomId: room._id, employeeIds })
-    : [];
+  const bookings = employeeIds.length ? await findFaceRoomBookings({ roomId: room._id, employeeIds }) : [];
 
   // The face service's check-in window is the same one the card path uses, but
   // entry stays valid for the whole booking (not just the attendance band), so a
@@ -539,10 +537,18 @@ const assertKioskFloor = (employee, room) => {
   const employeeFloors = effectiveFloors(employee);
   const roomFloor = String(room.floor || "").trim();
   if (!employeeFloors.length) {
-    throw new HttpError(403, "FLOOR_REQUIRED", "This account is not linked to a work floor. Ask an admin to set it in Management > Users.");
+    throw new HttpError(
+      403,
+      "FLOOR_REQUIRED",
+      "This account is not linked to a work floor. Ask an admin to set it in Management > Users.",
+    );
   }
   if (!coversAllFloors(employee) && !coversFloor(employee, roomFloor)) {
-    throw new HttpError(403, "FLOOR_RESTRICTED", `This account is registered on floor ${employeeFloors.join(", ")}, but this room is on floor ${roomFloor}.`);
+    throw new HttpError(
+      403,
+      "FLOOR_RESTRICTED",
+      `This account is registered on floor ${employeeFloors.join(", ")}, but this room is on floor ${roomFloor}.`,
+    );
   }
   return employee;
 };
@@ -821,17 +827,22 @@ export const faceActionKiosk = async (input, room) => {
       if (!owner) {
         throw forbidden("This person is not authorized for this meeting");
       }
-      const outcome = action === "checkin"
-        ? await checkInWithIdentity({ eventId: input?.event_id, userId: owner._id }, room)
-        : await extendWithIdentity({ eventId: input?.event_id, userId: owner._id, minutes: input?.minutes }, room);
+      const outcome =
+        action === "checkin"
+          ? await checkInWithIdentity({ eventId: input?.event_id, userId: owner._id }, room)
+          : await extendWithIdentity({ eventId: input?.event_id, userId: owner._id, minutes: input?.minutes }, room);
       return { recognized: true, allowed: true, action, employeeId: owner.employee_id, result: outcome };
     }
 
     // Instant/scheduled booking: prefer the account whose floors cover the room.
     const owner = users.find((user) => coversAllFloors(user) || coversFloor(user, room.floor)) || users[0];
-    const outcome = action === "instant"
-      ? await instantWithIdentity({ userId: owner._id, minutes: input?.minutes, untilNextRequested: input?.until_next }, room)
-      : await bookWithIdentity({ userId: owner._id, start: input?.start, end: input?.end }, room);
+    const outcome =
+      action === "instant"
+        ? await instantWithIdentity(
+            { userId: owner._id, minutes: input?.minutes, untilNextRequested: input?.until_next },
+            room,
+          )
+        : await bookWithIdentity({ userId: owner._id, start: input?.start, end: input?.end }, room);
     return { recognized: true, allowed: true, action, employeeId: owner.employee_id, result: outcome };
   } catch (error) {
     if (error instanceof HttpError) {

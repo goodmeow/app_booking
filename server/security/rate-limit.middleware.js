@@ -17,7 +17,10 @@ const clientAddress = (req) => req.ip || req.socket?.remoteAddress || "unknown";
 // that shares an IP or proxy is not locked out by other people's attempts.
 export const ipAndLoginKey = (req) => {
   const body = req.body && typeof req.body === "object" ? req.body : {};
-  const login = String(body.email || body.username || "").trim().toLowerCase().slice(0, 254);
+  const login = String(body.email || body.username || "")
+    .trim()
+    .toLowerCase()
+    .slice(0, 254);
   return `${clientAddress(req)}|${login}`;
 };
 
@@ -33,9 +36,7 @@ export const createMemoryStore = () => {
       const current = buckets.get(bucketKey);
       if (!current && buckets.size >= maxBuckets) buckets.delete(buckets.keys().next().value);
 
-      const entry = !current || current.windowStart < windowStart
-        ? { windowStart, count: 0 }
-        : current;
+      const entry = !current || current.windowStart < windowStart ? { windowStart, count: 0 } : current;
       entry.count += 1;
       buckets.set(bucketKey, entry);
 
@@ -191,6 +192,13 @@ export const failedLoginRateLimits = ({
 
   return [
     fixedWindowRateLimit({ scope: `${scope}:address`, windowMs, max: perAddress, skipSuccessfulRequests: true, store }),
-    fixedWindowRateLimit({ scope: `${scope}:account`, windowMs, max: perAccount, keyGenerator: ipAndLoginKey, skipSuccessfulRequests: true, store }),
+    fixedWindowRateLimit({
+      scope: `${scope}:account`,
+      windowMs,
+      max: perAccount,
+      keyGenerator: ipAndLoginKey,
+      skipSuccessfulRequests: true,
+      store,
+    }),
   ];
 };
