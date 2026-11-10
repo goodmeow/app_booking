@@ -176,5 +176,7 @@ sebelum membuka installer.
 - `webview-138.0.7204.179-armeabi-v7a.apk` — Android System WebView untuk
   tablet Android 8–9 (minAPI26–28, armeabi-v7a), dipakai bila WebView bawaan
   terlalu tua untuk halaman kiosk.
-  URL: `/apk/webview-138.0.7204.179-armeabi-v7a.apk`, 91.400.472 byte,
+  URL: `/apk/assets/webview-138.0.7204.179-armeabi-v7a.apk`, 91.400.472 byte.
+  Berkas ini **tidak ada di git** — letakkan di folder `apk-assets/` (di samping
+  `public/`) sebelum image web dibangun; compose memasangnya ke `/apk/assets/`.
   SHA-256 `15f741c07055676c189f220e39d8c6708573f2f8c4453f87caf783bca7a63945`.
