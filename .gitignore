@@ -27,3 +27,9 @@ build/
 # Private reconstruction references may contain credentials, internal IPs,
 # email addresses, card numbers, and infrastructure details.
 docs/reference/private/
+
+# Generated client build output; only the legacy server bundle is baseline.
+dist/client/
+
+# Large APKs are served from the host, not from git.
+apk-assets/

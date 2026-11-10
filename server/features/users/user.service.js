@@ -328,7 +328,7 @@ const assertAssignableRole = async (roleId, principal, execute = undefined) => {
   return roleName;
 };
 
-export const createUser = async (body, principal) => {
+export const createUser = async (body, principal, { execute: providedExecute } = {}) => {
   const values = cleanIdentity(body);
   if (!values.name || !values.email || !body.password || !body.roleId)
     throw badRequest("INVALID_USER", "Name, email, password, and role are required");
@@ -342,8 +342,12 @@ export const createUser = async (body, principal) => {
   const floor = floors.includes("all") ? "all" : floors[0] || null;
   const passwordHash = await bcrypt.hash(validatedPassword(body.password), 12);
   try {
-    const created = await withTransaction(async (client) => {
-      const execute = (text, params) => client.query(text, params);
+    // Callers that already hold a transaction (the CSV import) pass their
+    // execute so the row is written in the same unit of work.
+    const run = providedExecute
+      ? (callback) => callback(providedExecute)
+      : (callback) => withTransaction((client) => callback((text, params) => client.query(text, params)));
+    const created = await run(async (execute) => {
       const user = await insertAccount(
         {
           ...values,

@@ -51,24 +51,28 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 );
 SQL
 
-for migration_path in "$MIGRATIONS_DIR"/*.sql; do
-  [ -f "$migration_path" ] || continue
-  migration_name="$(basename "$migration_path")"
+# All migrations run in one psql session under one advisory lock, so two
+# containers starting against the same database cannot both apply the same
+# file. The lock is held on this connection for the whole script.
+migration_sql="$(mktemp)"
+trap 'rm -f "$migration_sql"' EXIT
 
-  already_applied="$(psql_run --tuples-only --no-align \
-    --command "SELECT 1 FROM schema_migrations WHERE filename = '$migration_name'")"
+{
+  printf "SELECT pg_advisory_lock(hashtext('schema_migrations'));\n"
+  for migration_path in "$MIGRATIONS_DIR"/*.sql; do
+    [ -f "$migration_path" ] || continue
+    migration_name="$(basename "$migration_path")"
+    printf "SELECT EXISTS (SELECT 1 FROM schema_migrations WHERE filename = '%s') AS applied \\gset\n" "$migration_name"
+    printf '%s\n' '\if :applied'
+    printf '%s\n' '\else'
+    printf '%s\n' "\\i $migration_path"
+    printf "INSERT INTO schema_migrations (filename) VALUES ('%s');\n" "$migration_name"
+    printf '%s\n' '\endif'
+  done
+  printf "SELECT pg_advisory_unlock(hashtext('schema_migrations'));\n"
+} > "$migration_sql"
 
-  if [ "$already_applied" = "1" ]; then
-    log "migration $migration_name already applied"
-    continue
-  fi
-
-  log "applying migration $migration_name"
-  psql_run --file "$migration_path" >/dev/null
-
-  psql_run --command \
-    "INSERT INTO schema_migrations (filename) VALUES ('$migration_name')" >/dev/null
-done
+psql_run --file "$migration_sql" >/dev/null
 
 log "seeding fixed role ids"
 psql_run >/dev/null <<'SQL'

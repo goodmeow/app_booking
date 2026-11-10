@@ -26,14 +26,26 @@ export const writeAudit = async (
   );
 };
 
-export const deleteExpiredAudit = async (retentionDays = 365) =>
-  (
-    await query(
+// Deletes in batches so a large backlog does not become one huge transaction
+// that locks the table and bloats WAL.
+export const deleteExpiredAudit = async (retentionDays = 365, batchSize = 5000) => {
+  let deleted = 0;
+  for (;;) {
+    const result = await query(
       `DELETE FROM tbl_audit_log
-   WHERE created_at < now() - make_interval(days => $1::int)`,
-      [retentionDays],
-    )
-  ).rowCount;
+   WHERE ctid IN (
+     SELECT ctid
+     FROM tbl_audit_log
+     WHERE created_at < now() - make_interval(days => $1)
+     LIMIT $2
+   )`,
+      [retentionDays, batchSize],
+    );
+    deleted += result.rowCount;
+    if (result.rowCount < batchSize) break;
+  }
+  return deleted;
+};
 
 export const listAudit = async ({ limit = 100, entityType = null, entityId = null } = {}) =>
   (

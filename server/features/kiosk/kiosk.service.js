@@ -31,6 +31,21 @@ import {
   updateKioskDeviceCapabilities,
 } from "./kiosk.repository.js";
 
+// Tablets poll every few seconds; writing last_seen on every poll would be a
+// write per poll for no new information. One write per device per minute is
+// enough for the device inventory and the online indicator.
+const LAST_SEEN_WRITE_MS = 60_000;
+const lastSeenWrites = new Map();
+
+const shouldRecordLastSeen = (deviceId) => {
+  const last = lastSeenWrites.get(deviceId);
+  if (last === undefined || Date.now() - last >= LAST_SEEN_WRITE_MS) {
+    lastSeenWrites.set(deviceId, Date.now());
+    return true;
+  }
+  return false;
+};
+
 export const publicKioskRoom = (room) => ({
   _id: room._id,
   name: room.name,
@@ -214,7 +229,7 @@ export const verifyKioskToken = async (token) => {
     throw new HttpError(401, "INACTIVE_KIOSK_DEVICE", "Kiosk authentication required");
   }
   try {
-    await touchKioskDevice(device.device_id);
+    if (shouldRecordLastSeen(device.device_id)) await touchKioskDevice(device.device_id);
     device.last_seen_at = new Date();
   } catch {
     // A failure to record last-seen must not block the kiosk.

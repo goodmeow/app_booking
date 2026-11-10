@@ -1,6 +1,5 @@
 import { query, withTransaction } from "../../db/pool.js";
 import { badRequest, conflict, forbidden } from "../../lib/http-error.js";
-import { findEmployeeByEmployeeId } from "../accounts/account.repository.js";
 import { createUser, editUser } from "./user.service.js";
 import { isAdminRole } from "../../lib/roles.js";
 
@@ -39,6 +38,18 @@ const roleMap = async () => {
   return new Map(rows.rows.map((row) => [row.name, row._id]));
 };
 
+// One query for the whole file instead of one lookup per row.
+const existingEmployees = async () => {
+  const rows = await query(
+    `SELECT _id, lower(btrim(employee_id)) AS key, role_id
+     FROM tbl_users
+     WHERE type = 'employee'
+       AND is_deleted IS NOT TRUE
+       AND coalesce(btrim(employee_id), '') <> ''`,
+  );
+  return new Map(rows.rows.map((row) => [row.key, row]));
+};
+
 const text = (value) => String(value ?? "").trim();
 
 export const importUsers = async ({ rows, mode = "skip" }, principal) => {
@@ -48,83 +59,92 @@ export const importUsers = async ({ rows, mode = "skip" }, principal) => {
   if (!["skip", "overwrite"].includes(mode)) throw badRequest("INVALID_IMPORT", "Mode must be skip or overwrite");
 
   const roles = await roleMap();
+  const existing = await existingEmployees();
   const seen = new Set();
   const result = { created: 0, updated: 0, skipped: 0, failed: 0, errors: [] };
 
-  for (let index = 0; index < rows.length; index += 1) {
-    const row = rows[index] || {};
-    const rowNumber = index + 2;
-    const employeeId = text(row.employee_id);
-    try {
-      const key = employeeId.toLowerCase();
-      if (!key) throw badRequest("INVALID_EMPLOYEE_ID", "employee_id is required");
-      if (seen.has(key)) throw badRequest("DUPLICATE_EMPLOYEE_ID", "employee_id appears more than once in the file");
-      seen.add(key);
+  // The whole file is one unit of work, but a bad row must not discard the
+  // good ones: each row runs in its own savepoint.
+  await withTransaction(async (client) => {
+    const execute = (text, params) => client.query(text, params);
 
-      const name = text(row.name);
-      const email = text(row.email);
-      if (!name || !email) throw badRequest("INVALID_USER", "name and email are required");
-      // A missing floor column means "leave the current floor alone"; an empty
-      // cell in an existing floor column means "clear the floor".
-      const floor = Object.hasOwn(row, "floor") ? text(row.floor) : undefined;
+    for (let index = 0; index < rows.length; index += 1) {
+      const row = rows[index] || {};
+      const rowNumber = index + 2;
+      const employeeId = text(row.employee_id);
 
-      const existing = await findEmployeeByEmployeeId(employeeId);
-      const requestedRole = text(row.role).toLowerCase();
-      const roleId = requestedRole ? roles.get(requestedRole) : existing?.role_id || roles.get("user");
-      if (!roleId) throw badRequest("INVALID_ROLE", `Unknown role: ${row.role}`);
+      await execute("SAVEPOINT import_row");
+      try {
+        const key = employeeId.toLowerCase();
+        if (!key) throw badRequest("INVALID_EMPLOYEE_ID", "employee_id is required");
+        if (seen.has(key)) throw badRequest("DUPLICATE_EMPLOYEE_ID", "employee_id appears more than once in the file");
+        seen.add(key);
 
-      if (existing) {
-        if (mode !== "overwrite") {
-          result.skipped += 1;
-          continue;
-        }
-        await withTransaction(async (client) => {
-          const execute = (text, params) => client.query(text, params);
-          const adminRoleId = roles.get("admin");
-          if (existing.role_id === adminRoleId && roleId !== adminRoleId) {
-            await refuseLastAdminDemotion(execute, adminRoleId);
+        const name = text(row.name);
+        const email = text(row.email);
+        if (!name || !email) throw badRequest("INVALID_USER", "name and email are required");
+        // A missing floor column means "leave the current floor alone"; an empty
+        // cell in an existing floor column means "clear the floor".
+        const floor = Object.hasOwn(row, "floor") ? text(row.floor) : undefined;
+
+        const existingRow = existing.get(key) || null;
+        const requestedRole = text(row.role).toLowerCase();
+        const roleId = requestedRole ? roles.get(requestedRole) : existingRow?.role_id || roles.get("user");
+        if (!roleId) throw badRequest("INVALID_ROLE", `Unknown role: ${row.role}`);
+
+        if (existingRow) {
+          if (mode !== "overwrite") {
+            result.skipped += 1;
+          } else {
+            const adminRoleId = roles.get("admin");
+            if (existingRow.role_id === adminRoleId && roleId !== adminRoleId) {
+              await refuseLastAdminDemotion(execute, adminRoleId);
+            }
+            await editUser(
+              existingRow._id,
+              {
+                name,
+                email,
+                employee_id: employeeId,
+                roleId,
+                ...(floor !== undefined ? { floor } : {}),
+                ...(text(row.card_number) ? { card_number: text(row.card_number) } : {}),
+              },
+              principal,
+              { execute },
+            );
+            result.updated += 1;
           }
-          await editUser(
-            existing._id,
+        } else {
+          await createUser(
             {
               name,
               email,
               employee_id: employeeId,
               roleId,
               ...(floor !== undefined ? { floor } : {}),
+              password: DEFAULT_PASSWORD,
+              must_change_password: true,
               ...(text(row.card_number) ? { card_number: text(row.card_number) } : {}),
             },
             principal,
             { execute },
           );
+          result.created += 1;
+        }
+        await execute("RELEASE SAVEPOINT import_row");
+      } catch (error) {
+        await execute("ROLLBACK TO SAVEPOINT import_row");
+        result.failed += 1;
+        result.errors.push({
+          row: rowNumber,
+          employee_id: employeeId,
+          code: error.code || "IMPORT_ROW_FAILED",
+          message: error.message || "Import failed",
         });
-        result.updated += 1;
-      } else {
-        await createUser(
-          {
-            name,
-            email,
-            employee_id: employeeId,
-            roleId,
-            ...(floor !== undefined ? { floor } : {}),
-            password: DEFAULT_PASSWORD,
-            must_change_password: true,
-            ...(text(row.card_number) ? { card_number: text(row.card_number) } : {}),
-          },
-          principal,
-        );
-        result.created += 1;
       }
-    } catch (error) {
-      result.failed += 1;
-      result.errors.push({
-        row: rowNumber,
-        employee_id: employeeId,
-        code: error.code || "IMPORT_ROW_FAILED",
-        message: error.message || "Import failed",
-      });
     }
-  }
+  });
 
   return result;
 };

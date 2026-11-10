@@ -93,6 +93,9 @@ services:
         condition: service_healthy
     ports:
       - "8082:80"
+    volumes:
+      # Large APKs live outside git; nginx serves them from this folder.
+      - ../../apk-assets:/usr/share/nginx/html/apk/assets:ro
     healthcheck:
       test:
         - CMD-SHELL
