@@ -5,8 +5,8 @@ import { failedLoginRateLimits, fixedWindowRateLimit } from "../../security/rate
 
 const router = express.Router();
 
-router.post("/signin", ...failedLoginRateLimits(), signin);
-router.post("/signup", fixedWindowRateLimit({ windowMs: 60 * 60_000, max: 5 }), signup);
+router.post("/signin", ...failedLoginRateLimits({ scope: "auth:signin" }), signin);
+router.post("/signup", fixedWindowRateLimit({ scope: "auth:signup", windowMs: 60 * 60_000, max: 5 }), signup);
 router.get("/signout", signout);
 
 export const doorRoute = [requireSignin, doorOpen];
