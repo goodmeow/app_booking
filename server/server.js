@@ -13,7 +13,7 @@ import { emitEventInvalidation } from "./socket/event-invalidation.js";
 import { log } from "./observability/logger.js";
 
 validateRuntimeConfig();
-const port = config.ssrMode ? config.port : config.serverPort;
+const port = config.serverPort;
 const server = createHttpServer(app, config);
 
 const io = new Server(server, {
@@ -44,7 +44,7 @@ app.use((err, req, res, next) => {
 });
 
 server.listen(port, () => {
-  log("info", "server_started", { operation: config.ssrMode ? "client_server" : "server" });
+  log("info", "server_started", { operation: "server" });
 });
 
 // Release rooms of meetings that were not checked in by the late limit.

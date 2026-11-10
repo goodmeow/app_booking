@@ -23,7 +23,6 @@ const corsOrigins = (env.CORS_ORIGINS || baseUrl || "http://localhost:3000")
   .filter(Boolean);
 
 const config = {
-  ssrMode: env.SSR === "true",
   port: clientPort,
   serverPort,
   isHttps: env.HTTPS === "true",
