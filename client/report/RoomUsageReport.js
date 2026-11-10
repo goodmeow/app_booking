@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Alert, Button, Card, DatePicker, Space, Table, Typography } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import ExcelJS from "exceljs/dist/exceljs.min.js";
 import { useTranslation } from "react-i18next";
 import { EmptyState, ErrorState, LoadingState } from "../components/common/AsyncState.js";
 import { currentMonthRange, formatDateDDMMMYYYY, formatDateYYYYMMDD, isValidDateRange } from "../domain/dates.js";
@@ -33,6 +32,7 @@ const RoomUsageReport = () => {
   const exportReport = async () => {
     setExportError("");
     try {
+      const { default: ExcelJS } = await import("exceljs/dist/exceljs.min.js");
       const { workbook, filename } = buildRoomUsageWorkbook(ExcelJS, rooms, start, end, language);
       const buffer = await workbook.xlsx.writeBuffer();
       const url = URL.createObjectURL(
