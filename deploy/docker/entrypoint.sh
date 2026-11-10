@@ -63,11 +63,11 @@ trap 'rm -f "$migration_sql"' EXIT
     [ -f "$migration_path" ] || continue
     migration_name="$(basename "$migration_path")"
     printf "SELECT EXISTS (SELECT 1 FROM schema_migrations WHERE filename = '%s') AS applied \\gset\n" "$migration_name"
-    printf "\\if :applied\n"
-    printf "\\else\n"
-    printf "\\i %s\n" "$migration_path"
+    printf '%s\n' '\if :applied'
+    printf '%s\n' '\else'
+    printf '%s\n' "\\i $migration_path"
     printf "INSERT INTO schema_migrations (filename) VALUES ('%s');\n" "$migration_name"
-    printf "\\endif\n"
+    printf '%s\n' '\endif'
   done
   printf "SELECT pg_advisory_unlock(hashtext('schema_migrations'));\n"
 } > "$migration_sql"
