@@ -180,3 +180,8 @@ sebelum membuka installer.
   Berkas ini **tidak ada di git** — letakkan di folder `apk-assets/` (di samping
   `public/`) sebelum image web dibangun; compose memasangnya ke `/apk/assets/`.
   SHA-256 `15f741c07055676c189f220e39d8c6708573f2f8c4453f87caf783bca7a63945`.
+
+- 2026-11-11: naik 1.5.2 (versionCode 29)—build tag `1.5.2-29-1d36ebf`.
+  Satu siklus polling gagal tidak lagi langsung OFFLINE: status terakhir
+  dipertahankan, retry 5 detik, OFFLINE setelah 3 siklus gagal, dan request
+  dibatalkan setelah 10 detik. Paket distribusi 21531919 byte, SHA-256 `7de03884aa68a03bff4e52b198b5b9fe635ab74ffad6e982d6875bebf1f3ef77`.

@@ -1,8 +1,8 @@
 {
-  "versionCode": 28,
-  "versionName": "1.5.1",
+  "versionCode": 29,
+  "versionName": "1.5.2",
   "url": "/apk/kiosk-release.apk",
-  "sha256": "249fc9c03bbb9900ae69ca3f4d5c1311febbdaa1674330a20857c7bc1571b811",
+  "sha256": "7de03884aa68a03bff4e52b198b5b9fe635ab74ffad6e982d6875bebf1f3ef77",
   "mandatory": false,
-  "notes": "Perbaikan tombol update: APK diunduh lewat modul yang benar, manifest dibaca ulang sebelum unduh, cek SHA-256 + signature, timeout 15 detik, dan pesan gagal yang jelas."
+  "notes": "Tablet tidak lagi OFFLINE karena gangguan jaringan sebentar: status terakhir dipertahankan, retry 5 detik, dan request dibatasi 10 detik."
 }
