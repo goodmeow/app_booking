@@ -91,6 +91,13 @@ Alur default setiap bump versi (wajib, bukan opsional):
   sempit dan memanjang. `package.json` 3.15.16; APK tetap 1.5.0 (27).
 - Verifikasi: cek visual UAT lokal dengan enam event tumpang tindih → 3 event +
   `+3`; data uji dihapus lagi.
+- Patch APK **1.5.2 (29)** (2026-11-11): satu siklus polling gagal tidak lagi
+  langsung menampilkan OFFLINE. Status ruangan terakhir dipertahankan, retry
+  5 detik, OFFLINE setelah 3 siklus gagal, dan request dibatalkan setelah
+  10 detik. `package.json` tetap 3.15.16. Paket ditebar di UAT, SHA-256
+  `7de03884aa68a03bff4e52b198b5b9fe635ab74ffad6e982d6875bebf1f3ef77`.
+  Build face internal 1.6.0 (29) tidak pernah ditebar; rilis face berikutnya
+  wajib **1.6.1 (30)** karena 29 sudah dipakai 1.5.2.
 
 ### Ver 3 Rev 31 - 2026-11-05 (rilis sebelumnya)
 - **Halaman login mengikuti aturan navbar**: bila aset custom belum lengkap
